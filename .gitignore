@@ -1,0 +1,31 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+secrets/
+API/*
+!API/.gitignore
+
+# Local source documents and generated media are not part of the code repo.
+Base/*.pdf
+Base/**/*.pdf
+
+# Generated local data should be created by later stages deliberately.
+data/assets/
+data/db/
+data/**/*.sqlite
+data/**/*.sqlite3
+data/**/*.db
+data/cache/
+data/exports/
+data/tmp/
+data/tmp_*.log
+tmp/
+logs/

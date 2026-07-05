@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>试卷系统</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif;
+      background: #f4f6f8;
+      color: #152033;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f4f6f8; }
+    main { max-width: 1180px; margin: 0 auto; padding: 28px 22px 42px; }
+    header { display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; margin-bottom: 18px; }
+    h1 { margin: 0 0 8px; font-size: 28px; letter-spacing: 0; }
+    h2 { margin: 0 0 12px; font-size: 18px; }
+    p { margin: 0; line-height: 1.7; }
+    .muted { color: #5b6678; font-size: 14px; }
+    .status {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 13px;
+      color: #475569;
+      white-space: nowrap;
+    }
+    .grid { display: grid; grid-template-columns: minmax(260px, 340px) minmax(0, 1fr); gap: 18px; align-items: start; }
+    section { background: #ffffff; border: 1px solid #dbe3ec; border-radius: 8px; padding: 18px; }
+    label { display: block; font-size: 13px; color: #475569; margin-bottom: 6px; }
+    input { width: 100%; border: 1px solid #c8d3df; border-radius: 6px; padding: 9px 10px; font: inherit; color: #152033; background: #ffffff; }
+    .buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    a.button, button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 36px;
+      border: 1px solid #c8d3df;
+      border-radius: 6px;
+      padding: 8px 11px;
+      background: #ffffff;
+      color: #174ea6;
+      font: inherit;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    a.primary, button.primary { background: #162033; border-color: #162033; color: #ffffff; }
+    .links { display: grid; gap: 8px; margin-top: 12px; }
+    .link-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 9px 10px;
+      background: #fbfcfe;
+    }
+    .link-row a { color: #174ea6; font-weight: 600; }
+    .link-row span { color: #5b6678; font-size: 13px; text-align: right; }
+    code, pre { font-family: Consolas, "Courier New", monospace; font-size: 13px; }
+    pre {
+      white-space: pre-wrap;
+      border: 1px solid #dbe3ec;
+      background: #f8fafc;
+      border-radius: 6px;
+      padding: 12px;
+      margin: 10px 0 0;
+    }
+    .frame-wrap { min-height: 680px; display: grid; grid-template-rows: auto 1fr; gap: 10px; }
+    .frame-toolbar { display: flex; justify-content: space-between; gap: 10px; align-items: center; flex-wrap: wrap; }
+    iframe { width: 100%; height: 690px; border: 1px solid #cbd5e1; border-radius: 8px; background: #ffffff; }
+    .warning { border-left: 4px solid #b45309; background: #fff7ed; padding: 10px 12px; color: #7c2d12; margin-top: 12px; font-size: 14px; line-height: 1.6; }
+    @media (max-width: 900px) {
+      header { display: block; }
+      .status { margin-top: 12px; }
+      .grid { grid-template-columns: 1fr; }
+      iframe { height: 620px; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>试卷系统</h1>
+      <p class="muted">这个文件是本地 Flask 题库的固定入口。题库数据、来源归属、质量队列、组卷和导出都来自正在运行的本地服务。</p>
+    </div>
+    <div class="status">固定入口文件：D:\Test\试卷系统.html</div>
+  </header>
+
+  <div class="grid">
+    <section>
+      <h2>启动服务</h2>
+      <p class="muted">如果右侧无法加载，先在 PowerShell 的 D:\Test 下运行：</p>
+      <pre id="start-command">.\.venv\Scripts\python.exe -m flask --app app.web run --host 127.0.0.1 --port 5000</pre>
+      <div class="buttons">
+        <button type="button" id="copy-command">复制命令</button>
+        <a class="button" href="docs/stage14_quality_report.md">阶段 14 报告</a>
+        <a class="button" href="README.md">README</a>
+      </div>
+      <div class="warning">
+        如果页面缺少 Stage14 队列列或详情页缺少来源置信度，说明浏览器连接到旧 Flask 进程。请停止旧进程后重启服务，或把右侧服务地址临时改为当前验收端口。
+      </div>
+    </section>
+
+    <section>
+      <h2>连接设置</h2>
+      <label for="base-url">本地服务地址</label>
+      <input id="base-url" value="http://127.0.0.1:5000">
+      <div class="buttons">
+        <button class="primary" type="button" data-path="/questions?status=all&limit=100">题目列表</button>
+        <button type="button" data-path="/questions?status=all&stage14_queue=visual_repair&limit=20">视觉修复队列</button>
+        <button type="button" data-path="/structured-review?ai_status=all&stage14_queue=recut&limit=20">重切队列</button>
+        <button type="button" data-path="/paper-basket">组卷篮</button>
+      </div>
+      <div class="links">
+        <div class="link-row"><a id="health-link" href="#">Health</a><span>检查服务状态</span></div>
+        <div class="link-row"><a id="questions-link" href="#">全部题目</a><span>应显示来源标签与 Stage14 队列</span></div>
+        <div class="link-row"><a id="source-page-link" href="#">p1090 来源样例</a><span>exact 来源样例</span></div>
+        <div class="link-row"><a id="stage14-visual-link" href="#">Stage14 视觉修复</a><span>visual_repair 队列</span></div>
+        <div class="link-row"><a id="stage14-recut-link" href="#">Stage14 重切</a><span>recut 队列</span></div>
+        <div class="link-row"><a id="export-link" href="#">正式导出</a><span>只输出 export-ready 题</span></div>
+      </div>
+    </section>
+  </div>
+
+  <section class="frame-wrap" style="margin-top:18px;">
+    <div class="frame-toolbar">
+      <div>
+        <h2 style="margin-bottom:4px;">内嵌预览</h2>
+        <p class="muted">默认加载题目列表。若浏览器拦截内嵌页面，请使用“新窗口打开当前页”。</p>
+      </div>
+      <div class="buttons" style="margin-top:0;">
+        <a class="button primary" id="open-current" href="#" target="_blank" rel="noopener">新窗口打开当前页</a>
+        <button type="button" id="reload-frame">刷新预览</button>
+      </div>
+    </div>
+    <iframe id="app-frame" title="本地题库预览"></iframe>
+  </section>
+</main>
+
+<script>
+(function () {
+  var baseInput = document.getElementById("base-url");
+  var frame = document.getElementById("app-frame");
+  var openCurrent = document.getElementById("open-current");
+  var defaultPath = "/questions?status=all&limit=100";
+  var currentPath = defaultPath;
+
+  function normalizedBase() {
+    var value = (baseInput.value || "http://127.0.0.1:5000").trim();
+    return value.replace(/\/+$/, "");
+  }
+
+  function fullUrl(path) {
+    if (/^https?:\/\//i.test(path)) {
+      return path;
+    }
+    return normalizedBase() + path;
+  }
+
+  function updateLinks() {
+    document.getElementById("health-link").href = fullUrl("/health");
+    document.getElementById("questions-link").href = fullUrl("/questions?status=all&limit=100");
+    document.getElementById("source-page-link").href = fullUrl("/questions?status=all&page_range=p1090&limit=30");
+    document.getElementById("stage14-visual-link").href = fullUrl("/questions?status=all&stage14_queue=visual_repair&limit=30");
+    document.getElementById("stage14-recut-link").href = fullUrl("/structured-review?ai_status=all&stage14_queue=recut&limit=30");
+    document.getElementById("export-link").href = fullUrl("/paper-export");
+    openCurrent.href = fullUrl(currentPath);
+  }
+
+  function loadPath(path) {
+    currentPath = path;
+    updateLinks();
+    frame.src = fullUrl(path);
+  }
+
+  try {
+    var savedBase = localStorage.getItem("examBankBaseUrl");
+    if (savedBase) {
+      baseInput.value = savedBase;
+    }
+  } catch (error) {}
+
+  baseInput.addEventListener("change", function () {
+    try {
+      localStorage.setItem("examBankBaseUrl", normalizedBase());
+    } catch (error) {}
+    loadPath(currentPath);
+  });
+
+  document.querySelectorAll("[data-path]").forEach(function (button) {
+    button.addEventListener("click", function () {
+      loadPath(button.getAttribute("data-path"));
+    });
+  });
+
+  document.getElementById("reload-frame").addEventListener("click", function () {
+    loadPath(currentPath);
+  });
+
+  document.getElementById("copy-command").addEventListener("click", function () {
+    var text = document.getElementById("start-command").textContent;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text);
+    } else {
+      window.prompt("复制启动命令：", text);
+    }
+  });
+
+  updateLinks();
+  loadPath(defaultPath);
+})();
+</script>
+</body>
+</html>
