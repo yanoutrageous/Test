@@ -1,0 +1,42 @@
+{
+  "state_version": "1.0.1",
+  "plan_version": "1.0.1",
+  "updated_at": "2026-07-11T03:02:53+08:00",
+  "current_milestone": "PRE_M0",
+  "current_slice": "planning_publication",
+  "status": "PUSH_PENDING",
+  "implementation_status": "NOT_STARTED",
+  "project_root": "D:\\AAA命题\\Test",
+  "git": {
+    "branch": "agent/long-run-execution-spec",
+    "base_branch": "origin/main",
+    "base_commit": "3df22b3",
+    "remote": "https://github.com/yanoutrageous/Test.git",
+    "publication_status": "AUTHENTICATED_SCOPE_AUDITED_NOT_PUSHED"
+  },
+  "last_verified_checkpoint": null,
+  "active_job_id": null,
+  "active_writer": null,
+  "completed_actions": [
+    "read-only repository and reference-corpus review",
+    "long-horizon M0-M5 plan designed",
+    "GitHub CLI 2.96.0 installed under explicit one-time user authorization",
+    "planning branch created from origin/main",
+    "repository ignore guard hardened for local originals, backups, outputs, runtime state, models, fonts, and private path mappings",
+    "PRE-M0 planning package passed automated validation and independent read-only review",
+    "GitHub authentication, repository identity, permissions, remote branch absence, and local noreply commit identity verified"
+  ],
+  "not_started": [
+    "M0 implementation",
+    "database migration",
+    "question import",
+    "OCR or image processing",
+    "high-fidelity renderer implementation",
+    "blueprint solver implementation",
+    "formal export generation",
+    "backup activation or restore"
+  ],
+  "blockers": [],
+  "next_required_action": "Explicitly commit the audited .gitignore and tracked Task specification files while excluding Task/local, push agent/long-run-execution-spec, open a draft PR, record the remote evidence, then create or resume agent/m0-m5-local-v1 and begin the M0 entry audit.",
+  "resume_rule": "Read execution_contract.json and all normative Task documents, verify git and filesystem state against this file, then continue from next_required_action without repeating completed work."
+}
