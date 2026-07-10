@@ -24,6 +24,7 @@ output/
 evidence/
 Task/local/
 Task/state/writer.lock
+Task/state/events.jsonl
 
 # Generated local data should be created by later stages deliberately.
 data/assets/

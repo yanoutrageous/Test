@@ -4,9 +4,9 @@
 |---|---|---|---|---|---|---|
 | `M0-BASE-001` | 当前代码、环境、数据库和金标事实可复现 | R-004/R-006 | manifest 含哈希、版本、空库事实和限制 | `M0-BASE-T01` | `M0-entry-baseline.json` | PASS |
 | `M0-GIT-001` | 规划有安全远端恢复点 | R-033/R-034/R-035 | 显式范围、普通 push、Draft PR | PRE-M0 publish audit | PR #1 | PASS |
-| `M0-SAFE-001` | 所有写目标严格在授权 workspace | R-001/R-002 | 合法中文路径通过；全部越界路径零副作用拒绝 | `M0-GUARD-*`、UJ-067 | 待实现 | NOT_STARTED |
-| `M0-SAFE-002` | 链接、ADS、设备路径和竞态不能逃逸 | R-003 | Reparse/Junction/ADS/TOCTOU 攻击矩阵通过 | `M0-GUARD-ATTACK-*` | 待实现 | NOT_STARTED |
-| `M0-SAFE-003` | 测试故障不会碰真实根外目录 | R-001/R-031 | 全部写测试在 Test test_lab，protected 哨兵不变 | `M0-LAB-*` | baseline lab | IN_PROGRESS |
+| `M0-SAFE-001` | 所有写目标严格在授权 workspace | R-001/R-002 | 合法中文路径通过；全部越界路径零副作用拒绝 | `M0-GUARD-*`、UJ-067 | `M0-S1-workspace-guard.md`；RUN-008 | IN_PROGRESS（候选 containment 通过；生产固定根、保护策略和入口接入待完成） |
+| `M0-SAFE-002` | 链接、ADS、设备路径和竞态不能逃逸 | R-003 | Reparse/Junction/ADS/TOCTOU 攻击矩阵通过 | `M0-GUARD-ATTACK-*` | `M0-S1-workspace-guard.md`；RUN-003/008 | IN_PROGRESS（实际 symlink 权限门禁和句柄级竞态待完成） |
+| `M0-SAFE-003` | 测试故障不会碰真实根外目录 | R-001/R-031 | 全部写测试在 Test test_lab，protected 哨兵不变 | `M0-LAB-*` | 安全启动器、RUN-008 manifest/result | IN_PROGRESS（S1 通过；其余 M0 测试工具待统一接入） |
 | `M0-SAFE-004` | 外部来源加工前有可信 Copy 台账 | R-010/R-027 | source/copy SHA-256 相同，work 不改 source | UJ-010/M0 Copy flow | 待实现 | NOT_STARTED |
 | `M0-SAFE-005` | 关键文件原子写、失败不部分发布 | R-005/R-014/R-023 | staging 验证后原子发布，旧版可用 | `M0-ATOMIC-*` | 待实现 | NOT_STARTED |
 | `M0-SAFE-006` | 业务删除只进入 quarantine | R-001/R-025 | 精确 manifest、可恢复、无永久清理 | `M0-QUARANTINE-*` | 待实现 | NOT_STARTED |
