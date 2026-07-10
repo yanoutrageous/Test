@@ -3,219 +3,744 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>试卷系统</title>
+  <title>试卷题库系统</title>
   <style>
     :root {
       color-scheme: light;
-      font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif;
-      background: #f4f6f8;
-      color: #152033;
+      --bg: #f5f7fa;
+      --surface: #ffffff;
+      --surface-soft: #f8fafc;
+      --ink: #172033;
+      --muted: #5d697c;
+      --line: #d8dee8;
+      --line-strong: #b8c1cf;
+      --accent: #2457a6;
+      --accent-hover: #1d4789;
+      --accent-soft: #eaf1fb;
+      --success: #1f7a4d;
+      --warning: #8a5a0a;
+      --shadow: 0 18px 44px rgb(23 32 51 / 0.08);
+      --radius: 8px;
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+      --space-8: 32px;
     }
-    * { box-sizing: border-box; }
-    body { margin: 0; background: #f4f6f8; }
-    main { max-width: 1180px; margin: 0 auto; padding: 28px 22px 42px; }
-    header { display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; margin-bottom: 18px; }
-    h1 { margin: 0 0 8px; font-size: 28px; letter-spacing: 0; }
-    h2 { margin: 0 0 12px; font-size: 18px; }
-    p { margin: 0; line-height: 1.7; }
-    .muted { color: #5b6678; font-size: 14px; }
-    .status {
-      display: inline-flex;
-      align-items: center;
-      border: 1px solid #cbd5e1;
-      background: #ffffff;
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-width: 0;
+      background: var(--bg);
+    }
+
+    body {
+      margin: 0;
+      min-width: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Microsoft YaHei", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+      font-size: 15px;
+      line-height: 1.55;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    a:focus-visible,
+    button:focus-visible,
+    input:focus-visible {
+      outline: 3px solid rgb(36 87 166 / 0.24);
+      outline-offset: 2px;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      min-height: 44px;
+      border: 1px solid var(--line-strong);
       border-radius: 6px;
-      padding: 6px 10px;
+      background: var(--surface);
+      color: var(--ink);
+      cursor: pointer;
+      transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 120ms ease;
+    }
+
+    button:hover {
+      background: var(--surface-soft);
+      border-color: var(--accent);
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    .page {
+      width: min(100%, 1580px);
+      margin: 0 auto;
+      padding: var(--space-6);
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: var(--space-4);
+      align-items: end;
+      margin-bottom: var(--space-5);
+    }
+
+    .title-block {
+      min-width: 0;
+    }
+
+    .title-block h1 {
+      margin: 0 0 var(--space-2);
+      font-size: 28px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    .title-block p {
+      max-width: 72ch;
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .entry-path {
+      display: inline-flex;
+      max-width: 100%;
+      align-items: center;
+      gap: var(--space-2);
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--muted);
       font-size: 13px;
-      color: #475569;
       white-space: nowrap;
     }
-    .grid { display: grid; grid-template-columns: minmax(260px, 340px) minmax(0, 1fr); gap: 18px; align-items: start; }
-    section { background: #ffffff; border: 1px solid #dbe3ec; border-radius: 8px; padding: 18px; }
-    label { display: block; font-size: 13px; color: #475569; margin-bottom: 6px; }
-    input { width: 100%; border: 1px solid #c8d3df; border-radius: 6px; padding: 9px 10px; font: inherit; color: #152033; background: #ffffff; }
-    .buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-    a.button, button {
+
+    code,
+    .mono {
+      font-family: Consolas, "SFMono-Regular", "Liberation Mono", Menlo, monospace;
+    }
+
+    .entry-path code,
+    .current-url code,
+    .command code {
+      overflow-wrap: anywhere;
+      white-space: normal;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(330px, 410px) minmax(0, 1fr);
+      gap: var(--space-5);
+      align-items: start;
+    }
+
+    .side,
+    .preview-panel {
+      min-width: 0;
+    }
+
+    .side {
+      display: grid;
+      gap: var(--space-4);
+    }
+
+    .panel {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .panel-header {
+      display: flex;
+      gap: var(--space-3);
+      align-items: baseline;
+      justify-content: space-between;
+      padding: var(--space-4) var(--space-4) 0;
+    }
+
+    .panel h2 {
+      margin: 0;
+      font-size: 16px;
+      line-height: 1.3;
+      letter-spacing: 0;
+    }
+
+    .panel-note {
+      margin: var(--space-2) var(--space-4) 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .panel-body {
+      padding: var(--space-4);
+    }
+
+    .command {
+      display: grid;
+      gap: var(--space-3);
+    }
+
+    .command-line {
+      min-width: 0;
+      padding: var(--space-3);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #f1f4f8;
+      color: #111827;
+      line-height: 1.5;
+    }
+
+    .notice {
+      margin: 0;
+      color: var(--warning);
+      font-size: 13px;
+    }
+
+    .inline-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      align-items: center;
+    }
+
+    .btn {
       display: inline-flex;
+      min-height: 44px;
       align-items: center;
       justify-content: center;
-      min-height: 36px;
-      border: 1px solid #c8d3df;
+      gap: var(--space-2);
+      padding: 8px 12px;
+      border: 1px solid var(--line-strong);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--ink);
+      text-decoration: none;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 120ms ease;
+    }
+
+    .btn:hover {
+      border-color: var(--accent);
+      background: var(--surface-soft);
+      text-decoration: none;
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn.primary {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #ffffff;
+    }
+
+    .btn.primary:hover {
+      border-color: var(--accent-hover);
+      background: var(--accent-hover);
+    }
+
+    .btn.small {
+      min-height: 38px;
+      padding: 6px 10px;
+      font-size: 13px;
+    }
+
+    .copy-status,
+    .save-status {
+      min-height: 20px;
+      color: var(--success);
+      font-size: 13px;
+    }
+
+    .field {
+      display: grid;
+      gap: var(--space-2);
+    }
+
+    .field label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .base-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: var(--space-2);
+    }
+
+    .base-row input {
+      min-width: 0;
+      width: 100%;
+      min-height: 44px;
+      border: 1px solid var(--line-strong);
       border-radius: 6px;
       padding: 8px 11px;
       background: #ffffff;
-      color: #174ea6;
-      font: inherit;
-      text-decoration: none;
-      cursor: pointer;
+      color: var(--ink);
     }
-    a.primary, button.primary { background: #162033; border-color: #162033; color: #ffffff; }
-    .links { display: grid; gap: 8px; margin-top: 12px; }
-    .link-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      border: 1px solid #e2e8f0;
-      border-radius: 6px;
-      padding: 9px 10px;
-      background: #fbfcfe;
+
+    .workflow-groups {
+      display: grid;
+      gap: var(--space-4);
     }
-    .link-row a { color: #174ea6; font-weight: 600; }
-    .link-row span { color: #5b6678; font-size: 13px; text-align: right; }
-    code, pre { font-family: Consolas, "Courier New", monospace; font-size: 13px; }
-    pre {
-      white-space: pre-wrap;
-      border: 1px solid #dbe3ec;
-      background: #f8fafc;
-      border-radius: 6px;
-      padding: 12px;
-      margin: 10px 0 0;
+
+    .workflow-group {
+      display: grid;
+      gap: var(--space-2);
     }
-    .frame-wrap { min-height: 680px; display: grid; grid-template-rows: auto 1fr; gap: 10px; }
-    .frame-toolbar { display: flex; justify-content: space-between; gap: 10px; align-items: center; flex-wrap: wrap; }
-    iframe { width: 100%; height: 690px; border: 1px solid #cbd5e1; border-radius: 8px; background: #ffffff; }
-    .warning { border-left: 4px solid #b45309; background: #fff7ed; padding: 10px 12px; color: #7c2d12; margin-top: 12px; font-size: 14px; line-height: 1.6; }
-    @media (max-width: 900px) {
-      header { display: block; }
-      .status { margin-top: 12px; }
-      .grid { grid-template-columns: 1fr; }
-      iframe { height: 620px; }
+
+    .workflow-group h3 {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.3;
+    }
+
+    .workflow-list {
+      display: grid;
+      gap: var(--space-2);
+    }
+
+    .workflow-button {
+      display: grid;
+      width: 100%;
+      min-height: 44px;
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-1);
+      padding: 9px 11px;
+      text-align: left;
+    }
+
+    .workflow-button .label {
+      font-weight: 600;
+    }
+
+    .workflow-button .path {
+      color: var(--muted);
+      font-size: 12px;
+      overflow-wrap: anywhere;
+    }
+
+    .workflow-button.is-active {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: #143562;
+    }
+
+    .doc-links {
+      display: grid;
+      gap: var(--space-2);
+    }
+
+    .doc-links a {
+      display: block;
+      min-width: 0;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--line);
+      overflow-wrap: anywhere;
+    }
+
+    .doc-links a:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .preview-panel {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      overflow: hidden;
+    }
+
+    .preview-head {
+      display: grid;
+      gap: var(--space-3);
+      padding: var(--space-4);
+      border-bottom: 1px solid var(--line);
+      background: var(--surface);
+    }
+
+    .preview-title-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: var(--space-3);
+      align-items: center;
+    }
+
+    .current-url {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .frame-wrap {
+      min-width: 0;
+      background: #eef2f7;
+    }
+
+    iframe {
+      display: block;
+      width: 100%;
+      height: clamp(560px, 76vh, 920px);
+      border: 0;
+      background: #ffffff;
+    }
+
+    @media (max-width: 1100px) {
+      .topbar {
+        grid-template-columns: 1fr;
+        align-items: start;
+      }
+
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page {
+        padding: var(--space-4);
+      }
+
+      .title-block h1 {
+        font-size: 24px;
+      }
+
+      .entry-path {
+        display: grid;
+        white-space: normal;
+      }
+
+      .base-row,
+      .preview-title-row {
+        grid-template-columns: 1fr;
+      }
+
+      .inline-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+
+      .btn,
+      .inline-actions button {
+        width: 100%;
+      }
+
+      iframe {
+        height: 640px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+      }
     }
   </style>
 </head>
 <body>
-<main>
-  <header>
-    <div>
-      <h1>试卷系统</h1>
-      <p class="muted">这个文件是本地 Flask 题库的固定入口。题库数据、来源归属、质量队列、组卷和导出都来自正在运行的本地服务。</p>
+  <main class="page">
+    <header class="topbar">
+      <div class="title-block">
+        <h1>试卷题库系统</h1>
+        <p>本地 Flask 题库、复核、质量队列、组卷和 HTML 导出入口。</p>
+      </div>
+      <div class="entry-path" aria-label="当前入口文件路径">
+        <span>入口文件</span>
+        <code>D:\Test\试卷系统.html</code>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <aside class="side" aria-label="入口控制区">
+        <section class="panel" aria-labelledby="service-start-title">
+          <div class="panel-header">
+            <h2 id="service-start-title">服务启动</h2>
+          </div>
+          <div class="panel-body command">
+            <div class="command-line">
+              <code id="start-command">.\.venv\Scripts\python.exe -m flask --app app.web:create_app run --host 127.0.0.1 --port 5000</code>
+            </div>
+            <div class="inline-actions">
+              <button type="button" class="btn primary" id="copy-command">复制命令</button>
+              <span class="copy-status" id="copy-status" role="status" aria-live="polite"></span>
+            </div>
+            <p class="notice">如果右侧预览无法加载，先启动本地 Flask 服务。</p>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="base-url-title">
+          <div class="panel-header">
+            <h2 id="base-url-title">服务地址</h2>
+          </div>
+          <div class="panel-body">
+            <div class="field">
+              <label for="base-url">本地 Flask 服务地址</label>
+              <div class="base-row">
+                <input id="base-url" name="base-url" type="url" value="http://127.0.0.1:5000" autocomplete="off" spellcheck="false">
+                <button type="button" class="btn primary" id="save-base-url">保存地址</button>
+              </div>
+              <span class="save-status" id="save-status" role="status" aria-live="polite"></span>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="workflow-title">
+          <div class="panel-header">
+            <h2 id="workflow-title">常用工作流</h2>
+          </div>
+          <p class="panel-note">点击后会更新右侧预览，链接会按当前服务地址重新拼接。</p>
+          <div class="panel-body workflow-groups">
+            <div class="workflow-group" aria-labelledby="group-health">
+              <h3 id="group-health">健康与总览</h3>
+              <div class="workflow-list">
+                <button type="button" class="workflow-button" data-path="/health">
+                  <span class="label">健康检查</span>
+                  <span class="path">/health</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="workflow-group" aria-labelledby="group-review">
+              <h3 id="group-review">题库复核与 Stage14 队列</h3>
+              <div class="workflow-list">
+                <button type="button" class="workflow-button" data-path="/questions?status=all&limit=100">
+                  <span class="label">题目列表</span>
+                  <span class="path">/questions?status=all&amp;limit=100</span>
+                </button>
+                <button type="button" class="workflow-button" data-path="/questions?status=pending&limit=100">
+                  <span class="label">待复核题</span>
+                  <span class="path">/questions?status=pending&amp;limit=100</span>
+                </button>
+                <button type="button" class="workflow-button" data-path="/questions?status=all&stage14_queue=visual_repair&limit=30">
+                  <span class="label">Stage14 视觉修复</span>
+                  <span class="path">/questions?status=all&amp;stage14_queue=visual_repair&amp;limit=30</span>
+                </button>
+                <button type="button" class="workflow-button" data-path="/structured-review?ai_status=all&stage14_queue=recut&limit=30">
+                  <span class="label">Stage14 重切队列</span>
+                  <span class="path">/structured-review?ai_status=all&amp;stage14_queue=recut&amp;limit=30</span>
+                </button>
+                <button type="button" class="workflow-button" data-path="/structured-review?ai_status=all&limit=100">
+                  <span class="label">结构化复核</span>
+                  <span class="path">/structured-review?ai_status=all&amp;limit=100</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="workflow-group" aria-labelledby="group-export">
+              <h3 id="group-export">批次、组卷与导出</h3>
+              <div class="workflow-list">
+                <button type="button" class="workflow-button" data-path="/batches">
+                  <span class="label">批次列表</span>
+                  <span class="path">/batches</span>
+                </button>
+                <button type="button" class="workflow-button" data-path="/paper-basket">
+                  <span class="label">组卷篮</span>
+                  <span class="path">/paper-basket</span>
+                </button>
+                <button type="button" class="workflow-button" data-path="/paper-preview">
+                  <span class="label">组卷预览</span>
+                  <span class="path">/paper-preview</span>
+                </button>
+                <button type="button" class="workflow-button" data-path="/paper-export">
+                  <span class="label">正式导出</span>
+                  <span class="path">/paper-export</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="docs-title">
+          <div class="panel-header">
+            <h2 id="docs-title">报告和文档</h2>
+          </div>
+          <div class="panel-body doc-links">
+            <a href="README.md" target="_blank" rel="noopener">README.md</a>
+            <a href="docs/stage14_quality_report.md" target="_blank" rel="noopener">docs/stage14_quality_report.md</a>
+            <a href="docs/stage13_source_attribution_report.md" target="_blank" rel="noopener">docs/stage13_source_attribution_report.md</a>
+            <a href="docs/stage12_export_quality_report.md" target="_blank" rel="noopener">docs/stage12_export_quality_report.md</a>
+          </div>
+        </section>
+      </aside>
+
+      <section class="panel preview-panel" aria-labelledby="preview-title">
+        <div class="preview-head">
+          <div class="preview-title-row">
+            <div>
+              <h2 id="preview-title">内嵌预览</h2>
+              <p class="current-url">当前页面：<code id="current-url"></code></p>
+            </div>
+            <div class="inline-actions">
+              <a class="btn" id="open-current" href="http://127.0.0.1:5000/questions?status=all&amp;limit=100" target="_blank" rel="noopener">新窗口打开当前页面</a>
+              <button type="button" class="btn" id="refresh-preview">刷新预览</button>
+            </div>
+          </div>
+        </div>
+        <div class="frame-wrap">
+          <iframe id="preview-frame" title="本地 Flask 页面预览" src="http://127.0.0.1:5000/questions?status=all&amp;limit=100"></iframe>
+        </div>
+      </section>
     </div>
-    <div class="status">固定入口文件：D:\Test\试卷系统.html</div>
-  </header>
+  </main>
 
-  <div class="grid">
-    <section>
-      <h2>启动服务</h2>
-      <p class="muted">如果右侧无法加载，先在 PowerShell 的 D:\Test 下运行：</p>
-      <pre id="start-command">.\.venv\Scripts\python.exe -m flask --app app.web run --host 127.0.0.1 --port 5000</pre>
-      <div class="buttons">
-        <button type="button" id="copy-command">复制命令</button>
-        <a class="button" href="docs/stage14_quality_report.md">阶段 14 报告</a>
-        <a class="button" href="README.md">README</a>
-      </div>
-      <div class="warning">
-        如果页面缺少 Stage14 队列列或详情页缺少来源置信度，说明浏览器连接到旧 Flask 进程。请停止旧进程后重启服务，或把右侧服务地址临时改为当前验收端口。
-      </div>
-    </section>
+  <script>
+    (function () {
+      "use strict";
 
-    <section>
-      <h2>连接设置</h2>
-      <label for="base-url">本地服务地址</label>
-      <input id="base-url" value="http://127.0.0.1:5000">
-      <div class="buttons">
-        <button class="primary" type="button" data-path="/questions?status=all&limit=100">题目列表</button>
-        <button type="button" data-path="/questions?status=all&stage14_queue=visual_repair&limit=20">视觉修复队列</button>
-        <button type="button" data-path="/structured-review?ai_status=all&stage14_queue=recut&limit=20">重切队列</button>
-        <button type="button" data-path="/paper-basket">组卷篮</button>
-      </div>
-      <div class="links">
-        <div class="link-row"><a id="health-link" href="#">Health</a><span>检查服务状态</span></div>
-        <div class="link-row"><a id="questions-link" href="#">全部题目</a><span>应显示来源标签与 Stage14 队列</span></div>
-        <div class="link-row"><a id="source-page-link" href="#">p1090 来源样例</a><span>exact 来源样例</span></div>
-        <div class="link-row"><a id="stage14-visual-link" href="#">Stage14 视觉修复</a><span>visual_repair 队列</span></div>
-        <div class="link-row"><a id="stage14-recut-link" href="#">Stage14 重切</a><span>recut 队列</span></div>
-        <div class="link-row"><a id="export-link" href="#">正式导出</a><span>只输出 export-ready 题</span></div>
-      </div>
-    </section>
-  </div>
+      var storageKey = "examBankEntryBaseUrl";
+      var defaultBaseUrl = "http://127.0.0.1:5000";
+      var defaultPath = "/questions?status=all&limit=100";
+      var currentPath = defaultPath;
 
-  <section class="frame-wrap" style="margin-top:18px;">
-    <div class="frame-toolbar">
-      <div>
-        <h2 style="margin-bottom:4px;">内嵌预览</h2>
-        <p class="muted">默认加载题目列表。若浏览器拦截内嵌页面，请使用“新窗口打开当前页”。</p>
-      </div>
-      <div class="buttons" style="margin-top:0;">
-        <a class="button primary" id="open-current" href="#" target="_blank" rel="noopener">新窗口打开当前页</a>
-        <button type="button" id="reload-frame">刷新预览</button>
-      </div>
-    </div>
-    <iframe id="app-frame" title="本地题库预览"></iframe>
-  </section>
-</main>
+      var baseInput = document.getElementById("base-url");
+      var saveButton = document.getElementById("save-base-url");
+      var saveStatus = document.getElementById("save-status");
+      var copyButton = document.getElementById("copy-command");
+      var copyStatus = document.getElementById("copy-status");
+      var startCommand = document.getElementById("start-command");
+      var previewFrame = document.getElementById("preview-frame");
+      var openCurrent = document.getElementById("open-current");
+      var refreshButton = document.getElementById("refresh-preview");
+      var currentUrl = document.getElementById("current-url");
+      var workflowButtons = Array.prototype.slice.call(document.querySelectorAll(".workflow-button"));
 
-<script>
-(function () {
-  var baseInput = document.getElementById("base-url");
-  var frame = document.getElementById("app-frame");
-  var openCurrent = document.getElementById("open-current");
-  var defaultPath = "/questions?status=all&limit=100";
-  var currentPath = defaultPath;
+      function normalizeBaseUrl(value) {
+        var cleaned = String(value || "").trim();
+        if (!cleaned) {
+          return defaultBaseUrl;
+        }
+        if (!/^https?:\/\//i.test(cleaned)) {
+          cleaned = "http://" + cleaned;
+        }
+        return cleaned.replace(/\/+$/, "");
+      }
 
-  function normalizedBase() {
-    var value = (baseInput.value || "http://127.0.0.1:5000").trim();
-    return value.replace(/\/+$/, "");
-  }
+      function buildUrl(path) {
+        var normalizedPath = String(path || defaultPath);
+        if (normalizedPath.charAt(0) !== "/") {
+          normalizedPath = "/" + normalizedPath;
+        }
+        return normalizeBaseUrl(baseInput.value) + normalizedPath;
+      }
 
-  function fullUrl(path) {
-    if (/^https?:\/\//i.test(path)) {
-      return path;
-    }
-    return normalizedBase() + path;
-  }
+      function setActiveButton(path) {
+        workflowButtons.forEach(function (button) {
+          var isActive = button.getAttribute("data-path") === path;
+          button.classList.toggle("is-active", isActive);
+          button.setAttribute("aria-pressed", isActive ? "true" : "false");
+        });
+      }
 
-  function updateLinks() {
-    document.getElementById("health-link").href = fullUrl("/health");
-    document.getElementById("questions-link").href = fullUrl("/questions?status=all&limit=100");
-    document.getElementById("source-page-link").href = fullUrl("/questions?status=all&page_range=p1090&limit=30");
-    document.getElementById("stage14-visual-link").href = fullUrl("/questions?status=all&stage14_queue=visual_repair&limit=30");
-    document.getElementById("stage14-recut-link").href = fullUrl("/structured-review?ai_status=all&stage14_queue=recut&limit=30");
-    document.getElementById("export-link").href = fullUrl("/paper-export");
-    openCurrent.href = fullUrl(currentPath);
-  }
+      function updatePreview(path, shouldReload) {
+        currentPath = path || currentPath || defaultPath;
+        var nextUrl = buildUrl(currentPath);
+        currentUrl.textContent = nextUrl;
+        openCurrent.href = nextUrl;
+        if (shouldReload) {
+          previewFrame.src = nextUrl;
+        }
+        setActiveButton(currentPath);
+      }
 
-  function loadPath(path) {
-    currentPath = path;
-    updateLinks();
-    frame.src = fullUrl(path);
-  }
+      function saveBaseUrl() {
+        var normalized = normalizeBaseUrl(baseInput.value);
+        baseInput.value = normalized;
+        try {
+          window.localStorage.setItem(storageKey, normalized);
+          saveStatus.textContent = "已保存";
+        } catch (error) {
+          saveStatus.textContent = "地址已应用，本浏览器未允许保存";
+        }
+        updatePreview(currentPath, true);
+      }
 
-  try {
-    var savedBase = localStorage.getItem("examBankBaseUrl");
-    if (savedBase) {
-      baseInput.value = savedBase;
-    }
-  } catch (error) {}
+      function fallbackCopy(text) {
+        var textarea = document.createElement("textarea");
+        textarea.value = text;
+        textarea.setAttribute("readonly", "");
+        textarea.style.position = "fixed";
+        textarea.style.left = "-9999px";
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+          document.execCommand("copy");
+          copyStatus.textContent = "已复制";
+        } catch (error) {
+          copyStatus.textContent = "复制失败，请手动选择命令";
+        } finally {
+          document.body.removeChild(textarea);
+        }
+      }
 
-  baseInput.addEventListener("change", function () {
-    try {
-      localStorage.setItem("examBankBaseUrl", normalizedBase());
-    } catch (error) {}
-    loadPath(currentPath);
-  });
+      function copyCommand() {
+        var text = startCommand.textContent || "";
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(function () {
+            copyStatus.textContent = "已复制";
+          }).catch(function () {
+            fallbackCopy(text);
+          });
+          return;
+        }
+        fallbackCopy(text);
+      }
 
-  document.querySelectorAll("[data-path]").forEach(function (button) {
-    button.addEventListener("click", function () {
-      loadPath(button.getAttribute("data-path"));
-    });
-  });
+      workflowButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          updatePreview(button.getAttribute("data-path"), true);
+        });
+      });
 
-  document.getElementById("reload-frame").addEventListener("click", function () {
-    loadPath(currentPath);
-  });
+      saveButton.addEventListener("click", saveBaseUrl);
+      baseInput.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          saveBaseUrl();
+        }
+      });
+      copyButton.addEventListener("click", copyCommand);
+      refreshButton.addEventListener("click", function () {
+        updatePreview(currentPath, true);
+      });
 
-  document.getElementById("copy-command").addEventListener("click", function () {
-    var text = document.getElementById("start-command").textContent;
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text);
-    } else {
-      window.prompt("复制启动命令：", text);
-    }
-  });
+      try {
+        var storedBaseUrl = window.localStorage.getItem(storageKey);
+        baseInput.value = normalizeBaseUrl(storedBaseUrl || defaultBaseUrl);
+      } catch (error) {
+        baseInput.value = defaultBaseUrl;
+      }
 
-  updateLinks();
-  loadPath(defaultPath);
-})();
-</script>
+      updatePreview(defaultPath, true);
+    }());
+  </script>
 </body>
 </html>

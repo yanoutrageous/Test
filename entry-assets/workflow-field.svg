@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="360" viewBox="0 0 720 360" fill="none">
+  <defs>
+    <linearGradient id="panel" x1="36" y1="24" x2="684" y2="326" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F4EFE5" stop-opacity="0.14"/>
+      <stop offset="1" stop-color="#F4EFE5" stop-opacity="0.035"/>
+    </linearGradient>
+    <linearGradient id="route" x1="96" y1="179" x2="624" y2="179" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7DF0C7" stop-opacity="0.82"/>
+      <stop offset="0.52" stop-color="#F7C86F" stop-opacity="0.72"/>
+      <stop offset="1" stop-color="#7DF0C7" stop-opacity="0.58"/>
+    </linearGradient>
+    <filter id="shadow" x="18" y="8" width="684" height="332" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="20" stdDeviation="24" flood-color="#000000" flood-opacity="0.32"/>
+    </filter>
+    <pattern id="matrix" width="24" height="24" patternUnits="userSpaceOnUse">
+      <path d="M24 0H0V24" stroke="#F4EFE5" stroke-opacity="0.065"/>
+    </pattern>
+  </defs>
+  <rect width="720" height="360" rx="8" fill="#0F130E"/>
+  <rect width="720" height="360" rx="8" fill="url(#matrix)" opacity="0.8"/>
+  <g filter="url(#shadow)">
+    <rect x="42" y="34" width="636" height="292" rx="8" fill="url(#panel)" stroke="#F4EFE5" stroke-opacity="0.13"/>
+    <path d="M98 178H210C255 178 267 112 314 112H386C433 112 449 178 493 178H622" stroke="url(#route)" stroke-width="3.2" stroke-linecap="round"/>
+    <path d="M98 178H207C254 178 267 245 314 245H386C433 245 449 178 496 178H622" stroke="#F4EFE5" stroke-opacity="0.16" stroke-width="1.25" stroke-linecap="round"/>
+    <path d="M214 178C246 178 260 145 285 128M434 229C455 202 466 178 496 178" stroke="#7DF0C7" stroke-opacity="0.2" stroke-width="1"/>
+    <g>
+      <rect x="76" y="130" width="108" height="96" rx="7" fill="#141913" stroke="#7DF0C7" stroke-opacity="0.45"/>
+      <rect x="95" y="151" width="62" height="7" rx="3.5" fill="#F4EFE5" fill-opacity="0.56"/>
+      <rect x="95" y="172" width="45" height="7" rx="3.5" fill="#F4EFE5" fill-opacity="0.34"/>
+      <rect x="95" y="193" width="74" height="7" rx="3.5" fill="#F4EFE5" fill-opacity="0.24"/>
+      <circle cx="130" cy="226" r="4" fill="#7DF0C7"/>
+    </g>
+    <g>
+      <rect x="284" y="74" width="112" height="88" rx="7" fill="#141913" stroke="#F7C86F" stroke-opacity="0.46"/>
+      <rect x="305" y="96" width="59" height="7" rx="3.5" fill="#F4EFE5" fill-opacity="0.52"/>
+      <rect x="305" y="117" width="72" height="7" rx="3.5" fill="#F4EFE5" fill-opacity="0.35"/>
+      <rect x="305" y="138" width="43" height="7" rx="3.5" fill="#F4EFE5" fill-opacity="0.24"/>
+      <circle cx="340" cy="162" r="4" fill="#F7C86F"/>
+    </g>
+    <g>
+      <rect x="316" y="199" width="118" height="88" rx="7" fill="#141913" stroke="#F4EFE5" stroke-opacity="0.22"/>
+      <rect x="337" y="221" width="65" height="7" rx="3.5" fill="#F4EFE5" fill-opacity="0.52"/>
+      <rect x="337" y="242" width="40" height="7" rx="3.5" fill="#F4EFE5" fill-opacity="0.33"/>
+      <rect x="337" y="263" width="78" height="7" rx="3.5" fill="#F4EFE5" fill-opacity="0.23"/>
+      <circle cx="375" cy="199" r="4" fill="#F4EFE5" fill-opacity="0.72"/>
+    </g>
+    <g>
+      <rect x="536" y="130" width="108" height="96" rx="7" fill="#141913" stroke="#7DF0C7" stroke-opacity="0.38"/>
+      <rect x="555" y="151" width="63" height="7" rx="3.5" fill="#F4EFE5" fill-opacity="0.55"/>
+      <rect x="555" y="172" width="44" height="7" rx="3.5" fill="#F4EFE5" fill-opacity="0.33"/>
+      <rect x="555" y="193" width="75" height="7" rx="3.5" fill="#F4EFE5" fill-opacity="0.23"/>
+      <circle cx="590" cy="226" r="4" fill="#7DF0C7"/>
+    </g>
+    <g opacity="0.78">
+      <rect x="83" y="54" width="92" height="12" rx="6" fill="#7DF0C7" fill-opacity="0.13"/>
+      <rect x="545" y="294" width="92" height="12" rx="6" fill="#F7C86F" fill-opacity="0.13"/>
+      <path d="M98 60H304M416 300H622" stroke="#F4EFE5" stroke-opacity="0.11" stroke-linecap="round"/>
+    </g>
+  </g>
+</svg>
