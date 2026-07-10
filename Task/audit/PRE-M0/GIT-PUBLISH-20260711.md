@@ -8,7 +8,7 @@
 - 风险等级：D2
 - 执行者：`/root`
 - 独立审计：`/root/pre_m0_git_audit`（只读）
-- 状态：APPROVED_TO_EXECUTE
+- 状态：EXECUTED_AND_VERIFIED
 - 时间：2026-07-11T03:02:53+08:00
 
 ## 2. 必要性与替代方案
@@ -79,18 +79,21 @@
 
 ## 8. 实际执行
 
-- staged 文件：PENDING
-- commit：PENDING
-- push：PENDING
-- Draft PR：PENDING
-- 实际范围是否符合 manifest：PENDING
+- staged 文件：28 个（根`.gitignore` + 27 个可跟踪 Task 文本文件）
+- staged 内容：153,538 字节，全部为 UTF-8 文本
+- commit：`522393d62fe8f8c30585cc2f61fa661a363f9c35`（`plan: define M0-M5 execution contract`）
+- push：普通 push 到`origin/agent/long-run-execution-spec`，远端 SHA 与本地一致
+- Draft PR：`https://github.com/yanoutrageous/Test/pull/1`，base=`main`，head=`agent/long-run-execution-spec`
+- GitHub 连接器尝试：因 integration permission 返回 403；按发布技能回退到已认证`gh pr create --draft`并成功
+- 实际范围是否符合 manifest：是
+- Base、Task/local、writer.lock、数据库和用户资产：未进入 commit
 
 ## 9. 执行后验证
 
-- [ ] staged 文件、类型、大小、diff 重新审查
-- [ ] secret/PII/私人文件名扫描通过
-- [ ] 普通 commit 成功
-- [ ] 普通 push 成功且远端 SHA 一致
-- [ ] Draft PR 指向`main`且保持 Draft
-- [ ] Base、Task/local 和其他用户资产未进入 commit
-- [ ] 发布事实写回 RUN_STATE 和本审计
+- [x] staged 文件、类型、大小、diff 重新审查
+- [x] secret/PII/私人文件名扫描通过
+- [x] 普通 commit 成功
+- [x] 普通 push 成功且远端 SHA 一致
+- [x] Draft PR 指向`main`且保持 Draft
+- [x] Base、Task/local 和其他用户资产未进入 commit
+- [x] 发布事实写回 RUN_STATE 和本审计
