@@ -1,24 +1,25 @@
 {
   "state_version": "1.0.1",
   "plan_version": "1.0.1",
-  "updated_at": "2026-07-11T03:05:17+08:00",
-  "current_milestone": "PRE_M0",
-  "current_slice": "planning_publication",
-  "status": "PUSHED",
-  "implementation_status": "NOT_STARTED",
+  "updated_at": "2026-07-11T03:08:03+08:00",
+  "current_milestone": "M0",
+  "current_slice": "M0_S1_workspace_guard_core",
+  "status": "PREFLIGHT",
+  "implementation_status": "IN_PROGRESS",
   "project_root": "D:\\AAA命题\\Test",
   "git": {
-    "branch": "agent/long-run-execution-spec",
-    "base_branch": "origin/main",
-    "base_commit": "3df22b3",
+    "branch": "agent/m0-m5-local-v1",
+    "base_branch": "agent/long-run-execution-spec",
+    "base_commit": "bfd4d35973974a223f465cd08910f303518a8586",
     "remote": "https://github.com/yanoutrageous/Test.git",
-    "published_commit": "522393d62fe8f8c30585cc2f61fa661a363f9c35",
-    "publication_status": "PUSHED_DRAFT_PR_OPEN",
-    "planning_pull_request": "https://github.com/yanoutrageous/Test/pull/1"
+    "planning_published_commit": "bfd4d35973974a223f465cd08910f303518a8586",
+    "publication_status": "INTEGRATION_BRANCH_LOCAL_NOT_PUSHED",
+    "planning_pull_request": "https://github.com/yanoutrageous/Test/pull/1",
+    "integration_pull_request": null
   },
-  "last_verified_checkpoint": "522393d62fe8f8c30585cc2f61fa661a363f9c35",
-  "active_job_id": null,
-  "active_writer": null,
+  "last_verified_checkpoint": "bfd4d35973974a223f465cd08910f303518a8586",
+  "active_job_id": "M0-S1-WORKSPACE-GUARD",
+  "active_writer": "/root",
   "completed_actions": [
     "read-only repository and reference-corpus review",
     "long-horizon M0-M5 plan designed",
@@ -27,10 +28,11 @@
     "repository ignore guard hardened for local originals, backups, outputs, runtime state, models, fonts, and private path mappings",
     "PRE-M0 planning package passed automated validation and independent read-only review",
     "GitHub authentication, repository identity, permissions, remote branch absence, and local noreply commit identity verified",
-    "planning contract committed, pushed to agent/long-run-execution-spec, and opened as draft PR 1"
+    "planning contract committed and status updated through bfd4d35973974a223f465cd08910f303518a8586, pushed to agent/long-run-execution-spec, and opened as draft PR 1",
+    "M0 entry filesystem, disk, toolchain, database, reference-gold, code, and test baselines captured",
+    "legacy test suite passed 88 of 88 inside the Test-local safety laboratory without changing the protected sentinel or activity database"
   ],
   "not_started": [
-    "M0 implementation",
     "database migration",
     "question import",
     "OCR or image processing",
@@ -40,6 +42,6 @@
     "backup activation or restore"
   ],
   "blockers": [],
-  "next_required_action": "Commit and push this PRE-M0 publication record, create agent/m0-m5-local-v1 from the verified planning branch head, open the long-running draft PR, then begin the M0 entry audit without migrating the activity database or processing real sources.",
+  "next_required_action": "Commit and push the M0 entry audit on agent/m0-m5-local-v1, open the long-running draft PR, then implement the side-effect-free WorkspaceGuard core and Test-local attack matrix from ADR-2026-001 without touching the activity database or real source contents.",
   "resume_rule": "Read execution_contract.json and all normative Task documents, verify git and filesystem state against this file, then continue from next_required_action without repeating completed work."
 }
