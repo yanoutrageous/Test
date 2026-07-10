@@ -1,0 +1,45 @@
+{
+  "state_version": "1.0.1",
+  "plan_version": "1.0.1",
+  "updated_at": "2026-07-11T03:05:17+08:00",
+  "current_milestone": "PRE_M0",
+  "current_slice": "planning_publication",
+  "status": "PUSHED",
+  "implementation_status": "NOT_STARTED",
+  "project_root": "D:\\AAA命题\\Test",
+  "git": {
+    "branch": "agent/long-run-execution-spec",
+    "base_branch": "origin/main",
+    "base_commit": "3df22b3",
+    "remote": "https://github.com/yanoutrageous/Test.git",
+    "published_commit": "522393d62fe8f8c30585cc2f61fa661a363f9c35",
+    "publication_status": "PUSHED_DRAFT_PR_OPEN",
+    "planning_pull_request": "https://github.com/yanoutrageous/Test/pull/1"
+  },
+  "last_verified_checkpoint": "522393d62fe8f8c30585cc2f61fa661a363f9c35",
+  "active_job_id": null,
+  "active_writer": null,
+  "completed_actions": [
+    "read-only repository and reference-corpus review",
+    "long-horizon M0-M5 plan designed",
+    "GitHub CLI 2.96.0 installed under explicit one-time user authorization",
+    "planning branch created from origin/main",
+    "repository ignore guard hardened for local originals, backups, outputs, runtime state, models, fonts, and private path mappings",
+    "PRE-M0 planning package passed automated validation and independent read-only review",
+    "GitHub authentication, repository identity, permissions, remote branch absence, and local noreply commit identity verified",
+    "planning contract committed, pushed to agent/long-run-execution-spec, and opened as draft PR 1"
+  ],
+  "not_started": [
+    "M0 implementation",
+    "database migration",
+    "question import",
+    "OCR or image processing",
+    "high-fidelity renderer implementation",
+    "blueprint solver implementation",
+    "formal export generation",
+    "backup activation or restore"
+  ],
+  "blockers": [],
+  "next_required_action": "Commit and push this PRE-M0 publication record, create agent/m0-m5-local-v1 from the verified planning branch head, open the long-running draft PR, then begin the M0 entry audit without migrating the activity database or processing real sources.",
+  "resume_rule": "Read execution_contract.json and all normative Task documents, verify git and filesystem state against this file, then continue from next_required_action without repeating completed work."
+}

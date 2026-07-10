@@ -14,12 +14,24 @@ API/*
 !API/.gitignore
 
 # Local source documents and generated media are not part of the code repo.
-Base/*.pdf
-Base/**/*.pdf
+# Base/Base.md is the only tracked planning text under Base.
+Base/**
+!Base/Base.md
+Copy/
+backups/
+output/
+.runtime/
+evidence/
+Task/local/
+Task/state/writer.lock
 
 # Generated local data should be created by later stages deliberately.
 data/assets/
 data/db/
+data/originals/
+data/derived/
+data/indexes/
+data/quarantine/
 data/**/*.sqlite
 data/**/*.sqlite3
 data/**/*.db
@@ -29,3 +41,12 @@ data/tmp/
 data/tmp_*.log
 tmp/
 logs/
+models/
+*.ttf
+*.ttc
+*.otf
+*.woff
+*.woff2
+*.onnx
+*.safetensors
+*.gguf
