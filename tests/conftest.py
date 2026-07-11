@@ -76,6 +76,10 @@ def pytest_configure(config: pytest.Config) -> None:
     launch_token = os.environ.get("M0_TEST_LAB_TOKEN")
     if not raw_run_root or not launch_token:
         _fail("use scripts/run_safe_pytest.py; direct pytest execution is forbidden")
+    try:
+        sitecustomize = __import__("sitecustomize")
+    except ImportError as exc:
+        _fail(f"cannot import the audited test bootstrap: {exc}")
     run_root = _absolute_lexical(raw_run_root)
     test_lab_root = project_root / "tmp" / "test_lab"
     relative_run = _relative_parts(run_root, test_lab_root)
@@ -124,7 +128,6 @@ def pytest_configure(config: pytest.Config) -> None:
         "COVERAGE_FILE",
         "COVERAGE_PROCESS_START",
         "PYTHONHOME",
-        "PYTHONPATH",
         "PYTEST_ADDOPTS",
         "PYTEST_PLUGINS",
     ):
@@ -132,3 +135,25 @@ def pytest_configure(config: pytest.Config) -> None:
             _fail(f"untrusted environment variable is present: {forbidden_name}")
     if config.pluginmanager.hasplugin("cacheprovider"):
         _fail("pytest cacheprovider must be disabled")
+    expected_bootstrap = project_root / "tests" / "safe_bootstrap"
+    configured_bootstrap = os.environ.get("PYTHONPATH")
+    if not configured_bootstrap or not _same_path(
+        _absolute_lexical(configured_bootstrap),
+        expected_bootstrap,
+    ):
+        _fail("PYTHONPATH must select only the audited test bootstrap")
+    _verify_existing_chain(expected_bootstrap / "sitecustomize.py")
+    if os.environ.get("M0_TEST_HARDLINK_GUARD_REQUIRED") != "1":
+        _fail("test hardlink guard was not required by the launcher")
+    if os.environ.get("M0_TEST_HARDLINK_GUARD_ACTIVE") != "1":
+        _fail("test hardlink guard did not activate before pytest startup")
+    if os.environ.get("M0_TEST_DIRECT_PYTEST_CANARY"):
+        _fail("direct-pytest canary permission leaked into the normal test process")
+    loaded_bootstrap = _absolute_lexical(Path(sitecustomize.__file__))
+    if not _same_path(loaded_bootstrap, expected_bootstrap / "sitecustomize.py"):
+        _fail("the loaded sitecustomize is not the audited test bootstrap")
+    installed_guard = getattr(sitecustomize, "_INSTALLED_LINK_GUARD", None)
+    if installed_guard is None or os.link is not installed_guard:
+        _fail("the audited hardlink guard is not installed on os.link")
+    if os.name == "nt" and __import__("nt").link is not installed_guard:
+        _fail("the audited hardlink guard is not installed on nt.link")

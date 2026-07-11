@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import importlib
 from importlib import metadata
 import sqlite3
 from pathlib import Path
@@ -14,7 +13,12 @@ def check_dependency(module_name: str, distribution_name: str | None = None) -> 
     distribution = distribution_name or module_name
 
     try:
-        importlib.import_module(module_name)
+        if module_name == "flask":
+            import flask  # noqa: F401
+        elif module_name == "fitz":
+            import fitz  # noqa: F401
+        else:
+            raise ValueError("dependency is not in the local health allowlist")
         result["ok"] = True
     except Exception as exc:  # pragma: no cover - exercised only in broken envs
         result["error"] = f"{type(exc).__name__}: {exc}"
@@ -73,7 +77,8 @@ def get_pdf_info(pdf_path: Path) -> dict[str, Any]:
     }
 
     try:
-        fitz = importlib.import_module("fitz")
+        import fitz
+
         with fitz.open(pdf_path) as doc:
             info["page_count"] = doc.page_count
             info["encrypted"] = doc.is_encrypted

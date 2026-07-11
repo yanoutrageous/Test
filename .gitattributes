@@ -1,0 +1,13 @@
+.gitattributes text eol=lf
+app/*.py text eol=lf
+app/**/*.py text eol=lf
+app/*.sql text eol=lf
+app/**/*.sql text eol=lf
+scripts/*.py text eol=lf
+scripts/**/*.py text eol=lf
+tests/*.py text eol=lf
+tests/**/*.py text eol=lf
+Task/*.json text eol=lf
+Task/**/*.json text eol=lf
+Task/*.md text eol=lf
+Task/**/*.md text eol=lf

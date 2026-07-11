@@ -1,13 +1,14 @@
 # 当前状态
 
-更新时间：2026-07-11 03:51 +08:00
+更新时间：2026-07-11 15:18 +08:00
 
 ## 长期执行状态
 
 - 计划版本：1.0.1
 - 当前阶段：M0 入场审计完成，M0 尚未验收
-- 当前切片：`M0-S2 production guard policy and write inventory`；M0 门禁未通过
+- 当前切片：`M0-S2 production guard policy and write inventory`已本地验收，等待显式提交和普通 push；M0 门禁未通过
 - M0—M5 实现：M0 已开始；M1—M5 未开始
+- 本任务有效终点：按用户最新明确要求，仅完成 M0；M0 正式验收、提交、普通 push、checkpoint tag 和交接完成后立即停止，M1 延后到新的用户任务。项目整体 M0—M5 路线图保持不变，本条只限制当前任务执行范围
 - 当前禁止：活动数据库迁移、题库导入、OCR、正式排版、批量资产、备份切换和业务文件清理
 
 ## Git 状态基线
@@ -26,8 +27,11 @@
 - 目标 NEW9 PDF 已在 Test 内，但其正文无可提取文字层；视觉回归必须包含整页像素/锚点检查
 - 活动 SQLite SHA-256 为`1505bf05...ad1c94`，`integrity_check=ok`、外键违规 0、`user_version=0`，19 个业务表均为 0 行
 - 历史“1123 题/阶段 14”报告不是当前可复现事实
-- 安全启动器最终回归为`163 passed, 1 deselected`：旧 88 项兼容，新增路径/启动器矩阵通过；唯一 deselected 是单独两次返回 WinError 1314 的实际 symlink 权限门禁
-- RUN-008 活动 SQLite 前后 SHA-256 相同，运行窗口内 run 目录和`.git`之外项目文件写入为 0
+- 生产静态 inventory 覆盖`app/`和`scripts/`的 45 个源文件、427 个副作用入口和 18 个分片；`UNKNOWN=0`，但 427 项仍全部`UNMIGRATED_BLOCKED`
+- Policy V6 digest 为`315a036a...0110b4`；生产 boundary 固定根且`writer_available=false`，`m0_exit_allowed=false`
+- 安全启动器冻结回归为`354 passed, 1 deselected`；JUnit failure/error/skip 均为 0，唯一 deselected 仍是 WinError 1314 的实际 symlink 权限门禁
+- RUN-020 保护树前后均 31,225 条、运行时变更 0、句柄围栏 31,225 个；活动 SQLite 前后 SHA-256 相同
+- Scanner V5 使用`UTF8_LF_V1`规范化，根`.gitattributes`固定源码、测试和 Task 证据为 LF，消除`core.autocrlf`导致的 fresh-checkout 哈希漂移
 
 ## 工具与发布状态
 
@@ -40,18 +44,22 @@
 - 规划草稿 PR：`https://github.com/yanoutrageous/Test/pull/1`
 - 长期集成分支首个 M0 审计提交为`f3ab652`，已 push
 - M0-S1 候选核心、安全测试启动器与证据提交为`2dc2984`，已 push；远端 SHA 与本地一致
+- M0-S2 最新本地冻结证据为`RUN-20260711-M0-S2-EOL-020-FINAL`，RUN 与 V5 inventory/EOL 两路独立审计均为 P0=0/P1=0；实现提交和 push 尚未执行
 - 长期草稿 PR：`https://github.com/yanoutrageous/Test/pull/2`（base=`main`，head=`agent/m0-m5-local-v1`）
 - 除 GitHub CLI 外，本轮未安装 OCR、TeX、模型、字体或其他项目依赖
 
 ## 当前长期执行的首批动作
 
-1. M0-S2 建立固定生产工厂、保护/只增不改策略、job 审计上下文和写入口清单；
-2. M0-S3 建立句柄级 writer、原子写、后置核验、Copy、quarantine 和受控外部进程；
-3. 完成迁移/Backup API、领域 IR、金标、M0 真实流程和独立审计后才进入 M1。
+1. 显式审计并提交/push M0-S2 固定生产边界、策略、候选审计和 427 项 inventory；
+2. M0-S3 建立句柄级 writer、实际 evidence 重算、持久审计、原子写、Copy、quarantine 和受控外部进程；
+3. 完成迁移/SQLite Backup API、领域 IR、金标、M0 真实流程和独立审计，形成 M0 验收、checkpoint tag 与交接后停止本任务；不得在本任务中进入 M1。
 
 ## 已知限制与未决项
 
 - 精确字体许可尚未审计：不阻塞金标测量，但阻塞“字体完全一比一”的正式声明。
 - 当前备份只能位于 Test 内：不具备异盘灾备能力，不能对客户宣称可抵御整个 D 盘故障。
-- 已有无副作用 WorkspaceGuard 候选核心，但它还不是生产 writer；任意`db_path/project_root/output_path`仍未收口，在固定生产工厂、保护策略和句柄级 writer 完成前不得处理真实资料。
+- 固定生产 boundary、命名空间策略和候选票据已通过，但 writer 仍断开；427 个旧入口尚未迁移，在句柄级 writer、持久审计和写后核验完成前不得处理真实资料。
+- S2 `PairEvidence`仍是调用者声明，必须由 S3 writer 从受控句柄重算实际 manifest、源树、条目数和拓扑。
+- 当前 audit sink 是进程内候选证据，不是持久 ledger；不得据此宣称可恢复审计已经完成。
+- 安全测试实验室针对受信任、已审阅的仓库测试代码，不是任意 hostile native-code 的 OS sandbox。
 - 本机普通账户不能创建实际目录 symlink（WinError 1314）；不自动启用开发者模式或提升权限，该门禁保持 IN_PROGRESS。

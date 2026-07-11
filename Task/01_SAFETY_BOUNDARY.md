@@ -137,7 +137,7 @@ M0 必须覆盖：
 4. 复制后复算 SHA-256，必须与源一致；
 5. 在追加式台账记录 source、copy、哈希、大小、时间、阶段、job 和用途；
 6. 将`Copy/source`副本视为不可变项目原件；
-7. 后续加工只写`Copy/work/<copy_id>/<job_id>/`或正式派生目录；
+7. 后续加工只写`Copy/work/<classification>/<copy_id>/<job_id>/`或正式派生目录，其中`classification`必须是`INTERNAL`或`RESTRICTED`且与上下文完全一致；
 8. 若外部源在复制过程中变化，废弃该批次并创建新 copy，不猜测版本。
 
 第三方工具无法证明不会写入源文件旁时，禁止直接以 Test 外路径作为输入。
@@ -161,7 +161,7 @@ M0 必须覆盖：
 原位置
 → Guard 校验
 → 记录哈希和引用
-→ 原子移动到 data/quarantine/<date>/<event_id>
+→ 原子移动到 data/quarantine/<classification>/<date>/<event_id>
 → 更新引用
 → 验证系统
 ```
@@ -170,7 +170,7 @@ M0—M5 自动运行期间不得永久清空隔离区。释放隔离区空间必
 
 ### 6.3 临时清理
 
-只有同时满足以下条件，才可逐项清理`tmp/jobs`文件：
+只有同时满足以下条件，才可逐项清理`tmp/jobs/<classification>/<job_id>`文件：
 
 - 目录由当前系统创建并含匹配 job ID 的安全标记；
 - 真实路径位于`TMP_ROOT/jobs`且至少深入两级；
@@ -189,7 +189,7 @@ M0—M5 自动运行期间不得永久清空隔离区。释放隔离区空间必
 
 - 使用允许列表中的绝对可执行文件路径和参数数组；
 - 禁止`Invoke-Expression`、`eval`和`shell=True`；
-- `cwd`固定在`tmp/jobs/<job_id>`；
+- `cwd`固定在`tmp/jobs/<classification>/<job_id>`；
 - `TEMP`、`TMP`、HOME、模型缓存、字体缓存和用户配置尽量重定向到作业目录；
 - 设置超时、最大输出、资源上限和进程树清理；
 - 不让第三方程序直接处理 Test 外原件；

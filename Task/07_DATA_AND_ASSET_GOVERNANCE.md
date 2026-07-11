@@ -17,7 +17,7 @@ D:\AAA命题\Test\
 ├─ Copy\
 │  ├─ source\<copy_id>\         # 外部资料不可变副本
 │  ├─ restricted\<copy_id>\     # 含 PII/受限内容的临时受控副本
-│  ├─ work\<copy_id>\<job_id>\  # 加工工作区
+│  ├─ work\<classification>\<copy_id>\<job_id>\  # 分类隔离加工工作区
 │  └─ ledger\                    # Copy 台账
 ├─ data\
 │  ├─ db\versions\<state_id>\
@@ -27,10 +27,10 @@ D:\AAA命题\Test\
 │  ├─ templates\<template_id>\<revision>\
 │  ├─ exports\<export_id>\
 │  ├─ snapshots\<snapshot_id>\
-│  └─ quarantine\<date>\<event_id>\
+│  └─ quarantine\<classification>\<date>\<event_id>\
 ├─ backups\<backup_id>\
 ├─ logs\audit\
-└─ tmp\jobs\<job_id>\
+└─ tmp\jobs\<classification>\<job_id>\
 ```
 
 现有目录不要求立即搬迁；M0 先登记角色和保护规则，后续增量纳入。任何迁移都必须有 manifest、staging 和回滚。

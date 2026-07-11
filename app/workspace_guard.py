@@ -1,10 +1,15 @@
 from __future__ import annotations
 
+import hashlib
+import hmac
+import json
 import ntpath
 import os
 import re
+import secrets
 import stat
-from dataclasses import dataclass
+import threading
+from dataclasses import dataclass, field, replace
 from enum import StrEnum
 from pathlib import Path, PureWindowsPath
 from typing import Any, Protocol
@@ -60,16 +65,24 @@ class GuardErrorCode(StrEnum):
     FILESYSTEM_INSPECTION_FAILED = "FILESYSTEM_INSPECTION_FAILED"
     PATH_STATE_CHANGED = "PATH_STATE_CHANGED"
     INVALID_POLICY = "INVALID_POLICY"
+    INVALID_TICKET = "INVALID_TICKET"
+    TICKET_NOT_ISSUED = "TICKET_NOT_ISSUED"
+    TICKET_ISSUER_MISMATCH = "TICKET_ISSUER_MISMATCH"
+    TICKET_MAC_MISMATCH = "TICKET_MAC_MISMATCH"
+    TICKET_CLAIMS_MISMATCH = "TICKET_CLAIMS_MISMATCH"
+    TICKET_REGISTRY_FULL = "TICKET_REGISTRY_FULL"
 
 
 class PathIntent(StrEnum):
     EXISTING_READ = "EXISTING_READ"
     NEW_WRITE = "NEW_WRITE"
     EXISTING_WRITE = "EXISTING_WRITE"
+    APPEND_EXISTING = "APPEND_EXISTING"
     CREATE_DIRECTORY = "CREATE_DIRECTORY"
     MOVE_SOURCE = "MOVE_SOURCE"
     MOVE_TARGET = "MOVE_TARGET"
     QUARANTINE_SOURCE = "QUARANTINE_SOURCE"
+    QUARANTINE_TARGET = "QUARANTINE_TARGET"
 
     @property
     def mutating(self) -> bool:
@@ -80,6 +93,7 @@ class PathIntent(StrEnum):
         return self in {
             PathIntent.EXISTING_READ,
             PathIntent.EXISTING_WRITE,
+            PathIntent.APPEND_EXISTING,
             PathIntent.MOVE_SOURCE,
             PathIntent.QUARANTINE_SOURCE,
         }
@@ -90,6 +104,7 @@ class PathIntent(StrEnum):
             PathIntent.NEW_WRITE,
             PathIntent.CREATE_DIRECTORY,
             PathIntent.MOVE_TARGET,
+            PathIntent.QUARANTINE_TARGET,
         }
 
 
@@ -121,10 +136,7 @@ class WorkspaceGuardError(ValueError):
     def to_audit_dict(self) -> dict[str, str | None]:
         return {
             "code": self.code.value,
-            "requested": self.requested,
-            "normalized": self.normalized,
             "intent": self.intent.value if self.intent else None,
-            "component": self.component,
             "message": self.message,
         }
 
@@ -150,9 +162,9 @@ class NativePathProbe:
         return os.lstat(path)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class PathIdentity:
-    path: Path
+    path: Path = field(repr=False)
     device: int
     inode: int
     mode: int
@@ -160,42 +172,55 @@ class PathIdentity:
     reparse_tag: int
     nlink: int
 
+    def __repr__(self) -> str:
+        return "PathIdentity(path='<redacted>', metadata_bound=True)"
 
-@dataclass(frozen=True)
+    def __reduce__(self) -> Any:
+        raise TypeError("path identity records cannot be serialized")
+
+
+@dataclass(frozen=True, slots=True)
 class GuardedPath:
-    requested: str
-    path: Path
-    relative_path: Path
-    workspace_root: Path
+    issuer_id: str
+    requested: str = field(repr=False)
+    path: Path = field(repr=False)
+    relative_path: Path = field(repr=False)
+    workspace_root: Path = field(repr=False)
     intent: PathIntent
     expected_kind: ExpectedKind
     exists: bool
-    nearest_existing_ancestor: Path
-    chain_snapshot: tuple[PathIdentity, ...]
+    nearest_existing_ancestor: Path = field(repr=False)
+    chain_snapshot: tuple[PathIdentity, ...] = field(repr=False)
+    ticket_version: str = "WG-TICKET-V1"
+    ticket_id: str = ""
+    authenticator: bytes = field(default=b"", repr=False)
+
+    def __repr__(self) -> str:
+        return (
+            "GuardedPath(ticket_version="
+            f"'{self.ticket_version}', intent='{self.intent.value}', "
+            f"expected_kind='{self.expected_kind.value}', exists={self.exists}, "
+            "path='<redacted>')"
+        )
+
+    def __reduce__(self) -> Any:
+        raise TypeError("workspace path capabilities cannot be serialized")
 
     def to_audit_dict(self) -> dict[str, Any]:
         return {
-            "requested": self.requested,
-            "path": str(self.path),
-            "relative_path": self.relative_path.as_posix(),
-            "workspace_root": str(self.workspace_root),
+            "ticket_version": self.ticket_version,
+            "ticket_id": self.ticket_id,
+            "issuer_id": self.issuer_id,
             "intent": self.intent.value,
             "expected_kind": self.expected_kind.value,
             "exists": self.exists,
-            "nearest_existing_ancestor": str(self.nearest_existing_ancestor),
-            "chain": [
-                {
-                    "path": str(item.path),
-                    "device": item.device,
-                    "inode": item.inode,
-                    "mode": item.mode,
-                    "file_attributes": item.file_attributes,
-                    "reparse_tag": item.reparse_tag,
-                    "nlink": item.nlink,
-                }
-                for item in self.chain_snapshot
-            ],
         }
+
+
+@dataclass(frozen=True, slots=True)
+class _GuardTicketRecord:
+    claims_sha256: str
+    authenticator: bytes
 
 
 class WorkspaceGuard:
@@ -205,6 +230,8 @@ class WorkspaceGuard:
     A returned ticket must be revalidated immediately before a later writer acts.
     """
 
+    _MAX_ISSUED_TICKETS = 8192
+
     def __init__(
         self,
         authorization_root: str | os.PathLike[str],
@@ -213,6 +240,10 @@ class WorkspaceGuard:
         probe: PathProbe | None = None,
     ) -> None:
         self._probe = probe or NativePathProbe()
+        self._issuer_id = secrets.token_hex(16)
+        self._ticket_key = secrets.token_bytes(32)
+        self._issued_tickets: dict[str, _GuardTicketRecord] = {}
+        self._ticket_lock = threading.RLock()
         self.authorization_root, self._authorization_snapshot = self._validate_root(
             authorization_root,
             label="authorization_root",
@@ -266,6 +297,20 @@ class WorkspaceGuard:
         self._workspace_snapshot = snapshot
 
     def authorize(
+        self,
+        requested: str | os.PathLike[str] | None,
+        *,
+        intent: PathIntent,
+        expected_kind: ExpectedKind = ExpectedKind.ANY,
+    ) -> GuardedPath:
+        draft = self._evaluate(
+            requested,
+            intent=intent,
+            expected_kind=expected_kind,
+        )
+        return self._issue_ticket(draft)
+
+    def _evaluate(
         self,
         requested: str | os.PathLike[str] | None,
         *,
@@ -396,6 +441,7 @@ class WorkspaceGuard:
             + target_snapshot[1:]
         )
         return GuardedPath(
+            issuer_id=self._issuer_id,
             requested=raw,
             path=candidate,
             relative_path=relative_path,
@@ -408,16 +454,54 @@ class WorkspaceGuard:
         )
 
     def revalidate(self, ticket: GuardedPath) -> GuardedPath:
-        if ticket.workspace_root != self.workspace_root:
+        if type(ticket) is not GuardedPath:
             raise WorkspacePathChangedError(
-                GuardErrorCode.PATH_STATE_CHANGED,
-                requested=ticket.requested,
-                normalized=str(ticket.path),
+                GuardErrorCode.INVALID_TICKET,
+                requested="<redacted>",
+                message="ticket must be an exact GuardedPath instance",
+            )
+        if ticket.issuer_id != self._issuer_id:
+            raise WorkspacePathChangedError(
+                GuardErrorCode.TICKET_ISSUER_MISMATCH,
+                requested="<redacted>",
                 intent=ticket.intent,
-                message="ticket belongs to a different workspace",
+                message="ticket was issued by a different WorkspaceGuard instance",
+            )
+        with self._ticket_lock:
+            record = self._issued_tickets.get(ticket.ticket_id)
+        if record is None:
+            raise WorkspacePathChangedError(
+                GuardErrorCode.TICKET_NOT_ISSUED,
+                requested="<redacted>",
+                intent=ticket.intent,
+                message="ticket ID was not issued by this WorkspaceGuard instance",
+            )
+        claims = self._ticket_claims(ticket)
+        claims_sha256 = hashlib.sha256(claims).hexdigest()
+        if not hmac.compare_digest(claims_sha256, record.claims_sha256):
+            raise WorkspacePathChangedError(
+                GuardErrorCode.TICKET_CLAIMS_MISMATCH,
+                requested="<redacted>",
+                intent=ticket.intent,
+                message="ticket claims differ from the issued record",
+            )
+        expected_mac = hmac.new(
+            self._ticket_key,
+            b"WG-TICKET-V1\0" + claims,
+            hashlib.sha256,
+        ).digest()
+        if not (
+            hmac.compare_digest(ticket.authenticator, record.authenticator)
+            and hmac.compare_digest(ticket.authenticator, expected_mac)
+        ):
+            raise WorkspacePathChangedError(
+                GuardErrorCode.TICKET_MAC_MISMATCH,
+                requested="<redacted>",
+                intent=ticket.intent,
+                message="ticket authenticator is invalid",
             )
         try:
-            current = self.authorize(
+            current = self._evaluate(
                 ticket.requested,
                 intent=ticket.intent,
                 expected_kind=ticket.expected_kind,
@@ -433,7 +517,12 @@ class WorkspaceGuard:
             ) from exc
         if (
             current.path != ticket.path
+            or current.relative_path != ticket.relative_path
+            or current.workspace_root != ticket.workspace_root
+            or current.intent is not ticket.intent
+            or current.expected_kind is not ticket.expected_kind
             or current.exists != ticket.exists
+            or current.nearest_existing_ancestor != ticket.nearest_existing_ancestor
             or current.chain_snapshot != ticket.chain_snapshot
         ):
             raise WorkspacePathChangedError(
@@ -443,7 +532,125 @@ class WorkspaceGuard:
                 intent=ticket.intent,
                 message="path identity changed after authorization",
             )
-        return current
+        return ticket
+
+    @property
+    def live_ticket_count(self) -> int:
+        """Return the number of live capabilities retained by this guard."""
+
+        with self._ticket_lock:
+            return len(self._issued_tickets)
+
+    def release(self, ticket: GuardedPath) -> bool:
+        """Revoke an exact issued ticket without inspecting or mutating its path.
+
+        Release is intentionally independent of current filesystem state so a
+        failed outer transaction can always roll back registry capacity.  A
+        forged or altered ticket is rejected; an already released exact ticket
+        returns ``False`` and is therefore safe for bounded cleanup paths.
+        """
+
+        if type(ticket) is not GuardedPath:
+            raise WorkspacePathChangedError(
+                GuardErrorCode.INVALID_TICKET,
+                requested="<redacted>",
+                message="ticket must be an exact GuardedPath instance",
+            )
+        if ticket.issuer_id != self._issuer_id:
+            raise WorkspacePathChangedError(
+                GuardErrorCode.TICKET_ISSUER_MISMATCH,
+                requested="<redacted>",
+                intent=ticket.intent,
+                message="ticket was issued by a different WorkspaceGuard instance",
+            )
+        claims = self._ticket_claims(ticket)
+        claims_sha256 = hashlib.sha256(claims).hexdigest()
+        expected_mac = hmac.new(
+            self._ticket_key,
+            b"WG-TICKET-V1\0" + claims,
+            hashlib.sha256,
+        ).digest()
+        with self._ticket_lock:
+            record = self._issued_tickets.get(ticket.ticket_id)
+            if record is None:
+                return False
+            if not hmac.compare_digest(claims_sha256, record.claims_sha256):
+                raise WorkspacePathChangedError(
+                    GuardErrorCode.TICKET_CLAIMS_MISMATCH,
+                    requested="<redacted>",
+                    intent=ticket.intent,
+                    message="ticket claims differ from the issued record",
+                )
+            if not (
+                hmac.compare_digest(ticket.authenticator, record.authenticator)
+                and hmac.compare_digest(ticket.authenticator, expected_mac)
+            ):
+                raise WorkspacePathChangedError(
+                    GuardErrorCode.TICKET_MAC_MISMATCH,
+                    requested="<redacted>",
+                    intent=ticket.intent,
+                    message="ticket authenticator is invalid",
+                )
+            del self._issued_tickets[ticket.ticket_id]
+            return True
+
+    def _issue_ticket(self, draft: GuardedPath) -> GuardedPath:
+        with self._ticket_lock:
+            if len(self._issued_tickets) >= self._MAX_ISSUED_TICKETS:
+                raise WorkspacePathRejectedError(
+                    GuardErrorCode.TICKET_REGISTRY_FULL,
+                    requested="<redacted>",
+                    intent=draft.intent,
+                    message="ticket registry capacity was reached; a writer must use bounded lifetimes",
+                )
+            ticket_id = secrets.token_hex(16).upper()
+            unsigned = replace(draft, ticket_id=ticket_id, authenticator=b"")
+            claims = self._ticket_claims(unsigned)
+            authenticator = hmac.new(
+                self._ticket_key,
+                b"WG-TICKET-V1\0" + claims,
+                hashlib.sha256,
+            ).digest()
+            ticket = replace(unsigned, authenticator=authenticator)
+            self._issued_tickets[ticket_id] = _GuardTicketRecord(
+                claims_sha256=hashlib.sha256(claims).hexdigest(),
+                authenticator=authenticator,
+            )
+            return ticket
+
+    @staticmethod
+    def _ticket_claims(ticket: GuardedPath) -> bytes:
+        payload = {
+            "ticket_version": ticket.ticket_version,
+            "ticket_id": ticket.ticket_id,
+            "issuer_id": ticket.issuer_id,
+            "requested": ticket.requested,
+            "path": str(ticket.path),
+            "relative_path": ticket.relative_path.as_posix(),
+            "workspace_root": str(ticket.workspace_root),
+            "intent": ticket.intent.value,
+            "expected_kind": ticket.expected_kind.value,
+            "exists": ticket.exists,
+            "nearest_existing_ancestor": str(ticket.nearest_existing_ancestor),
+            "chain": [
+                {
+                    "path": str(item.path),
+                    "device": item.device,
+                    "inode": item.inode,
+                    "mode": item.mode,
+                    "file_attributes": item.file_attributes,
+                    "reparse_tag": item.reparse_tag,
+                    "nlink": item.nlink,
+                }
+                for item in ticket.chain_snapshot
+            ],
+        }
+        return json.dumps(
+            payload,
+            ensure_ascii=True,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("ascii")
 
     def _validate_root(
         self,

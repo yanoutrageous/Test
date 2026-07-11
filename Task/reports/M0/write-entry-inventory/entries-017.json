@@ -1,0 +1,62 @@
+{
+  "chunk_digest_sha256": "2754b289632ce177efcc8fd681238e3b62543018d846008aca024849cc3ff2de",
+  "chunk_index": 17,
+  "entries": [
+    {
+      "call_chain": [
+        "scripts.run_safe_pytest.main"
+      ],
+      "callee": "os.mkdir",
+      "column": 4,
+      "detail": "directory creation",
+      "end_column": 26,
+      "end_line": 1133,
+      "entry_id": "WE-6B9FC39012EAFF8B5168D7BC",
+      "file": "scripts/run_safe_pytest.py",
+      "function": "scripts.run_safe_pytest.main",
+      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
+      "kind": "FILESYSTEM_DIRECTORY_CREATE",
+      "line": 1133,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "TEST_INFRASTRUCTURE",
+      "required_control": "S3_HANDLE_LEVEL_WORKSPACE_WRITER",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "SCRIPT:scripts/run_safe_pytest.py"
+      ],
+      "source_sha256": "75237e49874ad67756405e2148b748507e16807c79befc087aad1782e199ed3e",
+      "statement_fingerprint": "3102f577fe457871c6e93b649467cd741570c6e5695ab61120e0be7a8b36c316",
+      "target_namespace": "TEST_LAB_RUNTIME"
+    },
+    {
+      "call_chain": [
+        "scripts.run_safe_pytest.main"
+      ],
+      "callee": "os.mkdir",
+      "column": 4,
+      "detail": "directory creation",
+      "end_column": 24,
+      "end_line": 1134,
+      "entry_id": "WE-847F9745C4C75ABDE6E5D1AC",
+      "file": "scripts/run_safe_pytest.py",
+      "function": "scripts.run_safe_pytest.main",
+      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
+      "kind": "FILESYSTEM_DIRECTORY_CREATE",
+      "line": 1134,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "TEST_INFRASTRUCTURE",
+      "required_control": "S3_HANDLE_LEVEL_WORKSPACE_WRITER",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "SCRIPT:scripts/run_safe_pytest.py"
+      ],
+      "source_sha256": "75237e49874ad67756405e2148b748507e16807c79befc087aad1782e199ed3e",
+      "statement_fingerprint": "2936544fb8e87590fc4c946250f06759d40a5fa3ca655748ed4a2f5bb15b3a08",
+      "target_namespace": "TEST_LAB_RUNTIME"
+    }
+  ],
+  "entry_count": 2,
+  "schema_version": "2.0"
+}

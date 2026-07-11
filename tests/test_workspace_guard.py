@@ -4,9 +4,10 @@ import hashlib
 import json
 import ntpath
 import os
+import pickle
 import stat
 import subprocess
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime
 from pathlib import Path, PureWindowsPath
 from typing import Any
@@ -825,3 +826,118 @@ def test_revalidate_fails_closed_when_workspace_disappears(guard_lab: _Lab) -> N
         guard_lab.guard.revalidate(ticket)
 
     assert error.value.code is GuardErrorCode.PATH_STATE_CHANGED
+
+
+def test_append_and_quarantine_target_have_explicit_existence_semantics(
+    guard_lab: _Lab,
+) -> None:
+    existing = guard_lab.project / "append.log"
+    existing.write_text("existing\n", encoding="utf-8")
+    append_ticket = guard_lab.guard.authorize(
+        existing,
+        intent=PathIntent.APPEND_EXISTING,
+        expected_kind=ExpectedKind.FILE,
+    )
+    assert append_ticket.exists
+
+    with pytest.raises(WorkspacePathRejectedError) as missing_append:
+        guard_lab.guard.authorize(
+            guard_lab.project / "missing.log",
+            intent=PathIntent.APPEND_EXISTING,
+            expected_kind=ExpectedKind.FILE,
+        )
+    assert missing_append.value.code is GuardErrorCode.NOT_FOUND
+
+    quarantine_target = guard_lab.project / "quarantine-target.bin"
+    target_ticket = guard_lab.guard.authorize(
+        quarantine_target,
+        intent=PathIntent.QUARANTINE_TARGET,
+    )
+    assert not target_ticket.exists
+
+    with pytest.raises(WorkspacePathRejectedError) as existing_target:
+        guard_lab.guard.authorize(
+            existing,
+            intent=PathIntent.QUARANTINE_TARGET,
+        )
+    assert existing_target.value.code is GuardErrorCode.TARGET_ALREADY_EXISTS
+
+
+def test_ticket_cannot_be_revalidated_by_another_guard_instance(
+    guard_lab: _Lab,
+) -> None:
+    ticket = guard_lab.guard.authorize("future.txt", intent=PathIntent.NEW_WRITE)
+    other_guard = WorkspaceGuard(PROJECT_ROOT, guard_lab.project)
+
+    with pytest.raises(WorkspacePathChangedError) as error:
+        other_guard.revalidate(ticket)
+
+    assert error.value.code is GuardErrorCode.TICKET_ISSUER_MISMATCH
+
+
+@pytest.mark.parametrize(
+    ("changes", "expected_code"),
+    [
+        ({"intent": PathIntent.EXISTING_WRITE}, GuardErrorCode.TICKET_CLAIMS_MISMATCH),
+        ({"expected_kind": ExpectedKind.DIRECTORY}, GuardErrorCode.TICKET_CLAIMS_MISMATCH),
+        ({"exists": False}, GuardErrorCode.TICKET_CLAIMS_MISMATCH),
+        ({"ticket_id": "FORGED-001"}, GuardErrorCode.TICKET_NOT_ISSUED),
+        ({"authenticator": b"forged"}, GuardErrorCode.TICKET_MAC_MISMATCH),
+    ],
+)
+def test_registered_ticket_rejects_claim_and_mac_tampering(
+    guard_lab: _Lab,
+    changes: dict[str, Any],
+    expected_code: GuardErrorCode,
+) -> None:
+    existing = guard_lab.project / "existing.txt"
+    existing.write_text("safe", encoding="utf-8")
+    read_ticket = guard_lab.guard.authorize(
+        existing,
+        intent=PathIntent.EXISTING_READ,
+        expected_kind=ExpectedKind.FILE,
+    )
+    forged = replace(read_ticket, **changes)
+
+    with pytest.raises(WorkspacePathChangedError) as error:
+        guard_lab.guard.revalidate(forged)
+
+    assert error.value.code is expected_code
+
+
+def test_guard_ticket_audit_summary_never_contains_absolute_or_requested_path(
+    guard_lab: _Lab,
+) -> None:
+    ticket = guard_lab.guard.authorize(
+        "future.txt",
+        intent=PathIntent.NEW_WRITE,
+        expected_kind=ExpectedKind.FILE,
+    )
+    rendered = str(ticket.to_audit_dict())
+
+    assert str(guard_lab.project) not in rendered
+    assert "future.txt" not in rendered
+    assert ticket.ticket_id in rendered
+    representation = repr(ticket) + " ".join(repr(item) for item in ticket.chain_snapshot)
+    assert str(guard_lab.project) not in representation
+    assert "future.txt" not in representation
+    assert "D:" not in representation
+    with pytest.raises(TypeError):
+        pickle.dumps(ticket)
+
+
+def test_exact_ticket_release_recovers_registry_capacity_without_path_access(
+    guard_lab: _Lab,
+) -> None:
+    ticket = guard_lab.guard.authorize(
+        "future-release.txt",
+        intent=PathIntent.NEW_WRITE,
+        expected_kind=ExpectedKind.FILE,
+    )
+    assert guard_lab.guard.live_ticket_count == 1
+    assert guard_lab.guard.release(ticket)
+    assert guard_lab.guard.live_ticket_count == 0
+    assert not guard_lab.guard.release(ticket)
+    with pytest.raises(WorkspacePathChangedError) as released:
+        guard_lab.guard.revalidate(ticket)
+    assert released.value.code is GuardErrorCode.TICKET_NOT_ISSUED

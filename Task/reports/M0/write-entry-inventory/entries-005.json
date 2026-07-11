@@ -1,0 +1,763 @@
+{
+  "chunk_digest_sha256": "ec433e0916805fe131eb6788f0ec579076deeb94e66e9f93d133fe1f5d44e5ed",
+  "chunk_index": 5,
+  "entries": [
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.question_assets.crop_question_assets"
+      ],
+      "callee": "app.config.get_project_paths().question_images_dir.mkdir",
+      "column": 4,
+      "detail": "directory creation",
+      "end_column": 64,
+      "end_line": 71,
+      "entry_id": "WE-043790F11CE10F48E4F18231",
+      "file": "app/question_assets.py",
+      "function": "app.question_assets.crop_question_assets",
+      "input_source": "CLI_ARGUMENT_OR_CONFIG",
+      "kind": "FILESYSTEM_DIRECTORY_CREATE",
+      "line": 71,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "IMPORT_SERVICE",
+      "required_control": "S3_HANDLE_LEVEL_WORKSPACE_WRITER",
+      "resolution": "ALIAS_RESOLVED",
+      "risk": "P1",
+      "root_ids": [
+        "CLI:MAIN"
+      ],
+      "source_sha256": "117afd7f9e203751c90ce470541a6670f47e7275f8207d1ea6e02b12528bad68",
+      "statement_fingerprint": "979fbb5fca5289116f722a0eafa2fad111b463205b383b0c09e901653c1f6aaa",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_FILESYSTEM"
+    },
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.question_assets.crop_question_assets"
+      ],
+      "callee": "app.database.connect_database",
+      "column": 9,
+      "detail": "legacy database gateway",
+      "end_column": 51,
+      "end_line": 80,
+      "entry_id": "WE-8E70778C49F16CB8507207FB",
+      "file": "app/question_assets.py",
+      "function": "app.question_assets.crop_question_assets",
+      "input_source": "CLI_ARGUMENT_OR_CONFIG",
+      "kind": "DATABASE_GATEWAY",
+      "line": 80,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "IMPORT_SERVICE",
+      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
+      "resolution": "ALIAS_RESOLVED",
+      "risk": "P1",
+      "root_ids": [
+        "CLI:MAIN"
+      ],
+      "source_sha256": "117afd7f9e203751c90ce470541a6670f47e7275f8207d1ea6e02b12528bad68",
+      "statement_fingerprint": "c6e39a28573a33827b0ac859c7ec0248c91d306e3dcb911ad081a83adde20f2e",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    },
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.question_assets.crop_question_assets"
+      ],
+      "callee": "<value>.mkdir",
+      "column": 16,
+      "detail": "directory creation",
+      "end_column": 61,
+      "end_line": 125,
+      "entry_id": "WE-4ADE7A4D1FF9C642FE4C884A",
+      "file": "app/question_assets.py",
+      "function": "app.question_assets.crop_question_assets",
+      "input_source": "CLI_ARGUMENT_OR_CONFIG",
+      "kind": "FILESYSTEM_DIRECTORY_CREATE",
+      "line": 125,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "IMPORT_SERVICE",
+      "required_control": "S3_HANDLE_LEVEL_WORKSPACE_WRITER",
+      "resolution": "ALIAS_RESOLVED",
+      "risk": "P1",
+      "root_ids": [
+        "CLI:MAIN"
+      ],
+      "source_sha256": "117afd7f9e203751c90ce470541a6670f47e7275f8207d1ea6e02b12528bad68",
+      "statement_fingerprint": "6823ceaeb5d5fc2a24cefd19a14a8b9acd59fc0f4b7275e5969705286d9c1239",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_FILESYSTEM"
+    },
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.question_assets.crop_question_assets"
+      ],
+      "callee": "<indexed>.get_pixmap().save",
+      "column": 20,
+      "detail": "serializer/image save writes a target",
+      "end_column": 44,
+      "end_line": 129,
+      "entry_id": "WE-E15E3FAE55AA6C7236084057",
+      "file": "app/question_assets.py",
+      "function": "app.question_assets.crop_question_assets",
+      "input_source": "CLI_ARGUMENT_OR_CONFIG",
+      "kind": "FILESYSTEM_FILE_WRITE",
+      "line": 129,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "IMPORT_SERVICE",
+      "required_control": "S3_HANDLE_LEVEL_WORKSPACE_WRITER",
+      "resolution": "CONSERVATIVE",
+      "risk": "P1",
+      "root_ids": [
+        "CLI:MAIN"
+      ],
+      "source_sha256": "117afd7f9e203751c90ce470541a6670f47e7275f8207d1ea6e02b12528bad68",
+      "statement_fingerprint": "b135c73a7d98ef75a7d254655a7db7c6b3eddaba43db5c70b1d1c3215f899828",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_FILESYSTEM"
+    },
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.question_assets.crop_question_assets"
+      ],
+      "callee": "app.database.connect_database().execute",
+      "column": 16,
+      "detail": "INSERT",
+      "end_column": 17,
+      "end_line": 184,
+      "entry_id": "WE-61D71A5FE5EB1DAF23EBCC0C",
+      "file": "app/question_assets.py",
+      "function": "app.question_assets.crop_question_assets",
+      "input_source": "CLI_ARGUMENT_OR_CONFIG",
+      "kind": "SQLITE_MUTATION",
+      "line": 165,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "IMPORT_SERVICE",
+      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
+      "resolution": "ALIAS_RESOLVED",
+      "risk": "P1",
+      "root_ids": [
+        "CLI:MAIN"
+      ],
+      "source_sha256": "117afd7f9e203751c90ce470541a6670f47e7275f8207d1ea6e02b12528bad68",
+      "statement_fingerprint": "4ccc24ebf46e2f5493c31eb21463c5bd7f7b7311e72c1af51e267c730b30b9f5",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    },
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.question_assets.crop_question_assets"
+      ],
+      "callee": "app.database.connect_database().execute",
+      "column": 16,
+      "detail": "UPDATE",
+      "end_column": 17,
+      "end_line": 202,
+      "entry_id": "WE-0C6A745EC4A53842F2DDBE22",
+      "file": "app/question_assets.py",
+      "function": "app.question_assets.crop_question_assets",
+      "input_source": "CLI_ARGUMENT_OR_CONFIG",
+      "kind": "SQLITE_MUTATION",
+      "line": 186,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "IMPORT_SERVICE",
+      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
+      "resolution": "ALIAS_RESOLVED",
+      "risk": "P1",
+      "root_ids": [
+        "CLI:MAIN"
+      ],
+      "source_sha256": "117afd7f9e203751c90ce470541a6670f47e7275f8207d1ea6e02b12528bad68",
+      "statement_fingerprint": "eacb6df10d2ba683d3c5c074cc853d64ef1a6cbc56bceb7a3e0b169401b58443",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    },
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.question_assets.crop_question_assets"
+      ],
+      "callee": "app.database.connect_database().commit",
+      "column": 8,
+      "detail": "transaction commit",
+      "end_column": 21,
+      "end_line": 205,
+      "entry_id": "WE-334C41D0FE74A00D16DC2254",
+      "file": "app/question_assets.py",
+      "function": "app.question_assets.crop_question_assets",
+      "input_source": "CLI_ARGUMENT_OR_CONFIG",
+      "kind": "SQLITE_TRANSACTION",
+      "line": 205,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "IMPORT_SERVICE",
+      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
+      "resolution": "ALIAS_RESOLVED",
+      "risk": "P1",
+      "root_ids": [
+        "CLI:MAIN"
+      ],
+      "source_sha256": "117afd7f9e203751c90ce470541a6670f47e7275f8207d1ea6e02b12528bad68",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    },
+    {
+      "call_chain": [
+        "app.web.create_app",
+        "app.question_repository.list_questions"
+      ],
+      "callee": "app.database.connect_database",
+      "column": 9,
+      "detail": "legacy database gateway",
+      "end_column": 34,
+      "end_line": 174,
+      "entry_id": "WE-C3E9966EF309DB6B129DEC24",
+      "file": "app/question_repository.py",
+      "function": "app.question_repository.list_questions",
+      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
+      "kind": "DATABASE_GATEWAY",
+      "line": 174,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
+      "resolution": "ALIAS_RESOLVED",
+      "risk": "P1",
+      "root_ids": [
+        "FACTORY:CREATE_APP",
+        "MODULE:APP",
+        "WEB:GET /questions",
+        "WEB:GET /questions/<int:question_id>",
+        "WEB:POST /questions/<int:question_id>"
+      ],
+      "source_sha256": "79349e7a4e2aac94e3080193ec6fe1303ccc3a6a4d0570bf0ed68bbffc3e239c",
+      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    },
+    {
+      "call_chain": [
+        "app.web.create_app",
+        "app.question_repository.list_questions"
+      ],
+      "callee": "app.database.connect_database().execute",
+      "column": 23,
+      "detail": "dynamic SQL is fail-closed because its effect cannot be proven",
+      "end_column": 17,
+      "end_line": 206,
+      "entry_id": "WE-A5D4003E5F7C99D3C29123AE",
+      "file": "app/question_repository.py",
+      "function": "app.question_repository.list_questions",
+      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "line": 178,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
+      "resolution": "DYNAMIC",
+      "risk": "P0",
+      "root_ids": [
+        "FACTORY:CREATE_APP",
+        "MODULE:APP",
+        "WEB:GET /questions",
+        "WEB:GET /questions/<int:question_id>",
+        "WEB:POST /questions/<int:question_id>"
+      ],
+      "source_sha256": "79349e7a4e2aac94e3080193ec6fe1303ccc3a6a4d0570bf0ed68bbffc3e239c",
+      "statement_fingerprint": "e73cd172adef3d5b7203850801220a18d30d9aeaf35809b7914bcf9bb8c76ca9",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    },
+    {
+      "call_chain": [
+        "app.web.create_app",
+        "app.question_repository.list_questions"
+      ],
+      "callee": "app.database.connect_database().execute",
+      "column": 19,
+      "detail": "dynamic SQL is fail-closed because its effect cannot be proven",
+      "end_column": 13,
+      "end_line": 247,
+      "entry_id": "WE-3B8708775D8DB5926FF1CB2E",
+      "file": "app/question_repository.py",
+      "function": "app.question_repository.list_questions",
+      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "line": 221,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
+      "resolution": "DYNAMIC",
+      "risk": "P0",
+      "root_ids": [
+        "FACTORY:CREATE_APP",
+        "MODULE:APP",
+        "WEB:GET /questions",
+        "WEB:GET /questions/<int:question_id>",
+        "WEB:POST /questions/<int:question_id>"
+      ],
+      "source_sha256": "79349e7a4e2aac94e3080193ec6fe1303ccc3a6a4d0570bf0ed68bbffc3e239c",
+      "statement_fingerprint": "0fc200593fa5e3559a41447d61258243ecfc27db3a8403e9c90a404d3b79623e",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    },
+    {
+      "call_chain": [
+        "app.web.create_app",
+        "app.question_repository.list_questions",
+        "app.question_repository._list_questions_like"
+      ],
+      "callee": "conn.execute",
+      "column": 11,
+      "detail": "dynamic SQL is fail-closed because its effect cannot be proven",
+      "end_column": 5,
+      "end_line": 314,
+      "entry_id": "WE-9F5DB20484DCE9A562407EA4",
+      "file": "app/question_repository.py",
+      "function": "app.question_repository._list_questions_like",
+      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "line": 288,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
+      "resolution": "DYNAMIC",
+      "risk": "P0",
+      "root_ids": [
+        "FACTORY:CREATE_APP",
+        "MODULE:APP",
+        "WEB:GET /questions",
+        "WEB:GET /questions/<int:question_id>",
+        "WEB:POST /questions/<int:question_id>"
+      ],
+      "source_sha256": "79349e7a4e2aac94e3080193ec6fe1303ccc3a6a4d0570bf0ed68bbffc3e239c",
+      "statement_fingerprint": "f52c9d155f95084c78affd5939f418de6dedd9d56fd1c1ca7a9222dec320b2ac",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    },
+    {
+      "call_chain": [
+        "app.web.create_app",
+        "app.question_repository.get_question_detail"
+      ],
+      "callee": "app.database.connect_database",
+      "column": 9,
+      "detail": "legacy database gateway",
+      "end_column": 34,
+      "end_line": 322,
+      "entry_id": "WE-077CBD96EF02AEA96C624605",
+      "file": "app/question_repository.py",
+      "function": "app.question_repository.get_question_detail",
+      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
+      "kind": "DATABASE_GATEWAY",
+      "line": 322,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
+      "resolution": "ALIAS_RESOLVED",
+      "risk": "P1",
+      "root_ids": [
+        "FACTORY:CREATE_APP",
+        "MODULE:APP",
+        "WEB:GET /questions/<int:question_id>",
+        "WEB:POST /questions/<int:question_id>"
+      ],
+      "source_sha256": "79349e7a4e2aac94e3080193ec6fe1303ccc3a6a4d0570bf0ed68bbffc3e239c",
+      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    },
+    {
+      "call_chain": [
+        "app.web.create_app",
+        "app.question_repository.get_questions_by_ids"
+      ],
+      "callee": "app.database.connect_database",
+      "column": 9,
+      "detail": "legacy database gateway",
+      "end_column": 34,
+      "end_line": 457,
+      "entry_id": "WE-8622A731BEF199636A2FF64C",
+      "file": "app/question_repository.py",
+      "function": "app.question_repository.get_questions_by_ids",
+      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
+      "kind": "DATABASE_GATEWAY",
+      "line": 457,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
+      "resolution": "ALIAS_RESOLVED",
+      "risk": "P1",
+      "root_ids": [
+        "CLI:MAIN",
+        "FACTORY:CREATE_APP",
+        "MODULE:APP",
+        "WEB:GET /paper-basket",
+        "WEB:POST /paper-basket/add/<int:question_id>"
+      ],
+      "source_sha256": "79349e7a4e2aac94e3080193ec6fe1303ccc3a6a4d0570bf0ed68bbffc3e239c",
+      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    },
+    {
+      "call_chain": [
+        "app.web.create_app",
+        "app.question_repository.get_questions_by_ids"
+      ],
+      "callee": "app.database.connect_database().execute",
+      "column": 15,
+      "detail": "dynamic SQL is fail-closed because its effect cannot be proven",
+      "end_column": 9,
+      "end_line": 489,
+      "entry_id": "WE-49A0D6F168262BF4E7444F1F",
+      "file": "app/question_repository.py",
+      "function": "app.question_repository.get_questions_by_ids",
+      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "line": 458,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
+      "resolution": "DYNAMIC",
+      "risk": "P0",
+      "root_ids": [
+        "CLI:MAIN",
+        "FACTORY:CREATE_APP",
+        "MODULE:APP",
+        "WEB:GET /paper-basket",
+        "WEB:POST /paper-basket/add/<int:question_id>"
+      ],
+      "source_sha256": "79349e7a4e2aac94e3080193ec6fe1303ccc3a6a4d0570bf0ed68bbffc3e239c",
+      "statement_fingerprint": "0209b2ebde2b8d5f2ab45d69c5c756e0bf83ac70af3afdb1aa66ec6930948362",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    },
+    {
+      "call_chain": [
+        "app.web.create_app",
+        "app.ai_suggestions.accept_ai_suggestion",
+        "app.question_repository._review_snapshot"
+      ],
+      "callee": "conn.execute",
+      "column": 10,
+      "detail": "dynamic SQL is fail-closed because its effect cannot be proven",
+      "end_column": 5,
+      "end_line": 503,
+      "entry_id": "WE-58628A9396F7F6902AACBA23",
+      "file": "app/question_repository.py",
+      "function": "app.question_repository._review_snapshot",
+      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "line": 496,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
+      "resolution": "DYNAMIC",
+      "risk": "P0",
+      "root_ids": [
+        "FACTORY:CREATE_APP",
+        "MODULE:APP",
+        "WEB:GET /questions/<int:question_id>",
+        "WEB:POST /questions/<int:question_id>",
+        "WEB:POST /questions/<int:question_id>/ai-suggestions/<int:suggestion_id>/accept"
+      ],
+      "source_sha256": "79349e7a4e2aac94e3080193ec6fe1303ccc3a6a4d0570bf0ed68bbffc3e239c",
+      "statement_fingerprint": "e853b4985b4912fba4aa98eb8c83ad451869fdc022e08c2627b6a03130546dae",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    },
+    {
+      "call_chain": [
+        "app.web.create_app",
+        "app.ai_suggestions.accept_ai_suggestion",
+        "app.question_repository._insert_review_event"
+      ],
+      "callee": "conn.execute",
+      "column": 4,
+      "detail": "INSERT",
+      "end_column": 5,
+      "end_line": 543,
+      "entry_id": "WE-1D188C4B68677FC891BCC3B0",
+      "file": "app/question_repository.py",
+      "function": "app.question_repository._insert_review_event",
+      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
+      "kind": "SQLITE_MUTATION",
+      "line": 524,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "FACTORY:CREATE_APP",
+        "MODULE:APP",
+        "WEB:GET /questions/<int:question_id>",
+        "WEB:POST /questions/<int:question_id>",
+        "WEB:POST /questions/<int:question_id>/ai-suggestions/<int:suggestion_id>/accept"
+      ],
+      "source_sha256": "79349e7a4e2aac94e3080193ec6fe1303ccc3a6a4d0570bf0ed68bbffc3e239c",
+      "statement_fingerprint": "45b918020a2a8f7d9832ee00ecbc2dc5bb369ef0b8e4ce27003f7b75e619264c",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    },
+    {
+      "call_chain": [
+        "app.web.create_app",
+        "app.question_repository.update_question_from_form"
+      ],
+      "callee": "app.database.initialize_database",
+      "column": 4,
+      "detail": "implicit schema/directory initialization",
+      "end_column": 32,
+      "end_line": 552,
+      "entry_id": "WE-BED354862363636038052EA0",
+      "file": "app/question_repository.py",
+      "function": "app.question_repository.update_question_from_form",
+      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "line": 552,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
+      "resolution": "ALIAS_RESOLVED",
+      "risk": "P1",
+      "root_ids": [
+        "FACTORY:CREATE_APP",
+        "MODULE:APP",
+        "WEB:GET /questions/<int:question_id>",
+        "WEB:POST /questions/<int:question_id>"
+      ],
+      "source_sha256": "79349e7a4e2aac94e3080193ec6fe1303ccc3a6a4d0570bf0ed68bbffc3e239c",
+      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    },
+    {
+      "call_chain": [
+        "app.web.create_app",
+        "app.question_repository.update_question_from_form"
+      ],
+      "callee": "app.database.connect_database",
+      "column": 9,
+      "detail": "legacy database gateway",
+      "end_column": 34,
+      "end_line": 597,
+      "entry_id": "WE-BFEAD63EECE9BFCAF0C80CC0",
+      "file": "app/question_repository.py",
+      "function": "app.question_repository.update_question_from_form",
+      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
+      "kind": "DATABASE_GATEWAY",
+      "line": 597,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
+      "resolution": "ALIAS_RESOLVED",
+      "risk": "P1",
+      "root_ids": [
+        "FACTORY:CREATE_APP",
+        "MODULE:APP",
+        "WEB:GET /questions/<int:question_id>",
+        "WEB:POST /questions/<int:question_id>"
+      ],
+      "source_sha256": "79349e7a4e2aac94e3080193ec6fe1303ccc3a6a4d0570bf0ed68bbffc3e239c",
+      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    },
+    {
+      "call_chain": [
+        "app.web.create_app",
+        "app.question_repository.update_question_from_form"
+      ],
+      "callee": "app.database.connect_database().execute",
+      "column": 17,
+      "detail": "UPDATE",
+      "end_column": 9,
+      "end_line": 617,
+      "entry_id": "WE-F225616D0AE09CBFBF9E19B2",
+      "file": "app/question_repository.py",
+      "function": "app.question_repository.update_question_from_form",
+      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
+      "kind": "SQLITE_MUTATION",
+      "line": 602,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
+      "resolution": "ALIAS_RESOLVED",
+      "risk": "P1",
+      "root_ids": [
+        "FACTORY:CREATE_APP",
+        "MODULE:APP",
+        "WEB:GET /questions/<int:question_id>",
+        "WEB:POST /questions/<int:question_id>"
+      ],
+      "source_sha256": "79349e7a4e2aac94e3080193ec6fe1303ccc3a6a4d0570bf0ed68bbffc3e239c",
+      "statement_fingerprint": "e18d16688c5bf6fd70b1ad8346536db885b7eb02b3d3bddce3fbc5465740d746",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    },
+    {
+      "call_chain": [
+        "app.web.create_app",
+        "app.question_repository.update_question_from_form"
+      ],
+      "callee": "app.database.connect_database().commit",
+      "column": 8,
+      "detail": "transaction commit",
+      "end_column": 21,
+      "end_line": 631,
+      "entry_id": "WE-622038200C3382EB44F1E939",
+      "file": "app/question_repository.py",
+      "function": "app.question_repository.update_question_from_form",
+      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
+      "kind": "SQLITE_TRANSACTION",
+      "line": 631,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
+      "resolution": "ALIAS_RESOLVED",
+      "risk": "P1",
+      "root_ids": [
+        "FACTORY:CREATE_APP",
+        "MODULE:APP",
+        "WEB:GET /questions/<int:question_id>",
+        "WEB:POST /questions/<int:question_id>"
+      ],
+      "source_sha256": "79349e7a4e2aac94e3080193ec6fe1303ccc3a6a4d0570bf0ed68bbffc3e239c",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    },
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.question_split.split_questions",
+        "app.question_split._load_source_paper_for_pdf"
+      ],
+      "callee": "app.database.connect_database",
+      "column": 9,
+      "detail": "legacy database gateway",
+      "end_column": 34,
+      "end_line": 224,
+      "entry_id": "WE-3CC52B65E59985653EABC4E9",
+      "file": "app/question_split.py",
+      "function": "app.question_split._load_source_paper_for_pdf",
+      "input_source": "CLI_ARGUMENT_OR_CONFIG",
+      "kind": "DATABASE_GATEWAY",
+      "line": 224,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "IMPORT_SERVICE",
+      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
+      "resolution": "ALIAS_RESOLVED",
+      "risk": "P1",
+      "root_ids": [
+        "CLI:MAIN"
+      ],
+      "source_sha256": "a7f0373d7028a82145c35fc06136ff99f98829a6788e9241c43c7578fcc1c796",
+      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    },
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.question_split.split_questions",
+        "app.question_split.write_question_candidates"
+      ],
+      "callee": "app.database.connect_database",
+      "column": 9,
+      "detail": "legacy database gateway",
+      "end_column": 34,
+      "end_line": 312,
+      "entry_id": "WE-C7371A5FF2726E72CD74D6CE",
+      "file": "app/question_split.py",
+      "function": "app.question_split.write_question_candidates",
+      "input_source": "CLI_ARGUMENT_OR_CONFIG",
+      "kind": "DATABASE_GATEWAY",
+      "line": 312,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "IMPORT_SERVICE",
+      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
+      "resolution": "ALIAS_RESOLVED",
+      "risk": "P1",
+      "root_ids": [
+        "CLI:MAIN"
+      ],
+      "source_sha256": "a7f0373d7028a82145c35fc06136ff99f98829a6788e9241c43c7578fcc1c796",
+      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    },
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.question_split.split_questions",
+        "app.question_split.write_question_candidates"
+      ],
+      "callee": "app.database.connect_database().execute",
+      "column": 16,
+      "detail": "INSERT",
+      "end_column": 17,
+      "end_line": 373,
+      "entry_id": "WE-17A2BE8450BDD45183EC6DD7",
+      "file": "app/question_split.py",
+      "function": "app.question_split.write_question_candidates",
+      "input_source": "CLI_ARGUMENT_OR_CONFIG",
+      "kind": "SQLITE_MUTATION",
+      "line": 338,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "IMPORT_SERVICE",
+      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
+      "resolution": "ALIAS_RESOLVED",
+      "risk": "P1",
+      "root_ids": [
+        "CLI:MAIN"
+      ],
+      "source_sha256": "a7f0373d7028a82145c35fc06136ff99f98829a6788e9241c43c7578fcc1c796",
+      "statement_fingerprint": "e2af00e8e51e5e4bf6c72ae3f53f839762a97beca03e17c513d7695b6bf1dae3",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    },
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.question_split.split_questions",
+        "app.question_split.write_question_candidates"
+      ],
+      "callee": "app.database.connect_database().execute",
+      "column": 16,
+      "detail": "UPDATE",
+      "end_column": 17,
+      "end_line": 402,
+      "entry_id": "WE-E26C65757F2C30C2648599A4",
+      "file": "app/question_split.py",
+      "function": "app.question_split.write_question_candidates",
+      "input_source": "CLI_ARGUMENT_OR_CONFIG",
+      "kind": "SQLITE_MUTATION",
+      "line": 382,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "IMPORT_SERVICE",
+      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
+      "resolution": "ALIAS_RESOLVED",
+      "risk": "P1",
+      "root_ids": [
+        "CLI:MAIN"
+      ],
+      "source_sha256": "a7f0373d7028a82145c35fc06136ff99f98829a6788e9241c43c7578fcc1c796",
+      "statement_fingerprint": "236f8677e4d84c2b699137cb36a198421bcbd22bf3a0cf7cc828fe4721a23832",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    },
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.question_split.split_questions",
+        "app.question_split.write_question_candidates"
+      ],
+      "callee": "app.database.connect_database().commit",
+      "column": 8,
+      "detail": "transaction commit",
+      "end_column": 21,
+      "end_line": 406,
+      "entry_id": "WE-FC573A13BB15803CFB83E0F7",
+      "file": "app/question_split.py",
+      "function": "app.question_split.write_question_candidates",
+      "input_source": "CLI_ARGUMENT_OR_CONFIG",
+      "kind": "SQLITE_TRANSACTION",
+      "line": 406,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "IMPORT_SERVICE",
+      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
+      "resolution": "ALIAS_RESOLVED",
+      "risk": "P1",
+      "root_ids": [
+        "CLI:MAIN"
+      ],
+      "source_sha256": "a7f0373d7028a82145c35fc06136ff99f98829a6788e9241c43c7578fcc1c796",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    }
+  ],
+  "entry_count": 25,
+  "schema_version": "2.0"
+}

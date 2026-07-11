@@ -1,11 +1,18 @@
 {
   "state_version": "1.0.1",
   "plan_version": "1.0.1",
-  "updated_at": "2026-07-11T03:51:45+08:00",
+  "updated_at": "2026-07-11T15:18:44+08:00",
   "current_milestone": "M0",
   "current_slice": "M0_S2_production_guard_policy_and_write_inventory",
-  "status": "RUNNING",
+  "status": "CHECKPOINTED",
   "implementation_status": "IN_PROGRESS",
+  "task_scope": {
+    "effective_terminal_gate": "M0_MILESTONE_ACCEPTED",
+    "stop_after_m0": true,
+    "m1_deferred_to_new_user_task": true,
+    "project_contract_m0_m5_unchanged": true,
+    "source": "latest_explicit_user_instruction"
+  },
   "project_root": "D:\\AAA命题\\Test",
   "git": {
     "branch": "agent/m0-m5-local-v1",
@@ -13,7 +20,7 @@
     "base_commit": "bfd4d35973974a223f465cd08910f303518a8586",
     "remote": "https://github.com/yanoutrageous/Test.git",
     "planning_published_commit": "bfd4d35973974a223f465cd08910f303518a8586",
-    "publication_status": "INTEGRATION_BRANCH_PUSHED_DRAFT_PR_OPEN",
+    "publication_status": "M0_S2_LOCAL_VERIFIED_COMMIT_PENDING",
     "planning_pull_request": "https://github.com/yanoutrageous/Test/pull/1",
     "integration_pull_request": "https://github.com/yanoutrageous/Test/pull/2"
   },
@@ -35,7 +42,13 @@
     "M0-S1 side-effect-free WorkspaceGuard candidate now revalidates the full root chain, rejects lexical attacks, unstable identity, reparse points, and hardlink mutation targets",
     "safe pytest launcher and early hook reject unsafe basetemp, direct pytest, path syntax, plugin injection, ancestor reparse points, and existing run reuse before test writes",
     "RUN-20260711-M0-S1-FULL-008 passed 163 tests with only the separately audited real-symlink capability gate deselected; activity database hash and outside-run file audit remained unchanged",
-    "M0-S1 candidate checkpoint committed and ordinary-pushed as 2dc298439455d464ffe7ccb5d6c43c7659aa668d; draft PR 2 remote head verified identical"
+    "M0-S1 candidate checkpoint committed and ordinary-pushed as 2dc298439455d464ffe7ccb5d6c43c7659aa668d; draft PR 2 remote head verified identical",
+    "M0-S2 fixed production boundary, exact namespace policy, signed candidate and pair capabilities, redacted candidate audit, and deterministic static scanner implemented with production writer deliberately disconnected",
+    "M0-S2 inventory frozen at 45 production sources, 427 entries, 18 chunks, UNKNOWN=0, guard findings=0, and all 427 entries explicitly UNMIGRATED_BLOCKED",
+    "RUN-20260711-M0-S2-EOL-020-FINAL passed 354 tests with only the separately blocked real-symlink capability gate deselected; watcher, 31225-handle fence, process tree, immutable evidence, protected tree, and activity database remained clean",
+    "scanner V5 and root .gitattributes bind production sources and evidence to explicit UTF8_LF_V1 bytes so fresh checkouts are independent of core.autocrlf",
+    "RUN-020 launcher/bootstrap evidence and V5 policy/inventory/EOL reproducibility audits concluded P0=0 and P1=0",
+    "alternate-index staging dry run selected exactly 43 allowlisted files; all 45 staged production source blobs and all 18 inventory chunks matched UTF8_LF_V1 hashes with zero forbidden paths"
   ],
   "not_started": [
     "database migration",
@@ -49,6 +62,6 @@
   "blockers": [
     "M0-SYMLINK-CAPABILITY-001: two Test-local attempts to create a real directory symlink returned WinError 1314; no privilege elevation or Developer Mode change is authorized, so the actual symlink gate remains unverified while independent M0 work continues"
   ],
-  "next_required_action": "Implement M0-S2 fixed production WorkspaceGuard factory, protected/append-only path policy, operation context and exhaustive write-entry inventory; keep all real writes disconnected until the handle-level writer and postcondition checks are independently verified.",
-  "resume_rule": "Read execution_contract.json and all normative Task documents, verify git and filesystem state against this file, then continue from next_required_action without repeating completed work."
+  "next_required_action": "Explicitly stage only the audited M0-S2 code, tests, policy inventory and Task evidence; run staged privacy/scope review, create a normal commit, ordinary-push to the integration branch, verify Draft PR 2, then checkpoint state and enter M0-S3 without connecting real writers prematurely.",
+  "resume_rule": "Read execution_contract.json and all normative Task documents, verify git and filesystem state against this file, then continue from next_required_action without repeating completed work. Do not enter M1 in this task; after M0 is accepted, record STOP_PER_USER with M1 deferred to a new user task."
 }

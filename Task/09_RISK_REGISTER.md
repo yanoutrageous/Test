@@ -52,6 +52,9 @@
 | R-035 | GitHub CLI 未认证阻塞首次规划 push | H | M | 历史审计曾失败；2026-07-11 已确认认证、仓库身份和 ADMIN 权限 | 不绕过认证；使用授权 origin；本仓库采用 GitHub noreply 作者身份 | PRE-M0 | Closed |
 | R-036 | 客户包只在开发者环境可运行 | M | Critical | 隐式 PATH、字体、缓存和联网依赖 | portable root、依赖锁、fresh-user、断网冷启动 | M5 | Open |
 | R-037 | 实机打印未授权却宣称已验证 | M | M | 打印池可能写系统目录 | PDF/打印预览门禁；实机打印需另行授权和记录 | M5 | Open |
+| R-038 | 把静态扫描/测试实验室误称为 hostile-code OS sandbox | M | Critical | Python audit hook、watcher 和句柄围栏不能约束任意恶意 native/反射代码 | 受信任源码审查、固定 bootstrap、Job Object、watcher/fence、禁止未审阅 native 测试；准确披露边界 | M0/All | Open |
+| R-039 | 把调用者提供的 pair evidence 当成实际字节证明 | M | Critical | S2 `PairEvidence`只绑定声明，尚未由 writer 读取源树重算 | S3 writer 从受控句柄重算 manifest/source tree/count/topology，差异时零写入失败关闭 | M0 | Open |
+| R-040 | 把内存 audit sink 当成可恢复的持久审计 | M | Critical | S2 sink 仅用于候选失败关闭，进程退出即丢失 | S3 追加式持久 ledger、批次 receipt、启动校验、故障注入和恢复演练 | M0 | Open |
 
 ## 3. 风险关闭要求
 
