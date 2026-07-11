@@ -41,6 +41,11 @@ from app.safety.segment_ledger import (
     _build_genesis_segment_bytes,
     build_key_revision_bytes,
 )
+from app.safety.job_operation import (
+    _JOB_RUNTIME_CONSTRUCTOR,
+    _TestJobRuntime,
+    _build_test_job_runtime,
+)
 
 from .audit_events import (
     AuditAction,
@@ -81,6 +86,7 @@ def _contract_root(_literal: str = r"D:\AAA命题\Test") -> Path:
 CONTRACT_PROJECT_ROOT = _contract_root()
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
 _TOKEN_CONSTRUCTOR = object()
+_JOB_CONTEXT_PIN_CONSTRUCTOR = object()
 _PRODUCTION_BOUNDARY_CONSTRUCTOR = object()
 _AUDIT_AUTHORITY_CONSTRUCTOR = object()
 _MAX_REGISTRY_ITEMS = 4096
@@ -431,6 +437,42 @@ class _ContextRecord:
     authenticator: bytes
 
 
+class _JobContextPin:
+    __slots__ = (
+        "_core",
+        "_ticket_id",
+        "_pin_id",
+        "_binding_sha256",
+        "_owner_thread",
+        "_closed",
+    )
+
+    def __init__(
+        self,
+        core: _BoundaryCore,
+        ticket_id: str,
+        pin_id: str,
+        binding_sha256: str,
+        *,
+        _constructor: object,
+    ) -> None:
+        if _constructor is not _JOB_CONTEXT_PIN_CONSTRUCTOR:
+            raise TypeError("job context pins require the fixed boundary core")
+        self._core = core
+        self._ticket_id = ticket_id
+        self._pin_id = pin_id
+        self._binding_sha256 = binding_sha256
+        self._owner_thread = threading.get_ident()
+        self._closed = False
+
+    def __repr__(self) -> str:
+        state = "CLOSED" if self._closed else "LIVE"
+        return f"_JobContextPin(state='{state}', binding='<redacted>')"
+
+    def __reduce__(self) -> Any:
+        raise TypeError("job context pins cannot be serialized")
+
+
 @dataclass(frozen=True, slots=True)
 class _PairRecord:
     pair_id: str
@@ -669,6 +711,7 @@ class _BoundaryCore:
         self.__candidate_records: dict[str, _CandidateRecord] = {}
         self.__pair_records: dict[str, _PairRecord] = {}
         self.__context_records: dict[str, _ContextRecord] = {}
+        self.__job_context_pins: dict[str, _JobContextPin] = {}
         self.__candidate_tombstones: dict[str, None] = {}
         self.__pair_tombstones: dict[str, None] = {}
         self.__lock = threading.RLock()
@@ -696,6 +739,7 @@ class _BoundaryCore:
                 "candidate_live": len(self.__candidate_records),
                 "pair_live": len(self.__pair_records),
                 "context_live": len(self.__context_records),
+                "job_context_pins": len(self.__job_context_pins),
                 "candidate_tombstones": len(self.__candidate_tombstones),
                 "pair_tombstones": len(self.__pair_tombstones),
             }
@@ -828,6 +872,11 @@ class _BoundaryCore:
                     BoundaryErrorCode.INVALID_CONTEXT,
                     "operation context authority binding is invalid",
                 )
+            if ticket_id in self.__job_context_pins:
+                raise ProductionBoundaryError(
+                    BoundaryErrorCode.INVALID_CONTEXT,
+                    "operation context cannot close while a job operation is pinned",
+                )
             related_candidates = tuple(
                 candidate
                 for candidate in self.__candidate_records.values()
@@ -860,6 +909,157 @@ class _BoundaryCore:
         if cores:
             self._release_core_tickets(*cores)
         return True
+
+    def pin_test_job_context(
+        self,
+        context: OperationContext,
+        binding_sha256: str,
+    ) -> _JobContextPin:
+        if type(binding_sha256) is not str or not _SHA256.fullmatch(binding_sha256):
+            raise ProductionBoundaryError(
+                BoundaryErrorCode.INVALID_CONTEXT,
+                "job operation context binding is invalid",
+            )
+        ticket_id = self._validate_context_claim(context)
+        with self.__lock:
+            record = self.__context_records.get(ticket_id)
+            if (
+                record is None
+                or record.claims_digest != context.digest
+                or not hmac.compare_digest(record.authenticator, context.authenticator)
+            ):
+                raise ProductionBoundaryError(
+                    BoundaryErrorCode.INVALID_CONTEXT,
+                    "job operation context is not registered under this authority",
+                )
+            if ticket_id in self.__job_context_pins:
+                raise ProductionBoundaryError(
+                    BoundaryErrorCode.INVALID_CONTEXT,
+                    "job operation context is already pinned",
+                )
+            pin = _JobContextPin(
+                self,
+                ticket_id,
+                secrets.token_hex(16).upper(),
+                binding_sha256,
+                _constructor=_JOB_CONTEXT_PIN_CONSTRUCTOR,
+            )
+            self.__job_context_pins[ticket_id] = pin
+            return pin
+
+    def validate_test_job_context_pin(
+        self,
+        context: OperationContext,
+        pin: _JobContextPin,
+        binding_sha256: str,
+    ) -> str:
+        ticket_id = self._validate_context_claim(context)
+        with self.__lock:
+            record = self.__context_records.get(ticket_id)
+            current = self.__job_context_pins.get(ticket_id)
+            valid = (
+                type(pin) is _JobContextPin
+                and current is pin
+                and not pin._closed
+                and pin._core is self
+                and pin._ticket_id == ticket_id
+                and pin._binding_sha256 == binding_sha256
+                and pin._owner_thread == threading.get_ident()
+                and record is not None
+                and record.claims_digest == context.digest
+                and hmac.compare_digest(record.authenticator, context.authenticator)
+            )
+        if not valid:
+            raise ProductionBoundaryError(
+                BoundaryErrorCode.INVALID_CONTEXT,
+                "job operation context pin is closed, foreign, or changed",
+            )
+        return context.digest
+
+    def unpin_test_job_context_after_failed_begin(
+        self,
+        context: OperationContext,
+        pin: _JobContextPin,
+        binding_sha256: str,
+    ) -> None:
+        ticket_id = self._validate_context_claim(context)
+        with self.__lock:
+            current = self.__job_context_pins.get(ticket_id)
+            if (
+                type(pin) is not _JobContextPin
+                or current is not pin
+                or pin._closed
+                or pin._core is not self
+                or pin._ticket_id != ticket_id
+                or pin._binding_sha256 != binding_sha256
+                or pin._owner_thread != threading.get_ident()
+            ):
+                raise ProductionBoundaryError(
+                    BoundaryErrorCode.INVALID_CONTEXT,
+                    "failed-begin job context pin is not live and exact",
+                )
+            del self.__job_context_pins[ticket_id]
+            pin._closed = True
+
+    def finish_test_job_context(
+        self,
+        context: OperationContext,
+        pin: _JobContextPin,
+        binding_sha256: str,
+    ) -> None:
+        """Atomically consume the job pin and revoke its operation context."""
+
+        ticket_id = self._validate_context_claim(context)
+        cores: list[GuardedPath] = []
+        with self.__lock:
+            record = self.__context_records.get(ticket_id)
+            current = self.__job_context_pins.get(ticket_id)
+            if (
+                type(pin) is not _JobContextPin
+                or current is not pin
+                or pin._closed
+                or pin._core is not self
+                or pin._ticket_id != ticket_id
+                or pin._binding_sha256 != binding_sha256
+                or pin._owner_thread != threading.get_ident()
+                or record is None
+                or record.claims_digest != context.digest
+                or not hmac.compare_digest(record.authenticator, context.authenticator)
+            ):
+                raise ProductionBoundaryError(
+                    BoundaryErrorCode.INVALID_CONTEXT,
+                    "job operation context pin cannot be consumed",
+                )
+            related_candidates = tuple(
+                candidate
+                for candidate in self.__candidate_records.values()
+                if candidate.context_ticket_id == ticket_id
+            )
+            related_pairs = tuple(
+                pair
+                for pair in self.__pair_records.values()
+                if pair.context_ticket_id == ticket_id
+            )
+            if any(
+                candidate.lifecycle is CapabilityLifecycle.RESERVED
+                for candidate in related_candidates
+            ) or any(pair.lifecycle is CapabilityLifecycle.RESERVED for pair in related_pairs):
+                raise ProductionBoundaryError(
+                    BoundaryErrorCode.INVALID_CONTEXT,
+                    "job operation context still owns a reserved capability",
+                )
+            for pair in related_pairs:
+                self.__pair_records.pop(pair.pair_id, None)
+                self._remember_tombstone(self.__pair_tombstones, pair.pair_id)
+            for candidate in related_candidates:
+                self.__candidate_records.pop(candidate.ticket_id, None)
+                self._remember_tombstone(self.__candidate_tombstones, candidate.ticket_id)
+                cores.append(candidate.core)
+            del self.__job_context_pins[ticket_id]
+            del self.__context_records[ticket_id]
+            pin._closed = True
+        if cores:
+            self._release_core_tickets(*cores)
 
     def revalidate_candidate(
         self,
@@ -2401,10 +2601,11 @@ class _TestWorkspaceBoundary:
         audit_sink: AuditSink | None = None,
         *,
         audit_authority: _AuditAuthority | None = None,
+        shared_guard: WorkspaceGuard | None = None,
     ) -> None:
         root = _contract_root()
         self.__core = _BoundaryCore(
-            guard=WorkspaceGuard(root, workspace_root),
+            guard=shared_guard or WorkspaceGuard(root, workspace_root),
             expected_workspace_root=workspace_root,
             audit_sink=audit_sink,
             audit_authority=audit_authority,
@@ -2458,6 +2659,49 @@ class _TestWorkspaceBoundary:
 
     def release_context(self, context: OperationContext) -> bool:
         return self.__core.release_test_context(context)
+
+    def _validate_job_operation_context(self, context: OperationContext) -> str:
+        self.__core._validate_context_authority(context)
+        return context.digest
+
+    def _pin_job_operation_context(
+        self,
+        context: OperationContext,
+        binding_sha256: str,
+    ) -> _JobContextPin:
+        return self.__core.pin_test_job_context(context, binding_sha256)
+
+    def _validate_job_operation_pin(
+        self,
+        context: OperationContext,
+        pin: _JobContextPin,
+        binding_sha256: str,
+    ) -> str:
+        return self.__core.validate_test_job_context_pin(
+            context,
+            pin,
+            binding_sha256,
+        )
+
+    def _unpin_job_operation_context_after_failed_begin(
+        self,
+        context: OperationContext,
+        pin: _JobContextPin,
+        binding_sha256: str,
+    ) -> None:
+        self.__core.unpin_test_job_context_after_failed_begin(
+            context,
+            pin,
+            binding_sha256,
+        )
+
+    def _finish_job_operation_context(
+        self,
+        context: OperationContext,
+        pin: _JobContextPin,
+        binding_sha256: str,
+    ) -> None:
+        self.__core.finish_test_job_context(context, pin, binding_sha256)
 
     def authorize(
         self,
@@ -2859,6 +3103,7 @@ class _TestDurableBoundaryBundle:
     boundary: _TestWorkspaceBoundary
     ledger: DurableAuditLedger = field(repr=False)
     key_store: AuditKeyRevisionStore = field(repr=False)
+    writer: _WindowsHandleWriter = field(repr=False)
 
     def __reduce__(self) -> Any:
         raise TypeError("durable test boundary bundles cannot be serialized")
@@ -2976,11 +3221,32 @@ def _create_test_durable_boundary(
     boundary = _TestWorkspaceBoundary(
         _absolute_lexical(workspace_root),
         audit_authority=authority,
+        shared_guard=writer._path_authority,
     )
     return _TestDurableBoundaryBundle(
         boundary=boundary,
         ledger=ledger,
         key_store=key_store,
+        writer=writer,
+    )
+
+
+def _create_test_job_runtime(
+    bundle: _TestDurableBoundaryBundle,
+) -> _TestJobRuntime:
+    """Private S3-D factory; production boundary intentionally has no peer API."""
+
+    if type(bundle) is not _TestDurableBoundaryBundle:
+        raise ProductionBoundaryError(
+            BoundaryErrorCode.INVALID_ARGUMENT,
+            "job runtime requires an exact durable Test-local bundle",
+        )
+    return _build_test_job_runtime(
+        bundle.boundary,
+        bundle.writer,
+        bundle.ledger,
+        bundle.writer._workspace_root,
+        _constructor=_JOB_RUNTIME_CONSTRUCTOR,
     )
 
 

@@ -161,6 +161,22 @@ S3-C 冻结不改变后续状态机顺序。operation lease、observed tree evid
 
 每个子切片必须通过正常、边界、失败、恢复和安全路径；新入口在完整迁移前保持`UNMIGRATED_BLOCKED`。S3 结束也不等于 M0 验收，不允许进入 M1 或处理真实业务资料。
 
+## S3-D 实现冻结补充（2026-07-11）
+
+S3-D 已在 Test-local candidate 中实现并通过独立复核，冻结以下合同：
+
+1. operation context 必须绑定 manifest、预算和 policy digest 并由 boundary 原子 pin；活跃时 public revoke 拒绝，begin 失败回滚 pin，close 原子消费 pin 和 context；
+2. job staging 只允许固定`tmp/jobs/<classification>/<job>/publish/<manifest>`布局；目录使用相对 parent handle 的`NtCreateFile(FILE_CREATE)`，job root 不重用，失败残留不自动删除；
+3. `job-contract.json`从创建成功起持有 share=0 的同一 handle，并在 operation 每次使用前复算身份、默认 stream、大小和 SHA-256；任何 post-success 无 receipt、最终复验或 cleanup 不确定性都 seal writer；
+4. 预算是不可变 operation 合同，覆盖 entries/files/directories/depth/file/total/path/open-handles/manifest/time/free-space，并在耗时步骤后再次检查；
+5. tree evidence 必须来自实际 handles，执行目录 PRE 枚举、节点内容/身份检查、目录 POST 枚举和最终 ADS/hardlink/identity 检查；owner-side 失败永久 invalidate，writer seal 同时撤销所有 live evidence；
+6. `ObservedTreeEvidence`不是可脱离 lease 使用的 mutation capability。属性读取会触发完整重验；S3-E 只能接受 exact live lease 并在 mutation 前后自行重验；
+7. 普通用户态 Windows 目录 handle 和 directory oplock 不能冻结 child namespace。目录 oplock 对内容变化只提供 advisory break，因此本 ADR 不宣称 hostile-writer 原子 snapshot；无法消除的窗口由 S3-E 的 pre/post scan、持久 operation ledger 与`IN_DOUBT`/seal处理；
+8. RESTRICTED job 只允许`IMPORT_SERVICE + COPY_SOURCE`，contract 不保存 public IDs，错误与 repr 不泄露业务标识、绝对路径或 payload；
+9. production facade 继续`writer_available=false`；S3-D 不发布业务 pair、不接入真实数据，也不改变全部 inventory 项的`UNMIGRATED_BLOCKED`状态。
+
+本补充拒绝把 directory share mode、oplock 或`ReadDirectoryChangesW`描述为 child namespace 强锁；也拒绝将单次 hash 摘要跨生命周期保存后直接用于发布。
+
 ## 回滚
 
 S3-A/B 只增加合同、Test-local候选代码和安全实验室证据，不迁移活动数据库、不移动业务资产、不改变活动指针。失败时以普通 Git revert 形成新提交；保留实验室和审计现场，不清理用户文件。

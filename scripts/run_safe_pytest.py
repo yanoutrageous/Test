@@ -23,6 +23,14 @@ EXPECTED_PROJECT_ROOT = Path(r"D:\AAA命题\Test")
 RUN_ID_PATTERN = re.compile(r"RUN-[A-Z0-9][A-Z0-9-]{5,80}")
 REPARSE_ATTRIBUTE = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
 SYMLINK_TEST = "test_real_directory_symlink_is_rejected"
+RUN_TREE_MAX_ENTRIES = 50_000
+RUN_TREE_MAX_DIRECTORIES = 20_000
+RUN_TREE_MAX_FILES = 30_000
+RUN_TREE_MAX_TOTAL_BYTES = 512 * 1024 * 1024
+RUN_TREE_MAX_FILE_BYTES = 128 * 1024 * 1024
+RUN_TREE_MAX_DEPTH = 32
+RUN_TREE_MAX_PATH_UTF8_BYTES = 4096
+RUN_TREE_MAX_COMPONENT_UTF8_BYTES = 512
 
 
 class SafetyStop(RuntimeError):
@@ -35,7 +43,11 @@ class _WindowsJob:
     _JOB_OBJECT_EXTENDED_LIMIT_INFORMATION = 9
     _JOB_OBJECT_BASIC_PROCESS_ID_LIST = 3
     _JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE = 0x00002000
-    _MAX_TRACKED_PROCESSES = 4096
+    _JOB_OBJECT_LIMIT_ACTIVE_PROCESS = 0x00000008
+    _JOB_OBJECT_LIMIT_JOB_MEMORY = 0x00000200
+    _MAX_TRACKED_PROCESSES = 32
+    _ACTIVE_PROCESS_LIMIT = 16
+    _JOB_MEMORY_LIMIT = 2 * 1024 * 1024 * 1024
     _TH32CS_SNAPTHREAD = 0x00000004
     _THREAD_SUSPEND_RESUME = 0x0002
 
@@ -139,7 +151,13 @@ class _WindowsJob:
         if not handle:
             raise SafetyStop(f"cannot create pytest Job Object: {ctypes.get_last_error()}")
         limits = _ExtendedLimitInformation()
-        limits.BasicLimitInformation.LimitFlags = self._JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+        limits.BasicLimitInformation.LimitFlags = (
+            self._JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+            | self._JOB_OBJECT_LIMIT_ACTIVE_PROCESS
+            | self._JOB_OBJECT_LIMIT_JOB_MEMORY
+        )
+        limits.BasicLimitInformation.ActiveProcessLimit = self._ACTIVE_PROCESS_LIMIT
+        limits.JobMemoryLimit = self._JOB_MEMORY_LIMIT
         if not kernel32.SetInformationJobObject(
             handle,
             self._JOB_OBJECT_EXTENDED_LIMIT_INFORMATION,
@@ -521,6 +539,7 @@ class _WindowsProtectedTreeFence:
     _OPEN_EXISTING = 3
     _FILE_FLAG_BACKUP_SEMANTICS = 0x02000000
     _FILE_FLAG_OPEN_REPARSE_POINT = 0x00200000
+    _FILE_FLAG_BACKUP_SEMANTICS = 0x02000000
 
     def __init__(
         self,
@@ -693,27 +712,238 @@ def _regular_file_evidence(path: Path) -> dict[str, Any]:
     }
 
 
-def _verify_run_tree_no_reparse(run_root: Path) -> None:
+class _WindowsStreamInspector:
+    _GENERIC_READ = 0x80000000
+    _FILE_SHARE_READ = 0x00000001
+    _FILE_SHARE_WRITE = 0x00000002
+    _FILE_SHARE_DELETE = 0x00000004
+    _OPEN_EXISTING = 3
+    _FILE_FLAG_OPEN_REPARSE_POINT = 0x00200000
+    _FILE_FLAG_BACKUP_SEMANTICS = 0x02000000
+    _FILE_STREAM_INFO = 7
+
+    def __init__(self) -> None:
+        if os.name != "nt":
+            raise SafetyStop("run-tree stream inspection requires Windows")
+        import ctypes
+        from ctypes import wintypes
+
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        kernel32.CreateFileW.argtypes = [
+            wintypes.LPCWSTR,
+            wintypes.DWORD,
+            wintypes.DWORD,
+            ctypes.c_void_p,
+            wintypes.DWORD,
+            wintypes.DWORD,
+            wintypes.HANDLE,
+        ]
+        kernel32.CreateFileW.restype = wintypes.HANDLE
+        kernel32.GetFileInformationByHandleEx.argtypes = [
+            wintypes.HANDLE,
+            ctypes.c_int,
+            ctypes.c_void_p,
+            wintypes.DWORD,
+        ]
+        kernel32.GetFileInformationByHandleEx.restype = wintypes.BOOL
+        kernel32.CloseHandle.argtypes = [wintypes.HANDLE]
+        kernel32.CloseHandle.restype = wintypes.BOOL
+        self._ctypes = ctypes
+        self._kernel32 = kernel32
+        self._invalid_handle = ctypes.c_void_p(-1).value
+
+    def require_default_stream_only(
+        self,
+        path: Path,
+        *,
+        directory: bool = False,
+    ) -> None:
+        handle = self._kernel32.CreateFileW(
+            str(path),
+            self._GENERIC_READ,
+            self._FILE_SHARE_READ | self._FILE_SHARE_WRITE | self._FILE_SHARE_DELETE,
+            None,
+            self._OPEN_EXISTING,
+            self._FILE_FLAG_OPEN_REPARSE_POINT
+            | (self._FILE_FLAG_BACKUP_SEMANTICS if directory else 0),
+            None,
+        )
+        if self._ctypes.c_void_p(handle).value == self._invalid_handle:
+            raise SafetyStop(
+                f"cannot open run-tree file for stream verification: {self._ctypes.get_last_error()}"
+            )
+        try:
+            buffer_size = 64 * 1024
+            buffer = self._ctypes.create_string_buffer(buffer_size)
+            if not self._kernel32.GetFileInformationByHandleEx(
+                handle,
+                self._FILE_STREAM_INFO,
+                buffer,
+                buffer_size,
+            ):
+                error = self._ctypes.get_last_error()
+                if directory and error == 38:
+                    return
+                raise SafetyStop(
+                    f"cannot enumerate run-tree file streams: {error}"
+                )
+            names: list[str] = []
+            offset = 0
+            while True:
+                if offset + 24 > buffer_size:
+                    raise SafetyStop("run-tree stream metadata is malformed")
+                next_offset = int.from_bytes(buffer.raw[offset : offset + 4], "little")
+                name_bytes = int.from_bytes(buffer.raw[offset + 4 : offset + 8], "little")
+                name_start = offset + 24
+                name_end = name_start + name_bytes
+                if name_bytes % 2 or name_end > buffer_size:
+                    raise SafetyStop("run-tree stream metadata is malformed")
+                stream_bytes = buffer.raw[name_start:name_end]
+                names.append(str(stream_bytes, "utf-16-le", "strict"))
+                if next_offset == 0:
+                    break
+                if next_offset < 24 + name_bytes or offset + next_offset >= buffer_size:
+                    raise SafetyStop("run-tree stream metadata is malformed")
+                offset += next_offset
+            valid_names = (
+                ([], ["::$DATA"], [":$I30:$INDEX_ALLOCATION"])
+                if directory
+                else (["::$DATA"],)
+            )
+            if names not in valid_names:
+                raise SafetyStop("run-tree file contains an alternate data stream")
+        finally:
+            if not self._kernel32.CloseHandle(handle):
+                raise SafetyStop(
+                    f"cannot close run-tree stream handle: {self._ctypes.get_last_error()}"
+                )
+
+
+def _measure_run_tree_budget(
+    run_root: Path,
+    *,
+    strict: bool,
+) -> dict[str, int]:
+    entry_count = 0
+    directory_count = 0
+    file_count = 0
+    total_bytes = 0
+    maximum_depth = 0
+    stream_inspector = _WindowsStreamInspector() if strict else None
     for current_text, directory_names, file_names in os.walk(
         run_root,
         topdown=True,
         followlinks=False,
-        onerror=_raise_walk_error,
+        onerror=_raise_walk_error if strict else None,
     ):
         current = Path(current_text)
-        current_identity = _lstat_no_reparse(current)
+        try:
+            current_identity = os.lstat(current)
+        except FileNotFoundError:
+            if strict:
+                raise SafetyStop("run tree changed during final verification") from None
+            directory_names[:] = []
+            continue
+        current_attributes = int(getattr(current_identity, "st_file_attributes", 0))
+        current_tag = int(getattr(current_identity, "st_reparse_tag", 0))
+        if (
+            stat.S_ISLNK(current_identity.st_mode)
+            or current_attributes & REPARSE_ATTRIBUTE
+            or current_tag
+        ):
+            if strict:
+                raise SafetyStop("run tree contains a reparse directory")
+            directory_names[:] = []
+            continue
         if not stat.S_ISDIR(current_identity.st_mode):
             raise SafetyStop(f"run tree directory changed type: {current}")
-        for name in directory_names:
-            identity = _lstat_no_reparse(current / name)
+        if strict and stream_inspector is not None:
+            stream_inspector.require_default_stream_only(current, directory=True)
+        relative = _relative_parts(current, run_root)
+        depth = len(relative or ())
+        maximum_depth = max(maximum_depth, depth)
+        directory_count += 1
+        entry_count += 1
+        folded: set[str] = set()
+        for name in (*directory_names, *file_names):
+            encoded_name = name.encode("utf-8", "strict")
+            key = name.casefold()
+            if strict and key in folded:
+                raise SafetyStop("run tree contains a case-colliding entry")
+            folded.add(key)
+            if len(encoded_name) > RUN_TREE_MAX_COMPONENT_UTF8_BYTES:
+                raise SafetyStop("run tree component exceeds its fixed byte limit")
+            candidate = current / name
+            if len(str(candidate).encode("utf-8", "strict")) > RUN_TREE_MAX_PATH_UTF8_BYTES:
+                raise SafetyStop("run tree path exceeds its fixed byte limit")
+        safe_directory_names: list[str] = []
+        for name in tuple(directory_names):
+            candidate = current / name
+            try:
+                identity = os.lstat(candidate)
+            except FileNotFoundError:
+                if strict:
+                    raise SafetyStop("run tree changed during final verification") from None
+                continue
+            attributes = int(getattr(identity, "st_file_attributes", 0))
+            tag = int(getattr(identity, "st_reparse_tag", 0))
+            if stat.S_ISLNK(identity.st_mode) or attributes & REPARSE_ATTRIBUTE or tag:
+                if strict:
+                    raise SafetyStop("run tree contains a reparse directory entry")
+                continue
             if not stat.S_ISDIR(identity.st_mode):
-                raise SafetyStop(f"run tree directory entry changed type: {current / name}")
+                raise SafetyStop(f"run tree directory entry changed type: {candidate}")
+            safe_directory_names.append(name)
+        directory_names[:] = safe_directory_names
         for name in file_names:
-            identity = _lstat_no_reparse(current / name)
+            candidate = current / name
+            file_depth = depth + 1
+            maximum_depth = max(maximum_depth, file_depth)
+            if file_depth > RUN_TREE_MAX_DEPTH:
+                raise SafetyStop("run tree file depth exceeds its fixed limit")
+            try:
+                identity = os.lstat(candidate)
+            except FileNotFoundError:
+                if strict:
+                    raise SafetyStop("run tree changed during final verification") from None
+                continue
+            attributes = int(getattr(identity, "st_file_attributes", 0))
+            tag = int(getattr(identity, "st_reparse_tag", 0))
+            if stat.S_ISLNK(identity.st_mode) or attributes & REPARSE_ATTRIBUTE or tag:
+                if strict:
+                    raise SafetyStop("run tree contains a reparse file entry")
+                continue
             if not stat.S_ISREG(identity.st_mode):
-                raise SafetyStop(f"run tree file entry changed type: {current / name}")
-            if identity.st_nlink != 1:
-                raise SafetyStop(f"run tree file has multiple hard links: {current / name}")
+                raise SafetyStop(f"run tree file entry changed type: {candidate}")
+            file_count += 1
+            entry_count += 1
+            size_bytes = int(identity.st_size)
+            if size_bytes < 0 or size_bytes > RUN_TREE_MAX_FILE_BYTES:
+                raise SafetyStop("run tree file exceeds its fixed logical-size limit")
+            total_bytes += size_bytes
+            if strict and identity.st_nlink != 1:
+                raise SafetyStop(f"run tree file has multiple hard links: {candidate}")
+            if strict and stream_inspector is not None:
+                stream_inspector.require_default_stream_only(candidate)
+        if (
+            entry_count > RUN_TREE_MAX_ENTRIES
+            or directory_count > RUN_TREE_MAX_DIRECTORIES
+            or file_count > RUN_TREE_MAX_FILES
+            or total_bytes > RUN_TREE_MAX_TOTAL_BYTES
+            or maximum_depth > RUN_TREE_MAX_DEPTH
+        ):
+            raise SafetyStop("run tree exceeded a fixed resource budget")
+    return {
+        "entry_count": entry_count,
+        "directory_count": directory_count,
+        "file_count": file_count,
+        "total_bytes": total_bytes,
+        "maximum_depth": maximum_depth,
+    }
+
+
+def _verify_run_tree_no_reparse(run_root: Path) -> dict[str, int]:
+    return _measure_run_tree_budget(run_root, strict=True)
 
 
 def _junit_evidence(path: Path) -> dict[str, Any]:
@@ -930,11 +1160,20 @@ def _build_command(
         selection = [
             "tests/test_windows_handle_writer.py",
             "tests/test_segment_ledger.py",
+            "tests/test_job_operation.py",
             "tests/test_workspace_guard.py",
             "tests/test_workspace_policy.py",
             "tests/test_write_entry_inventory.py",
             "tests/test_safe_pytest_launcher.py",
         ]
+    elif mode == "s3d":
+        selection = [
+            "tests/test_job_operation.py",
+            "tests/test_windows_handle_writer.py",
+            "tests/test_segment_ledger.py",
+        ]
+    elif mode == "launcher":
+        selection = ["tests/test_safe_pytest_launcher.py"]
     elif mode == "symlink":
         selection = [f"tests/test_workspace_guard.py::{SYMLINK_TEST}"]
     else:  # pragma: no cover - argparse constrains this value.
@@ -971,7 +1210,7 @@ def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
     parser.add_argument("--run-id", required=True)
     parser.add_argument(
         "--mode",
-        choices=("full", "guard", "writer", "symlink"),
+        choices=("full", "guard", "writer", "s3d", "launcher", "symlink"),
         required=True,
     )
     parser.add_argument(
@@ -987,9 +1226,10 @@ def _run_test_process(
     command: list[str],
     *,
     project_root: Path,
+    run_root: Path,
     environment: dict[str, str],
     timeout_seconds: int,
-) -> tuple[int, bool, bool]:
+) -> tuple[int, bool, bool, str | None, dict[str, int]]:
     creationflags = 0
     job: _WindowsJob | None = None
     if os.name == "nt":
@@ -1032,23 +1272,53 @@ def _run_test_process(
                     except Exception:
                         pass
             raise
+    deadline = time.monotonic() + timeout_seconds
+    next_budget_check = time.monotonic()
+    budget_error: str | None = None
+    budget_peak = {
+        "entry_count": 0,
+        "directory_count": 0,
+        "file_count": 0,
+        "total_bytes": 0,
+        "maximum_depth": 0,
+    }
+    forced_exit: int | None = None
+    timed_out = False
     try:
-        exit_code = int(process.wait(timeout=timeout_seconds))
-        if job is None:
-            return exit_code, False, True
-        active: tuple[int, ...] = ()
-        for _ in range(20):
-            active = job.active_process_ids()
-            if not active:
+        while process.poll() is None:
+            now = time.monotonic()
+            if now >= deadline:
+                forced_exit = 124
+                timed_out = True
                 break
+            if now >= next_budget_check:
+                try:
+                    current = _measure_run_tree_budget(run_root, strict=False)
+                except SafetyStop as exc:
+                    budget_error = str(exc)
+                    forced_exit = 94
+                    break
+                for key, value in current.items():
+                    budget_peak[key] = max(budget_peak[key], value)
+                next_budget_check = now + 0.5
             time.sleep(0.05)
-        closed = job.close()
-        job = None
-        return exit_code, False, closed and not active
-    except subprocess.TimeoutExpired:
+        if forced_exit is None:
+            exit_code = int(process.wait(timeout=30))
+            if job is None:
+                return exit_code, False, True, None, budget_peak
+            active: tuple[int, ...] = ()
+            for _ in range(20):
+                active = job.active_process_ids()
+                if not active:
+                    break
+                time.sleep(0.05)
+            closed = job.close()
+            job = None
+            return exit_code, False, closed and not active, None, budget_peak
+
         tree_terminated = False
         if job is not None:
-            terminated = job.terminate(124)
+            terminated = job.terminate(forced_exit)
             active: tuple[int, ...] = job.active_process_ids()
             for _ in range(100):
                 if not active:
@@ -1071,7 +1341,13 @@ def _run_test_process(
             process.wait(timeout=30)
         except subprocess.TimeoutExpired:
             tree_terminated = False
-        return 124, True, tree_terminated
+        return (
+            forced_exit,
+            timed_out,
+            tree_terminated,
+            budget_error,
+            budget_peak,
+        )
     finally:
         if job is not None:
             job.close()
@@ -1148,12 +1424,21 @@ def main(argv: Sequence[str] | None = None) -> int:
     temp_root = run_root / "temp"
     pycache_root = run_root / "pycache"
     cache_root = run_root / "cache"
+    home_root = run_root / "home"
+    appdata_root = run_root / "appdata"
+    local_appdata_root = run_root / "local-appdata"
     os.mkdir(temp_root)
     os.mkdir(pycache_root)
     os.mkdir(cache_root)
+    os.mkdir(home_root)
+    os.mkdir(appdata_root)
+    os.mkdir(local_appdata_root)
     _lstat_no_reparse(temp_root)
     _lstat_no_reparse(pycache_root)
     _lstat_no_reparse(cache_root)
+    _lstat_no_reparse(home_root)
+    _lstat_no_reparse(appdata_root)
+    _lstat_no_reparse(local_appdata_root)
 
     created_at = datetime.now().astimezone().isoformat(timespec="seconds")
     launch_token = secrets.token_urlsafe(32)
@@ -1224,6 +1509,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             "TMP": str(temp_root),
             "XDG_CACHE_HOME": str(cache_root),
             "MPLCONFIGDIR": str(cache_root / "matplotlib"),
+            "HOME": str(home_root),
+            "USERPROFILE": str(home_root),
+            "APPDATA": str(appdata_root),
+            "LOCALAPPDATA": str(local_appdata_root),
             "PYTHONPYCACHEPREFIX": str(pycache_root),
             "PYTHONPATH": str(bootstrap_root),
             "PYTHONDONTWRITEBYTECODE": "1",
@@ -1253,6 +1542,10 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "TMP",
                 "XDG_CACHE_HOME",
                 "MPLCONFIGDIR",
+                "HOME",
+                "USERPROFILE",
+                "APPDATA",
+                "LOCALAPPDATA",
                 "PYTHONPYCACHEPREFIX",
                 "PYTHONPATH",
                 "PYTHONDONTWRITEBYTECODE",
@@ -1292,9 +1585,16 @@ def main(argv: Sequence[str] | None = None) -> int:
         handle_fence.finish()
         raise
     try:
-        pytest_exit_code, timed_out, process_tree_terminated = _run_test_process(
+        (
+            pytest_exit_code,
+            timed_out,
+            process_tree_terminated,
+            run_budget_error,
+            run_budget_peak,
+        ) = _run_test_process(
             command,
             project_root=project_root,
+            run_root=run_root,
             environment=environment,
             timeout_seconds=args.timeout_seconds,
         )
@@ -1327,8 +1627,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     database_unchanged = database_before == database_after
     run_tree_safe = True
     run_tree_error: str | None = None
+    run_tree_metrics: dict[str, int] = {}
     try:
-        _verify_run_tree_no_reparse(run_root)
+        run_tree_metrics = _verify_run_tree_no_reparse(run_root)
     except SafetyStop as exc:
         run_tree_safe = False
         run_tree_error = str(exc)
@@ -1389,6 +1690,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         "junit_skipped": junit_details.get("skipped"),
         "run_tree_safe": run_tree_safe,
         "run_tree_error": run_tree_error,
+        "run_tree_metrics": run_tree_metrics,
+        "run_budget_error": run_budget_error,
+        "run_budget_peak": run_budget_peak,
         "immutable_evidence_unchanged": immutable_evidence_unchanged,
         "immutable_evidence_error": immutable_evidence_error,
         "immutable_evidence_before": immutable_evidence_before,

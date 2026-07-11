@@ -1178,3 +1178,23 @@ def test_each_durable_authority_bypass_route_has_an_exact_canary(
 
 def test_no_current_production_module_bypasses_fixed_boundary() -> None:
     assert scan_unauthorized_guard_construction() == ()
+
+
+@pytest.mark.parametrize(
+    ("module", "symbol"),
+    [
+        ("app.safety.windows_handle_writer", "_ImmutableFileLease"),
+        ("app.safety.production_guard", "_JobContextPin"),
+    ],
+)
+def test_private_job_lease_constructors_have_synthetic_bypass_canaries(
+    module: str,
+    symbol: str,
+) -> None:
+    findings = scan_unauthorized_guard_source(
+        f"from {module} import {symbol}\nvalue = {symbol}(object())\n"
+    )
+    rendered = "\n".join(detail for _file, _line, detail in findings)
+    assert f"private import {symbol}" in rendered
+    assert f"constructor {module}.{symbol}" in rendered
+    assert f"forbidden symbol reference {module}.{symbol}" in rendered

@@ -1,5 +1,5 @@
 {
-  "chunk_digest_sha256": "2a539b421d2a3cc67d6460021eb6ad3cb0c4841ac49a70a31406fe156564fcb3",
+  "chunk_digest_sha256": "25f78b09d27295c04bcdf780e10134b9041a5041abc904dd9a3d3981c9f264fd",
   "chunk_index": 6,
   "entries": [
     {
@@ -80,7 +80,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "c908cc70decd04f2853de10748ba70a1019fe0078c04ad7d2f8bee1fb000d1e7",
+      "source_sha256": "843a95580f6823f03e09c930277e21b9e5dc917f6e6aca002c981fe5d34c8535",
       "statement_fingerprint": "4c67aca47efa28fc1710d0071113f058426db3cc81b03f0cefe56bb6eb8792e4",
       "target_namespace": "FIXED_DURABLE_LEDGER_STORE"
     },
@@ -92,13 +92,13 @@
       "column": 15,
       "detail": "fixed durable ledger publication gateway",
       "end_column": 9,
-      "end_line": 1916,
+      "end_line": 1952,
       "entry_id": "WE-A15932C534F275C2CA2CF5EB",
       "file": "app/safety/segment_ledger.py",
       "function": "app.safety.segment_ledger.DurableAuditLedger._publish_segment",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "DURABLE_LEDGER_GATEWAY",
-      "line": 1911,
+      "line": 1947,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "SAFETY_SERVICE",
       "required_control": "S3_FIXED_FACTORY_HANDLE_PUBLISH_AND_CHAIN_VALIDATION",
@@ -107,7 +107,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "c908cc70decd04f2853de10748ba70a1019fe0078c04ad7d2f8bee1fb000d1e7",
+      "source_sha256": "843a95580f6823f03e09c930277e21b9e5dc917f6e6aca002c981fe5d34c8535",
       "statement_fingerprint": "54ad1c7bc8dac998837e84e5e58a95729ec0b28addf43846bc604c16cbfc21ed",
       "target_namespace": "FIXED_DURABLE_LEDGER_STORE"
     },
@@ -119,13 +119,13 @@
       "column": 17,
       "detail": "Win32 Local named-mutex synchronization",
       "end_column": 62,
-      "end_line": 305,
+      "end_line": 459,
       "entry_id": "WE-73FEDCFBDD087309B2C4123C",
       "file": "app/safety/windows_handle_writer.py",
       "function": "app.safety.windows_handle_writer.RuntimeMutexLease.close",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "RUNTIME_SYNCHRONIZATION",
-      "line": 305,
+      "line": 459,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "SAFETY_SERVICE",
       "required_control": "S3_FIXED_CONTRACT_ROOT_RUNTIME_MUTEX",
@@ -134,7 +134,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "4be70c4cbfd1a3534f4e874b23c0e74ae3cad2f8b1cd274963df0fa6c257c603",
+      "source_sha256": "4204894e029fef637df7e1d4192b120a5dd735bc15fda92d9d3725d25cd953c0",
       "statement_fingerprint": "c1ce267718853b1f1d14f6fd7293b5d0e52ebc311c4365bd698949ca9a4c76c3",
       "target_namespace": "WINDOWS_LOCAL_NAMED_MUTEX"
     },
@@ -146,13 +146,13 @@
       "column": 19,
       "detail": "native library binding requires an audited symbol allowlist",
       "end_column": 65,
-      "end_line": 393,
+      "end_line": 840,
       "entry_id": "WE-EB4549EA8B0171E930006E3F",
       "file": "app/safety/windows_handle_writer.py",
       "function": "app.safety.windows_handle_writer._WindowsApi.__init__",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "NATIVE_API_BINDING",
-      "line": 393,
+      "line": 840,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "SAFETY_SERVICE",
       "required_control": "S3_NATIVE_API_FIXED_LIBRARY_AND_SYMBOL_ALLOWLIST",
@@ -161,9 +161,90 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "4be70c4cbfd1a3534f4e874b23c0e74ae3cad2f8b1cd274963df0fa6c257c603",
+      "source_sha256": "4204894e029fef637df7e1d4192b120a5dd735bc15fda92d9d3725d25cd953c0",
       "statement_fingerprint": "3474f55c4f2c4ff899bf534b507dc606ac6ca48c4335543ec7104e00d9f58fff",
       "target_namespace": "NATIVE_API_FIXED_LIBRARY_AND_SYMBOL_ALLOWLIST"
+    },
+    {
+      "call_chain": [
+        "app.safety.windows_handle_writer._WindowsApi.__init__"
+      ],
+      "callee": "ctypes.WinDLL",
+      "column": 16,
+      "detail": "native library binding requires an audited symbol allowlist",
+      "end_column": 38,
+      "end_line": 914,
+      "entry_id": "WE-CC595153C73A7991DB29971B",
+      "file": "app/safety/windows_handle_writer.py",
+      "function": "app.safety.windows_handle_writer._WindowsApi.__init__",
+      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
+      "kind": "NATIVE_API_BINDING",
+      "line": 914,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "SAFETY_SERVICE",
+      "required_control": "S3_NATIVE_API_FIXED_LIBRARY_AND_SYMBOL_ALLOWLIST",
+      "resolution": "CONSERVATIVE",
+      "risk": "P0",
+      "root_ids": [
+        "INTERNAL-DIRECT"
+      ],
+      "source_sha256": "4204894e029fef637df7e1d4192b120a5dd735bc15fda92d9d3725d25cd953c0",
+      "statement_fingerprint": "9d0cbfb70dc163dc4a1b455de8cdd4f40b2442a052e3db37be6335e49b08279f",
+      "target_namespace": "NATIVE_API_FIXED_LIBRARY_AND_SYMBOL_ALLOWLIST"
+    },
+    {
+      "call_chain": [
+        "app.safety.windows_handle_writer._WindowsApi._nt_create_relative"
+      ],
+      "callee": "ctypes.cast",
+      "column": 30,
+      "detail": "native library binding requires an audited symbol allowlist",
+      "end_column": 72,
+      "end_line": 993,
+      "entry_id": "WE-4D64068530382C14746E3587",
+      "file": "app/safety/windows_handle_writer.py",
+      "function": "app.safety.windows_handle_writer._WindowsApi._nt_create_relative",
+      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
+      "kind": "NATIVE_API_BINDING",
+      "line": 993,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "SAFETY_SERVICE",
+      "required_control": "S3_NATIVE_API_FIXED_LIBRARY_AND_SYMBOL_ALLOWLIST",
+      "resolution": "CONSERVATIVE",
+      "risk": "P0",
+      "root_ids": [
+        "INTERNAL-DIRECT"
+      ],
+      "source_sha256": "4204894e029fef637df7e1d4192b120a5dd735bc15fda92d9d3725d25cd953c0",
+      "statement_fingerprint": "301500c98429488ff9401a91a56ee0ff18f5e8176b45c12aa4fe789d44902b5e",
+      "target_namespace": "NATIVE_API_FIXED_LIBRARY_AND_SYMBOL_ALLOWLIST"
+    },
+    {
+      "call_chain": [
+        "app.safety.windows_handle_writer._WindowsApi._nt_create_relative"
+      ],
+      "callee": "self.ntdll.NtCreateFile",
+      "column": 12,
+      "detail": "NtCreateFile may create a relative-parent directory or file",
+      "end_column": 13,
+      "end_line": 1017,
+      "entry_id": "WE-D1B8BEF604FA7EB437A2EBDC",
+      "file": "app/safety/windows_handle_writer.py",
+      "function": "app.safety.windows_handle_writer._WindowsApi._nt_create_relative",
+      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
+      "kind": "FILESYSTEM_DIRECTORY_CREATE",
+      "line": 1005,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "SAFETY_SERVICE",
+      "required_control": "S3_HANDLE_LEVEL_WORKSPACE_WRITER",
+      "resolution": "CONSERVATIVE",
+      "risk": "P1",
+      "root_ids": [
+        "INTERNAL-DIRECT"
+      ],
+      "source_sha256": "4204894e029fef637df7e1d4192b120a5dd735bc15fda92d9d3725d25cd953c0",
+      "statement_fingerprint": "1a598eacb81ec007becd58ceb2c95a7f2a02c09ef23ea5184d2eeaf35308a913",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_FILESYSTEM"
     },
     {
       "call_chain": [
@@ -173,13 +254,13 @@
       "column": 17,
       "detail": "Win32 file mutation or durability primitive",
       "end_column": 9,
-      "end_line": 489,
+      "end_line": 1143,
       "entry_id": "WE-6CA365725E6C12E6C4C52D87",
       "file": "app/safety/windows_handle_writer.py",
       "function": "app.safety.windows_handle_writer._WindowsApi.open_handle",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "FILESYSTEM_FILE_WRITE",
-      "line": 481,
+      "line": 1135,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "SAFETY_SERVICE",
       "required_control": "S3_HANDLE_LEVEL_WORKSPACE_WRITER",
@@ -188,7 +269,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "4be70c4cbfd1a3534f4e874b23c0e74ae3cad2f8b1cd274963df0fa6c257c603",
+      "source_sha256": "4204894e029fef637df7e1d4192b120a5dd735bc15fda92d9d3725d25cd953c0",
       "statement_fingerprint": "67559a9ae4debc3474653aa3831c9f4fc6390b75f283cf8780ebd15db3bdfdb8",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_FILESYSTEM"
     },
@@ -200,13 +281,13 @@
       "column": 17,
       "detail": "native library binding requires an audited symbol allowlist",
       "end_column": 69,
-      "end_line": 530,
+      "end_line": 1184,
       "entry_id": "WE-7BD77BF929D65BFD7A621461",
       "file": "app/safety/windows_handle_writer.py",
       "function": "app.safety.windows_handle_writer._WindowsApi.rename_by_handle_no_replace",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "NATIVE_API_BINDING",
-      "line": 530,
+      "line": 1184,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "SAFETY_SERVICE",
       "required_control": "S3_NATIVE_API_FIXED_LIBRARY_AND_SYMBOL_ALLOWLIST",
@@ -215,7 +296,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "4be70c4cbfd1a3534f4e874b23c0e74ae3cad2f8b1cd274963df0fa6c257c603",
+      "source_sha256": "4204894e029fef637df7e1d4192b120a5dd735bc15fda92d9d3725d25cd953c0",
       "statement_fingerprint": "f9c8f622728eb7287183ca5f70b13241fd0c53053e3be33a54c58b4d80b091c7",
       "target_namespace": "NATIVE_API_FIXED_LIBRARY_AND_SYMBOL_ALLOWLIST"
     },
@@ -227,13 +308,13 @@
       "column": 8,
       "detail": "native library binding requires an audited symbol allowlist",
       "end_column": 85,
-      "end_line": 534,
+      "end_line": 1188,
       "entry_id": "WE-877A86E1F1E12ACBFEB13E92",
       "file": "app/safety/windows_handle_writer.py",
       "function": "app.safety.windows_handle_writer._WindowsApi.rename_by_handle_no_replace",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "NATIVE_API_BINDING",
-      "line": 534,
+      "line": 1188,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "SAFETY_SERVICE",
       "required_control": "S3_NATIVE_API_FIXED_LIBRARY_AND_SYMBOL_ALLOWLIST",
@@ -242,7 +323,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "4be70c4cbfd1a3534f4e874b23c0e74ae3cad2f8b1cd274963df0fa6c257c603",
+      "source_sha256": "4204894e029fef637df7e1d4192b120a5dd735bc15fda92d9d3725d25cd953c0",
       "statement_fingerprint": "4ae062bde5ec74e4bc22d42fc017c5558005d238d57a6971e5ad3b0c2416aadd",
       "target_namespace": "NATIVE_API_FIXED_LIBRARY_AND_SYMBOL_ALLOWLIST"
     },
@@ -254,13 +335,13 @@
       "column": 15,
       "detail": "Win32 move, replacement, or handle rename primitive",
       "end_column": 9,
-      "end_line": 540,
+      "end_line": 1194,
       "entry_id": "WE-F8171DBBEF37F37A23CD531F",
       "file": "app/safety/windows_handle_writer.py",
       "function": "app.safety.windows_handle_writer._WindowsApi.rename_by_handle_no_replace",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "FILESYSTEM_MOVE_OR_REPLACE",
-      "line": 535,
+      "line": 1189,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "SAFETY_SERVICE",
       "required_control": "S3_PAIRED_QUARANTINE_OR_ATOMIC_PUBLISH_WRITER",
@@ -269,7 +350,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "4be70c4cbfd1a3534f4e874b23c0e74ae3cad2f8b1cd274963df0fa6c257c603",
+      "source_sha256": "4204894e029fef637df7e1d4192b120a5dd735bc15fda92d9d3725d25cd953c0",
       "statement_fingerprint": "47261eae955f365607a29d0d249356c12732ce5a9e0daafb361290673e524a1d",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_FILESYSTEM"
     },
@@ -281,13 +362,13 @@
       "column": 17,
       "detail": "Win32 Local named-mutex synchronization",
       "end_column": 62,
-      "end_line": 554,
+      "end_line": 1208,
       "entry_id": "WE-06FCFF540895EA5D7A3A4727",
       "file": "app/safety/windows_handle_writer.py",
       "function": "app.safety.windows_handle_writer._WindowsApi.acquire_named_mutex",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "RUNTIME_SYNCHRONIZATION",
-      "line": 554,
+      "line": 1208,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "SAFETY_SERVICE",
       "required_control": "S3_FIXED_CONTRACT_ROOT_RUNTIME_MUTEX",
@@ -296,7 +377,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "4be70c4cbfd1a3534f4e874b23c0e74ae3cad2f8b1cd274963df0fa6c257c603",
+      "source_sha256": "4204894e029fef637df7e1d4192b120a5dd735bc15fda92d9d3725d25cd953c0",
       "statement_fingerprint": "b25ea342908d918c802d750c601e8751cfa1f2ae028b17abf9d0ef8877a2795d",
       "target_namespace": "WINDOWS_LOCAL_NAMED_MUTEX"
     },
@@ -308,13 +389,13 @@
       "column": 22,
       "detail": "Win32 Local named-mutex synchronization",
       "end_column": 70,
-      "end_line": 562,
+      "end_line": 1216,
       "entry_id": "WE-BBA899266932F61A39C6D06D",
       "file": "app/safety/windows_handle_writer.py",
       "function": "app.safety.windows_handle_writer._WindowsApi.acquire_named_mutex",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "RUNTIME_SYNCHRONIZATION",
-      "line": 562,
+      "line": 1216,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "SAFETY_SERVICE",
       "required_control": "S3_FIXED_CONTRACT_ROOT_RUNTIME_MUTEX",
@@ -323,7 +404,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "4be70c4cbfd1a3534f4e874b23c0e74ae3cad2f8b1cd274963df0fa6c257c603",
+      "source_sha256": "4204894e029fef637df7e1d4192b120a5dd735bc15fda92d9d3725d25cd953c0",
       "statement_fingerprint": "62cdf8e6c4c274a4377d2883e0f44c27d7a2603a546c0ff95ebd9a13f2281d2c",
       "target_namespace": "WINDOWS_LOCAL_NAMED_MUTEX"
     },
@@ -335,13 +416,13 @@
       "column": 22,
       "detail": "native library binding requires an audited symbol allowlist",
       "end_column": 17,
-      "end_line": 615,
+      "end_line": 1269,
       "entry_id": "WE-300E5B5D74E54AD19A755417",
       "file": "app/safety/windows_handle_writer.py",
       "function": "app.safety.windows_handle_writer._WindowsApi.enumerate_directory_handle",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "NATIVE_API_BINDING",
-      "line": 612,
+      "line": 1266,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "SAFETY_SERVICE",
       "required_control": "S3_NATIVE_API_FIXED_LIBRARY_AND_SYMBOL_ALLOWLIST",
@@ -350,7 +431,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "4be70c4cbfd1a3534f4e874b23c0e74ae3cad2f8b1cd274963df0fa6c257c603",
+      "source_sha256": "4204894e029fef637df7e1d4192b120a5dd735bc15fda92d9d3725d25cd953c0",
       "statement_fingerprint": "5a7486d2b722f5e7c8aed563b657ede301c44dcba5d4d32697113333fcbf676d",
       "target_namespace": "NATIVE_API_FIXED_LIBRARY_AND_SYMBOL_ALLOWLIST"
     },
@@ -362,13 +443,13 @@
       "column": 15,
       "detail": "Win32 file mutation or durability primitive",
       "end_column": 9,
-      "end_line": 2032,
+      "end_line": 3704,
       "entry_id": "WE-C09DBF0B3CD7B721B6D975FE",
       "file": "app/safety/windows_handle_writer.py",
       "function": "app.safety.windows_handle_writer._WindowsHandleWriter._write_once",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "FILESYSTEM_FILE_WRITE",
-      "line": 2026,
+      "line": 3698,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "SAFETY_SERVICE",
       "required_control": "S3_HANDLE_LEVEL_WORKSPACE_WRITER",
@@ -377,7 +458,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "4be70c4cbfd1a3534f4e874b23c0e74ae3cad2f8b1cd274963df0fa6c257c603",
+      "source_sha256": "4204894e029fef637df7e1d4192b120a5dd735bc15fda92d9d3725d25cd953c0",
       "statement_fingerprint": "21f569fde14ec4771d9ecea3054587aaaeeebb5022d3553f8cba6c71bef1d22b",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_FILESYSTEM"
     },
@@ -389,13 +470,13 @@
       "column": 15,
       "detail": "Win32 file mutation or durability primitive",
       "end_column": 58,
-      "end_line": 2053,
+      "end_line": 3725,
       "entry_id": "WE-60078E30ED45A15B6F51C4C1",
       "file": "app/safety/windows_handle_writer.py",
       "function": "app.safety.windows_handle_writer._WindowsHandleWriter._flush",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "FILESYSTEM_FILE_WRITE",
-      "line": 2053,
+      "line": 3725,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "SAFETY_SERVICE",
       "required_control": "S3_HANDLE_LEVEL_WORKSPACE_WRITER",
@@ -404,7 +485,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "4be70c4cbfd1a3534f4e874b23c0e74ae3cad2f8b1cd274963df0fa6c257c603",
+      "source_sha256": "4204894e029fef637df7e1d4192b120a5dd735bc15fda92d9d3725d25cd953c0",
       "statement_fingerprint": "3f12b3b3b6d0e952f0ef94ee93953308715e530c15f0ecd65125c65fdb0d9d17",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_FILESYSTEM"
     },
@@ -595,87 +676,6 @@
       ],
       "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
       "statement_fingerprint": "bc87079d5223f0c09081d5383282e54c5d6951bd0204a9490278308c150bc7c0",
-      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
-    },
-    {
-      "call_chain": [
-        "<sql-script>"
-      ],
-      "callee": "SQL:CREATE",
-      "column": 0,
-      "detail": "schema statement CREATE",
-      "end_column": 6,
-      "end_line": 65,
-      "entry_id": "WE-05E47FF8A277D98A7BD86026",
-      "file": "app/schema.sql",
-      "function": "<sql-script>",
-      "input_source": "STATIC_SOURCE_DECLARATION",
-      "kind": "SQLITE_SCHEMA_MUTATION",
-      "line": 65,
-      "migration_status": "UNMIGRATED_BLOCKED",
-      "owner": "APPLICATION_SERVICE",
-      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
-      "resolution": "EXACT",
-      "risk": "P1",
-      "root_ids": [
-        "MODULE-LOAD"
-      ],
-      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
-      "statement_fingerprint": "dcb7f77fb931837c44b8369a13878d150936d0eae54461ca29376d0026527065",
-      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
-    },
-    {
-      "call_chain": [
-        "<sql-script>"
-      ],
-      "callee": "SQL:CREATE",
-      "column": 0,
-      "detail": "schema statement CREATE",
-      "end_column": 6,
-      "end_line": 66,
-      "entry_id": "WE-8BA6BF3E6AC47790262E21EC",
-      "file": "app/schema.sql",
-      "function": "<sql-script>",
-      "input_source": "STATIC_SOURCE_DECLARATION",
-      "kind": "SQLITE_SCHEMA_MUTATION",
-      "line": 66,
-      "migration_status": "UNMIGRATED_BLOCKED",
-      "owner": "APPLICATION_SERVICE",
-      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
-      "resolution": "EXACT",
-      "risk": "P1",
-      "root_ids": [
-        "MODULE-LOAD"
-      ],
-      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
-      "statement_fingerprint": "e31192b0bd6281a3cb8837c2fa79531aa9a9a92a91fd38304a2490221540d08e",
-      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
-    },
-    {
-      "call_chain": [
-        "<sql-script>"
-      ],
-      "callee": "SQL:CREATE",
-      "column": 0,
-      "detail": "schema statement CREATE",
-      "end_column": 6,
-      "end_line": 67,
-      "entry_id": "WE-09E980594751823717267349",
-      "file": "app/schema.sql",
-      "function": "<sql-script>",
-      "input_source": "STATIC_SOURCE_DECLARATION",
-      "kind": "SQLITE_SCHEMA_MUTATION",
-      "line": 67,
-      "migration_status": "UNMIGRATED_BLOCKED",
-      "owner": "APPLICATION_SERVICE",
-      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
-      "resolution": "EXACT",
-      "risk": "P1",
-      "root_ids": [
-        "MODULE-LOAD"
-      ],
-      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
-      "statement_fingerprint": "2aca4fba8004e6160e7d75c30b8ee9dd8ff585e4994dc5a03bee12d36e5c327a",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     }
   ],

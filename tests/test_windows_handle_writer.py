@@ -1276,20 +1276,37 @@ def test_alternate_data_stream_is_rejected_without_default_stream_change(
     target = handle_lab.project / "ads-source.bin"
     before = b"default-stream"
     target.write_bytes(before)
-    with open(f"{target}:hidden", "wb") as stream:
+    stream_path = f"{target}:hidden"
+    with open(stream_path, "wb") as stream:
         stream.write(b"hidden-stream")
     ticket = writer.authorize_append_file(target.name)
+    try:
+        with pytest.raises(HandleWriterError) as captured:
+            writer.append_file(
+                ticket,
+                b"forbidden",
+                expected_before_size=len(before),
+                expected_before_sha256=_sha256(before),
+            )
 
-    with pytest.raises(HandleWriterError) as captured:
-        writer.append_file(
-            ticket,
-            b"forbidden",
-            expected_before_size=len(before),
-            expected_before_sha256=_sha256(before),
+        assert captured.value.code is HandleWriterCode.HANDLE_IDENTITY_MISMATCH
+        assert target.read_bytes() == before
+    finally:
+        os.remove(stream_path)
+        (handle_lab.project / "ads-cleanup.json").write_text(
+            json.dumps(
+                {
+                    "action": "remove-exact-synthetic-ads",
+                    "base": target.name,
+                    "sha256": _sha256(before),
+                },
+                ensure_ascii=True,
+                sort_keys=True,
+            )
+            + "\n",
+            encoding="utf-8",
+            newline="\n",
         )
-
-    assert captured.value.code is HandleWriterCode.HANDLE_IDENTITY_MISMATCH
-    assert target.read_bytes() == before
 
 
 def test_receipt_and_errors_do_not_disclose_paths_or_handles(handle_lab: _HandleLab) -> None:

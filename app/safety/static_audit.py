@@ -13,7 +13,7 @@ from typing import Any, Iterable, Iterator
 from app.config import PROJECT_ROOT
 
 
-SCANNER_VERSION = "M0-S3-STATIC-AUDIT-V7"
+SCANNER_VERSION = "M0-S3-STATIC-AUDIT-V8"
 PRODUCTION_ROOTS = ("app", "scripts")
 SOURCE_SUFFIXES = (".py", ".sql")
 SOURCE_BYTE_NORMALIZATION = "UTF8_LF_V1"
@@ -127,9 +127,29 @@ _AUDITED_CAPABILITY_STORES = frozenset(
             "6ed7dd636bfe9445014bdb262584b96b6e77837c4edc2fce0cc139138ec65459",
         ),
         (
+            "scripts/run_safe_pytest.py",
+            "scripts.run_safe_pytest._WindowsStreamInspector.__init__",
+            "1ec34eda97bf6ad3947c2bf5a28eb52cd40a296993306f0934c9154141532999",
+        ),
+        (
+            "scripts/run_safe_pytest.py",
+            "scripts.run_safe_pytest._WindowsStreamInspector.__init__",
+            "6ed7dd636bfe9445014bdb262584b96b6e77837c4edc2fce0cc139138ec65459",
+        ),
+        (
             "app/safety/windows_handle_writer.py",
             "app.safety.windows_handle_writer._WindowsApi.__init__",
             "1a90fc25128313c62ba27ce7660514bd10838aba2738abe18b8b8354101706d8",
+        ),
+        (
+            "app/safety/windows_handle_writer.py",
+            "app.safety.windows_handle_writer._WindowsApi.__init__",
+            "a856503201dd5a75dad5a452ae8012c3a94153e99ebbaed33d00c9218fd499e3",
+        ),
+        (
+            "app/safety/windows_handle_writer.py",
+            "app.safety.windows_handle_writer._WindowsApi._nt_create_relative",
+            "7e4245ccc046bda73f46877c2f5023f39ecdb9925772c8cd50eee4789b1eeae5",
         ),
     }
 )
@@ -469,11 +489,13 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
     findings: list[tuple[str, int, str]] = []
     allowed_file = "app/safety/production_guard.py"
     ledger_file = "app/safety/segment_ledger.py"
+    job_file = "app/safety/job_operation.py"
     safety_module_prefixes = (
         "app.safety.production_guard",
         "app.safety.namespace_policy",
         "app.safety.windows_handle_writer",
         "app.safety.segment_ledger",
+        "app.safety.job_operation",
     )
     scope_aliases: dict[str, str] = dict(module.imports)
     for _ in range(8):
@@ -512,6 +534,13 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         "_AuditAuthority",
         "_TestDurableBoundaryBundle",
         "_create_test_durable_boundary",
+        "_TestJobRuntime",
+        "_build_test_job_runtime",
+        "_JOB_RUNTIME_CONSTRUCTOR",
+        "_ImmutableFileLease",
+        "_IMMUTABLE_FILE_LEASE_CONSTRUCTOR",
+        "_JobContextPin",
+        "_JOB_CONTEXT_PIN_CONSTRUCTOR",
         "_AUDIT_AUTHORITY_CONSTRUCTOR",
         "_LEDGER_CONSTRUCTOR",
         "_HANDLE_WRITER_CONSTRUCTOR",
@@ -537,6 +566,13 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         "_TestDurableBoundaryBundle",
         "_create_test_durable_boundary",
         "_LedgerStorage",
+        "_TestJobRuntime",
+        "_build_test_job_runtime",
+        "_JOB_RUNTIME_CONSTRUCTOR",
+        "_ImmutableFileLease",
+        "_IMMUTABLE_FILE_LEASE_CONSTRUCTOR",
+        "_JobContextPin",
+        "_JOB_CONTEXT_PIN_CONSTRUCTOR",
     }
     sensitive_assignments = {
         "CONTRACT_PROJECT_ROOT",
@@ -578,6 +614,9 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         "_mutex_name",
         "_ACTIVE_MUTEX_NAMES",
         "_LEDGER_CONSTRUCTOR",
+        "_JOB_RUNTIME_CONSTRUCTOR",
+        "_IMMUTABLE_FILE_LEASE_CONSTRUCTOR",
+        "_JOB_CONTEXT_PIN_CONSTRUCTOR",
         "POLICY_ID",
         "POLICY_VERSION",
         "POLICY_DIGEST",
@@ -596,19 +635,33 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         },
         "_WindowsHandleWriter": {
             allowed_file,
+            job_file,
             "app/safety/windows_handle_writer.py",
         },
         "_WindowsApi": {
             allowed_file,
+            job_file,
             "app/safety/windows_handle_writer.py",
         },
         "_create_test_handle_writer": {allowed_file},
         "AuditKeyRevisionStore": {allowed_file, ledger_file},
-        "DurableAuditLedger": {allowed_file, ledger_file},
+        "DurableAuditLedger": {allowed_file, ledger_file, job_file},
         "DurableAuditSink": {allowed_file, ledger_file},
         "_AuditAuthority": {allowed_file},
         "_TestDurableBoundaryBundle": {allowed_file},
         "_create_test_durable_boundary": {allowed_file},
+        "_TestJobRuntime": {allowed_file, job_file},
+        "_build_test_job_runtime": {allowed_file, job_file},
+        "_JOB_RUNTIME_CONSTRUCTOR": {allowed_file, job_file},
+        "_ImmutableFileLease": {
+            job_file,
+            "app/safety/windows_handle_writer.py",
+        },
+        "_IMMUTABLE_FILE_LEASE_CONSTRUCTOR": {
+            "app/safety/windows_handle_writer.py",
+        },
+        "_JobContextPin": {allowed_file},
+        "_JOB_CONTEXT_PIN_CONSTRUCTOR": {allowed_file},
         "_AUDIT_AUTHORITY_CONSTRUCTOR": {allowed_file},
         "_LEDGER_CONSTRUCTOR": {allowed_file, ledger_file},
         "_HANDLE_WRITER_CONSTRUCTOR": {
@@ -625,8 +678,33 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         if isinstance(node, ast.ImportFrom):
             base = _resolve_import_module(module.module, node.module, node.level)
             for alias in node.names:
+                job_kernel_import = (
+                    module.file == job_file
+                    and base
+                    in {
+                        "app.safety.segment_ledger",
+                        "app.safety.windows_handle_writer",
+                    }
+                    and alias.name
+                    in {
+                        "DurableAuditLedger",
+                        "LedgerHead",
+                        "DirectoryHandleLease",
+                        "HandleWriterCode",
+                        "HandleWriterError",
+                        "TreeEntryKind",
+                        "TreeScanBudget",
+                        "_ObservedTreeLease",
+                        "_TreeLogicalRow",
+                        "_TreeSnapshot",
+                        "_ImmutableFileLease",
+                        "_WindowsApi",
+                        "_WindowsHandleWriter",
+                    }
+                )
                 if (
                     module.file != allowed_file
+                    and not job_kernel_import
                     and base.startswith(safety_module_prefixes)
                     and (
                         alias.name == "*"
@@ -771,6 +849,7 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
                         and target_name
                         in {
                             "_HANDLE_WRITER_CONSTRUCTOR",
+                            "_IMMUTABLE_FILE_LEASE_CONSTRUCTOR",
                             "_path_authority",
                             "_mutex_name",
                             "_ACTIVE_MUTEX_NAMES",
@@ -798,6 +877,10 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
                             "_fresh_revision_ids",
                             "_LEDGER_CONSTRUCTOR",
                         }
+                    )
+                    or (
+                        module.file == job_file
+                        and target_name in {"_ledger", "_JOB_RUNTIME_CONSTRUCTOR"}
                     )
                     or (
                         module.file == "app/safety/namespace_policy.py"
@@ -2326,6 +2409,7 @@ def _classify_call(
         "queryinformationjobobject",
         "readfile",
         "readdirectorychangesw",
+        "rtlntstatustodoserror",
         "setfilepointerex",
         "sizeof",
         "thread32first",
@@ -2368,6 +2452,12 @@ def _classify_call(
             "user32.",
         )
     )
+    if native_receiver and leaf == "ntcreatefile":
+        return (
+            WritePrimitiveKind.FILESYSTEM_DIRECTORY_CREATE,
+            "NtCreateFile may create a relative-parent directory or file",
+            ResolutionConfidence.CONSERVATIVE,
+        )
     raw_root = _raw_callee_name(node.func).split(".", 1)[0]
     resolved_root = callee.split(".", 1)[0]
     if (

@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 
 import pytest
+import scripts.run_safe_pytest as launcher_module
 
 from scripts.run_safe_pytest import (
     RUN_ID_PATTERN,
@@ -139,6 +140,7 @@ def test_writer_mode_has_a_fixed_non_injectable_regression_selection(
         "pytest",
         "tests/test_windows_handle_writer.py",
         "tests/test_segment_ledger.py",
+        "tests/test_job_operation.py",
         "tests/test_workspace_guard.py",
         "tests/test_workspace_policy.py",
         "tests/test_write_entry_inventory.py",
@@ -152,6 +154,22 @@ def test_writer_mode_has_a_fixed_non_injectable_regression_selection(
         str(basetemp),
         "--junitxml",
         str(junit),
+    ]
+
+
+def test_s3d_mode_has_a_fixed_non_injectable_selection(tmp_path: Path) -> None:
+    run_root = tmp_path / "RUN-S3D-MODE"
+    run_root.mkdir()
+    command, _basetemp, _junit = _build_command(
+        tmp_path,
+        run_root,
+        mode="s3d",
+        exclude_symlink=True,
+    )
+    assert command[3:6] == [
+        "tests/test_job_operation.py",
+        "tests/test_windows_handle_writer.py",
+        "tests/test_segment_ledger.py",
     ]
 
 
@@ -677,6 +695,24 @@ def test_run_tree_verifier_accepts_a_regular_isolated_tree(tmp_path: Path) -> No
     _verify_run_tree_no_reparse(run_root)
 
 
+def test_run_tree_depth_counts_file_component_at_exact_boundary(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(launcher_module, "RUN_TREE_MAX_DEPTH", 2)
+    run_root = tmp_path / "RUN-SAFE-DEPTH"
+    nested = run_root / "a"
+    nested.mkdir(parents=True)
+    (nested / "exact.bin").write_bytes(b"x")
+    metrics = _verify_run_tree_no_reparse(run_root)
+    assert metrics["maximum_depth"] == 2
+    deeper = nested / "b"
+    deeper.mkdir()
+    (deeper / "overflow.bin").write_bytes(b"x")
+    with pytest.raises(SafetyStop, match="file depth"):
+        _verify_run_tree_no_reparse(run_root)
+
+
 def test_run_tree_verifier_rejects_hardlinks_without_leaving_them(
     tmp_path: Path,
 ) -> None:
@@ -694,6 +730,45 @@ def test_run_tree_verifier_rejects_hardlinks_without_leaving_them(
     _verify_run_tree_no_reparse(run_root)
 
 
+def test_run_tree_verifier_reports_fixed_metrics_and_rejects_ads(
+    tmp_path: Path,
+) -> None:
+    run_root = tmp_path / "RUN-SAFE-ADS"
+    run_root.mkdir()
+    target = run_root / "regular.bin"
+    target.write_bytes(b"safe")
+    metrics = _verify_run_tree_no_reparse(run_root)
+    assert metrics["file_count"] == 1
+    assert metrics["total_bytes"] == 4
+    stream = f"{target}:synthetic"
+    with open(stream, "wb") as handle:
+        handle.write(b"ads")
+    try:
+        with pytest.raises(SafetyStop, match="alternate data stream"):
+            _verify_run_tree_no_reparse(run_root)
+    finally:
+        os.remove(stream)
+    _verify_run_tree_no_reparse(run_root)
+    directory_stream = f"{run_root}:synthetic-directory"
+    from app.safety.windows_handle_writer import _WindowsApi
+
+    api = _WindowsApi()
+    directory_stream_handle = api.open_handle(
+        Path(directory_stream),
+        access=api.GENERIC_WRITE,
+        share=api.FILE_SHARE_READ | api.FILE_SHARE_WRITE | api.FILE_SHARE_DELETE,
+        disposition=api.CREATE_NEW,
+        flags=api.FILE_FLAG_OPEN_REPARSE_POINT | api.FILE_FLAG_BACKUP_SEMANTICS,
+    )
+    api.close(directory_stream_handle)
+    try:
+        with pytest.raises(SafetyStop, match="alternate data stream"):
+            _verify_run_tree_no_reparse(run_root)
+    finally:
+        os.remove(directory_stream)
+    _verify_run_tree_no_reparse(run_root)
+
+
 def test_process_job_reports_and_kills_an_unexpected_background_child(
     tmp_path: Path,
 ) -> None:
@@ -704,15 +779,17 @@ def test_process_job_reports_and_kills_an_unexpected_background_child(
         "'import time; time.sleep(30)']); "
         f"pathlib.Path({str(child_pid)!r}).write_text(str(child.pid), encoding='ascii')"
     )
-    exit_code, timed_out, tree_terminated = _run_test_process(
+    exit_code, timed_out, tree_terminated, budget_error, _budget_peak = _run_test_process(
         [sys.executable, "-B", "-c", child_code],
         project_root=Path(__file__).parent.parent,
+        run_root=tmp_path,
         environment=os.environ.copy(),
         timeout_seconds=10,
     )
     assert exit_code == 0
     assert not timed_out
     assert not tree_terminated
+    assert budget_error is None
     pid = int(child_pid.read_text(encoding="ascii"))
     assert not _pid_is_running(pid)
 
@@ -726,17 +803,67 @@ def test_process_job_terminates_the_full_tree_on_timeout(tmp_path: Path) -> None
         f"pathlib.Path({str(child_pid)!r}).write_text(str(child.pid), encoding='ascii'); "
         "time.sleep(30)"
     )
-    exit_code, timed_out, tree_terminated = _run_test_process(
+    exit_code, timed_out, tree_terminated, budget_error, _budget_peak = _run_test_process(
         [sys.executable, "-B", "-c", parent_code],
         project_root=Path(__file__).parent.parent,
+        run_root=tmp_path,
         environment=os.environ.copy(),
         timeout_seconds=1,
     )
     assert exit_code == 124
     assert timed_out
     assert tree_terminated
+    assert budget_error is None
     pid = int(child_pid.read_text(encoding="ascii"))
     assert not _pid_is_running(pid)
+
+
+def test_process_job_terminates_when_runtime_run_budget_is_exceeded(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(launcher_module, "RUN_TREE_MAX_TOTAL_BYTES", 32)
+    payload = tmp_path / "oversize.bin"
+    code = (
+        "from pathlib import Path; import time; "
+        f"Path({str(payload)!r}).write_bytes(b'x' * 4096); time.sleep(30)"
+    )
+    exit_code, timed_out, tree_terminated, budget_error, budget_peak = _run_test_process(
+        [sys.executable, "-B", "-c", code],
+        project_root=Path(__file__).parent.parent,
+        run_root=tmp_path,
+        environment=os.environ.copy(),
+        timeout_seconds=10,
+    )
+    assert exit_code == 94
+    assert not timed_out
+    assert tree_terminated
+    assert budget_error is not None
+    assert budget_peak["total_bytes"] <= 32
+
+
+def test_process_job_terminates_when_runtime_file_depth_exceeds_budget(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(launcher_module, "RUN_TREE_MAX_DEPTH", 1)
+    nested = tmp_path / "nested"
+    code = (
+        "from pathlib import Path; import time; "
+        f"p=Path({str(nested)!r}); p.mkdir(); (p/'overflow.bin').write_bytes(b'x'); "
+        "time.sleep(30)"
+    )
+    exit_code, timed_out, tree_terminated, budget_error, _budget_peak = _run_test_process(
+        [sys.executable, "-B", "-c", code],
+        project_root=Path(__file__).parent.parent,
+        run_root=tmp_path,
+        environment=os.environ.copy(),
+        timeout_seconds=10,
+    )
+    assert exit_code == 94
+    assert not timed_out
+    assert tree_terminated
+    assert budget_error is not None
 
 
 @pytest.mark.skipif(os.name != "nt", reason="Windows suspended-process contract")
@@ -761,6 +888,7 @@ def test_job_setup_failure_never_runs_suspended_child(
                 f"from pathlib import Path; Path({str(sentinel)!r}).write_text('ran')",
             ],
             project_root=Path(__file__).parent.parent,
+            run_root=tmp_path,
             environment=os.environ.copy(),
             timeout_seconds=5,
         )
@@ -782,6 +910,10 @@ def test_effective_exit_code_records_protected_state_gate_and_skips() -> None:
         "protected_handle_fence_valid": True,
     }
     assert _effective_exit_code(**base) == 0
+    assert _effective_exit_code(**{**base, "pytest_exit_code": 1}) == 1
+    assert _effective_exit_code(**{**base, "process_tree_terminated": False}) != 0
+    assert _effective_exit_code(**{**base, "run_tree_safe": False}) != 0
+    assert _effective_exit_code(**{**base, "immutable_evidence_unchanged": False}) != 0
     assert _effective_exit_code(**{**base, "database_unchanged": False}) == 97
     assert _effective_exit_code(**{**base, "protected_tree_unchanged": False}) == 97
     assert _effective_exit_code(
@@ -801,6 +933,21 @@ def test_effective_exit_code_records_protected_state_gate_and_skips() -> None:
                 "failures": 0,
                 "errors": 0,
                 "skipped": 1,
+            },
+        }
+    ) == 98
+    for field in ("failures", "errors"):
+        details = {"tests": 1, "failures": 0, "errors": 0, "skipped": 0}
+        details[field] = 1
+        assert _effective_exit_code(**{**base, "junit_details": details}) == 98
+    assert _effective_exit_code(
+        **{
+            **base,
+            "junit_details": {
+                "tests": 0,
+                "failures": 0,
+                "errors": 0,
+                "skipped": 0,
             },
         }
     ) == 98

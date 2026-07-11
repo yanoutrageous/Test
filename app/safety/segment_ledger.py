@@ -1568,6 +1568,42 @@ class DurableAuditLedger:
             self._require_open()
             return self._active_revision().audit_hmac_key_id
 
+    def _rescan_under_existing_mutex(
+        self,
+        lease: RuntimeMutexLease,
+    ) -> LedgerHead:
+        """Private S3-D gate: rescan without attempting a nested mutex acquire."""
+
+        if (
+            type(lease) is not RuntimeMutexLease
+            or lease._writer is not self._storage
+        ):
+            raise LedgerError(
+                LedgerCode.INVALID_REQUEST,
+                "ledger rescan requires its exact storage mutex lease",
+            )
+        try:
+            lease._assert_live_owner(self._storage)
+        except HandleWriterError:
+            raise LedgerError(
+                LedgerCode.INVALID_REQUEST,
+                "ledger rescan mutex lease is not live on its owner thread",
+            ) from None
+        with self._lock:
+            self._require_open()
+            try:
+                self._scan_under_mutex(
+                    startup_abandoned=lease.abandoned,
+                    allow_empty=False,
+                )
+            except LedgerError as exc:
+                self._seal(exc.code)
+                raise LedgerError(
+                    exc.code,
+                    "ledger under-lease rescan failed safely",
+                ) from None
+            return self._required_head()
+
     def append_audit_batch(
         self,
         events: tuple[AuditEvent, ...],

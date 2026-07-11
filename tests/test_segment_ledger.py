@@ -230,6 +230,85 @@ def _ledger(lab: _LedgerLab, revision_id: str = "KEYREV-ONE") -> DurableAuditLed
     )
 
 
+def test_ledger_rescan_reuses_exact_live_mutex_without_nested_acquire(
+    ledger_lab: _LedgerLab,
+) -> None:
+    _create_revision(ledger_lab)
+    ledger = _ledger(ledger_lab)
+    before = _ledger_entry_snapshot(ledger_lab)
+    with ledger_lab.writer.acquire_runtime_mutex() as lease:
+        head = ledger._rescan_under_existing_mutex(lease)
+        assert head == ledger.head
+        assert head.last_sequence == 0
+    assert _ledger_entry_snapshot(ledger_lab) == before
+
+
+def test_ledger_rescan_rejects_closed_foreign_and_cross_thread_mutex(
+    ledger_lab: _LedgerLab,
+) -> None:
+    _create_revision(ledger_lab)
+    ledger = _ledger(ledger_lab)
+    before = _ledger_entry_snapshot(ledger_lab)
+    closed = ledger_lab.writer.acquire_runtime_mutex()
+    closed.close()
+    with pytest.raises(LedgerError) as closed_error:
+        ledger._rescan_under_existing_mutex(closed)
+    assert closed_error.value.code is LedgerCode.INVALID_REQUEST
+
+    foreign_writer = _create_test_handle_writer(ledger_lab.project)
+    with foreign_writer.acquire_runtime_mutex() as foreign:
+        with pytest.raises(LedgerError) as foreign_error:
+            ledger._rescan_under_existing_mutex(foreign)
+        assert foreign_error.value.code is LedgerCode.INVALID_REQUEST
+
+    with ledger_lab.writer.acquire_runtime_mutex() as live:
+        errors: list[BaseException] = []
+
+        def cross_thread() -> None:
+            try:
+                ledger._rescan_under_existing_mutex(live)
+            except BaseException as exc:
+                errors.append(exc)
+
+        thread = __import__("threading").Thread(target=cross_thread)
+        thread.start()
+        thread.join(timeout=5)
+        assert len(errors) == 1
+        assert isinstance(errors[0], LedgerError)
+        assert errors[0].code is LedgerCode.INVALID_REQUEST
+        assert ledger._rescan_under_existing_mutex(live) == ledger.head
+    assert _ledger_entry_snapshot(ledger_lab) == before
+
+
+def test_under_mutex_rescan_tamper_seals_without_append_or_repair(
+    ledger_lab: _LedgerLab,
+) -> None:
+    _create_revision(ledger_lab)
+    ledger = _ledger(ledger_lab)
+    segment = _segment_files(ledger_lab)[0]
+    payload = bytearray(segment.read_bytes())
+    payload[len(payload) // 2] ^= 1
+    tampered = bytes(payload)
+    names_before = tuple(path.name for path in _segment_files(ledger_lab))
+    segment.write_bytes(tampered)
+    with ledger_lab.writer.acquire_runtime_mutex() as lease:
+        with pytest.raises(LedgerError) as captured:
+            ledger._rescan_under_existing_mutex(lease)
+        assert captured.value.code in {
+            LedgerCode.CHAIN_CORRUPT,
+            LedgerCode.POLICY_MISMATCH,
+            LedgerCode.STORAGE_FAILURE,
+        }
+    assert tuple(path.name for path in _segment_files(ledger_lab)) == names_before
+    assert segment.read_bytes() == tampered
+    with pytest.raises(LedgerError) as sealed_ledger:
+        _ = ledger.head
+    assert sealed_ledger.value.code is LedgerCode.LEDGER_SEALED
+    with pytest.raises(HandleWriterError) as sealed_writer:
+        ledger_lab.writer.acquire_runtime_mutex()
+    assert sealed_writer.value.code is HandleWriterCode.WRITER_SEALED
+
+
 def _segment_files(lab: _LedgerLab) -> list[Path]:
     root = lab.project / "logs" / "audit" / "segments" / lab.epoch_id
     return sorted(root.iterdir(), key=lambda path: path.name)
