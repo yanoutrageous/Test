@@ -1,7 +1,115 @@
 {
-  "chunk_digest_sha256": "3984a3884a358009032ead99381215b9914f5511d59335390fa28eb384d9fc6b",
+  "chunk_digest_sha256": "204c2178594731012e50b6f30bee71c3cb563203c3d8455f2b9afce355ab058a",
   "chunk_index": 7,
   "entries": [
+    {
+      "call_chain": [
+        "<sql-script>"
+      ],
+      "callee": "SQL:CREATE",
+      "column": 0,
+      "detail": "schema statement CREATE",
+      "end_column": 6,
+      "end_line": 110,
+      "entry_id": "WE-D1B23BDB6F28417DAFDBBF66",
+      "file": "app/schema.sql",
+      "function": "<sql-script>",
+      "input_source": "STATIC_SOURCE_DECLARATION",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "line": 110,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "MODULE-LOAD"
+      ],
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "6f3f7dca76e8c9655e9aefedff6b0df77a804d8413bbbd0c0b7b2ef9568b1596",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    },
+    {
+      "call_chain": [
+        "<sql-script>"
+      ],
+      "callee": "SQL:CREATE",
+      "column": 0,
+      "detail": "schema statement CREATE",
+      "end_column": 6,
+      "end_line": 113,
+      "entry_id": "WE-640750D87AEB5343D864DA83",
+      "file": "app/schema.sql",
+      "function": "<sql-script>",
+      "input_source": "STATIC_SOURCE_DECLARATION",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "line": 113,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "MODULE-LOAD"
+      ],
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "a492ef310804ddcffa8bbc4fbabfbc6d55d81dd614a021724b9350ea098b1318",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    },
+    {
+      "call_chain": [
+        "<sql-script>"
+      ],
+      "callee": "SQL:DELETE",
+      "column": 0,
+      "detail": "schema statement DELETE",
+      "end_column": 6,
+      "end_line": 115,
+      "entry_id": "WE-821CB7A3BCEB73520882AD1B",
+      "file": "app/schema.sql",
+      "function": "<sql-script>",
+      "input_source": "STATIC_SOURCE_DECLARATION",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "line": 115,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "MODULE-LOAD"
+      ],
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "3e37fa3e2ad293d0b0007c0c84dfa26b0bbe50798c168cfb1152fe904d279b55",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    },
+    {
+      "call_chain": [
+        "<sql-script>"
+      ],
+      "callee": "SQL:CREATE",
+      "column": 0,
+      "detail": "schema statement CREATE",
+      "end_column": 6,
+      "end_line": 129,
+      "entry_id": "WE-7F498CC91185C8BF63BEE971",
+      "file": "app/schema.sql",
+      "function": "<sql-script>",
+      "input_source": "STATIC_SOURCE_DECLARATION",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "line": 129,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "MODULE-LOAD"
+      ],
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "69d1360897f55a021cd0107001225e3e61ab2d16fcad636ad7a9ccb6e435ede7",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    },
     {
       "call_chain": [
         "<sql-script>"
@@ -567,114 +675,6 @@
       ],
       "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
       "statement_fingerprint": "14de13f458c01cb7598d59ce99492c5d6c31c88d441e485be24d2f7b07a5c4a9",
-      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
-    },
-    {
-      "call_chain": [
-        "<sql-script>"
-      ],
-      "callee": "SQL:CREATE",
-      "column": 0,
-      "detail": "schema statement CREATE",
-      "end_column": 6,
-      "end_line": 268,
-      "entry_id": "WE-EB0BFBA5CB6697CCE649673E",
-      "file": "app/schema.sql",
-      "function": "<sql-script>",
-      "input_source": "STATIC_SOURCE_DECLARATION",
-      "kind": "SQLITE_SCHEMA_MUTATION",
-      "line": 268,
-      "migration_status": "UNMIGRATED_BLOCKED",
-      "owner": "APPLICATION_SERVICE",
-      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
-      "resolution": "EXACT",
-      "risk": "P1",
-      "root_ids": [
-        "MODULE-LOAD"
-      ],
-      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
-      "statement_fingerprint": "7c124ad46bb617784de0404dc0dbee4cb04be0599532002e051068a2184920b9",
-      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
-    },
-    {
-      "call_chain": [
-        "<sql-script>"
-      ],
-      "callee": "SQL:CREATE",
-      "column": 0,
-      "detail": "schema statement CREATE",
-      "end_column": 6,
-      "end_line": 270,
-      "entry_id": "WE-8983F57CD49C1DB8AF62150E",
-      "file": "app/schema.sql",
-      "function": "<sql-script>",
-      "input_source": "STATIC_SOURCE_DECLARATION",
-      "kind": "SQLITE_SCHEMA_MUTATION",
-      "line": 270,
-      "migration_status": "UNMIGRATED_BLOCKED",
-      "owner": "APPLICATION_SERVICE",
-      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
-      "resolution": "EXACT",
-      "risk": "P1",
-      "root_ids": [
-        "MODULE-LOAD"
-      ],
-      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
-      "statement_fingerprint": "b2365b1731e1fc1f4155026e416c4364323eeaaaf5c222ac7dfaa5ebaa97a1f4",
-      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
-    },
-    {
-      "call_chain": [
-        "<sql-script>"
-      ],
-      "callee": "SQL:CREATE",
-      "column": 0,
-      "detail": "schema statement CREATE",
-      "end_column": 6,
-      "end_line": 273,
-      "entry_id": "WE-A6ECB39FB3EB4A13737AB851",
-      "file": "app/schema.sql",
-      "function": "<sql-script>",
-      "input_source": "STATIC_SOURCE_DECLARATION",
-      "kind": "SQLITE_SCHEMA_MUTATION",
-      "line": 273,
-      "migration_status": "UNMIGRATED_BLOCKED",
-      "owner": "APPLICATION_SERVICE",
-      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
-      "resolution": "EXACT",
-      "risk": "P1",
-      "root_ids": [
-        "MODULE-LOAD"
-      ],
-      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
-      "statement_fingerprint": "e23b50d4ff6edfee30e71c89bf12c4a462dbc236501080fc4c9d5c958acf4092",
-      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
-    },
-    {
-      "call_chain": [
-        "<sql-script>"
-      ],
-      "callee": "SQL:DELETE",
-      "column": 0,
-      "detail": "schema statement DELETE",
-      "end_column": 6,
-      "end_line": 275,
-      "entry_id": "WE-30E3EAED56B62457B16E414C",
-      "file": "app/schema.sql",
-      "function": "<sql-script>",
-      "input_source": "STATIC_SOURCE_DECLARATION",
-      "kind": "SQLITE_SCHEMA_MUTATION",
-      "line": 275,
-      "migration_status": "UNMIGRATED_BLOCKED",
-      "owner": "APPLICATION_SERVICE",
-      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
-      "resolution": "EXACT",
-      "risk": "P1",
-      "root_ids": [
-        "MODULE-LOAD"
-      ],
-      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
-      "statement_fingerprint": "039b826390c84f762d8ce8548b536091ed777a0ea44178c37a3878b58788462a",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     }
   ],

@@ -920,6 +920,14 @@ def _build_command(
         selection = []
     elif mode == "guard":
         selection = ["tests/test_workspace_guard.py"]
+    elif mode == "writer":
+        selection = [
+            "tests/test_windows_handle_writer.py",
+            "tests/test_workspace_guard.py",
+            "tests/test_workspace_policy.py",
+            "tests/test_write_entry_inventory.py",
+            "tests/test_safe_pytest_launcher.py",
+        ]
     elif mode == "symlink":
         selection = [f"tests/test_workspace_guard.py::{SYMLINK_TEST}"]
     else:  # pragma: no cover - argparse constrains this value.
@@ -954,7 +962,11 @@ def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
         description="Run pytest in a new, fail-closed Test-local safety laboratory.",
     )
     parser.add_argument("--run-id", required=True)
-    parser.add_argument("--mode", choices=("full", "guard", "symlink"), required=True)
+    parser.add_argument(
+        "--mode",
+        choices=("full", "guard", "writer", "symlink"),
+        required=True,
+    )
     parser.add_argument(
         "--exclude-symlink",
         action="store_true",

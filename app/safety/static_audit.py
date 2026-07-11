@@ -13,7 +13,7 @@ from typing import Any, Iterable, Iterator
 from app.config import PROJECT_ROOT
 
 
-SCANNER_VERSION = "M0-S2-STATIC-AUDIT-V5"
+SCANNER_VERSION = "M0-S3-STATIC-AUDIT-V6"
 PRODUCTION_ROOTS = ("app", "scripts")
 SOURCE_SUFFIXES = (".py", ".sql")
 SOURCE_BYTE_NORMALIZATION = "UTF8_LF_V1"
@@ -91,6 +91,133 @@ _AUDITED_INDEXED_CALLS = frozenset(
     }
 )
 
+# The safe launcher deliberately keeps the already-audited ``ctypes`` module on
+# three private runtime objects.  Suppression is exact (file/function/AST), is
+# active only for the full production scan, and drifts closed.
+_AUDITED_CAPABILITY_STORES = frozenset(
+    {
+        (
+            "scripts/run_safe_pytest.py",
+            "scripts.run_safe_pytest._WindowsJob.__init__",
+            "1ec34eda97bf6ad3947c2bf5a28eb52cd40a296993306f0934c9154141532999",
+        ),
+        (
+            "scripts/run_safe_pytest.py",
+            "scripts.run_safe_pytest._WindowsJob.__init__",
+            "6ed7dd636bfe9445014bdb262584b96b6e77837c4edc2fce0cc139138ec65459",
+        ),
+        (
+            "scripts/run_safe_pytest.py",
+            "scripts.run_safe_pytest._WindowsProtectedTreeWatcher.__init__",
+            "1ec34eda97bf6ad3947c2bf5a28eb52cd40a296993306f0934c9154141532999",
+        ),
+        (
+            "scripts/run_safe_pytest.py",
+            "scripts.run_safe_pytest._WindowsProtectedTreeWatcher.__init__",
+            "6ed7dd636bfe9445014bdb262584b96b6e77837c4edc2fce0cc139138ec65459",
+        ),
+        (
+            "scripts/run_safe_pytest.py",
+            "scripts.run_safe_pytest._WindowsProtectedTreeFence.__init__",
+            "1ec34eda97bf6ad3947c2bf5a28eb52cd40a296993306f0934c9154141532999",
+        ),
+        (
+            "scripts/run_safe_pytest.py",
+            "scripts.run_safe_pytest._WindowsProtectedTreeFence.__init__",
+            "6ed7dd636bfe9445014bdb262584b96b6e77837c4edc2fce0cc139138ec65459",
+        ),
+        (
+            "app/safety/windows_handle_writer.py",
+            "app.safety.windows_handle_writer._WindowsApi.__init__",
+            "1a90fc25128313c62ba27ce7660514bd10838aba2738abe18b8b8354101706d8",
+        ),
+    }
+)
+
+_AUDITED_PARAMETER_CALLS = frozenset(
+    {
+        ("app/workspace_guard.py", "app.workspace_guard._coerce_path", "1fd0cd7c0f714054724e7666ad0930fe334dc10a1397ad8384ebd1b251ead795"),
+        ("app/workspace_guard.py", "app.workspace_guard._coerce_path", "e1bd4ec60fd3b48342eb2295dd720a68b477d2b22f08640bb0007adc247706c9"),
+        ("app/workspace_guard.py", "app.workspace_guard._validate_lexical.reject", "63515c16a802b7c25d990824e3aa49c8b9f2fcf81e6fc30f2864fedfe53c9ed2"),
+        ("app/workspace_guard.py", "app.workspace_guard.WorkspaceGuard._inspect_full_existing_chain", "73189e10223cc3a87708653d5f3b65dfdb064a951f8698aec5eafb4e753d5068"),
+        ("app/workspace_guard.py", "app.workspace_guard.WorkspaceGuard._inspect_full_existing_chain", "d26a053480615eaf5f3b7d2fee74cae90d2245d45234a5bca23238ccce151142"),
+        ("app/workspace_guard.py", "app.workspace_guard.WorkspaceGuard._inspect_chain", "8e66ca6d98bd7348addbaea9af144320eb739076627f2ee875f9687897334b19"),
+        ("app/workspace_guard.py", "app.workspace_guard.WorkspaceGuard._inspect_chain", "222bd609306b0358686091d9dc1c91a0c79335d1f83bfabc43c2291777e342c2"),
+        ("app/workspace_guard.py", "app.workspace_guard.WorkspaceGuard._inspect_chain", "dfb5411a2bab8161053e452dc77d098be911412f135b9f2d882e4a24d8c9ce69"),
+        ("app/workspace_guard.py", "app.workspace_guard.WorkspaceGuard._inspect_chain", "1150c523cd34258d9c28a929b0d20b2ca17f7f9b3e2bf47d7a8b41103f3ec4ed"),
+        ("app/workspace_guard.py", "app.workspace_guard.WorkspaceGuard._reject_reparse", "27768fb2aee52302ad06038c73ea430b9632e481ef45c6536392d4d171fb9063"),
+        ("app/safety/production_guard.py", "app.safety.production_guard.BoundaryFailure.from_exception", "281cd909029b239d78f1776a73450528042ee436730003e4de90232753ee2610"),
+        ("app/safety/production_guard.py", "app.safety.production_guard.BoundaryFailure.from_exception", "c79a7efb8c986f3aad47d6e52803500aaeb3a8b29dd16eda839578ff442f6edc"),
+        ("app/safety/production_guard.py", "app.safety.production_guard.BoundaryResult.success", "ce30e78555b675881df160a49c04f15b00fa763d383541d867fdafb4399101c5"),
+        ("app/safety/production_guard.py", "app.safety.production_guard.BoundaryResult.failed", "8ba1a3a0d7db083f0416e6d6e782e667be0582bb136ba65a0b1c8800d9746411"),
+    }
+)
+
+_RISKY_CAPABILITY_REFERENCES = frozenset(
+    {
+        "builtins.eval",
+        "builtins.exec",
+        "eval",
+        "exec",
+        "os.remove",
+        "os.removedirs",
+        "os.rename",
+        "os.replace",
+        "os.rmdir",
+        "os.system",
+        "os.unlink",
+        "shutil.copy",
+        "shutil.copy2",
+        "shutil.copyfile",
+        "shutil.copytree",
+        "shutil.move",
+        "shutil.rmtree",
+        "subprocess.call",
+        "subprocess.check_call",
+        "subprocess.check_output",
+        "subprocess.popen",
+        "subprocess.run",
+    }
+)
+_NATIVE_CAPABILITY_PREFIXES = (
+    "_ctypes.",
+    "ctypes.cdll",
+    "ctypes.libraryloader",
+    "ctypes.oledll",
+    "ctypes.pydll",
+    "ctypes.pythonapi",
+    "ctypes.windll",
+)
+_CAPABILITY_NAMESPACE_REFERENCES = frozenset(
+    {
+        "_ctypes",
+        "builtins",
+        "cffi",
+        "ctypes",
+        "httpx",
+        "importlib",
+        "io",
+        "mmap",
+        "os",
+        "requests",
+        "shutil",
+        "socket",
+        "subprocess",
+        "tempfile",
+        "urllib.request",
+    }
+)
+_NATIVE_ESCAPING_RESULTS = frozenset(
+    {
+        "ctypes.cdll()",
+        "ctypes.libraryloader()",
+        "ctypes.oledll()",
+        "ctypes.pydll()",
+        "ctypes.windll()",
+        "ctypes.cast()",
+    }
+)
+
 
 class WritePrimitiveKind(StrEnum):
     FILESYSTEM_DIRECTORY_CREATE = "FILESYSTEM_DIRECTORY_CREATE"
@@ -114,6 +241,7 @@ class WritePrimitiveKind(StrEnum):
     EXTERNAL_PROCESS = "EXTERNAL_PROCESS"
     NETWORK_REQUEST = "NETWORK_REQUEST"
     SYSTEM_STATE = "SYSTEM_STATE"
+    NATIVE_API_BINDING = "NATIVE_API_BINDING"
     UNKNOWN_DYNAMIC_CAPABILITY = "UNKNOWN_DYNAMIC_CAPABILITY"
 
 
@@ -280,6 +408,32 @@ def _assert_audited_indexed_hits(
                 for (file, function, fingerprint), count in sorted(drift.items())
             )
         )
+    store_drift = {
+        callsite: hits.get(callsite, 0)
+        for callsite in _AUDITED_CAPABILITY_STORES
+        if hits.get(callsite, 0) != 1
+    }
+    if store_drift:
+        raise RuntimeError(
+            "audited capability-store suppression drifted: "
+            + "; ".join(
+                f"{file}:{function}:{fingerprint}={count}"
+                for (file, function, fingerprint), count in sorted(store_drift.items())
+            )
+        )
+    parameter_drift = {
+        callsite: hits.get(callsite, 0)
+        for callsite in _AUDITED_PARAMETER_CALLS
+        if hits.get(callsite, 0) != 1
+    }
+    if parameter_drift:
+        raise RuntimeError(
+            "audited parameter-call suppression drifted: "
+            + "; ".join(
+                f"{file}:{function}:{fingerprint}={count}"
+                for (file, function, fingerprint), count in sorted(parameter_drift.items())
+            )
+        )
 
 
 def scan_python_source(source: str, *, file: str = "synthetic.py") -> tuple[WriteEntry, ...]:
@@ -337,6 +491,8 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         "_BoundaryCore",
         "_BoundaryNamespacePolicy",
         "NamespacePolicy",
+        "_WindowsHandleWriter",
+        "_create_test_handle_writer",
     }
     forbidden_private_imports = {
         "_BoundaryCore",
@@ -347,6 +503,9 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         "_PairPolicyClaim",
         "_authorize_pair_for_boundary",
         "_BoundaryNamespacePolicy",
+        "_HANDLE_WRITER_CONSTRUCTOR",
+        "_WindowsHandleWriter",
+        "_create_test_handle_writer",
     }
     sensitive_assignments = {
         "CONTRACT_PROJECT_ROOT",
@@ -366,6 +525,8 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         "_pair_authority",
         "__pair_authority",
         "__pair_policy_authority",
+        "_HANDLE_WRITER_CONSTRUCTOR",
+        "_path_authority",
     }
     symbol_definition_files = {
         "WorkspaceGuard": {"app/workspace_guard.py", allowed_file},
@@ -378,6 +539,11 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
             allowed_file,
             "app/safety/namespace_policy.py",
         },
+        "_WindowsHandleWriter": {
+            allowed_file,
+            "app/safety/windows_handle_writer.py",
+        },
+        "_create_test_handle_writer": {allowed_file},
     }
     for node in ast.walk(module.tree):
         if isinstance(node, ast.ImportFrom):
@@ -386,10 +552,15 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
                 if (
                     module.file != allowed_file
                     and base.startswith(
-                        ("app.safety.production_guard", "app.safety.namespace_policy")
+                        (
+                            "app.safety.production_guard",
+                            "app.safety.namespace_policy",
+                            "app.safety.windows_handle_writer",
+                        )
                     )
                     and (
-                        alias.name.startswith("_")
+                        alias.name == "*"
+                        or alias.name.startswith("_")
                         or alias.name in forbidden_private_imports
                         or alias.name in forbidden_constructors
                     )
@@ -448,7 +619,11 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
                 attribute = _constant_text(node.args[1])
                 if (
                     receiver.startswith(
-                        ("app.safety.production_guard", "app.safety.namespace_policy")
+                        (
+                            "app.safety.production_guard",
+                            "app.safety.namespace_policy",
+                            "app.safety.windows_handle_writer",
+                        )
                     )
                     and attribute is None
                     and module.file != allowed_file
@@ -459,7 +634,11 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
             if leaf == "vars" and node.args:
                 receiver, _ = _resolve_callee(node.args[0], scope_aliases)
                 if receiver.startswith(
-                    ("app.safety.production_guard", "app.safety.namespace_policy")
+                    (
+                        "app.safety.production_guard",
+                        "app.safety.namespace_policy",
+                        "app.safety.windows_handle_writer",
+                    )
                 ) and module.file != allowed_file:
                     findings.append(
                         (module.file, node.lineno, "dynamic safety module dictionary lookup")
@@ -484,7 +663,11 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
                 elif node.args:
                     receiver, _ = _resolve_callee(node.args[0], scope_aliases)
                 if receiver.startswith(
-                    ("app.safety.production_guard", "app.safety.namespace_policy")
+                    (
+                        "app.safety.production_guard",
+                        "app.safety.namespace_policy",
+                        "app.safety.windows_handle_writer",
+                    )
                 ) and module.file != allowed_file:
                     findings.append(
                         (module.file, node.lineno, "reflective safety attribute lookup")
@@ -497,7 +680,11 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         if isinstance(node, ast.Attribute) and node.attr == "__dict__":
             receiver, _ = _resolve_callee(node.value, scope_aliases)
             if receiver.startswith(
-                ("app.safety.production_guard", "app.safety.namespace_policy")
+                (
+                    "app.safety.production_guard",
+                    "app.safety.namespace_policy",
+                    "app.safety.windows_handle_writer",
+                )
             ) and module.file != allowed_file:
                 findings.append(
                     (module.file, node.lineno, "safety module __dict__ lookup")
@@ -519,6 +706,11 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
                 allowed_assignment = (
                     module.file == allowed_file
                     or (module.file == "app/config.py" and target_name == "PROJECT_ROOT")
+                    or (
+                        module.file == "app/safety/windows_handle_writer.py"
+                        and target_name
+                        in {"_HANDLE_WRITER_CONSTRUCTOR", "_path_authority"}
+                    )
                     or (
                         module.file == "app/safety/namespace_policy.py"
                         and target_name
@@ -768,6 +960,7 @@ class _SinkVisitor(ast.NodeVisitor):
         self.alias_stack: list[dict[str, str]] = [dict(module.imports)]
         self.constant_stack: list[dict[str, str | None]] = [{}]
         self.global_stack: list[set[str]] = [set()]
+        self.parameter_stack: list[set[str]] = [set()]
         self.ordinal: Counter[tuple[str, str, str]] = Counter()
         self.audited_indexed_hits = audited_indexed_hits
 
@@ -802,6 +995,11 @@ class _SinkVisitor(ast.NodeVisitor):
     def visit_Lambda(self, node: ast.Lambda) -> Any:
         for default in (*node.args.defaults, *node.args.kw_defaults):
             if default is not None:
+                self._emit_stored_capability(
+                    default,
+                    "callable default stores a write or native capability",
+                    include_native_call_results=True,
+                )
                 self.visit(default)
         argument_nodes = (
             *node.args.posonlyargs,
@@ -816,7 +1014,14 @@ class _SinkVisitor(ast.NodeVisitor):
         self.alias_stack.append({name: name for name in argument_names})
         self.constant_stack.append({name: None for name in argument_names})
         self.global_stack.append(set())
+        self.parameter_stack.append(argument_names)
+        self._emit_stored_capability(
+            node.body,
+            "lambda returns a write or native capability",
+            include_native_call_results=True,
+        )
         self.visit(node.body)
+        self.parameter_stack.pop()
         self.global_stack.pop()
         self.constant_stack.pop()
         self.alias_stack.pop()
@@ -843,6 +1048,11 @@ class _SinkVisitor(ast.NodeVisitor):
         self.global_stack.append(set())
         try:
             for generator in generators:
+                self._emit_stored_capability(
+                    generator.iter,
+                    "comprehension source contains a write or native capability",
+                    include_native_call_results=True,
+                )
                 self.visit(generator.iter)
                 self._invalidate_target(generator.target)
                 for condition in generator.ifs:
@@ -861,9 +1071,19 @@ class _SinkVisitor(ast.NodeVisitor):
         qualname = _qualname(node, self.module.parents)
         canonical = f"{self.module.module}.{qualname}"
         for decorator in node.decorator_list:
+            self._emit_stored_capability(
+                decorator,
+                "decorator applies an escaped write or native capability",
+                include_native_call_results=True,
+            )
             self.visit(decorator)
         for default in (*node.args.defaults, *node.args.kw_defaults):
             if default is not None:
+                self._emit_stored_capability(
+                    default,
+                    "callable default stores a write or native capability",
+                    include_native_call_results=True,
+                )
                 self.visit(default)
         if node.returns is not None:
             self.visit(node.returns)
@@ -888,8 +1108,10 @@ class _SinkVisitor(ast.NodeVisitor):
         self.alias_stack.append({name: name for name in argument_names})
         self.constant_stack.append({name: None for name in argument_names})
         self.global_stack.append(set())
+        self.parameter_stack.append(argument_names)
         for statement in node.body:
             self.visit(statement)
+        self.parameter_stack.pop()
         self.global_stack.pop()
         self.constant_stack.pop()
         self.alias_stack.pop()
@@ -897,9 +1119,101 @@ class _SinkVisitor(ast.NodeVisitor):
 
     def visit_Import(self, node: ast.Import) -> Any:
         for alias in node.names:
+            if (
+                alias.name in {"_cffi_backend", "_ctypes"}
+                or alias.name.startswith(("_cffi_backend.", "_ctypes."))
+            ):
+                self._emit(
+                    node,
+                    WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY,
+                    alias.name,
+                    ResolutionConfidence.DYNAMIC,
+                    "private native backend import exposes unattributed execution",
+                )
             bound_name = alias.asname or alias.name.split(".", 1)[0]
             self._invalidate_names({bound_name})
             self._set_alias(bound_name, alias.name)
+
+    def visit_ClassDef(self, node: ast.ClassDef) -> Any:
+        for base in node.bases:
+            base_name, _ = _resolve_callee(base, self.aliases)
+            stored_base = _stored_capability_reference(base, self.aliases)
+            if (
+                base_name.casefold() in {"_ctypes.cfuncptr", "ctypes._cfuncptr"}
+                or stored_base is not None
+            ):
+                self._emit(
+                    node,
+                    WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY,
+                    stored_base or base_name,
+                    ResolutionConfidence.DYNAMIC,
+                    "native C function pointer subclass is not attributable",
+                )
+            self.visit(base)
+        for keyword in node.keywords:
+            self.visit(keyword.value)
+        for decorator in node.decorator_list:
+            self._emit_stored_capability(
+                decorator,
+                "class decorator applies an escaped write or native capability",
+                include_native_call_results=True,
+            )
+            self.visit(decorator)
+        for type_parameter in getattr(node, "type_params", ()):
+            self.visit(type_parameter)
+
+        self.alias_stack.append({})
+        self.constant_stack.append({})
+        self.global_stack.append(set())
+        self.parameter_stack.append(set())
+        for statement in node.body:
+            self.visit(statement)
+        class_aliases = dict(self.alias_stack[-1])
+        self.parameter_stack.pop()
+        self.global_stack.pop()
+        self.constant_stack.pop()
+        self.alias_stack.pop()
+        for name, value in class_aliases.items():
+            if value and value != "<ambiguous>":
+                self.alias_stack[-1][f"{node.name}.{name}"] = value
+
+    def visit_Attribute(self, node: ast.Attribute) -> Any:
+        resolved, _ = _resolve_callee(node, self.aliases)
+        native_name = resolved.casefold()
+        if node.attr == "__dict__":
+            self._emit(
+                node,
+                WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY,
+                resolved,
+                ResolutionConfidence.DYNAMIC,
+                "attribute dictionary lookup can hide an executable capability",
+            )
+        if native_name == "sys.modules" or native_name.startswith("sys.modules."):
+            self._emit(
+                node,
+                WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY,
+                resolved,
+                ResolutionConfidence.DYNAMIC,
+                "runtime module registry lookup can hide an executable capability",
+            )
+        if node.attr == "_handle" and native_name.startswith(
+            (
+                "ctypes.cdll",
+                "ctypes.libraryloader",
+                "ctypes.oledll",
+                "ctypes.pydll",
+                "ctypes.pythonapi",
+                "ctypes.windll",
+            )
+        ):
+            self._emit(
+                node,
+                WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY,
+                resolved,
+                ResolutionConfidence.DYNAMIC,
+                "native library handle extraction is forbidden",
+            )
+        self.generic_visit(node)
 
     def visit_ImportFrom(self, node: ast.ImportFrom) -> Any:
         if any(alias.name == "*" for alias in node.names):
@@ -912,6 +1226,27 @@ class _SinkVisitor(ast.NodeVisitor):
             )
             return
         base = _resolve_import_module(self.module.module, node.module, node.level)
+        if base in {"_cffi_backend", "_ctypes"} or base.startswith(
+            ("_cffi_backend.", "_ctypes.")
+        ):
+            self._emit(
+                node,
+                WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY,
+                base,
+                ResolutionConfidence.DYNAMIC,
+                "private native backend import exposes unattributed execution",
+            )
+        elif base == "ctypes" and any(
+            alias.name in {"cdll", "oledll", "pydll", "pythonapi", "windll"}
+            for alias in node.names
+        ):
+            self._emit(
+                node,
+                WritePrimitiveKind.NATIVE_API_BINDING,
+                base,
+                ResolutionConfidence.CONSERVATIVE,
+                "ctypes native loader import requires an audited symbol allowlist",
+            )
         for alias in node.names:
             bound_name = alias.asname or alias.name
             self._invalidate_names({bound_name})
@@ -936,9 +1271,18 @@ class _SinkVisitor(ast.NodeVisitor):
     def visit_Assign(self, node: ast.Assign) -> Any:
         value_name, _ = _resolve_callee(node.value, self.aliases)
         constant = _constant_text_with_aliases(node.value, self.constants)
+        self._emit_stored_capability(
+            node.value,
+            "assignment stores a write or native capability",
+            include_native_call_results=(
+                self._is_class_body(node)
+                or any(isinstance(target, ast.Attribute) for target in node.targets)
+                or _expression_can_hide_capability(node.value)
+            ),
+        )
         for target in node.targets:
             self._invalidate_target(target)
-            self._record_alias(target, value_name)
+            self._record_destructured_alias(target, node.value, value_name)
             if isinstance(target, ast.Name):
                 self._set_constant(target.id, constant)
         self.visit(node.value)
@@ -946,6 +1290,15 @@ class _SinkVisitor(ast.NodeVisitor):
     def visit_AnnAssign(self, node: ast.AnnAssign) -> Any:
         if node.value is not None:
             value_name, _ = _resolve_callee(node.value, self.aliases)
+            self._emit_stored_capability(
+                node.value,
+                "annotated assignment stores a write or native capability",
+                include_native_call_results=(
+                    self._is_class_body(node)
+                    or isinstance(node.target, ast.Attribute)
+                    or _expression_can_hide_capability(node.value)
+                ),
+            )
             self._invalidate_target(node.target)
             self._record_alias(node.target, value_name)
             constant = _constant_text_with_aliases(node.value, self.constants)
@@ -954,6 +1307,11 @@ class _SinkVisitor(ast.NodeVisitor):
             self.visit(node.value)
 
     def visit_AugAssign(self, node: ast.AugAssign) -> Any:
+        self._emit_stored_capability(
+            node.value,
+            "augmented assignment stores a write or native capability",
+            include_native_call_results=True,
+        )
         self._invalidate_target(node.target)
         self.visit(node.value)
 
@@ -979,6 +1337,11 @@ class _SinkVisitor(ast.NodeVisitor):
         self._visit_control_flow(node)
 
     def visit_NamedExpr(self, node: ast.NamedExpr) -> Any:
+        self._emit_stored_capability(
+            node.value,
+            "assignment expression stores a write or native capability",
+            include_native_call_results=_expression_can_hide_capability(node.value),
+        )
         self.visit(node.value)
         value_name, _ = _resolve_callee(node.value, self.aliases)
         constant = _constant_text_with_aliases(node.value, self.constants)
@@ -993,6 +1356,11 @@ class _SinkVisitor(ast.NodeVisitor):
             self.visit(node.test)
             branches = [((), node.body), ((), node.orelse)]
         elif isinstance(node, (ast.For, ast.AsyncFor)):
+            self._emit_stored_capability(
+                node.iter,
+                "iteration source contains a write or native capability",
+                include_native_call_results=True,
+            )
             self.visit(node.iter)
             branches = [((), node.body), ((), node.orelse)]
         elif isinstance(node, ast.While):
@@ -1088,6 +1456,109 @@ class _SinkVisitor(ast.NodeVisitor):
             target_name, _ = _resolve_callee(target, self.aliases)
             self.alias_stack[-1][target_name] = value_name
 
+    def _record_destructured_alias(
+        self,
+        target: ast.expr,
+        value: ast.expr,
+        fallback_name: str,
+    ) -> None:
+        if (
+            isinstance(target, (ast.Tuple, ast.List))
+            and isinstance(value, (ast.Tuple, ast.List))
+            and len(target.elts) == len(value.elts)
+        ):
+            for target_item, value_item in zip(target.elts, value.elts, strict=True):
+                value_name, _ = _resolve_callee(value_item, self.aliases)
+                self._record_destructured_alias(target_item, value_item, value_name)
+            return
+        self._record_alias(target, fallback_name)
+
+    def visit_Return(self, node: ast.Return) -> Any:
+        if node.value is not None:
+            self._emit_stored_capability(
+                node.value,
+                "return value exposes a write or native capability",
+                include_native_call_results=True,
+            )
+            self.visit(node.value)
+
+    def visit_Yield(self, node: ast.Yield) -> Any:
+        if node.value is not None:
+            self._emit_stored_capability(
+                node.value,
+                "yield value exposes a write or native capability",
+                include_native_call_results=True,
+            )
+            self.visit(node.value)
+
+    def visit_YieldFrom(self, node: ast.YieldFrom) -> Any:
+        self._emit_stored_capability(
+            node.value,
+            "yield-from value exposes a write or native capability",
+            include_native_call_results=True,
+        )
+        self.visit(node.value)
+
+    def _emit_stored_capability(
+        self,
+        node: ast.AST,
+        detail: str,
+        *,
+        include_native_call_results: bool = False,
+    ) -> None:
+        reference = _stored_capability_reference(
+            node,
+            self.aliases,
+            include_native_call_results=include_native_call_results,
+        )
+        if reference is not None:
+            store_node = node
+            current = node
+            while current in self.module.parents:
+                current = self.module.parents[current]
+                if isinstance(
+                    current,
+                    (
+                        ast.Assign,
+                        ast.AnnAssign,
+                        ast.AugAssign,
+                        ast.NamedExpr,
+                        ast.Return,
+                        ast.Yield,
+                        ast.YieldFrom,
+                    ),
+                ):
+                    store_node = current
+                    break
+            callsite = _indexed_callsite_key(
+                store_node,
+                file=self.module.file,
+                function=self.function,
+            )
+            if (
+                self.audited_indexed_hits is not None
+                and callsite in _AUDITED_CAPABILITY_STORES
+            ):
+                self.audited_indexed_hits[callsite] += 1
+                return
+            self._emit(
+                node,
+                WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY,
+                reference,
+                ResolutionConfidence.DYNAMIC,
+                detail,
+            )
+
+    def _is_class_body(self, node: ast.AST) -> bool:
+        current = node
+        while current in self.module.parents:
+            current = self.module.parents[current]
+            if isinstance(current, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda)):
+                return False
+            if isinstance(current, ast.ClassDef):
+                return True
+        return False
+
     def visit_Call(self, node: ast.Call) -> Any:
         callee, resolution = _resolve_callee(node.func, self.aliases)
         callsite = _indexed_callsite_key(
@@ -1099,13 +1570,15 @@ class _SinkVisitor(ast.NodeVisitor):
             node,
             callee,
             self.constants,
+            aliases=self.aliases,
+            parameter_names=set().union(*self.parameter_stack),
             file=self.module.file,
             function=self.function,
             allow_audited_indexed=self.audited_indexed_hits is not None,
         )
         if (
             classification is None
-            and callsite in _AUDITED_INDEXED_CALLS
+            and callsite in (_AUDITED_INDEXED_CALLS | _AUDITED_PARAMETER_CALLS)
             and self.audited_indexed_hits is not None
         ):
             self.audited_indexed_hits[callsite] += 1
@@ -1166,6 +1639,8 @@ def _classify_call(
     callee: str,
     constants: dict[str, str] | None = None,
     *,
+    aliases: dict[str, str] | None = None,
+    parameter_names: set[str] | None = None,
     file: str = "synthetic.py",
     function: str = "<module>",
     allow_audited_indexed: bool = False,
@@ -1173,20 +1648,238 @@ def _classify_call(
     canonical = callee.casefold()
     leaf = canonical.rsplit(".", 1)[-1]
     source_leaf = callee.rsplit(".", 1)[-1]
+    if leaf in {"getattr", "getattr_static", "__getattribute__", "vars"}:
+        receiver_name = canonical.rsplit(".", 1)[0] if "." in canonical else ""
+        if _is_reflective_capability_source(receiver_name):
+            return (
+                WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY,
+                "reflective module capability lookup is forbidden",
+                ResolutionConfidence.DYNAMIC,
+            )
+        reflected_owner_node: ast.AST | None = None
+        reflected_attribute: str | None = None
+        if leaf in {"getattr", "getattr_static"} and len(node.args) >= 2:
+            reflected_owner_node = node.args[0]
+            reflected_attribute = _constant_text(node.args[1])
+        elif leaf == "__getattribute__":
+            if len(node.args) >= 2:
+                reflected_owner_node = node.args[0]
+                reflected_attribute = _constant_text(node.args[1])
+            elif node.args:
+                reflected_attribute = _constant_text(node.args[0])
+        if reflected_owner_node is not None:
+            reflected_owner, _ = _resolve_callee(
+                reflected_owner_node,
+                aliases or {},
+            )
+        else:
+            reflected_owner = receiver_name
+        if reflected_owner.casefold() == "sys" and reflected_attribute == "modules":
+            return (
+                WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY,
+                "runtime module registry lookup can hide an executable capability",
+                ResolutionConfidence.DYNAMIC,
+            )
+        reflective_targets = list(node.args[:-1] if leaf != "vars" else node.args)
+        if leaf in {"getattr", "getattr_static"} and node.args:
+            reflective_targets = [node.args[0]]
+        for target in reflective_targets:
+            receiver, _ = _resolve_callee(target, aliases or {})
+            native_name = receiver.casefold()
+            if _is_reflective_capability_source(native_name):
+                return (
+                    WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY,
+                    "reflective native API lookup is forbidden",
+                    ResolutionConfidence.DYNAMIC,
+                )
+    for argument in (*node.args, *(keyword.value for keyword in node.keywords)):
+        for candidate in _iter_container_expressions(argument, aliases or {}):
+            argument_name, _ = _resolve_callee(candidate, aliases or {})
+            normalized_argument = argument_name.casefold()
+            native_prefix = normalized_argument.startswith(
+                _NATIVE_CAPABILITY_PREFIXES
+            )
+            native_result = normalized_argument.endswith("()") and normalized_argument not in {
+                "ctypes.cdll()",
+                "ctypes.libraryloader()",
+                "ctypes.oledll()",
+                "ctypes.pydll()",
+                "ctypes.windll()",
+            }
+            native_argument = (
+                normalized_argument in {"ctypes", "_ctypes"}
+                or (native_prefix and not native_result)
+            )
+            if (
+                normalized_argument in _RISKY_CAPABILITY_REFERENCES
+                or (
+                    normalized_argument in _CAPABILITY_NAMESPACE_REFERENCES
+                    and not (
+                        leaf in {"getattr", "getattr_static"}
+                        and node.args
+                        and candidate is node.args[0]
+                        and len(node.args) >= 2
+                        and (
+                            (_constant_text(node.args[1]) or "").replace("_", "A")
+                        ).isalnum()
+                        and (_constant_text(node.args[1]) or "").upper()
+                        == (_constant_text(node.args[1]) or "")
+                    )
+                )
+                or native_argument
+                or _is_native_escaping_result(normalized_argument)
+            ):
+                return (
+                    WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY,
+                    "write or native capability passed through a generic call",
+                    ResolutionConfidence.DYNAMIC,
+                )
+    if callee.startswith("<value>."):
+        escaped_reference = _stored_capability_reference(
+            node.func,
+            aliases or {},
+            include_native_call_results=True,
+        )
+        if escaped_reference is not None:
+            return (
+                WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY,
+                "expression call contains an unattributed write or native capability",
+                ResolutionConfidence.DYNAMIC,
+            )
+    if canonical in {
+        "ctypes.cfunctype",
+        "ctypes.cdll",
+        "ctypes.cast",
+        "ctypes.libraryloader",
+        "ctypes.memmove",
+        "ctypes.memset",
+        "ctypes.oledll",
+        "ctypes.pyfunctype",
+        "ctypes.pydll",
+        "ctypes.winfunctype",
+        "ctypes.windll",
+        "ctypes.cdll.loadlibrary",
+        "ctypes.oledll.loadlibrary",
+        "ctypes.pydll.loadlibrary",
+        "ctypes.windll.loadlibrary",
+    }:
+        if canonical in {
+            "ctypes.cdll",
+            "ctypes.libraryloader",
+            "ctypes.oledll",
+            "ctypes.pydll",
+            "ctypes.windll",
+        }:
+            library = _constant_text(node.args[0]) if node.args else None
+            if library is None or library.casefold().removesuffix(".dll") not in {
+                "advapi32",
+                "kernel32",
+                "ntdll",
+                "shell32",
+                "user32",
+            }:
+                return (
+                    WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY,
+                    "native library identity is not on the fixed audited allowlist",
+                    ResolutionConfidence.DYNAMIC,
+                )
+        return (
+            WritePrimitiveKind.NATIVE_API_BINDING,
+            "native library binding requires an audited symbol allowlist",
+            ResolutionConfidence.CONSERVATIVE,
+        )
+    if canonical.startswith(
+        ("ctypes.cfunctype()()", "ctypes.pyfunctype()()", "ctypes.winfunctype()()")
+    ):
+        return (
+            WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY,
+            "native function pointer invocation is not statically attributable",
+            ResolutionConfidence.DYNAMIC,
+        )
+    if canonical.startswith(
+        ("ctypes.cfunctype()", "ctypes.pyfunctype()", "ctypes.winfunctype()")
+    ):
+        return (
+            WritePrimitiveKind.NATIVE_API_BINDING,
+            "native function pointer construction requires an audited target",
+            ResolutionConfidence.CONSERVATIVE,
+        )
     if canonical in {
         "eval",
         "exec",
+        "builtins.compile",
+        "compile",
         "__import__",
         "builtins.eval",
         "builtins.exec",
         "importlib.import_module",
+        "importlib.machinery.extensionfileloader",
+        "importlib.machinery.sourcelessfileloader",
+        "importlib.machinery.sourcefileloader",
         "importlib.util.module_from_spec",
         "globals",
         "locals",
+        "marshal.loads",
+        "pickle.load",
+        "pickle.loads",
+        "runpy.run_module",
+        "runpy.run_path",
+        "types.codetype",
+        "types.functiontype",
+        "types.methodtype",
     }:
         return (
             WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY,
             "dynamic execution or import can hide a write capability",
+            ResolutionConfidence.DYNAMIC,
+        )
+    if canonical.startswith("ctypes._"):
+        return (
+            WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY,
+            "private ctypes execution or raw-address surface is forbidden",
+            ResolutionConfidence.DYNAMIC,
+        )
+    if (
+        canonical.startswith("importlib.machinery.")
+        and leaf in {"create_module", "exec_module", "load_module"}
+    ):
+        return (
+            WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY,
+            "dynamic source or extension loader execution is forbidden",
+            ResolutionConfidence.DYNAMIC,
+        )
+    if canonical in {"cffi.ffi", "cffi.ffi.dlopen", "cffi.ffi().dlopen", "ffi.dlopen"}:
+        if leaf == "dlopen":
+            library = _constant_text(node.args[0]) if node.args else None
+            if library is None or library.casefold().removesuffix(".dll") not in {
+                "advapi32",
+                "kernel32",
+                "ntdll",
+                "shell32",
+                "user32",
+            }:
+                return (
+                    WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY,
+                    "CFFI library identity is not on the fixed audited allowlist",
+                    ResolutionConfidence.DYNAMIC,
+                )
+        return (
+            WritePrimitiveKind.NATIVE_API_BINDING,
+            "CFFI native binding requires a fixed library and symbol allowlist",
+            ResolutionConfidence.CONSERVATIVE,
+        )
+    if canonical == "mmap.mmap":
+        return (
+            WritePrimitiveKind.FILESYSTEM_FILE_WRITE,
+            "memory mapping may mutate the mapped file",
+            ResolutionConfidence.CONSERVATIVE,
+        )
+    if canonical in {"ctypes.cast()"} or canonical.startswith(
+        ("ctypes.cfunctype()()", "ctypes.pyfunctype()()", "ctypes.winfunctype()()")
+    ):
+        return (
+            WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY,
+            "escaped native callable invocation is not attributable",
             ResolutionConfidence.DYNAMIC,
         )
     if canonical in {
@@ -1202,6 +1895,12 @@ def _classify_call(
         )
     if leaf == "mkdir" or canonical in {"os.mkdir", "os.makedirs"}:
         return WritePrimitiveKind.FILESYSTEM_DIRECTORY_CREATE, "directory creation", None
+    if leaf in {"createdirectorya", "createdirectoryw"}:
+        return (
+            WritePrimitiveKind.FILESYSTEM_DIRECTORY_CREATE,
+            "Win32 directory creation",
+            ResolutionConfidence.CONSERVATIVE,
+        )
     if canonical in {"print", "builtins.print"}:
         file_targets = tuple(
             _resolve_callee(keyword.value, {})[0]
@@ -1228,9 +1927,31 @@ def _classify_call(
         )
     if canonical in {"os.write", "os.pwrite", "os.ftruncate"}:
         return WritePrimitiveKind.FILESYSTEM_FILE_WRITE, "low-level descriptor mutation", None
+    if leaf in {
+        "createfilea",
+        "createfilew",
+        "createfilemappinga",
+        "createfilemappingw",
+        "flushfilebuffers",
+        "setendoffile",
+        "writefile",
+    }:
+        return (
+            WritePrimitiveKind.FILESYSTEM_FILE_WRITE,
+            "Win32 file mutation or durability primitive",
+            ResolutionConfidence.CONSERVATIVE,
+        )
     if canonical == "os.open":
         if _os_open_may_write(node):
             return WritePrimitiveKind.FILESYSTEM_FILE_WRITE, "low-level open may write", None
+        return None
+    if canonical == "io.fileio":
+        if _open_call_may_write(node, canonical):
+            return (
+                WritePrimitiveKind.FILESYSTEM_FILE_WRITE,
+                "FileIO construction opens a write-capable file",
+                ResolutionConfidence.CONSERVATIVE,
+            )
         return None
     if leaf == "open" and _looks_like_archive_receiver(canonical):
         if _archive_member_open_may_write(node):
@@ -1253,7 +1974,7 @@ def _classify_call(
         "shutil.copyfileobj",
         "shutil.copytree",
         "pathlib.path.copy",
-    }:
+    } or leaf in {"copyfilea", "copyfilew"}:
         return WritePrimitiveKind.FILESYSTEM_COPY, "filesystem copy", None
     if leaf == "rename" or (
         leaf == "replace"
@@ -1269,6 +1990,52 @@ def _classify_call(
         return (
             WritePrimitiveKind.FILESYSTEM_MOVE_OR_REPLACE,
             "filesystem move or replacement",
+            ResolutionConfidence.CONSERVATIVE,
+        )
+    if leaf in {
+        "movefilea",
+        "movefilew",
+        "movefileexa",
+        "movefileexw",
+        "replacefilea",
+        "replacefilew",
+        "setfileinformationbyhandle",
+    }:
+        return (
+            WritePrimitiveKind.FILESYSTEM_MOVE_OR_REPLACE,
+            "Win32 move, replacement, or handle rename primitive",
+            ResolutionConfidence.CONSERVATIVE,
+        )
+    if leaf in {
+        "deletefilea",
+        "deletefilew",
+        "removedirectorya",
+        "removedirectoryw",
+    }:
+        return (
+            WritePrimitiveKind.FILESYSTEM_DELETE,
+            "Win32 filesystem deletion",
+            ResolutionConfidence.CONSERVATIVE,
+        )
+    if leaf in {
+        "createhardlinka",
+        "createhardlinkw",
+        "createsymboliclinka",
+        "createsymboliclinkw",
+    }:
+        return (
+            WritePrimitiveKind.FILESYSTEM_LINK,
+            "Win32 filesystem link creation",
+            ResolutionConfidence.CONSERVATIVE,
+        )
+    if leaf in {
+        "setfileattributesa",
+        "setfileattributesw",
+        "setfiletime",
+    }:
+        return (
+            WritePrimitiveKind.FILESYSTEM_METADATA,
+            "Win32 filesystem metadata mutation",
             ResolutionConfidence.CONSERVATIVE,
         )
     if leaf in {"unlink", "rmdir"} or canonical in {
@@ -1422,6 +2189,108 @@ def _classify_call(
         "deletevalue",
     }:
         return WritePrimitiveKind.SYSTEM_STATE, "Windows registry mutation", None
+    if leaf in {
+        "assignprocesstojobobject",
+        "createjobobjecta",
+        "createjobobjectw",
+        "openprocess",
+        "openthread",
+        "resumeprocess",
+        "resumethread",
+        "setinformationjobobject",
+        "terminatejobobject",
+        "terminateprocess",
+    }:
+        return (
+            WritePrimitiveKind.EXTERNAL_PROCESS,
+            "Win32 process or Job Object control",
+            ResolutionConfidence.CONSERVATIVE,
+        )
+    native_read_only = {
+        "byref",
+        "cancelioex",
+        "c_ulong",
+        "c_void_p",
+        "closehandle",
+        "create_string_buffer",
+        "createtoolhelp32snapshot",
+        "getfileinformationbyhandle",
+        "getfileinformationbyhandleex",
+        "getfinalpathnamebyhandlea",
+        "getfinalpathnamebyhandlew",
+        "get_last_error",
+        "queryinformationjobobject",
+        "readfile",
+        "readdirectorychangesw",
+        "setfilepointerex",
+        "sizeof",
+        "thread32first",
+        "thread32next",
+    }
+    native_receiver = any(
+        token in canonical
+        for token in (
+            ".advapi32.",
+            ".kernel32.",
+            "._ctypes.",
+            "._kernel32.",
+            ".dlopen().",
+            ".ntdll.",
+            ".shell32.",
+            ".user32.",
+        )
+    ) or canonical.startswith(
+        (
+            "advapi32.",
+            "ctypes.cdll.",
+            "ctypes.cdll().",
+            "ctypes.cfunctype().",
+            "ctypes.cast().",
+            "ctypes.libraryloader().",
+            "ctypes.oledll.",
+            "ctypes.oledll().",
+            "ctypes.pydll.",
+            "ctypes.pydll().",
+            "ctypes.pythonapi.",
+            "ctypes.pyfunctype().",
+            "ctypes.windll.",
+            "ctypes.windll().",
+            "ctypes.winfunctype().",
+            "cffi.ffi().dlopen().",
+            "ffi.dlopen().",
+            "kernel32.",
+            "ntdll.",
+            "shell32.",
+            "user32.",
+        )
+    )
+    raw_root = _raw_callee_name(node.func).split(".", 1)[0]
+    resolved_root = callee.split(".", 1)[0]
+    if (
+        source_leaf[:1] in "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        and (
+            (
+                raw_root not in {"cls", "self"}
+                and raw_root in (parameter_names or set())
+            )
+            or (
+                resolved_root not in {"cls", "self"}
+                and resolved_root in (parameter_names or set())
+            )
+            or callee.startswith(("<ambiguous>.", "<value>."))
+        )
+    ):
+        return (
+            WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY,
+            "parameter-rooted native-style symbol lacks a proven library identity",
+            ResolutionConfidence.DYNAMIC,
+        )
+    if native_receiver and leaf not in native_read_only:
+        return (
+            WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY,
+            "native API symbol is outside the audited allowlist",
+            ResolutionConfidence.DYNAMIC,
+        )
     if callee.startswith("<indexed>."):
         if leaf == "start":
             return (
@@ -1444,6 +2313,18 @@ def _classify_call(
         return (
             WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY,
             "unresolved dynamic call",
+            ResolutionConfidence.DYNAMIC,
+        )
+    parameter_name = canonical if canonical in {
+        name.casefold() for name in (parameter_names or set())
+    } else ""
+    if parameter_name:
+        callsite = _indexed_callsite_key(node, file=file, function=function)
+        if allow_audited_indexed and callsite in _AUDITED_PARAMETER_CALLS:
+            return None
+        return (
+            WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY,
+            "direct invocation of a callable parameter is not attributable",
             ResolutionConfidence.DYNAMIC,
         )
     return None
@@ -1735,6 +2616,111 @@ def _resolve_callee(
     return "<dynamic>", ResolutionConfidence.DYNAMIC
 
 
+def _iter_container_expressions(
+    node: ast.AST,
+    aliases: dict[str, str],
+) -> Iterator[ast.AST]:
+    """Yield capability-bearing descendants without treating call names as values."""
+
+    yield node
+    if isinstance(node, (ast.Name, ast.Constant)):
+        return
+    if isinstance(node, ast.Attribute):
+        resolved, _ = _resolve_callee(node, aliases)
+        if resolved.startswith(
+            ("<ambiguous>.", "<dynamic>.", "<indexed>.", "<value>.")
+        ):
+            yield from _iter_container_expressions(node.value, aliases)
+        return
+    if isinstance(node, ast.Call):
+        children: tuple[ast.AST, ...] = ()
+    else:
+        children = tuple(ast.iter_child_nodes(node))
+    for child in children:
+        if isinstance(child, ast.expr):
+            yield from _iter_container_expressions(child, aliases)
+
+
+def _expression_can_hide_capability(node: ast.AST) -> bool:
+    return isinstance(
+        node,
+        (
+            ast.BoolOp,
+            ast.Dict,
+            ast.DictComp,
+            ast.GeneratorExp,
+            ast.IfExp,
+            ast.List,
+            ast.ListComp,
+            ast.Set,
+            ast.SetComp,
+            ast.Subscript,
+            ast.Tuple,
+        ),
+    )
+
+
+def _stored_capability_reference(
+    node: ast.AST,
+    aliases: dict[str, str],
+    *,
+    include_native_call_results: bool = False,
+) -> str | None:
+    for candidate in _iter_container_expressions(node, aliases):
+        resolved, _ = _resolve_callee(candidate, aliases)
+        canonical = resolved.casefold()
+        if isinstance(candidate, ast.Call):
+            if (
+                include_native_call_results
+                and _is_native_escaping_result(canonical)
+            ):
+                return resolved
+            continue
+        if canonical.endswith("()"):
+            if (
+                include_native_call_results
+                and _is_native_escaping_result(canonical)
+            ):
+                return resolved
+            continue
+        if (
+            canonical in _RISKY_CAPABILITY_REFERENCES
+            or canonical in _CAPABILITY_NAMESPACE_REFERENCES
+            or canonical == "ctypes._cfuncptr"
+            or canonical.startswith(_NATIVE_CAPABILITY_PREFIXES)
+        ):
+            return resolved
+    return None
+
+
+def _is_native_escaping_result(canonical: str) -> bool:
+    return canonical in _NATIVE_ESCAPING_RESULTS or canonical.startswith(
+        (
+            "ctypes.cfunctype()()",
+            "ctypes.pyfunctype()()",
+            "ctypes.winfunctype()()",
+        )
+    )
+
+
+def _is_reflective_capability_source(canonical: str) -> bool:
+    normalized = canonical.casefold()
+    return (
+        normalized in {"ctypes", "_ctypes", "sys.modules"}
+        or normalized.startswith((*_NATIVE_CAPABILITY_PREFIXES, "sys.modules."))
+        or any(
+            token in normalized
+            for token in (
+                ".advapi32",
+                ".kernel32",
+                ".ntdll",
+                ".shell32",
+                ".user32",
+            )
+        )
+    )
+
+
 def _raw_callee_name(node: ast.AST) -> str:
     if isinstance(node, ast.Name):
         return node.id
@@ -1844,7 +2830,7 @@ def _constant_text_with_aliases(
 
 
 def _open_call_may_write(node: ast.Call, callee: str) -> bool:
-    mode_index = 1 if callee in {"open", "builtins.open", "io.open"} else 0
+    mode_index = 1 if callee in {"open", "builtins.open", "io.fileio", "io.open"} else 0
     mode_node: ast.AST | None = node.args[mode_index] if len(node.args) > mode_index else None
     for keyword in node.keywords:
         if keyword.arg == "mode":
@@ -1892,7 +2878,7 @@ def _archive_member_open_may_write(node: ast.Call) -> bool:
 
 
 def _is_file_open_symbol(callee: str) -> bool:
-    return callee in {"open", "builtins.open", "io.open", "path.open", "pathlib.path.open"} or (
+    return callee in {"open", "builtins.open", "io.fileio", "io.open", "path.open", "pathlib.path.open"} or (
         callee.endswith(".open")
         and not any(
             token in callee
@@ -2106,6 +3092,8 @@ def _target_namespace(raw: _RawEntry) -> str:
         return "PROCESS_DEFAULT_DENY"
     if raw.kind is WritePrimitiveKind.SYSTEM_STATE:
         return "SYSTEM_STATE_DEFAULT_DENY"
+    if raw.kind is WritePrimitiveKind.NATIVE_API_BINDING:
+        return "NATIVE_API_FIXED_LIBRARY_AND_SYMBOL_ALLOWLIST"
     if raw.kind is WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY:
         return "UNRESOLVED_DYNAMIC_TARGET"
     return "LEGACY_CALLER_CONTROLLED_FILESYSTEM"
@@ -2137,6 +3125,8 @@ def _required_control(kind: WritePrimitiveKind) -> str:
         return "P0_RESOLVE_OR_REMOVE_DYNAMIC_CAPABILITY"
     if kind is WritePrimitiveKind.SYSTEM_STATE:
         return "D3_USER_DECISION_SYSTEM_MUTATION"
+    if kind is WritePrimitiveKind.NATIVE_API_BINDING:
+        return "S3_NATIVE_API_FIXED_LIBRARY_AND_SYMBOL_ALLOWLIST"
     return "S3_HANDLE_LEVEL_WORKSPACE_WRITER"
 
 
@@ -2171,6 +3161,7 @@ def _risk_level(kind: WritePrimitiveKind) -> RiskLevel:
         WritePrimitiveKind.EXTERNAL_PROCESS,
         WritePrimitiveKind.NETWORK_REQUEST,
         WritePrimitiveKind.SYSTEM_STATE,
+        WritePrimitiveKind.NATIVE_API_BINDING,
         WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY,
     }:
         return RiskLevel.P0

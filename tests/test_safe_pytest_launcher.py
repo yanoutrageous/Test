@@ -103,6 +103,42 @@ def test_launcher_builds_fixed_test_local_outputs(tmp_path: Path) -> None:
     assert "not test_real_directory_symlink_is_rejected" in command
 
 
+def test_writer_mode_has_a_fixed_non_injectable_regression_selection(
+    tmp_path: Path,
+) -> None:
+    run_root = tmp_path / "RUN-WRITER-MODE"
+    run_root.mkdir()
+
+    command, basetemp, junit = _build_command(
+        tmp_path,
+        run_root,
+        mode="writer",
+        exclude_symlink=True,
+    )
+
+    assert basetemp == run_root / "pytest-basetemp"
+    assert junit == run_root / "junit.xml"
+    assert command == [
+        sys.executable,
+        "-m",
+        "pytest",
+        "tests/test_windows_handle_writer.py",
+        "tests/test_workspace_guard.py",
+        "tests/test_workspace_policy.py",
+        "tests/test_write_entry_inventory.py",
+        "tests/test_safe_pytest_launcher.py",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "-k",
+        "not test_real_directory_symlink_is_rejected",
+        "--basetemp",
+        str(basetemp),
+        "--junitxml",
+        str(junit),
+    ]
+
+
 def test_launcher_refuses_to_reuse_existing_basetemp(tmp_path: Path) -> None:
     run_root = tmp_path / "RUN-SAFE-002"
     run_root.mkdir()

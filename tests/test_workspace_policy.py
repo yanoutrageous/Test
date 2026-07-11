@@ -50,7 +50,10 @@ from app.safety.production_guard import (
     _create_test_boundary,
     get_production_boundary,
 )
-from app.safety.static_audit import scan_unauthorized_guard_construction
+from app.safety.static_audit import (
+    scan_unauthorized_guard_construction,
+    scan_unauthorized_guard_source,
+)
 from app.workspace_guard import ExpectedKind, GuardedPath, PathIntent, WorkspaceGuard
 
 
@@ -2013,3 +2016,62 @@ def test_context_close_cannot_leave_an_issue_race_orphan(
 
 def test_no_production_module_bypasses_fixed_workspace_guard_factory() -> None:
     assert scan_unauthorized_guard_construction() == ()
+
+
+@pytest.mark.parametrize(
+    "source, forbidden_name",
+    [
+        (
+            "from app.safety.windows_handle_writer import _WindowsHandleWriter\n",
+            "_WindowsHandleWriter",
+        ),
+        (
+            "from app.safety.windows_handle_writer import _HANDLE_WRITER_CONSTRUCTOR\n",
+            "_HANDLE_WRITER_CONSTRUCTOR",
+        ),
+        (
+            "from app.safety.production_guard import _create_test_handle_writer\n",
+            "_create_test_handle_writer",
+        ),
+    ],
+)
+def test_handle_writer_factory_and_constructor_cannot_escape_boundary_service(
+    source: str,
+    forbidden_name: str,
+) -> None:
+    findings = scan_unauthorized_guard_source(source)
+    assert findings
+    assert any(forbidden_name in detail for _, _, detail in findings)
+
+
+@pytest.mark.parametrize(
+    "source, expected_detail",
+    [
+        (
+            "import app.safety.windows_handle_writer as whw\ngetattr(whw, name)\n",
+            "dynamic safety attribute lookup",
+        ),
+        (
+            "import app.safety.windows_handle_writer as whw\nvars(whw)\n",
+            "dynamic safety module dictionary lookup",
+        ),
+        (
+            "import app.safety.windows_handle_writer as whw\nwhw.__dict__[name]\n",
+            "safety module __dict__ lookup",
+        ),
+        (
+            "import app.safety.windows_handle_writer as whw\nobject.__getattribute__(whw, name)\n",
+            "reflective safety attribute lookup",
+        ),
+        (
+            "from app.safety.windows_handle_writer import *\n",
+            "private import *",
+        ),
+    ],
+)
+def test_handle_writer_reflection_and_star_import_are_rejected(
+    source: str,
+    expected_detail: str,
+) -> None:
+    findings = scan_unauthorized_guard_source(source)
+    assert any(expected_detail in detail for _, _, detail in findings)

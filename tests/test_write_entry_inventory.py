@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 import copy
 import hashlib
 import json
@@ -10,7 +11,9 @@ import pytest
 
 from app.config import PROJECT_ROOT
 from app.safety.static_audit import (
+    _AUDITED_CAPABILITY_STORES,
     _AUDITED_INDEXED_CALLS,
+    _AUDITED_PARAMETER_CALLS,
     _assert_audited_indexed_hits,
     _normalize_source_bytes,
     ENTRY_CHUNK_SIZE,
@@ -451,7 +454,16 @@ def exercise(registry, key, conn, user_sql, path):
 
 
 def test_indexed_callsite_suppressions_must_each_match_exactly_once() -> None:
-    exact = Counter({callsite: 1 for callsite in _AUDITED_INDEXED_CALLS})
+    exact = Counter(
+        {
+            callsite: 1
+            for callsite in (
+                _AUDITED_INDEXED_CALLS
+                | _AUDITED_CAPABILITY_STORES
+                | _AUDITED_PARAMETER_CALLS
+            )
+        }
+    )
     _assert_audited_indexed_hits(exact)
 
     stale = Counter(exact)
@@ -463,6 +475,34 @@ def test_indexed_callsite_suppressions_must_each_match_exactly_once() -> None:
     duplicate[next(iter(_AUDITED_INDEXED_CALLS))] = 2
     with pytest.raises(RuntimeError, match="suppression drifted"):
         _assert_audited_indexed_hits(duplicate)
+
+    stale_store = Counter(exact)
+    stale_store[next(iter(_AUDITED_CAPABILITY_STORES))] = 0
+    with pytest.raises(RuntimeError, match="capability-store suppression drifted"):
+        _assert_audited_indexed_hits(stale_store)
+
+    stale_parameter = Counter(exact)
+    stale_parameter[next(iter(_AUDITED_PARAMETER_CALLS))] = 0
+    with pytest.raises(RuntimeError, match="parameter-call suppression drifted"):
+        _assert_audited_indexed_hits(stale_parameter)
+
+
+def test_capability_store_suppression_hash_binds_the_assignment_target() -> None:
+    tree = ast.parse(
+        "import ctypes\n"
+        "class _WindowsJob:\n"
+        "    def __init__(self):\n"
+        "        self.public_native = ctypes\n"
+    )
+    assignment = next(node for node in ast.walk(tree) if isinstance(node, ast.Assign))
+    fingerprint = hashlib.sha256(
+        ast.dump(assignment, include_attributes=False).encode("utf-8")
+    ).hexdigest()
+    assert (
+        "scripts/run_safe_pytest.py",
+        "scripts.run_safe_pytest._WindowsJob.__init__",
+        fingerprint,
+    ) not in _AUDITED_CAPABILITY_STORES
 
 
 def test_archive_link_low_level_and_negative_canaries() -> None:
@@ -545,6 +585,198 @@ def exercise(src, dst, source_handle, target_handle, zf, session, sock):
     assert counts[WritePrimitiveKind.FILESYSTEM_FILE_WRITE] == 1
     assert counts[WritePrimitiveKind.ARCHIVE_WRITE] == 1
     assert counts[WritePrimitiveKind.NETWORK_REQUEST] == 3
+
+
+def test_win32_handle_mutation_primitives_are_never_invisible() -> None:
+    entries = scan_python_source(
+        '''
+def exercise(kernel32, path, handle, info):
+    kernel32.CreateFileW(path, 1, 0, None, 1, 0, None)
+    kernel32.WriteFile(handle, None, 0, None, None)
+    kernel32.FlushFileBuffers(handle)
+    kernel32.SetEndOfFile(handle)
+    kernel32.CreateDirectoryW(path, None)
+    kernel32.SetFileInformationByHandle(handle, 3, info, 1)
+''',
+        file="app/synthetic.py",
+    )
+    counts = Counter(entry.kind for entry in entries)
+    assert counts[WritePrimitiveKind.FILESYSTEM_FILE_WRITE] == 4
+    assert counts[WritePrimitiveKind.FILESYSTEM_DIRECTORY_CREATE] == 1
+    assert counts[WritePrimitiveKind.FILESYSTEM_MOVE_OR_REPLACE] == 1
+    assert counts[WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY] == 0
+
+
+def test_native_library_binding_and_unknown_symbols_fail_closed() -> None:
+    entries = scan_python_source(
+        '''
+import ctypes
+
+def exercise(handle):
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel32.GetFileInformationByHandle(handle, None)
+    kernel32.MysteryMutation(handle)
+''',
+        file="app/synthetic.py",
+    )
+    counts = Counter(entry.kind for entry in entries)
+    assert counts[WritePrimitiveKind.NATIVE_API_BINDING] == 1
+    assert counts[WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY] == 1
+
+
+def test_file_mapping_and_native_function_pointer_paths_fail_closed() -> None:
+    entries = scan_python_source(
+        '''
+import ctypes
+
+def exercise(kernel32, handle, address):
+    kernel32.CreateFileMappingW(handle, None, 0, 0, 4096, None)
+    ctypes.pythonapi.MysteryMutation(handle)
+    callback_type = ctypes.CFUNCTYPE(None, ctypes.c_void_p)
+    callback = callback_type(address)
+    callback(handle)
+''',
+        file="app/synthetic.py",
+    )
+    counts = Counter(entry.kind for entry in entries)
+    assert counts[WritePrimitiveKind.FILESYSTEM_FILE_WRITE] == 1
+    assert counts[WritePrimitiveKind.NATIVE_API_BINDING] >= 1
+    assert counts[WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY] >= 2
+
+
+def test_reflective_pythonapi_lookup_is_fail_closed_even_with_aliases() -> None:
+    entries = scan_python_source(
+        '''
+import ctypes
+import inspect
+from ctypes import pythonapi as native_python
+
+def exercise(name):
+    first = object.__getattribute__(ctypes.pythonapi, "PyRun_SimpleString")
+    first(b"never run")
+    second = getattr(native_python, name)
+    second()
+    third = inspect.getattr_static(ctypes.pythonapi, name)
+    third()
+''',
+        file="app/synthetic.py",
+    )
+    counts = Counter(entry.kind for entry in entries)
+    assert counts[WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY] >= 3
+
+
+def test_private_ctypes_and_callable_capability_laundering_fail_closed() -> None:
+    entries = scan_python_source(
+        '''
+import _ctypes
+import os
+
+def invoke(fn):
+    fn("never-run")
+
+def identity(value):
+    return value
+
+invoke(os.remove)
+hidden = identity(os.remove)
+hidden("never-run")
+''',
+        file="app/synthetic.py",
+    )
+    counts = Counter(entry.kind for entry in entries)
+    assert counts[WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY] >= 4
+
+
+def test_stored_reflected_and_registry_capabilities_cannot_lose_provenance() -> None:
+    entries = scan_python_source(
+        '''
+import ctypes
+import os
+import sys
+
+class Holder:
+    delete = os.remove
+    native = ctypes.pythonapi
+
+def dangerous_default(value=os.remove):
+    value("never-run")
+
+def dangerous_return():
+    return os.remove
+
+ctype_base = ctypes.__dict__["_CFuncPtr"]
+loader = ctypes.__getattribute__("windll")
+module = sys.modules.get("ctypes")
+mapping = vars(sys.modules["ctypes"])
+factory_argument = ("GetCurrentProcessId", ctypes.windll.kernel32)
+
+Holder.delete("never-run")
+Holder.native.PyRun_SimpleString(b"never run")
+dangerous_return()("never-run")
+loader.kernel32.GetCurrentProcessId()
+module.pythonapi.PyRun_SimpleString(b"never run")
+''',
+        file="app/synthetic.py",
+    )
+    counts = Counter(entry.kind for entry in entries)
+    assert counts[WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY] >= 10
+
+
+def test_control_flow_native_escape_and_dynamic_code_paths_fail_closed() -> None:
+    entries = scan_python_source(
+        '''
+import ctypes
+import os
+import runpy
+import types
+from importlib.machinery import ExtensionFileLoader
+
+def invoke(action):
+    action()
+
+def native_factory():
+    return ctypes.WinDLL("kernel32")
+
+module = os if True else None
+delete = (os if True else None).remove
+api = (ctypes.pythonapi,)[0]
+loaders = [ctypes.WinDLL("kernel32")]
+callbacks = [ctypes.CFUNCTYPE(None)(1234)]
+casts = []
+casts.append(ctypes.cast(1234, ctypes.CFUNCTYPE(None)))
+dynamic = types.FunctionType(compile("x = 1", "x", "exec"), {})
+ExtensionFileLoader("x", "untrusted.pyd").load_module()
+runpy.run_path("untrusted.py")
+''',
+        file="app/synthetic.py",
+    )
+    counts = Counter(entry.kind for entry in entries)
+    assert counts[WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY] >= 12
+
+
+def test_cffi_mmap_fileio_and_parameter_native_style_calls_are_visible() -> None:
+    entries = scan_python_source(
+        '''
+import io
+import mmap
+from cffi import FFI
+
+def native_call(api):
+    api.MysteryMutation()
+
+ffi = FFI()
+library = ffi.dlopen("kernel32")
+library.CopyFileW("source", "target", False)
+mmap.mmap(1, 1, access=mmap.ACCESS_WRITE)
+io.FileIO("target", "w")
+''',
+        file="app/synthetic.py",
+    )
+    counts = Counter(entry.kind for entry in entries)
+    assert counts[WritePrimitiveKind.NATIVE_API_BINDING] >= 2
+    assert counts[WritePrimitiveKind.FILESYSTEM_COPY] >= 1
+    assert counts[WritePrimitiveKind.FILESYSTEM_FILE_WRITE] >= 2
+    assert counts[WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY] >= 1
 
 
 def test_guard_bypass_scanner_resolves_aliases_private_factories_and_state_assignment() -> None:

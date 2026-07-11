@@ -1,9 +1,9 @@
 {
   "state_version": "1.0.1",
   "plan_version": "1.0.1",
-  "updated_at": "2026-07-11T15:36:58+08:00",
+  "updated_at": "2026-07-11T18:09:07+08:00",
   "current_milestone": "M0",
-  "current_slice": "M0_S3_handle_writer_atomic_publish_and_audit_ledger",
+  "current_slice": "M0_S3B_test_only_handle_kernel_checkpoint_pending_publish",
   "status": "RUNNING",
   "implementation_status": "IN_PROGRESS",
   "task_scope": {
@@ -25,7 +25,7 @@
     "integration_pull_request": "https://github.com/yanoutrageous/Test/pull/2"
   },
   "last_verified_checkpoint": "e82eb507414f9dd7b27282d8496e048016bca4ee",
-  "active_job_id": "M0-S3-HANDLE-WRITER",
+  "active_job_id": "M0-S3-B-CHECKPOINT",
   "active_writer": "/root",
   "completed_actions": [
     "read-only repository and reference-corpus review",
@@ -49,7 +49,11 @@
     "scanner V5 and root .gitattributes bind production sources and evidence to explicit UTF8_LF_V1 bytes so fresh checkouts are independent of core.autocrlf",
     "RUN-020 launcher/bootstrap evidence and V5 policy/inventory/EOL reproducibility audits concluded P0=0 and P1=0",
     "alternate-index staging dry run selected exactly 43 allowlisted files; all 45 staged production source blobs and all 18 inventory chunks matched UTF8_LF_V1 hashes with zero forbidden paths",
-    "M0-S2 was explicitly staged as exactly 43 files, independently audited with P0/P1/P2 unresolved findings all zero, committed as e82eb507414f9dd7b27282d8496e048016bca4ee, ordinary-pushed, and verified identical at Draft PR 2 head"
+    "M0-S2 was explicitly staged as exactly 43 files, independently audited with P0/P1/P2 unresolved findings all zero, committed as e82eb507414f9dd7b27282d8496e048016bca4ee, ordinary-pushed, and verified identical at Draft PR 2 head",
+    "M0-S3-B Test-only Windows handle writer now performs progressive same-handle ancestry/marker verification, CREATE_NEW or preconditioned append, flush/readback/file-identity postconditions, single-use tickets, operation serialization, and lifecycle-fault sealing while production writer remains disconnected",
+    "production inventory V6 is frozen at 46 sources, 442 entries, 18 chunks, UNKNOWN=0, all 442 entries UNMIGRATED_BLOCKED, production_writer_connected=false, and m0_exit_allowed=false",
+    "RUN-20260711-M0-S3-WRITER-009 passed 314 tests and RUN-20260711-M0-S3-B-FULL-011 passed 402 tests, each with only the separately blocked real-symlink capability gate deselected; watcher, handle fence, process tree, immutable evidence, protected tree, and activity database remained clean",
+    "independent scanner, inventory, writer, RUN-009, and RUN-011 reviews found no open P0/P1 under the documented trusted-repository-source boundary; S3-B report and checkpoint publication are pending"
   ],
   "not_started": [
     "database migration",
@@ -63,6 +67,6 @@
   "blockers": [
     "M0-SYMLINK-CAPABILITY-001: two Test-local attempts to create a real directory symlink returned WinError 1314; no privilege elevation or Developer Mode change is authorized, so the actual symlink gate remains unverified while independent M0 work continues"
   ],
-  "next_required_action": "Implement M0-S3 in candidate-only slices: handle-level no-follow writer, actual-byte/tree evidence recomputation, durable append-only audit ledger, atomic publication and postcondition verification, then Copy/quarantine/job/process/database gates. Keep every unmigrated entry blocked and do not process real business data until its normal, boundary, failure, recovery, and safety paths pass independent review.",
+  "next_required_action": "Freeze and ordinary-push the explicit M0-S3-B checkpoint after final independent evidence/staging audit, then implement M0-S3-C durable immutable segment ledger, key revision, startup full-chain validation, restart recovery, and the remaining S3-D-H gates. Keep production writer disconnected, all 442 entries UNMIGRATED_BLOCKED, and all real business data untouched.",
   "resume_rule": "Read execution_contract.json and all normative Task documents, verify git and filesystem state against this file, then continue from next_required_action without repeating completed work. Do not enter M1 in this task; after M0 is accepted, record STOP_PER_USER with M1 deferred to a new user task."
 }

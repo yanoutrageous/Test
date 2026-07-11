@@ -7,6 +7,7 @@ import ntpath
 import os
 import re
 import secrets
+import stat
 import threading
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime
@@ -18,9 +19,17 @@ from app import config as app_config
 from app.workspace_guard import (
     ExpectedKind,
     GuardedPath,
+    PathIdentity,
     PathIntent,
     WorkspaceGuard,
     WorkspaceGuardError,
+)
+from app.safety.windows_handle_writer import (
+    HandleWriterCode,
+    HandleWriterError,
+    _HANDLE_WRITER_CONSTRUCTOR,
+    _WindowsApi,
+    _WindowsHandleWriter,
 )
 
 from .audit_events import (
@@ -2528,6 +2537,252 @@ def _create_test_boundary(
             "test workspace must be inside a RUN-* laboratory and end in project",
         )
     return _TestWorkspaceBoundary(workspace, audit_sink=audit_sink)
+
+
+def _test_path_identity(path: Path, identity: Any) -> PathIdentity:
+    return PathIdentity(
+        path=path,
+        device=int(identity.st_dev),
+        inode=int(identity.st_ino),
+        mode=int(identity.st_mode),
+        file_attributes=int(getattr(identity, "st_file_attributes", 0)),
+        reparse_tag=int(getattr(identity, "st_reparse_tag", 0)),
+        nlink=int(identity.st_nlink),
+    )
+
+
+def _test_factory_fence_paths(run_root: Path, workspace: Path) -> tuple[tuple[Path, bool], ...]:
+    contract_root = _contract_root()
+    test_lab_root = contract_root / "tmp" / "test_lab"
+    run_parts = PureWindowsPath(str(run_root)).parts
+    workspace_parts = PureWindowsPath(str(workspace)).parts
+    candidates: list[tuple[Path, bool]] = [
+        (contract_root, True),
+        (contract_root / "tmp", True),
+        (test_lab_root, True),
+        (run_root, True),
+    ]
+    current = run_root
+    for part in workspace_parts[len(run_parts) :]:
+        current = current / part
+        candidates.append((current, True))
+    candidates.append((run_root / ".safety-marker.json", False))
+    result: list[tuple[Path, bool]] = []
+    seen: set[str] = set()
+    for path, is_directory in candidates:
+        normalized = ntpath.normcase(ntpath.normpath(str(path)))
+        if normalized not in seen:
+            seen.add(normalized)
+            result.append((path, is_directory))
+    return tuple(result)
+
+
+class _TestFactoryFenceAuthority:
+    """Non-writing authority used only while the factory binds its handle chain."""
+
+    def authorize(self, *_args: Any, **_kwargs: Any) -> GuardedPath:
+        raise HandleWriterError(
+            HandleWriterCode.INVALID_TEST_WORKSPACE,
+            "factory fence verifier cannot issue capabilities",
+        )
+
+    def revalidate(self, _ticket: GuardedPath) -> GuardedPath:
+        raise HandleWriterError(
+            HandleWriterCode.INVALID_TEST_WORKSPACE,
+            "factory fence verifier cannot revalidate capabilities",
+        )
+
+    def release(self, _ticket: GuardedPath) -> bool:
+        return False
+
+
+def _create_test_handle_writer(workspace_root: Path) -> _WindowsHandleWriter:
+    """Private Test-only writer factory owned by the fixed boundary service."""
+
+    if os.name != "nt":
+        raise HandleWriterError(
+            HandleWriterCode.UNSUPPORTED_PLATFORM,
+            "the handle kernel requires Windows",
+        )
+    raw_run_root = os.environ.get("M0_TEST_LAB_ROOT")
+    launch_token = os.environ.get("M0_TEST_LAB_TOKEN")
+    if not raw_run_root or not launch_token:
+        raise HandleWriterError(
+            HandleWriterCode.INVALID_TEST_WORKSPACE,
+            "writer factory requires the active safe-launcher authority",
+        )
+    workspace = _absolute_lexical(workspace_root)
+    run_root = _absolute_lexical(raw_run_root)
+    test_lab_root = _absolute_lexical(_contract_root() / "tmp" / "test_lab")
+    run_parts = PureWindowsPath(str(run_root)).parts
+    workspace_parts = PureWindowsPath(str(workspace)).parts
+    lab_parts = PureWindowsPath(str(test_lab_root)).parts
+    if (
+        len(run_parts) != len(lab_parts) + 1
+        or any(
+            ntpath.normcase(actual) != ntpath.normcase(expected)
+            for actual, expected in zip(run_parts, lab_parts, strict=False)
+        )
+        or run_parts[-1][:4] != "RUN-"
+    ):
+        raise HandleWriterError(
+            HandleWriterCode.INVALID_TEST_WORKSPACE,
+            "safe-launcher authority is outside the fixed safety laboratory",
+        )
+    if len(workspace_parts) <= len(run_parts) or any(
+        ntpath.normcase(actual) != ntpath.normcase(expected)
+        for actual, expected in zip(workspace_parts, run_parts, strict=False)
+    ):
+        raise HandleWriterError(
+            HandleWriterCode.INVALID_TEST_WORKSPACE,
+            "test workspace escaped the active safe-launcher run",
+        )
+    if ntpath.normcase(workspace_parts[-1]) != "project":
+        raise HandleWriterError(
+            HandleWriterCode.INVALID_TEST_WORKSPACE,
+            "test workspace must end in project",
+        )
+    marker_path = run_root / ".safety-marker.json"
+    api = _WindowsApi()
+    verifier = _WindowsHandleWriter(
+        _TestFactoryFenceAuthority(),
+        _constructor=_HANDLE_WRITER_CONSTRUCTOR,
+        api=api,
+    )
+    fence_handles: list[int] = []
+    fence_identities: list[PathIdentity] = []
+    writer: _WindowsHandleWriter | None = None
+    marker: dict[str, Any] | None = None
+    failure: tuple[HandleWriterCode, int | None, str] | None = None
+    try:
+        for path, is_directory in _test_factory_fence_paths(run_root, workspace):
+            inspected = os.lstat(path)
+            if bool(stat.S_ISDIR(inspected.st_mode)) != is_directory:
+                raise HandleWriterError(
+                    HandleWriterCode.INVALID_TEST_WORKSPACE,
+                    "test writer factory path has an invalid object type",
+                )
+            identity = _test_path_identity(path, inspected)
+            flags = api.FILE_FLAG_OPEN_REPARSE_POINT
+            if is_directory:
+                flags |= api.FILE_FLAG_BACKUP_SEMANTICS
+            handle = api.open_handle(
+                path,
+                access=api.GENERIC_READ,
+                share=api.FILE_SHARE_READ,
+                disposition=api.OPEN_EXISTING,
+                flags=flags,
+            )
+            fence_handles.append(handle)
+            fence_identities.append(identity)
+            observed = verifier._observe_identity(handle)
+            verifier._verify_identity(identity, observed)
+            verifier._verify_final_path(handle, identity.path)
+            verifier._verify_path_matches_handle(identity.path, observed)
+            if not is_directory:
+                verifier._require_regular_single_link(observed)
+                if observed.end_of_file < 2 or observed.end_of_file > 64 * 1024:
+                    raise HandleWriterError(
+                        HandleWriterCode.INVALID_TEST_WORKSPACE,
+                        "safe-launcher marker has an invalid bounded size",
+                    )
+                marker_bytes = verifier._read_bounded_handle(handle, 64 * 1024)
+                after_read = verifier._observe_identity(handle)
+                if (
+                    len(marker_bytes) != observed.end_of_file
+                    or not verifier._same_object(observed, after_read)
+                    or after_read.end_of_file != observed.end_of_file
+                    or after_read.last_write_time != observed.last_write_time
+                    or after_read.change_time != observed.change_time
+                ):
+                    raise HandleWriterError(
+                        HandleWriterCode.INVALID_TEST_WORKSPACE,
+                        "safe-launcher marker changed during its verified read",
+                    )
+                decoded = json.loads(str(marker_bytes, "utf-8", "strict"))
+                marker = decoded if isinstance(decoded, dict) else None
+
+        marker_identity = fence_identities[-1]
+        workspace_identity = fence_identities[-2]
+        marker_project_root = (
+            marker.get("project_root") if isinstance(marker, dict) else None
+        )
+        marker_valid = (
+            stat.S_ISREG(marker_identity.mode)
+            and marker_identity.nlink == 1
+            and not marker_identity.file_attributes
+            & getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
+            and not marker_identity.reparse_tag
+            and isinstance(marker, dict)
+            and marker.get("run_id") == run_root.name
+            and marker.get("schema_version") == "1.0"
+            and marker.get("purpose") == "M0-S1 WorkspaceGuard safety laboratory"
+            and marker.get("cleanup_policy")
+            == "retain-until-manifested-quarantine"
+            and isinstance(marker_project_root, str)
+            and _same_path(_absolute_lexical(marker_project_root), _contract_root())
+            and marker.get("launch_token_sha256")
+            == hashlib.sha256(launch_token.encode("utf-8")).hexdigest()
+        )
+        if not marker_valid or not stat.S_ISDIR(workspace_identity.mode):
+            raise HandleWriterError(
+                HandleWriterCode.INVALID_TEST_WORKSPACE,
+                "test workspace or safe-launcher marker is invalid",
+            )
+
+        guard = WorkspaceGuard(_contract_root(), workspace)
+        writer = _WindowsHandleWriter(
+            guard,
+            _constructor=_HANDLE_WRITER_CONSTRUCTOR,
+            api=api,
+        )
+        for handle, identity in zip(
+            fence_handles,
+            fence_identities,
+            strict=True,
+        ):
+            observed = writer._observe_identity(handle)
+            writer._verify_identity(identity, observed)
+            writer._verify_final_path(handle, identity.path)
+            writer._verify_path_matches_handle(identity.path, observed)
+    except HandleWriterError as exc:
+        failure = (
+            exc.code,
+            exc.winerror,
+            "test writer factory rejected an unsafe or changed laboratory",
+        )
+    except BaseException:
+        failure = (
+            HandleWriterCode.INVALID_TEST_WORKSPACE,
+            None,
+            "test writer factory could not bind the active laboratory",
+        )
+    finally:
+        handles_to_close = fence_handles
+        fence_handles = []
+        try:
+            (writer or verifier)._close_all(handles_to_close)
+        except HandleWriterError as exc:
+            failure = (
+                exc.code,
+                exc.winerror,
+                "test writer factory could not close its verified fences",
+            )
+        except BaseException:
+            failure = (
+                HandleWriterCode.HANDLE_CLOSE_FAILED,
+                None,
+                "test writer factory could not close its verified fences",
+            )
+    if failure is not None:
+        code, winerror, message = failure
+        raise HandleWriterError(code, message, winerror=winerror) from None
+    if writer is None:
+        raise HandleWriterError(
+            HandleWriterCode.INVALID_TEST_WORKSPACE,
+            "test writer factory did not construct a writer",
+        ) from None
+    return writer
 
 
 def _canonical_json_bytes(payload: dict[str, Any]) -> bytes:

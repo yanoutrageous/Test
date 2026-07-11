@@ -37,12 +37,6 @@ def _percent(numerator: int, denominator: int) -> float:
     return round(numerator * 100 / denominator, 2)
 
 
-def _time_ms(fn) -> tuple[int, Any]:
-    started = time.perf_counter()
-    result = fn()
-    return max(0, int((time.perf_counter() - started) * 1000)), result
-
-
 def _measure_sql_performance(conn) -> list[dict[str, Any]]:
     checks: list[tuple[str, str, tuple[Any, ...]]] = [
         (
@@ -70,7 +64,9 @@ def _measure_sql_performance(conn) -> list[dict[str, Any]]:
     results: list[dict[str, Any]] = []
     for name, sql, params in checks:
         try:
-            duration_ms, rows = _time_ms(lambda: conn.execute(sql, params).fetchall())
+            started = time.perf_counter()
+            rows = conn.execute(sql, params).fetchall()
+            duration_ms = max(0, int((time.perf_counter() - started) * 1000))
         except sqlite3.OperationalError as exc:
             results.append(
                 {
@@ -118,7 +114,9 @@ def _measure_web_performance(
     client = app.test_client()
     results: list[dict[str, Any]] = []
     for path in paths:
-        duration_ms, response = _time_ms(lambda: client.get(path))
+        started = time.perf_counter()
+        response = client.get(path)
+        duration_ms = max(0, int((time.perf_counter() - started) * 1000))
         body = response.get_data()
         results.append(
             {
