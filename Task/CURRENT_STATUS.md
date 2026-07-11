@@ -6,7 +6,7 @@
 
 - 计划版本：1.0.1
 - 当前阶段：M0 入场审计完成，M0 尚未验收
-- 当前切片：`M0-S3-F synthetic Copy + dual ledgers`设计与实现；S3-E 已完成独立暂存审计、显式提交与普通 push，本地、origin 和 Draft PR #2 head 均为`39586568a405124417d105d8e876d25ec94e06e6`；S3 与 M0 总门仍未通过
+- 当前切片：按用户关机请求安全暂停在`M0-S3-F synthetic Copy + dual ledgers`设计冻结入口，尚未产生 S3-F 实现改动；S3-E 实现提交为`39586568a405124417d105d8e876d25ec94e06e6`，发布状态提交为`f6a94eb075735bf2c1de5eefff148bb0b068d4b1`；暂停前本地、origin 和 Draft PR #2 head 一致且工作区干净；S3 与 M0 总门仍未通过
 - M0—M5 实现：M0 已开始；M1—M5 未开始
 - 本任务有效终点：按用户最新明确要求，仅完成 M0；M0 正式验收、提交、普通 push、checkpoint tag 和交接完成后立即停止，M1 延后到新的用户任务。项目整体 M0—M5 路线图保持不变，本条只限制当前任务执行范围
 - 当前禁止：活动数据库迁移、题库导入、OCR、正式排版、批量资产、备份切换和业务文件清理
@@ -56,6 +56,13 @@
 1. M0-S3-D operation context pin、固定 job staging、不可变 contract、多维预算和 live double-pass tree observation 已作为`1b5b9bd`完成显式提交、普通 push 与远端核验；
 2. M0-S3-E exact reservation、独立 operation chain、source-root no-replace publish、target rescan 与只追加恢复真值表已通过本地组合门和独立暂存审计，并作为`39586568a405124417d105d8e876d25ec94e06e6`完成普通 push；当前进入 S3-F 合成 Copy 与双 ledger；
 3. 完成迁移/SQLite Backup API、领域 IR、金标、M0 真实流程和独立审计，形成 M0 验收、checkpoint tag 与交接后停止本任务；不得在本任务中进入 M1。
+
+## 当前暂停检查点
+
+- 暂停时间：2026-07-12 02:16:57 +08:00；原因：用户准备关闭电脑；
+- 暂停记录前已核验 head：`f6a94eb075735bf2c1de5eefff148bb0b068d4b1`；暂停记录写入前工作区干净，本地与 origin 一致；最终暂停提交以恢复时本地/origin/PR 三方一致的当前 head 为准；
+- 没有进行中的业务 mutation，没有处理真实业务数据；生产 writer 仍断开，460 个入口仍全部`UNMIGRATED_BLOCKED`；
+- 恢复时先核对本地、origin、Draft PR #2 和工作区，再从 S3-F 设计冻结继续，不重复 S3-E，不进入 M1。
 
 ## 已知限制与未决项
 
