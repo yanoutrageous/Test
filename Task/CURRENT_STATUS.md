@@ -1,12 +1,12 @@
 # 当前状态
 
-更新时间：2026-07-11 15:18 +08:00
+更新时间：2026-07-11 15:36 +08:00
 
 ## 长期执行状态
 
 - 计划版本：1.0.1
 - 当前阶段：M0 入场审计完成，M0 尚未验收
-- 当前切片：`M0-S2 production guard policy and write inventory`已本地验收，等待显式提交和普通 push；M0 门禁未通过
+- 当前切片：`M0-S3 handle-level writer, atomic publication and durable audit ledger`已进入候选实现；M0 门禁未通过
 - M0—M5 实现：M0 已开始；M1—M5 未开始
 - 本任务有效终点：按用户最新明确要求，仅完成 M0；M0 正式验收、提交、普通 push、checkpoint tag 和交接完成后立即停止，M1 延后到新的用户任务。项目整体 M0—M5 路线图保持不变，本条只限制当前任务执行范围
 - 当前禁止：活动数据库迁移、题库导入、OCR、正式排版、批量资产、备份切换和业务文件清理
@@ -44,14 +44,14 @@
 - 规划草稿 PR：`https://github.com/yanoutrageous/Test/pull/1`
 - 长期集成分支首个 M0 审计提交为`f3ab652`，已 push
 - M0-S1 候选核心、安全测试启动器与证据提交为`2dc2984`，已 push；远端 SHA 与本地一致
-- M0-S2 最新本地冻结证据为`RUN-20260711-M0-S2-EOL-020-FINAL`，RUN 与 V5 inventory/EOL 两路独立审计均为 P0=0/P1=0；实现提交和 push 尚未执行
+- M0-S2 冻结证据为`RUN-20260711-M0-S2-EOL-020-FINAL`；实现和证据已作为`e82eb507414f9dd7b27282d8496e048016bca4ee`显式提交并普通 push，远端分支和 Draft PR #2 head 已核验一致
 - 长期草稿 PR：`https://github.com/yanoutrageous/Test/pull/2`（base=`main`，head=`agent/m0-m5-local-v1`）
 - 除 GitHub CLI 外，本轮未安装 OCR、TeX、模型、字体或其他项目依赖
 
 ## 当前长期执行的首批动作
 
-1. 显式审计并提交/push M0-S2 固定生产边界、策略、候选审计和 427 项 inventory；
-2. M0-S3 建立句柄级 writer、实际 evidence 重算、持久审计、原子写、Copy、quarantine 和受控外部进程；
+1. M0-S2 固定生产边界、策略、候选审计和 427 项 inventory 已完成显式提交、普通 push 和远端核验；
+2. M0-S3 建立句柄级 writer、实际 evidence 重算、持久审计、原子写、Copy、quarantine 和受控外部进程；当前仍保持生产 writer 断开；
 3. 完成迁移/SQLite Backup API、领域 IR、金标、M0 真实流程和独立审计，形成 M0 验收、checkpoint tag 与交接后停止本任务；不得在本任务中进入 M1。
 
 ## 已知限制与未决项

@@ -1,10 +1,10 @@
 {
   "state_version": "1.0.1",
   "plan_version": "1.0.1",
-  "updated_at": "2026-07-11T15:18:44+08:00",
+  "updated_at": "2026-07-11T15:36:58+08:00",
   "current_milestone": "M0",
-  "current_slice": "M0_S2_production_guard_policy_and_write_inventory",
-  "status": "CHECKPOINTED",
+  "current_slice": "M0_S3_handle_writer_atomic_publish_and_audit_ledger",
+  "status": "RUNNING",
   "implementation_status": "IN_PROGRESS",
   "task_scope": {
     "effective_terminal_gate": "M0_MILESTONE_ACCEPTED",
@@ -20,12 +20,12 @@
     "base_commit": "bfd4d35973974a223f465cd08910f303518a8586",
     "remote": "https://github.com/yanoutrageous/Test.git",
     "planning_published_commit": "bfd4d35973974a223f465cd08910f303518a8586",
-    "publication_status": "M0_S2_LOCAL_VERIFIED_COMMIT_PENDING",
+    "publication_status": "M0_S2_PUSHED_DRAFT_PR_OPEN",
     "planning_pull_request": "https://github.com/yanoutrageous/Test/pull/1",
     "integration_pull_request": "https://github.com/yanoutrageous/Test/pull/2"
   },
-  "last_verified_checkpoint": "2dc298439455d464ffe7ccb5d6c43c7659aa668d",
-  "active_job_id": "M0-S2-GUARD-POLICY",
+  "last_verified_checkpoint": "e82eb507414f9dd7b27282d8496e048016bca4ee",
+  "active_job_id": "M0-S3-HANDLE-WRITER",
   "active_writer": "/root",
   "completed_actions": [
     "read-only repository and reference-corpus review",
@@ -48,7 +48,8 @@
     "RUN-20260711-M0-S2-EOL-020-FINAL passed 354 tests with only the separately blocked real-symlink capability gate deselected; watcher, 31225-handle fence, process tree, immutable evidence, protected tree, and activity database remained clean",
     "scanner V5 and root .gitattributes bind production sources and evidence to explicit UTF8_LF_V1 bytes so fresh checkouts are independent of core.autocrlf",
     "RUN-020 launcher/bootstrap evidence and V5 policy/inventory/EOL reproducibility audits concluded P0=0 and P1=0",
-    "alternate-index staging dry run selected exactly 43 allowlisted files; all 45 staged production source blobs and all 18 inventory chunks matched UTF8_LF_V1 hashes with zero forbidden paths"
+    "alternate-index staging dry run selected exactly 43 allowlisted files; all 45 staged production source blobs and all 18 inventory chunks matched UTF8_LF_V1 hashes with zero forbidden paths",
+    "M0-S2 was explicitly staged as exactly 43 files, independently audited with P0/P1/P2 unresolved findings all zero, committed as e82eb507414f9dd7b27282d8496e048016bca4ee, ordinary-pushed, and verified identical at Draft PR 2 head"
   ],
   "not_started": [
     "database migration",
@@ -62,6 +63,6 @@
   "blockers": [
     "M0-SYMLINK-CAPABILITY-001: two Test-local attempts to create a real directory symlink returned WinError 1314; no privilege elevation or Developer Mode change is authorized, so the actual symlink gate remains unverified while independent M0 work continues"
   ],
-  "next_required_action": "Explicitly stage only the audited M0-S2 code, tests, policy inventory and Task evidence; run staged privacy/scope review, create a normal commit, ordinary-push to the integration branch, verify Draft PR 2, then checkpoint state and enter M0-S3 without connecting real writers prematurely.",
+  "next_required_action": "Implement M0-S3 in candidate-only slices: handle-level no-follow writer, actual-byte/tree evidence recomputation, durable append-only audit ledger, atomic publication and postcondition verification, then Copy/quarantine/job/process/database gates. Keep every unmigrated entry blocked and do not process real business data until its normal, boundary, failure, recovery, and safety paths pass independent review.",
   "resume_rule": "Read execution_contract.json and all normative Task documents, verify git and filesystem state against this file, then continue from next_required_action without repeating completed work. Do not enter M1 in this task; after M0 is accepted, record STOP_PER_USER with M1 deferred to a new user task."
 }
