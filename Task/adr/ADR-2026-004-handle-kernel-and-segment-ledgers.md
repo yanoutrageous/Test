@@ -102,6 +102,30 @@ CANDIDATE → PREPARED → MUTATED → POSTCONDITION_VERIFIED → COMMITTED
 - restore 保留 quarantine 原对象，只读复制到新 staging，重验后走普通 publish；目标冲突时不覆盖；
 - M0 不实现永久 purge。
 
+## S3-C 实现冻结补充（2026-07-11）
+
+S3-C 已在 Test-local candidate 中实现并通过独立复审，以下合同从本切片起冻结：
+
+1. audit key revision 使用 schema 1.0、固定 32 字节 master key 和`HMAC-SHA256-DOMAIN-KDF-V1`；revision 正文 SHA 与文件名互相绑定，旧 revision 不可覆盖；
+2. audit segment 使用 schema 1.0、显式 sequence 0 genesis、canonical UTF-8/LF JSON、完整 previous-hash 链、当前 Policy V7 和 key revision SHA；head 只能由启动全链扫描推导；
+3. segment hash 使用`LEDGER-SEGMENT-V1`域，segment HMAC 使用`LEDGER-SEGMENT-AUTH-V1`域；key rotation segment 必须由旧 key 认证并绑定新 revision 的完整 SHA；
+4. 固定 durable factory 在同一 live Windows Local named-mutex lease 内验证 key/segment store 都为空、发布初始 key 并创建 genesis；open 模式从不创建 key 或 genesis；
+5. unknown/PENDING/child directory、缺号、分叉、tamper、schema/policy/key drift 或无法唯一解释的 crash 状态一律保留现场并 seal，不自动删除、截断、改名或补链；
+6. audit event v2.1 的完整字段集合、decision/action/error 真值表、pair metadata、visible/HMAC context、SAFE_RELATIVE/HMAC_ONLY path 和 Restricted redaction 在 segment 签入前验证；
+7. key store最多 64 个 revision，单 epoch 最多 4096 个 segment、64 MiB 总量、单 segment 2 MiB、单批 256 条；所有容量门在 publish 前判断；
+8. production facade 继续`writer_available=false`，公开 namespace 对 audit/Copy ledger 和 key 只读；S3-C 不授权业务层直接构造 Store/Ledger/Sink/Authority 或直接写入其路径。
+
+本冻结具有以下明确边界：
+
+- 项目内 key 文件的威胁模型是防误泄漏与检测变化，不抵御已取得 Test 读取权的本机恶意用户；
+- 没有外部 witness 时，项目内链不能证明“完整尾部与外部事实”未被一致回滚；
+- 未来 schema、policy 或 audit-event 版本必须经显式 parser registry/新 epoch 迁移，不得让当前 parser 静默接受；
+- 固定 factory 的首次初始化是同一 mutex；底层带私有 token 的直接测试 helper 可自行取 mutex，只是 trusted unit-test 例外，不能宣称所有底层构造路径天然同锁；
+- 当前不承诺 ReFS 高位 File ID、硬件断电持久性或本机无权限创建的真实 symlink 门禁；
+- 安全 launcher 约束受信任仓库测试，不是任意 hostile native code 的 OS sandbox。
+
+S3-C 冻结不改变后续状态机顺序。operation lease、observed tree evidence、pair reservation 内 mutation、Copy 双 ledger、quarantine/restore 仍须在 S3-D—G 分别实现并通过故障恢复门禁。
+
 ## 被拒绝方案
 
 ### 重验 pair 后调用`shutil.move/os.replace`

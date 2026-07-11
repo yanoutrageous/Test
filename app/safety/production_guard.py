@@ -9,11 +9,11 @@ import re
 import secrets
 import stat
 import threading
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path, PureWindowsPath
-from typing import Any, Generic, TypeVar
+from typing import Any, Callable, Generic, TypeVar
 
 from app import config as app_config
 from app.workspace_guard import (
@@ -30,6 +30,16 @@ from app.safety.windows_handle_writer import (
     _HANDLE_WRITER_CONSTRUCTOR,
     _WindowsApi,
     _WindowsHandleWriter,
+)
+from app.safety.segment_ledger import (
+    AuditKeyRevisionStore,
+    DurableAuditLedger,
+    DurableAuditSink,
+    LedgerCode,
+    LedgerError,
+    _LEDGER_CONSTRUCTOR,
+    _build_genesis_segment_bytes,
+    build_key_revision_bytes,
 )
 
 from .audit_events import (
@@ -72,11 +82,28 @@ CONTRACT_PROJECT_ROOT = _contract_root()
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
 _TOKEN_CONSTRUCTOR = object()
 _PRODUCTION_BOUNDARY_CONSTRUCTOR = object()
+_AUDIT_AUTHORITY_CONSTRUCTOR = object()
 _MAX_REGISTRY_ITEMS = 4096
 _MAX_TOMBSTONES = 8192
 _ResultValue = TypeVar("_ResultValue")
 _PRODUCTION_BOUNDARY_LOCK = threading.Lock()
 _production_boundary_singleton: ProductionWorkspaceBoundary | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class _AuditAuthority:
+    sink: DurableAuditSink = field(repr=False)
+    _constructor: object = field(repr=False, compare=False)
+
+    def __post_init__(self) -> None:
+        if (
+            self._constructor is not _AUDIT_AUTHORITY_CONSTRUCTOR
+            or type(self.sink) is not DurableAuditSink
+        ):
+            raise TypeError("audit authority is restricted to the fixed boundary factory")
+
+    def __reduce__(self) -> Any:
+        raise TypeError("audit authorities cannot be serialized")
 
 
 class BoundaryErrorCode(StrEnum):
@@ -613,7 +640,12 @@ class _BoundaryCore:
         guard: WorkspaceGuard,
         expected_workspace_root: Path,
         audit_sink: AuditSink | None = None,
+        audit_authority: _AuditAuthority | None = None,
     ) -> None:
+        if audit_sink is not None and audit_authority is not None:
+            raise TypeError("audit sink and durable audit authority are mutually exclusive")
+        if audit_authority is not None and type(audit_authority) is not _AuditAuthority:
+            raise TypeError("durable audit authority must be factory-issued")
         self.__guard = guard
         self.__expected_workspace_root = _absolute_lexical(expected_workspace_root)
         self.__policy = _BoundaryNamespacePolicy(
@@ -626,7 +658,14 @@ class _BoundaryCore:
         self.__context_authority_id = secrets.token_hex(16).upper()
         self.__context_key = secrets.token_bytes(32)
         self.__audit_hmac_key = secrets.token_bytes(32)
-        self.__audit_sink = audit_sink or CollectingAuditSink()
+        self.__durable_audit_sink = (
+            None if audit_authority is None else audit_authority.sink
+        )
+        self.__audit_sink = (
+            audit_sink or CollectingAuditSink()
+            if audit_authority is None
+            else audit_authority.sink
+        )
         self.__candidate_records: dict[str, _CandidateRecord] = {}
         self.__pair_records: dict[str, _PairRecord] = {}
         self.__context_records: dict[str, _ContextRecord] = {}
@@ -694,16 +733,18 @@ class _BoundaryCore:
             with self.__lock:
                 self._ensure_registry_capacity(candidate_items=1, pair_items=0)
                 self._validate_context_authority(context)
-                event = self._candidate_event(
-                    record,
-                    context=context,
-                    decision=decision,
-                    action=AuditAction.ISSUE,
-                )
                 self.__candidate_records[record.ticket_id] = record
                 try:
-                    self._record_audit_batch(
-                        (event,),
+                    self._record_audit_factory(
+                        lambda audit_hmac_key: (
+                            self._candidate_event(
+                                record,
+                                context=context,
+                                decision=decision,
+                                action=AuditAction.ISSUE,
+                                audit_hmac_key=audit_hmac_key,
+                            ),
+                        ),
                         _public_operation_reference(context),
                     )
                 except Exception:
@@ -845,14 +886,16 @@ class _BoundaryCore:
                 context.classification,
                 decision.effective_classification,
             )
-            event = self._candidate_event(
-                record,
-                context=context,
-                decision=decision,
-                action=AuditAction.REVALIDATE,
-            )
-            self._record_audit_batch(
-                (event,),
+            self._record_audit_factory(
+                lambda audit_hmac_key: (
+                    self._candidate_event(
+                        record,
+                        context=context,
+                        decision=decision,
+                        action=AuditAction.REVALIDATE,
+                        audit_hmac_key=audit_hmac_key,
+                    ),
+                ),
                 (
                     None
                     if effective is DataClassification.RESTRICTED
@@ -1069,20 +1112,6 @@ class _BoundaryCore:
                     pair_mac,
                     _constructor=_TOKEN_CONSTRUCTOR,
                 )
-            source_event = self._pair_member_event(
-                source_record,
-                pair_record,
-                context=context,
-                decision=source_decision,
-                action=AuditAction.ISSUE,
-            )
-            target_event = self._pair_member_event(
-                target_record,
-                pair_record,
-                context=context,
-                decision=target_decision,
-                action=AuditAction.ISSUE,
-            )
             with self.__lock:
                 self._ensure_registry_capacity(candidate_items=2, pair_items=1)
                 self._validate_context_authority(context)
@@ -1090,8 +1119,25 @@ class _BoundaryCore:
                 self.__candidate_records[target_record.ticket_id] = target_record
                 self.__pair_records[pair_id] = pair_record
                 try:
-                    self._record_audit_batch(
-                        (source_event, target_event),
+                    self._record_audit_factory(
+                        lambda audit_hmac_key: (
+                            self._pair_member_event(
+                                source_record,
+                                pair_record,
+                                context=context,
+                                decision=source_decision,
+                                action=AuditAction.ISSUE,
+                                audit_hmac_key=audit_hmac_key,
+                            ),
+                            self._pair_member_event(
+                                target_record,
+                                pair_record,
+                                context=context,
+                                decision=target_decision,
+                                action=AuditAction.ISSUE,
+                                audit_hmac_key=audit_hmac_key,
+                            ),
+                        ),
                         _public_operation_reference(context),
                     )
                 except Exception:
@@ -1188,24 +1234,25 @@ class _BoundaryCore:
                     "pair topology changed after candidate issuance",
                     operation_reference=_public_operation_reference(context),
                 )
-            events = (
-                self._pair_member_event(
-                    source_record,
-                    pair_record,
-                    context=context,
-                    decision=source_decision,
-                    action=AuditAction.REVALIDATE,
+            self._record_audit_factory(
+                lambda audit_hmac_key: (
+                    self._pair_member_event(
+                        source_record,
+                        pair_record,
+                        context=context,
+                        decision=source_decision,
+                        action=AuditAction.REVALIDATE,
+                        audit_hmac_key=audit_hmac_key,
+                    ),
+                    self._pair_member_event(
+                        target_record,
+                        pair_record,
+                        context=context,
+                        decision=target_decision,
+                        action=AuditAction.REVALIDATE,
+                        audit_hmac_key=audit_hmac_key,
+                    ),
                 ),
-                self._pair_member_event(
-                    target_record,
-                    pair_record,
-                    context=context,
-                    decision=target_decision,
-                    action=AuditAction.REVALIDATE,
-                ),
-            )
-            self._record_audit_batch(
-                events,
                 _public_operation_reference(context),
             )
             self._finish_pair(pair_record, CapabilityLifecycle.CONSUMED)
@@ -1969,6 +2016,7 @@ class _BoundaryCore:
         context: OperationContext,
         decision: NamespaceDecision,
         action: AuditAction,
+        audit_hmac_key: bytes,
     ) -> AuditEvent:
         return create_audit_event(
             decision=AuditDecision.CANDIDATE_ALLOW,
@@ -1990,7 +2038,7 @@ class _BoundaryCore:
             intent=record.core.intent,
             expected_kind=record.core.expected_kind,
             relative_path=record.core.relative_path,
-            audit_hmac_key=self.__audit_hmac_key,
+            audit_hmac_key=audit_hmac_key,
         )
 
     def _pair_member_event(
@@ -2001,6 +2049,7 @@ class _BoundaryCore:
         context: OperationContext,
         decision: NamespaceDecision,
         action: AuditAction,
+        audit_hmac_key: bytes,
     ) -> AuditEvent:
         return create_audit_event(
             decision=AuditDecision.CANDIDATE_ALLOW,
@@ -2023,7 +2072,7 @@ class _BoundaryCore:
             intent=record.core.intent,
             expected_kind=record.core.expected_kind,
             relative_path=record.core.relative_path,
-            audit_hmac_key=self.__audit_hmac_key,
+            audit_hmac_key=audit_hmac_key,
             manifest_sha256=pair.evidence.manifest_sha256,
             source_tree_sha256=pair.evidence.source_tree_sha256,
             checkpoint_id=pair.evidence.checkpoint_id,
@@ -2053,31 +2102,36 @@ class _BoundaryCore:
                 decision.effective_classification,
             )
             detail_code = _exception_detail_code(error)
-            event = create_audit_event(
-                decision=AuditDecision.DENY,
-                action=AuditAction.DENY,
-                capability_kind=capability_kind,
-                error_code=detail_code,
-                context=context,
-                effective_classification=effective,
-                path_mode=AuditPathMode.HMAC_ONLY,
-                policy_digest=self.__policy.digest,
-                boundary_instance_id=self.__instance_id,
-                ticket_id=ticket_id,
-                pair_id=pair_id,
-                pair_role=None,
-                namespace=decision.namespace,
-                intent=intent if isinstance(intent, PathIntent) else PathIntent.EXISTING_READ,
-                expected_kind=(
-                    expected_kind
-                    if isinstance(expected_kind, ExpectedKind)
-                    else ExpectedKind.ANY
+            self._record_audit_factory(
+                lambda audit_hmac_key: (
+                    create_audit_event(
+                        decision=AuditDecision.DENY,
+                        action=AuditAction.DENY,
+                        capability_kind=capability_kind,
+                        error_code=detail_code,
+                        context=context,
+                        effective_classification=effective,
+                        path_mode=AuditPathMode.HMAC_ONLY,
+                        policy_digest=self.__policy.digest,
+                        boundary_instance_id=self.__instance_id,
+                        ticket_id=ticket_id,
+                        pair_id=pair_id,
+                        pair_role=None,
+                        namespace=decision.namespace,
+                        intent=(
+                            intent
+                            if isinstance(intent, PathIntent)
+                            else PathIntent.EXISTING_READ
+                        ),
+                        expected_kind=(
+                            expected_kind
+                            if isinstance(expected_kind, ExpectedKind)
+                            else ExpectedKind.ANY
+                        ),
+                        relative_path=relative_path,
+                        audit_hmac_key=audit_hmac_key,
+                    ),
                 ),
-                relative_path=relative_path,
-                audit_hmac_key=self.__audit_hmac_key,
-            )
-            self._record_audit_batch(
-                (event,),
                 (
                     None
                     if effective is DataClassification.RESTRICTED
@@ -2136,16 +2190,22 @@ class _BoundaryCore:
                 return self._public_error(audit_error, context, redact=redact)
         return self._public_error(error, context, redact=redact)
 
-    def _record_audit_batch(
+    def _record_audit_factory(
         self,
-        events: tuple[AuditEvent, ...],
+        builder: Callable[[bytes], tuple[AuditEvent, ...]],
         operation_reference: str | None,
     ) -> None:
         try:
-            receipt = self.__audit_sink.record_batch(events)
-            expected = audit_receipt(events)
-            if type(receipt) is not AuditReceipt or receipt != expected:
-                raise ValueError("audit sink returned an invalid batch receipt")
+            if self.__durable_audit_sink is not None:
+                receipt = self.__durable_audit_sink.record_factory(builder)
+                if type(receipt) is not AuditReceipt:
+                    raise ValueError("durable audit sink returned an invalid receipt type")
+            else:
+                events = builder(self.__audit_hmac_key)
+                receipt = self.__audit_sink.record_batch(events)
+                expected = audit_receipt(events)
+                if type(receipt) is not AuditReceipt or receipt != expected:
+                    raise ValueError("audit sink returned an invalid batch receipt")
         except Exception as exc:
             raise ProductionBoundaryError(
                 BoundaryErrorCode.AUDIT_RECORD_FAILED,
@@ -2335,12 +2395,19 @@ class ProductionWorkspaceBoundary:
 class _TestWorkspaceBoundary:
     __slots__ = ("__core",)
 
-    def __init__(self, workspace_root: Path, audit_sink: AuditSink | None = None) -> None:
+    def __init__(
+        self,
+        workspace_root: Path,
+        audit_sink: AuditSink | None = None,
+        *,
+        audit_authority: _AuditAuthority | None = None,
+    ) -> None:
         root = _contract_root()
         self.__core = _BoundaryCore(
             guard=WorkspaceGuard(root, workspace_root),
             expected_workspace_root=workspace_root,
             audit_sink=audit_sink,
+            audit_authority=audit_authority,
         )
 
     @property
@@ -2648,6 +2715,7 @@ def _create_test_handle_writer(workspace_root: Path) -> _WindowsHandleWriter:
         _TestFactoryFenceAuthority(),
         _constructor=_HANDLE_WRITER_CONSTRUCTOR,
         api=api,
+        workspace_root=workspace,
     )
     fence_handles: list[int] = []
     fence_identities: list[PathIdentity] = []
@@ -2735,6 +2803,7 @@ def _create_test_handle_writer(workspace_root: Path) -> _WindowsHandleWriter:
             guard,
             _constructor=_HANDLE_WRITER_CONSTRUCTOR,
             api=api,
+            workspace_root=workspace,
         )
         for handle, identity in zip(
             fence_handles,
@@ -2783,6 +2852,136 @@ def _create_test_handle_writer(workspace_root: Path) -> _WindowsHandleWriter:
             "test writer factory did not construct a writer",
         ) from None
     return writer
+
+
+@dataclass(frozen=True, slots=True)
+class _TestDurableBoundaryBundle:
+    boundary: _TestWorkspaceBoundary
+    ledger: DurableAuditLedger = field(repr=False)
+    key_store: AuditKeyRevisionStore = field(repr=False)
+
+    def __reduce__(self) -> Any:
+        raise TypeError("durable test boundary bundles cannot be serialized")
+
+
+def _create_test_durable_boundary(
+    workspace_root: Path,
+    *,
+    initialize: bool = False,
+    epoch_id: str,
+    initial_revision_sequence: int,
+    initial_revision_id: str,
+    master_key: bytes,
+    key_created_at_utc: str | None = None,
+    ledger_initialized_at_utc: str | None = None,
+) -> _TestDurableBoundaryBundle:
+    """Private Test-only durable audit factory; production remains disconnected."""
+
+    if type(initialize) is not bool:
+        raise LedgerError(
+            code=LedgerCode.INVALID_REQUEST,
+            message="durable audit mode must be an exact boolean",
+        )
+    writer = _create_test_handle_writer(workspace_root)
+    key_store = AuditKeyRevisionStore(
+        writer,
+        _constructor=_LEDGER_CONSTRUCTOR,
+    )
+    effective_key_created_at = key_created_at_utc or (
+        datetime.now(UTC).replace(microsecond=0).strftime("%Y-%m-%dT%H:%M:%SZ")
+        if initialize
+        else "2000-01-01T00:00:00Z"
+    )
+    expected_payload, expected_revision = build_key_revision_bytes(
+        revision_sequence=initial_revision_sequence,
+        revision_id=initial_revision_id,
+        created_at_utc=effective_key_created_at,
+        master_key=master_key,
+    )
+    effective_ledger_initialized_at = (
+        ledger_initialized_at_utc
+        or datetime.now(UTC).replace(microsecond=0).strftime("%Y-%m-%dT%H:%M:%SZ")
+        if initialize
+        else None
+    )
+    if initialize:
+        _genesis_payload, _genesis_sha, _genesis_batch, _genesis_records = (
+            _build_genesis_segment_bytes(
+                epoch_id=epoch_id,
+                created_at_utc=effective_ledger_initialized_at,
+                revision=expected_revision,
+            )
+        )
+        del _genesis_payload, _genesis_sha, _genesis_batch, _genesis_records
+    with writer.acquire_runtime_mutex() as lease:
+        existing = key_store._load_all_under_mutex()
+        revision = existing.get(initial_revision_id)
+        if initialize:
+            if initial_revision_sequence != 1 or existing:
+                raise LedgerError(
+                    code=LedgerCode.INVALID_REQUEST,
+                    message="durable audit initialization requires an exact empty key store",
+                )
+            segment_snapshot = writer.read_flat_directory(
+                Path("logs") / "audit" / "segments" / epoch_id,
+                maximum_entries=4096,
+                maximum_file_bytes=2 * 1024 * 1024,
+                maximum_total_bytes=64 * 1024 * 1024,
+            )
+            if segment_snapshot.entries:
+                raise LedgerError(
+                    code=LedgerCode.INVALID_REQUEST,
+                    message="durable audit initialization requires an exact empty segment store",
+                )
+            revision = key_store._create_revision_under_mutex(
+                expected_payload,
+                expected_revision,
+            )
+        if revision is None:
+            raise LedgerError(
+                code=LedgerCode.KEY_NOT_FOUND,
+                message="durable audit open requires its existing initial key revision",
+            )
+        if (
+            revision.revision_sequence != expected_revision.revision_sequence
+            or revision.master_key_sha256 != expected_revision.master_key_sha256
+            or revision.audit_hmac_key_id != expected_revision.audit_hmac_key_id
+            or revision.segment_key_id != expected_revision.segment_key_id
+            or (
+                key_created_at_utc is not None
+                and revision.revision_sha256 != expected_revision.revision_sha256
+            )
+        ):
+            raise LedgerError(
+                code=LedgerCode.KEY_CONFLICT,
+                message="existing durable audit key differs from the requested revision",
+            )
+        ledger = DurableAuditLedger(
+            writer,
+            key_store,
+            epoch_id=epoch_id,
+            initial_revision_id=initial_revision_id,
+            initialize=initialize,
+            initialized_at_utc=effective_ledger_initialized_at,
+            _runtime_mutex_lease=lease,
+            _constructor=_LEDGER_CONSTRUCTOR,
+        )
+    authority = _AuditAuthority(
+        sink=DurableAuditSink(
+            ledger,
+            _constructor=_LEDGER_CONSTRUCTOR,
+        ),
+        _constructor=_AUDIT_AUTHORITY_CONSTRUCTOR,
+    )
+    boundary = _TestWorkspaceBoundary(
+        _absolute_lexical(workspace_root),
+        audit_authority=authority,
+    )
+    return _TestDurableBoundaryBundle(
+        boundary=boundary,
+        ledger=ledger,
+        key_store=key_store,
+    )
 
 
 def _canonical_json_bytes(payload: dict[str, Any]) -> bytes:

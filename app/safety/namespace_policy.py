@@ -21,10 +21,11 @@ from .context import (
 
 
 POLICY_ID = "LOCAL-EXAM-BANK-WORKSPACE"
-POLICY_VERSION = "M0-S2-V6"
+POLICY_VERSION = "M0-S3-V7"
 EXPECTED_POLICY_DIGEST = (
-    "315a036ad41c1ac77379c430fc667de470e03376513d9fd8cb6f92d6ae0110b4"
+    "8df50ded63443c3310603614fd6d317234ce026c351870d0488a84dd1cfe4d88"
 )
+POLICY_DIGEST = EXPECTED_POLICY_DIGEST
 
 
 class NamespaceId(StrEnum):
@@ -50,6 +51,7 @@ class NamespaceId(StrEnum):
     SNAPSHOT = "SNAPSHOT"
     BACKUP_SET = "BACKUP_SET"
     AUDIT_LOG = "AUDIT_LOG"
+    AUDIT_KEY_REVISION = "AUDIT_KEY_REVISION"
     JOB_WORKSPACE_INTERNAL = "JOB_WORKSPACE_INTERNAL"
     JOB_WORKSPACE_RESTRICTED = "JOB_WORKSPACE_RESTRICTED"
     JOB_WORKSPACE = "JOB_WORKSPACE"
@@ -337,6 +339,7 @@ _RESTRICTED_NAMESPACES = frozenset(
         NamespaceId.COPY_WORK_RESTRICTED,
         NamespaceId.JOB_WORKSPACE_RESTRICTED,
         NamespaceId.QUARANTINE_RESTRICTED,
+        NamespaceId.AUDIT_KEY_REVISION,
     }
 )
 _INTERNAL_CLASSIFIED_NAMESPACES = frozenset(
@@ -364,7 +367,7 @@ _FIXED_NAMESPACE_PREFIXES: dict[NamespaceId, frozenset[tuple[str, ...]]] = {
         {("Copy", "work", "RESTRICTED")}
     ),
     NamespaceId.COPY_WORK: frozenset({("Copy", "work")}),
-    NamespaceId.COPY_LEDGER: frozenset({("Copy", "ledger", "events.jsonl")}),
+    NamespaceId.COPY_LEDGER: frozenset({("Copy", "ledger", "segments")}),
     NamespaceId.ACTIVE_DATABASE: frozenset(
         {("data", "db", "question_bank.sqlite3")}
     ),
@@ -387,7 +390,8 @@ _FIXED_NAMESPACE_PREFIXES: dict[NamespaceId, frozenset[tuple[str, ...]]] = {
     NamespaceId.EXPORT_BUNDLE: frozenset({("data", "exports")}),
     NamespaceId.SNAPSHOT: frozenset({("data", "snapshots")}),
     NamespaceId.BACKUP_SET: frozenset({("backups",)}),
-    NamespaceId.AUDIT_LOG: frozenset({("logs", "audit", "events.jsonl")}),
+    NamespaceId.AUDIT_LOG: frozenset({("logs", "audit", "segments")}),
+    NamespaceId.AUDIT_KEY_REVISION: frozenset({("logs", "audit", "keys")}),
     NamespaceId.JOB_WORKSPACE_INTERNAL: frozenset(
         {("tmp", "jobs", "INTERNAL")}
     ),
@@ -407,6 +411,7 @@ _FIXED_NAMESPACE_PREFIXES: dict[NamespaceId, frozenset[tuple[str, ...]]] = {
 }
 _FIXED_SCOPE_BINDINGS: dict[NamespaceId, tuple[ScopeBinding, ...]] = {
     NamespaceId.COPY_SOURCE: (ScopeBinding(0, ScopeKind.COPY_ID),),
+    NamespaceId.COPY_LEDGER: (ScopeBinding(0, ScopeKind.COPY_ID),),
     NamespaceId.COPY_RESTRICTED: (ScopeBinding(0, ScopeKind.COPY_ID),),
     NamespaceId.COPY_WORK_INTERNAL: (
         ScopeBinding(0, ScopeKind.COPY_ID),
@@ -431,6 +436,7 @@ _FIXED_SCOPE_BINDINGS: dict[NamespaceId, tuple[ScopeBinding, ...]] = {
     NamespaceId.EXPORT_BUNDLE: (ScopeBinding(0, ScopeKind.EXPORT_ID),),
     NamespaceId.SNAPSHOT: (ScopeBinding(0, ScopeKind.STATE_ID),),
     NamespaceId.BACKUP_SET: (ScopeBinding(0, ScopeKind.BACKUP_ID),),
+    NamespaceId.AUDIT_LOG: (ScopeBinding(0, ScopeKind.RUN_ID),),
     NamespaceId.JOB_WORKSPACE_INTERNAL: (ScopeBinding(0, ScopeKind.JOB_ID),),
     NamespaceId.JOB_WORKSPACE_RESTRICTED: (ScopeBinding(0, ScopeKind.JOB_ID),),
 }
@@ -748,19 +754,18 @@ DEFAULT_RULES: tuple[NamespaceRule, ...] = (
     ),
     NamespaceRule(
         NamespaceId.COPY_LEDGER,
-        ("Copy", "ledger", "events.jsonl"),
-        NamespaceMode.APPEND_ONLY,
-        maximum_tail_depth=0,
-        normal_intents=_READ | _APPEND_FILE,
+        ("Copy", "ledger", "segments"),
+        NamespaceMode.READ_ONLY,
+        minimum_tail_depth=2,
+        maximum_tail_depth=2,
+        scope_bindings=(ScopeBinding(0, ScopeKind.COPY_ID),),
+        normal_intents=_READ,
         read_callers=frozenset(
             {Caller.IMPORT_SERVICE, Caller.AUDIT_SERVICE, Caller.BACKUP_SERVICE}
         ),
         read_purposes=frozenset(
             {Purpose.COPY_SOURCE, Purpose.READ_CONTROL, Purpose.BACKUP}
         ),
-        mutation_callers=frozenset({Caller.IMPORT_SERVICE, Caller.AUDIT_SERVICE}),
-        mutation_purposes=frozenset({Purpose.COPY_SOURCE, Purpose.APPEND_AUDIT}),
-        normal_mutation_kinds=_FILE_ONLY,
     ),
     NamespaceRule(
         NamespaceId.ACTIVE_STATE_POINTER,
@@ -964,19 +969,36 @@ DEFAULT_RULES: tuple[NamespaceRule, ...] = (
     ),
     NamespaceRule(
         NamespaceId.AUDIT_LOG,
-        ("logs", "audit", "events.jsonl"),
-        NamespaceMode.APPEND_ONLY,
-        maximum_tail_depth=0,
-        normal_intents=_READ | _APPEND_FILE,
+        ("logs", "audit", "segments"),
+        NamespaceMode.READ_ONLY,
+        minimum_tail_depth=2,
+        maximum_tail_depth=2,
+        scope_bindings=(ScopeBinding(0, ScopeKind.RUN_ID),),
+        normal_intents=_READ,
         read_callers=frozenset(
             {Caller.AUDIT_SERVICE, Caller.REPORT_SERVICE, Caller.BACKUP_SERVICE}
         ),
         read_purposes=frozenset(
             {Purpose.APPEND_AUDIT, Purpose.READ_CONTROL, Purpose.BACKUP}
         ),
-        mutation_callers=frozenset({Caller.AUDIT_SERVICE}),
-        mutation_purposes=frozenset({Purpose.APPEND_AUDIT}),
-        normal_mutation_kinds=_FILE_ONLY,
+        audit_path_mode=AuditPathMode.HMAC_ONLY,
+    ),
+    NamespaceRule(
+        NamespaceId.AUDIT_KEY_REVISION,
+        ("logs", "audit", "keys"),
+        NamespaceMode.READ_ONLY,
+        minimum_tail_depth=1,
+        maximum_tail_depth=1,
+        normal_intents=_READ,
+        read_callers=frozenset({Caller.AUDIT_SERVICE, Caller.BACKUP_SERVICE}),
+        read_purposes=frozenset({Purpose.READ_CONTROL, Purpose.BACKUP}),
+        read_actor_pairs=frozenset(
+            {
+                (Caller.AUDIT_SERVICE, Purpose.READ_CONTROL),
+                (Caller.BACKUP_SERVICE, Purpose.BACKUP),
+            }
+        ),
+        restricted=True,
         audit_path_mode=AuditPathMode.HMAC_ONLY,
     ),
     NamespaceRule(
@@ -1393,15 +1415,6 @@ EXACT_GRANTS: tuple[CapabilityGrant, ...] = (
         _READ_ANY,
     ),
     *_grants(
-        NamespaceId.COPY_LEDGER,
-        (
-            (Caller.IMPORT_SERVICE, Purpose.COPY_SOURCE),
-            (Caller.AUDIT_SERVICE, Purpose.APPEND_AUDIT),
-        ),
-        _APPEND_WRITE,
-        required_scopes=frozenset({ScopeKind.COPY_ID}),
-    ),
-    *_grants(
         NamespaceId.ACTIVE_STATE_POINTER,
         (
             (Caller.DATABASE_SERVICE, Purpose.READ_DATABASE),
@@ -1591,10 +1604,12 @@ EXACT_GRANTS: tuple[CapabilityGrant, ...] = (
         _READ_ANY,
     ),
     *_grants(
-        NamespaceId.AUDIT_LOG,
-        ((Caller.AUDIT_SERVICE, Purpose.APPEND_AUDIT),),
-        _APPEND_WRITE,
-        required_scopes=frozenset({ScopeKind.RUN_ID, ScopeKind.OPERATION_ID}),
+        NamespaceId.AUDIT_KEY_REVISION,
+        (
+            (Caller.AUDIT_SERVICE, Purpose.READ_CONTROL),
+            (Caller.BACKUP_SERVICE, Purpose.BACKUP),
+        ),
+        _READ_ANY,
     ),
     *_grants(
         NamespaceId.QUARANTINE_INTERNAL,
@@ -1635,34 +1650,7 @@ EXACT_GRANTS: tuple[CapabilityGrant, ...] = (
 _FIXED_REQUIRED_SCOPES: dict[
     tuple[NamespaceId, bool, PathIntent, ExpectedKind, Caller, Purpose],
     frozenset[ScopeKind],
-] = {
-    (
-        NamespaceId.COPY_LEDGER,
-        False,
-        intent,
-        ExpectedKind.FILE,
-        caller,
-        purpose,
-    ): frozenset({ScopeKind.COPY_ID})
-    for intent in (PathIntent.NEW_WRITE, PathIntent.APPEND_EXISTING)
-    for caller, purpose in (
-        (Caller.IMPORT_SERVICE, Purpose.COPY_SOURCE),
-        (Caller.AUDIT_SERVICE, Purpose.APPEND_AUDIT),
-    )
-}
-_FIXED_REQUIRED_SCOPES.update(
-    {
-        (
-            NamespaceId.AUDIT_LOG,
-            False,
-            intent,
-            ExpectedKind.FILE,
-            Caller.AUDIT_SERVICE,
-            Purpose.APPEND_AUDIT,
-        ): frozenset({ScopeKind.RUN_ID, ScopeKind.OPERATION_ID})
-        for intent in (PathIntent.NEW_WRITE, PathIntent.APPEND_EXISTING)
-    }
-)
+] = {}
 
 
 @dataclass(frozen=True, slots=True)

@@ -607,6 +607,40 @@ def exercise(kernel32, path, handle, info):
     assert counts[WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY] == 0
 
 
+def test_named_mutex_primitives_have_a_dedicated_runtime_classification() -> None:
+    entries = scan_python_source(
+        '''
+def synchronize(kernel32, handle, name):
+    kernel32.CreateMutexW(None, False, name)
+    kernel32.WaitForSingleObject(handle, 0)
+    kernel32.ReleaseMutex(handle)
+''',
+        file="app/synthetic.py",
+    )
+    counts = Counter(entry.kind for entry in entries)
+    assert counts[WritePrimitiveKind.RUNTIME_SYNCHRONIZATION] == 3
+    assert counts[WritePrimitiveKind.SYSTEM_STATE] == 0
+    assert counts[WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY] == 0
+
+
+def test_durable_storage_publication_gateway_is_visible() -> None:
+    entries = scan_python_source(
+        '''
+def persist(storage, staging, final, payload, digest):
+    return storage.publish_new_file(
+        staging,
+        final,
+        payload,
+        expected_sha256=digest,
+    )
+''',
+        file="app/synthetic.py",
+    )
+    counts = Counter(entry.kind for entry in entries)
+    assert counts[WritePrimitiveKind.DURABLE_LEDGER_GATEWAY] == 1
+    assert counts[WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY] == 0
+
+
 def test_native_library_binding_and_unknown_symbols_fail_closed() -> None:
     entries = scan_python_source(
         '''
@@ -852,6 +886,294 @@ class _BoundaryNamespacePolicy:
     )
     assert len(findings) == 1
     assert findings[0][2] == "private pair policy call _NamespacePolicy__authorize"
+
+
+def test_durable_ledger_authority_bypasses_are_all_visible() -> None:
+    findings = scan_unauthorized_guard_source(
+        '''
+import functools
+import app.safety.production_guard as pg
+import app.safety.segment_ledger as sl
+from app.safety.segment_ledger import (
+    AuditKeyRevisionStore,
+    DurableAuditLedger,
+    DurableAuditSink,
+    _LEDGER_CONSTRUCTOR,
+)
+
+store = AuditKeyRevisionStore(object())
+ledger_alias = DurableAuditLedger
+ledger = ledger_alias(object(), store, epoch_id="E", initial_revision_id="K")
+sink = functools.partial(DurableAuditSink, ledger)()
+raw = DurableAuditLedger.__new__(DurableAuditLedger)
+class CustomLedger(DurableAuditLedger):
+    pass
+bundle = pg._create_test_durable_boundary(object())
+authority = pg._AuditAuthority(object())
+token = sl._LEDGER_CONSTRUCTOR
+constant_lookup = getattr(sl, "DurableAuditLedger")
+dynamic_lookup = getattr(sl, input())
+module_vars = vars(sl)
+module_dict = sl.__dict__
+object_lookup = object.__getattribute__(sl, "DurableAuditLedger")
+setattr(raw, "_storage", object())
+raw._sealed_code = None
+sl._SEGMENT_ROOT = object()
+''',
+    )
+    rendered = "\n".join(detail for _file, _line, detail in findings)
+    for symbol in (
+        "AuditKeyRevisionStore",
+        "DurableAuditLedger",
+        "DurableAuditSink",
+        "_create_test_durable_boundary",
+        "_AuditAuthority",
+        "_LEDGER_CONSTRUCTOR",
+    ):
+        assert symbol in rendered
+    assert "subclass" in rendered
+    assert "dynamic safety attribute lookup" in rendered
+    assert "dynamic safety module dictionary lookup" in rendered
+    assert "safety module __dict__ lookup" in rendered
+    assert "reflective safety attribute lookup" in rendered
+    assert "private state assignment _storage" in rendered
+    assert "private state assignment _sealed_code" in rendered
+    assert "private state assignment _SEGMENT_ROOT" in rendered
+
+
+@pytest.mark.parametrize(
+    ("source", "expected"),
+    (
+        (
+            "from app.safety.production_guard import "
+            "_AUDIT_AUTHORITY_CONSTRUCTOR\n"
+            "token = _AUDIT_AUTHORITY_CONSTRUCTOR\n",
+            (
+                (
+                    "app/synthetic.py",
+                    1,
+                    "private import _AUDIT_AUTHORITY_CONSTRUCTOR",
+                ),
+                (
+                    "app/synthetic.py",
+                    2,
+                    "forbidden symbol reference "
+                    "app.safety.production_guard._AUDIT_AUTHORITY_CONSTRUCTOR",
+                ),
+            ),
+        ),
+        (
+            "import app.safety.segment_ledger as sl\n"
+            "token = sl._LEDGER_CONSTRUCTOR\n",
+            (
+                (
+                    "app/synthetic.py",
+                    2,
+                    "forbidden symbol reference "
+                    "app.safety.segment_ledger._LEDGER_CONSTRUCTOR",
+                ),
+            ),
+        ),
+        (
+            "class Holder: pass\n"
+            "raw = Holder()\n"
+            "raw._policy = object()\n",
+            (("app/synthetic.py", 3, "private state assignment _policy"),),
+        ),
+        (
+            "class Holder: pass\n"
+            "raw = Holder()\n"
+            "raw._mutex_name = 'Local\\\\synthetic'\n",
+            (("app/synthetic.py", 3, "private state assignment _mutex_name"),),
+        ),
+        (
+            "from app.safety.segment_ledger import AuditKeyRevisionStore\n"
+            "store = AuditKeyRevisionStore(object())\n",
+            (
+                ("app/synthetic.py", 1, "private import AuditKeyRevisionStore"),
+                (
+                    "app/synthetic.py",
+                    2,
+                    "constructor app.safety.segment_ledger.AuditKeyRevisionStore",
+                ),
+                (
+                    "app/synthetic.py",
+                    2,
+                    "forbidden symbol reference "
+                    "app.safety.segment_ledger.AuditKeyRevisionStore",
+                ),
+            ),
+        ),
+        (
+            "from app.safety.segment_ledger import DurableAuditLedger\n"
+            "Alias = DurableAuditLedger\n"
+            "ledger = Alias(object(), object(), epoch_id='E', "
+            "initial_revision_id='K')\n",
+            (
+                ("app/synthetic.py", 1, "private import DurableAuditLedger"),
+                (
+                    "app/synthetic.py",
+                    2,
+                    "forbidden symbol reference "
+                    "app.safety.segment_ledger.DurableAuditLedger",
+                ),
+                (
+                    "app/synthetic.py",
+                    3,
+                    "constructor app.safety.segment_ledger.DurableAuditLedger",
+                ),
+                (
+                    "app/synthetic.py",
+                    3,
+                    "forbidden symbol reference "
+                    "app.safety.segment_ledger.DurableAuditLedger",
+                ),
+            ),
+        ),
+        (
+            "import functools\n"
+            "from app.safety.segment_ledger import DurableAuditSink\n"
+            "sink = functools.partial(DurableAuditSink, object())()\n",
+            (
+                ("app/synthetic.py", 2, "private import DurableAuditSink"),
+                (
+                    "app/synthetic.py",
+                    3,
+                    "forbidden symbol reference "
+                    "app.safety.segment_ledger.DurableAuditSink",
+                ),
+            ),
+        ),
+        (
+            "from app.safety.segment_ledger import DurableAuditLedger\n"
+            "raw = DurableAuditLedger.__new__(DurableAuditLedger)\n",
+            (
+                ("app/synthetic.py", 1, "private import DurableAuditLedger"),
+                (
+                    "app/synthetic.py",
+                    2,
+                    "forbidden symbol reference "
+                    "app.safety.segment_ledger.DurableAuditLedger",
+                ),
+            ),
+        ),
+        (
+            "from app.safety.segment_ledger import DurableAuditLedger\n"
+            "class CustomLedger(DurableAuditLedger):\n"
+            "    pass\n",
+            (
+                ("app/synthetic.py", 1, "private import DurableAuditLedger"),
+                (
+                    "app/synthetic.py",
+                    2,
+                    "forbidden symbol reference "
+                    "app.safety.segment_ledger.DurableAuditLedger",
+                ),
+                (
+                    "app/synthetic.py",
+                    2,
+                    "subclass app.safety.segment_ledger.DurableAuditLedger",
+                ),
+            ),
+        ),
+        (
+            "import app.safety.production_guard as pg\n"
+            "bundle = pg._create_test_durable_boundary(object())\n",
+            (
+                (
+                    "app/synthetic.py",
+                    2,
+                    "constructor "
+                    "app.safety.production_guard._create_test_durable_boundary",
+                ),
+                (
+                    "app/synthetic.py",
+                    2,
+                    "forbidden symbol reference "
+                    "app.safety.production_guard._create_test_durable_boundary",
+                ),
+            ),
+        ),
+        (
+            "import app.safety.production_guard as pg\n"
+            "authority = pg._AuditAuthority(object())\n",
+            (
+                (
+                    "app/synthetic.py",
+                    2,
+                    "constructor app.safety.production_guard._AuditAuthority",
+                ),
+                (
+                    "app/synthetic.py",
+                    2,
+                    "forbidden symbol reference "
+                    "app.safety.production_guard._AuditAuthority",
+                ),
+            ),
+        ),
+        (
+            "import app.safety.segment_ledger as sl\n"
+            "value = getattr(sl, 'DurableAuditLedger')\n",
+            (
+                ("app/synthetic.py", 2, "dynamic safety attribute lookup"),
+                (
+                    "app/synthetic.py",
+                    2,
+                    "forbidden symbol reference "
+                    "app.safety.segment_ledger.DurableAuditLedger",
+                ),
+            ),
+        ),
+        (
+            "import app.safety.segment_ledger as sl\n"
+            "value = getattr(sl, input())\n",
+            (("app/synthetic.py", 2, "dynamic safety attribute lookup"),),
+        ),
+        (
+            "import app.safety.segment_ledger as sl\n"
+            "value = vars(sl)\n",
+            (
+                (
+                    "app/synthetic.py",
+                    2,
+                    "dynamic safety module dictionary lookup",
+                ),
+            ),
+        ),
+        (
+            "import app.safety.segment_ledger as sl\n"
+            "value = sl.__dict__\n",
+            (("app/synthetic.py", 2, "safety module __dict__ lookup"),),
+        ),
+        (
+            "import app.safety.segment_ledger as sl\n"
+            "value = object.__getattribute__(sl, 'DurableAuditLedger')\n",
+            (("app/synthetic.py", 2, "reflective safety attribute lookup"),),
+        ),
+        (
+            "class Holder: pass\n"
+            "raw = Holder()\n"
+            "raw._storage = object()\n",
+            (("app/synthetic.py", 3, "private state assignment _storage"),),
+        ),
+        (
+            "class Holder: pass\n"
+            "raw = Holder()\n"
+            "raw._sealed_code = None\n",
+            (("app/synthetic.py", 3, "private state assignment _sealed_code"),),
+        ),
+        (
+            "import app.safety.segment_ledger as sl\n"
+            "sl._SEGMENT_ROOT = object()\n",
+            (("app/synthetic.py", 2, "private state assignment _SEGMENT_ROOT"),),
+        ),
+    ),
+)
+def test_each_durable_authority_bypass_route_has_an_exact_canary(
+    source: str,
+    expected: tuple[tuple[str, int, str], ...],
+) -> None:
+    assert scan_unauthorized_guard_source(source) == expected
 
 
 def test_no_current_production_module_bypasses_fixed_boundary() -> None:

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 import subprocess
 import sys
@@ -23,6 +24,7 @@ from scripts.run_safe_pytest import (
     _run_test_process,
     _snapshot_changes,
     _verify_run_tree_no_reparse,
+    _write_json_exclusive,
     main,
 )
 
@@ -74,6 +76,19 @@ def test_run_id_contract_accepts_a_unique_safe_identifier() -> None:
     assert RUN_ID_PATTERN.fullmatch("RUN-20260711-M0-S1-UNIT-001")
 
 
+def test_evidence_json_round_trips_an_unpaired_utf16_code_unit(
+    tmp_path: Path,
+) -> None:
+    evidence = tmp_path / "evidence.json"
+    value = "malformed-\udedf-name"
+
+    _write_json_exclusive(evidence, {"value": value})
+
+    raw = evidence.read_bytes()
+    assert b"\\udedf" in raw
+    assert json.loads(raw)["value"] == value
+
+
 def test_component_containment_rejects_test2_prefix(tmp_path: Path) -> None:
     allowed = tmp_path / "Test"
     sibling = tmp_path / "Test2" / "RUN-SAFE-001"
@@ -123,6 +138,7 @@ def test_writer_mode_has_a_fixed_non_injectable_regression_selection(
         "-m",
         "pytest",
         "tests/test_windows_handle_writer.py",
+        "tests/test_segment_ledger.py",
         "tests/test_workspace_guard.py",
         "tests/test_workspace_policy.py",
         "tests/test_write_entry_inventory.py",

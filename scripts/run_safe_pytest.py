@@ -404,7 +404,10 @@ class _WindowsProtectedTreeWatcher:
             ):
                 raise SafetyStop("protected-tree monitor returned an invalid event name")
             encoded_name = raw[offset + 12 : name_end]
-            name = str(encoded_name, "utf-16-le", "strict")
+            # NTFS can preserve an unpaired UTF-16 code unit in a name created
+            # through a malformed native buffer.  Such residue must remain
+            # observable to the safety monitor instead of crashing its decoder.
+            name = str(encoded_name, "utf-16-le", "surrogatepass")
             candidate = self._event_candidate(name)
             if _same_path(candidate, self._arm_path):
                 self._armed.set()
@@ -899,7 +902,10 @@ def _snapshot_changes(
 
 def _write_json_exclusive(path: Path, payload: dict[str, Any]) -> None:
     with path.open("x", encoding="utf-8", newline="\n") as handle:
-        json.dump(payload, handle, ensure_ascii=False, indent=2, sort_keys=True)
+        # ASCII escaping keeps evidence serializable even when a protected NTFS
+        # entry contains an unpaired UTF-16 code unit.  The escaped value remains
+        # deterministic and round-trips through json.load without data loss.
+        json.dump(payload, handle, ensure_ascii=True, indent=2, sort_keys=True)
         handle.write("\n")
 
 
@@ -923,6 +929,7 @@ def _build_command(
     elif mode == "writer":
         selection = [
             "tests/test_windows_handle_writer.py",
+            "tests/test_segment_ledger.py",
             "tests/test_workspace_guard.py",
             "tests/test_workspace_policy.py",
             "tests/test_write_entry_inventory.py",
@@ -1407,7 +1414,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "changed_source_inputs": protected_changes,
     }
     _write_json_exclusive(run_root / "run-result.json", result)
-    print(json.dumps(result, ensure_ascii=False, sort_keys=True))
+    print(json.dumps(result, ensure_ascii=True, sort_keys=True))
     return effective_exit_code
 
 

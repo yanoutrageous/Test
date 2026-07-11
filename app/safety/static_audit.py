@@ -13,7 +13,7 @@ from typing import Any, Iterable, Iterator
 from app.config import PROJECT_ROOT
 
 
-SCANNER_VERSION = "M0-S3-STATIC-AUDIT-V6"
+SCANNER_VERSION = "M0-S3-STATIC-AUDIT-V7"
 PRODUCTION_ROOTS = ("app", "scripts")
 SOURCE_SUFFIXES = (".py", ".sql")
 SOURCE_BYTE_NORMALIZATION = "UTF8_LF_V1"
@@ -150,6 +150,9 @@ _AUDITED_PARAMETER_CALLS = frozenset(
         ("app/safety/production_guard.py", "app.safety.production_guard.BoundaryFailure.from_exception", "c79a7efb8c986f3aad47d6e52803500aaeb3a8b29dd16eda839578ff442f6edc"),
         ("app/safety/production_guard.py", "app.safety.production_guard.BoundaryResult.success", "ce30e78555b675881df160a49c04f15b00fa763d383541d867fdafb4399101c5"),
         ("app/safety/production_guard.py", "app.safety.production_guard.BoundaryResult.failed", "8ba1a3a0d7db083f0416e6d6e782e667be0582bb136ba65a0b1c8800d9746411"),
+        ("app/safety/production_guard.py", "app.safety.production_guard._BoundaryCore._record_audit_factory", "732a4cffe97798d2d7168ac628c0b44418f5d7aa59d2b01a2c4e0bed5d6e8f95"),
+        ("app/safety/segment_ledger.py", "app.safety.segment_ledger.DurableAuditLedger.append_built_audit_batch", "cb759496c5a56f3ed8542517b7238a8f92e04a30717532b214115fceaad2d2fb"),
+        ("app/safety/segment_ledger.py", "app.safety.segment_ledger.DurableAuditLedger._append_with_factory", "2849fb89cafd0e4a3cf746128c483671a03e1e3dbfc33bab25e78916ff4afe08"),
     }
 )
 
@@ -232,6 +235,7 @@ class WritePrimitiveKind(StrEnum):
     ARCHIVE_EXTRACT = "ARCHIVE_EXTRACT"
     SQLITE_RAW_CONNECT = "SQLITE_RAW_CONNECT"
     DATABASE_GATEWAY = "DATABASE_GATEWAY"
+    DURABLE_LEDGER_GATEWAY = "DURABLE_LEDGER_GATEWAY"
     DATABASE_IMPLICIT_INITIALIZER = "DATABASE_IMPLICIT_INITIALIZER"
     SQLITE_MUTATION = "SQLITE_MUTATION"
     SQLITE_DYNAMIC_SQL = "SQLITE_DYNAMIC_SQL"
@@ -241,6 +245,7 @@ class WritePrimitiveKind(StrEnum):
     EXTERNAL_PROCESS = "EXTERNAL_PROCESS"
     NETWORK_REQUEST = "NETWORK_REQUEST"
     SYSTEM_STATE = "SYSTEM_STATE"
+    RUNTIME_SYNCHRONIZATION = "RUNTIME_SYNCHRONIZATION"
     NATIVE_API_BINDING = "NATIVE_API_BINDING"
     UNKNOWN_DYNAMIC_CAPABILITY = "UNKNOWN_DYNAMIC_CAPABILITY"
 
@@ -463,6 +468,13 @@ def scan_unauthorized_guard_source(
 def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
     findings: list[tuple[str, int, str]] = []
     allowed_file = "app/safety/production_guard.py"
+    ledger_file = "app/safety/segment_ledger.py"
+    safety_module_prefixes = (
+        "app.safety.production_guard",
+        "app.safety.namespace_policy",
+        "app.safety.windows_handle_writer",
+        "app.safety.segment_ledger",
+    )
     scope_aliases: dict[str, str] = dict(module.imports)
     for _ in range(8):
         changed = False
@@ -492,7 +504,19 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         "_BoundaryNamespacePolicy",
         "NamespacePolicy",
         "_WindowsHandleWriter",
+        "_WindowsApi",
         "_create_test_handle_writer",
+        "AuditKeyRevisionStore",
+        "DurableAuditLedger",
+        "DurableAuditSink",
+        "_AuditAuthority",
+        "_TestDurableBoundaryBundle",
+        "_create_test_durable_boundary",
+        "_AUDIT_AUTHORITY_CONSTRUCTOR",
+        "_LEDGER_CONSTRUCTOR",
+        "_HANDLE_WRITER_CONSTRUCTOR",
+        "_TOKEN_CONSTRUCTOR",
+        "_PAIR_CLAIM_CONSTRUCTOR",
     }
     forbidden_private_imports = {
         "_BoundaryCore",
@@ -505,7 +529,14 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         "_BoundaryNamespacePolicy",
         "_HANDLE_WRITER_CONSTRUCTOR",
         "_WindowsHandleWriter",
+        "_WindowsApi",
         "_create_test_handle_writer",
+        "_AUDIT_AUTHORITY_CONSTRUCTOR",
+        "_LEDGER_CONSTRUCTOR",
+        "_AuditAuthority",
+        "_TestDurableBoundaryBundle",
+        "_create_test_durable_boundary",
+        "_LedgerStorage",
     }
     sensitive_assignments = {
         "CONTRACT_PROJECT_ROOT",
@@ -527,6 +558,30 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         "__pair_policy_authority",
         "_HANDLE_WRITER_CONSTRUCTOR",
         "_path_authority",
+        "_AUDIT_AUTHORITY_CONSTRUCTOR",
+        "_storage",
+        "_key_store",
+        "_ledger",
+        "_sealed_code",
+        "_segments",
+        "_revisions",
+        "_batches",
+        "_record_ids",
+        "_head",
+        "_total_segment_bytes",
+        "_fresh_revision_ids",
+        "_epoch_id",
+        "_initial_revision_id",
+        "_master_key",
+        "_KEY_ROOT",
+        "_SEGMENT_ROOT",
+        "_mutex_name",
+        "_ACTIVE_MUTEX_NAMES",
+        "_LEDGER_CONSTRUCTOR",
+        "POLICY_ID",
+        "POLICY_VERSION",
+        "POLICY_DIGEST",
+        "EXPECTED_POLICY_DIGEST",
     }
     symbol_definition_files = {
         "WorkspaceGuard": {"app/workspace_guard.py", allowed_file},
@@ -543,7 +598,28 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
             allowed_file,
             "app/safety/windows_handle_writer.py",
         },
+        "_WindowsApi": {
+            allowed_file,
+            "app/safety/windows_handle_writer.py",
+        },
         "_create_test_handle_writer": {allowed_file},
+        "AuditKeyRevisionStore": {allowed_file, ledger_file},
+        "DurableAuditLedger": {allowed_file, ledger_file},
+        "DurableAuditSink": {allowed_file, ledger_file},
+        "_AuditAuthority": {allowed_file},
+        "_TestDurableBoundaryBundle": {allowed_file},
+        "_create_test_durable_boundary": {allowed_file},
+        "_AUDIT_AUTHORITY_CONSTRUCTOR": {allowed_file},
+        "_LEDGER_CONSTRUCTOR": {allowed_file, ledger_file},
+        "_HANDLE_WRITER_CONSTRUCTOR": {
+            allowed_file,
+            "app/safety/windows_handle_writer.py",
+        },
+        "_TOKEN_CONSTRUCTOR": {allowed_file},
+        "_PAIR_CLAIM_CONSTRUCTOR": {
+            allowed_file,
+            "app/safety/namespace_policy.py",
+        },
     }
     for node in ast.walk(module.tree):
         if isinstance(node, ast.ImportFrom):
@@ -551,13 +627,7 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
             for alias in node.names:
                 if (
                     module.file != allowed_file
-                    and base.startswith(
-                        (
-                            "app.safety.production_guard",
-                            "app.safety.namespace_policy",
-                            "app.safety.windows_handle_writer",
-                        )
-                    )
+                    and base.startswith(safety_module_prefixes)
                     and (
                         alias.name == "*"
                         or alias.name.startswith("_")
@@ -578,17 +648,26 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
                 findings.append(
                     (module.file, getattr(node, "lineno", 0), f"forbidden symbol reference {resolved}")
                 )
-        if isinstance(node, ast.ClassDef) and module.file != allowed_file:
+        if isinstance(node, ast.ClassDef):
             for base in node.bases:
                 resolved, _ = _resolve_callee(base, scope_aliases)
-                if resolved.rsplit(".", 1)[-1] in forbidden_constructors:
+                leaf = resolved.rsplit(".", 1)[-1]
+                if (
+                    leaf in forbidden_constructors
+                    and module.file
+                    not in symbol_definition_files.get(leaf, {allowed_file})
+                ):
                     findings.append(
                         (module.file, node.lineno, f"subclass {resolved}")
                     )
         if isinstance(node, ast.Call):
             callee, _ = _resolve_callee(node.func, scope_aliases)
             leaf = callee.rsplit(".", 1)[-1]
-            if leaf in forbidden_constructors and module.file != allowed_file:
+            if (
+                leaf in forbidden_constructors
+                and module.file
+                not in symbol_definition_files.get(leaf, {allowed_file})
+            ):
                 findings.append((module.file, node.lineno, f"constructor {callee}"))
             if leaf == "_NamespacePolicy__authorize":
                 enclosing = _enclosing_function_qualname(node, module.parents)
@@ -618,14 +697,13 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
                 receiver, _ = _resolve_callee(node.args[0], scope_aliases)
                 attribute = _constant_text(node.args[1])
                 if (
-                    receiver.startswith(
-                        (
-                            "app.safety.production_guard",
-                            "app.safety.namespace_policy",
-                            "app.safety.windows_handle_writer",
-                        )
+                    receiver.startswith(safety_module_prefixes)
+                    and (
+                        attribute is None
+                        or attribute in forbidden_constructors
+                        or attribute in forbidden_private_imports
+                        or attribute in sensitive_assignments
                     )
-                    and attribute is None
                     and module.file != allowed_file
                 ):
                     findings.append(
@@ -633,13 +711,7 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
                     )
             if leaf == "vars" and node.args:
                 receiver, _ = _resolve_callee(node.args[0], scope_aliases)
-                if receiver.startswith(
-                    (
-                        "app.safety.production_guard",
-                        "app.safety.namespace_policy",
-                        "app.safety.windows_handle_writer",
-                    )
-                ) and module.file != allowed_file:
+                if receiver.startswith(safety_module_prefixes) and module.file != allowed_file:
                     findings.append(
                         (module.file, node.lineno, "dynamic safety module dictionary lookup")
                     )
@@ -662,13 +734,7 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
                         receiver, _ = _resolve_callee(node.args[0], scope_aliases)
                 elif node.args:
                     receiver, _ = _resolve_callee(node.args[0], scope_aliases)
-                if receiver.startswith(
-                    (
-                        "app.safety.production_guard",
-                        "app.safety.namespace_policy",
-                        "app.safety.windows_handle_writer",
-                    )
-                ) and module.file != allowed_file:
+                if receiver.startswith(safety_module_prefixes) and module.file != allowed_file:
                     findings.append(
                         (module.file, node.lineno, "reflective safety attribute lookup")
                     )
@@ -679,13 +745,7 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
                     )
         if isinstance(node, ast.Attribute) and node.attr == "__dict__":
             receiver, _ = _resolve_callee(node.value, scope_aliases)
-            if receiver.startswith(
-                (
-                    "app.safety.production_guard",
-                    "app.safety.namespace_policy",
-                    "app.safety.windows_handle_writer",
-                )
-            ) and module.file != allowed_file:
+            if receiver.startswith(safety_module_prefixes) and module.file != allowed_file:
                 findings.append(
                     (module.file, node.lineno, "safety module __dict__ lookup")
                 )
@@ -709,7 +769,35 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
                     or (
                         module.file == "app/safety/windows_handle_writer.py"
                         and target_name
-                        in {"_HANDLE_WRITER_CONSTRUCTOR", "_path_authority"}
+                        in {
+                            "_HANDLE_WRITER_CONSTRUCTOR",
+                            "_path_authority",
+                            "_mutex_name",
+                            "_ACTIVE_MUTEX_NAMES",
+                        }
+                    )
+                    or (
+                        module.file == ledger_file
+                        and target_name
+                        in {
+                            "_storage",
+                            "_key_store",
+                            "_ledger",
+                            "_sealed_code",
+                            "_segments",
+                            "_revisions",
+                            "_batches",
+                            "_record_ids",
+                            "_head",
+                            "_epoch_id",
+                            "_initial_revision_id",
+                            "_master_key",
+                            "_KEY_ROOT",
+                            "_SEGMENT_ROOT",
+                            "_total_segment_bytes",
+                            "_fresh_revision_ids",
+                            "_LEDGER_CONSTRUCTOR",
+                        }
                     )
                     or (
                         module.file == "app/safety/namespace_policy.py"
@@ -721,6 +809,10 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
                             "_pair_authority",
                             "__pair_authority",
                             "_PAIR_CLAIM_CONSTRUCTOR",
+                            "POLICY_ID",
+                            "POLICY_VERSION",
+                            "POLICY_DIGEST",
+                            "EXPECTED_POLICY_DIGEST",
                         }
                     )
                 )
@@ -2079,6 +2171,12 @@ def _classify_call(
         return WritePrimitiveKind.SQLITE_RAW_CONNECT, "SQLite connection may create database/sidecars", None
     if leaf == "connect_database":
         return WritePrimitiveKind.DATABASE_GATEWAY, "legacy database gateway", None
+    if leaf == "publish_new_file":
+        return (
+            WritePrimitiveKind.DURABLE_LEDGER_GATEWAY,
+            "fixed durable ledger publication gateway",
+            ResolutionConfidence.CONSERVATIVE,
+        )
     if leaf == "initialize_database":
         return WritePrimitiveKind.DATABASE_IMPLICIT_INITIALIZER, "implicit schema/directory initialization", None
     if leaf in {"execute", "executemany", "executescript"}:
@@ -2204,6 +2302,12 @@ def _classify_call(
         return (
             WritePrimitiveKind.EXTERNAL_PROCESS,
             "Win32 process or Job Object control",
+            ResolutionConfidence.CONSERVATIVE,
+        )
+    if leaf in {"createmutexw", "waitforsingleobject", "releasemutex"}:
+        return (
+            WritePrimitiveKind.RUNTIME_SYNCHRONIZATION,
+            "Win32 Local named-mutex synchronization",
             ResolutionConfidence.CONSERVATIVE,
         )
     native_read_only = {
@@ -3092,6 +3196,10 @@ def _target_namespace(raw: _RawEntry) -> str:
         return "PROCESS_DEFAULT_DENY"
     if raw.kind is WritePrimitiveKind.SYSTEM_STATE:
         return "SYSTEM_STATE_DEFAULT_DENY"
+    if raw.kind is WritePrimitiveKind.RUNTIME_SYNCHRONIZATION:
+        return "WINDOWS_LOCAL_NAMED_MUTEX"
+    if raw.kind is WritePrimitiveKind.DURABLE_LEDGER_GATEWAY:
+        return "FIXED_DURABLE_LEDGER_STORE"
     if raw.kind is WritePrimitiveKind.NATIVE_API_BINDING:
         return "NATIVE_API_FIXED_LIBRARY_AND_SYMBOL_ALLOWLIST"
     if raw.kind is WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY:
@@ -3115,6 +3223,10 @@ def _required_control(kind: WritePrimitiveKind) -> str:
         return "S3_NETWORK_DEFAULT_DENY_LOOPBACK_ALLOWLIST"
     if kind is WritePrimitiveKind.EXTERNAL_PROCESS:
         return "S3_CONTROLLED_PROCESS_WRAPPER"
+    if kind is WritePrimitiveKind.RUNTIME_SYNCHRONIZATION:
+        return "S3_FIXED_CONTRACT_ROOT_RUNTIME_MUTEX"
+    if kind is WritePrimitiveKind.DURABLE_LEDGER_GATEWAY:
+        return "S3_FIXED_FACTORY_HANDLE_PUBLISH_AND_CHAIN_VALIDATION"
     if kind in {WritePrimitiveKind.ARCHIVE_WRITE, WritePrimitiveKind.ARCHIVE_EXTRACT}:
         return "S3_ARCHIVE_MANIFEST_AND_ZIP_SLIP_GATE"
     if kind in {WritePrimitiveKind.FILESYSTEM_DELETE, WritePrimitiveKind.FILESYSTEM_MOVE_OR_REPLACE}:
@@ -3161,6 +3273,7 @@ def _risk_level(kind: WritePrimitiveKind) -> RiskLevel:
         WritePrimitiveKind.EXTERNAL_PROCESS,
         WritePrimitiveKind.NETWORK_REQUEST,
         WritePrimitiveKind.SYSTEM_STATE,
+        WritePrimitiveKind.DURABLE_LEDGER_GATEWAY,
         WritePrimitiveKind.NATIVE_API_BINDING,
         WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY,
     }:

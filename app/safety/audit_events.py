@@ -224,7 +224,15 @@ def create_audit_event(
     canonical_path = _canonical_relative_path(relative_path)
     if canonical_path is None:
         visible_path = None
-        path_hmac = None
+        path_hmac = (
+            _hmac_hex(
+                audit_hmac_key,
+                b"AUDIT-NO-PATH-V1\0",
+                "ABSENT",
+            )
+            if use_hmac_path
+            else None
+        )
         path_depth = None
     elif use_hmac_path:
         visible_path = None

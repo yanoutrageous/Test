@@ -327,7 +327,7 @@ def test_policy_uses_longest_component_prefix_and_stable_digest() -> None:
     assert policy.classify(Path("data/db/question_bank.sqlite3-wal")).namespace is NamespaceId.DATABASE_SIDECAR
     assert policy.classify(Path("data/db/question_bank.sqlite3")).namespace is NamespaceId.ACTIVE_DATABASE
     assert NamespacePolicy(tuple(reversed(DEFAULT_RULES))).digest == policy.digest
-    assert policy.digest == "315a036ad41c1ac77379c430fc667de470e03376513d9fd8cb6f92d6ae0110b4"
+    assert policy.digest == "8df50ded63443c3310603614fd6d317234ce026c351870d0488a84dd1cfe4d88"
     with pytest.raises(ValueError, match="no exact grant"):
         NamespacePolicy(DEFAULT_RULES, grants=())
 
@@ -623,15 +623,18 @@ def test_policy_constructor_rejects_malformed_rules_and_grants() -> None:
     with pytest.raises(ValueError, match="actor, purpose, or kind"):
         NamespacePolicy(grants=malformed_grants)
 
-    append_rule = next(rule for rule in DEFAULT_RULES if rule.mode is NamespaceMode.APPEND_ONLY)
-    malformed_append = replace(
-        append_rule,
-        normal_intents=append_rule.normal_intents | frozenset({PathIntent.EXISTING_WRITE}),
+    ledger_rule = next(
+        rule for rule in DEFAULT_RULES if rule.namespace is NamespaceId.AUDIT_LOG
+    )
+    malformed_ledger = replace(
+        ledger_rule,
+        normal_intents=ledger_rule.normal_intents | frozenset({PathIntent.NEW_WRITE}),
+        normal_mutation_kinds=frozenset({ExpectedKind.FILE}),
     )
     malformed_rules = tuple(
-        malformed_append if rule is append_rule else rule for rule in DEFAULT_RULES
+        malformed_ledger if rule is ledger_rule else rule for rule in DEFAULT_RULES
     )
-    with pytest.raises(ValueError, match="append-only"):
+    with pytest.raises(ValueError, match="read-only"):
         NamespacePolicy(malformed_rules)
 
 
@@ -670,6 +673,7 @@ def test_policy_constructor_enforces_mode_semantics(
         NamespaceId.COPY_WORK_RESTRICTED,
         NamespaceId.JOB_WORKSPACE_RESTRICTED,
         NamespaceId.QUARANTINE_RESTRICTED,
+        NamespaceId.AUDIT_KEY_REVISION,
     ],
 )
 def test_policy_constructor_cannot_downgrade_restricted_partitions(
@@ -921,22 +925,17 @@ def test_internal_read_metadata_must_equal_exact_grants(
 
 @pytest.mark.parametrize(
     "namespace",
-    [NamespaceId.COPY_LEDGER, NamespaceId.AUDIT_LOG],
+    [
+        NamespaceId.COPY_LEDGER,
+        NamespaceId.AUDIT_LOG,
+        NamespaceId.AUDIT_KEY_REVISION,
+    ],
 )
-def test_policy_constructor_cannot_remove_required_audit_scopes(
-    namespace: NamespaceId,
-) -> None:
-    grant = next(
-        grant
+def test_public_policy_has_no_direct_ledger_mutation_grant(namespace: NamespaceId) -> None:
+    assert not any(
+        grant.namespace is namespace and grant.intent.mutating
         for grant in EXACT_GRANTS
-        if grant.namespace is namespace
-        and grant.intent is PathIntent.APPEND_EXISTING
-        and grant.required_scopes
     )
-    weakened = replace(grant, required_scopes=frozenset())
-    grants = tuple(weakened if candidate is grant else candidate for candidate in EXACT_GRANTS)
-    with pytest.raises(ValueError, match="required scopes"):
-        NamespacePolicy(grants=grants)
 
 
 def test_read_permissions_are_explicit_and_default_deny() -> None:
@@ -1096,12 +1095,14 @@ def test_active_database_and_sidecars_are_exact_database_capabilities() -> None:
             )
 
 
-def test_append_namespaces_are_fixed_files_not_arbitrary_trees() -> None:
+def test_segment_namespaces_are_fixed_read_only_files_not_direct_write_surfaces() -> None:
     policy = NamespacePolicy()
     allowed = policy.authorize(
         _ticket(
-            "Copy/ledger/events.jsonl",
-            intent=PathIntent.APPEND_EXISTING,
+            "Copy/ledger/segments/COPY-001/00000000000000000000-"
+            + "a" * 64
+            + ".json",
+            intent=PathIntent.EXISTING_READ,
             expected_kind=ExpectedKind.FILE,
             exists=True,
         ),
@@ -1113,14 +1114,58 @@ def test_append_namespaces_are_fixed_files_not_arbitrary_trees() -> None:
     )
     assert allowed.namespace is NamespaceId.COPY_LEDGER
     for path, intent, kind in (
-        ("Copy/ledger/other.jsonl", PathIntent.NEW_WRITE, ExpectedKind.FILE),
-        ("Copy/ledger/events.jsonl/child", PathIntent.NEW_WRITE, ExpectedKind.FILE),
+        ("Copy/ledger/events.jsonl", PathIntent.EXISTING_READ, ExpectedKind.FILE),
+        (
+            "Copy/ledger/segments/COPY-001/00000000000000000000-" + "a" * 64 + ".json",
+            PathIntent.NEW_WRITE,
+            ExpectedKind.FILE,
+        ),
+        ("Copy/ledger/segments/COPY-001", PathIntent.CREATE_DIRECTORY, ExpectedKind.DIRECTORY),
         ("Copy/ledger", PathIntent.CREATE_DIRECTORY, ExpectedKind.DIRECTORY),
     ):
         with pytest.raises(NamespacePolicyError):
             policy.authorize(
                 _ticket(path, intent=intent, expected_kind=kind),
                 _context(caller=Caller.IMPORT_SERVICE, purpose=Purpose.COPY_SOURCE),
+            )
+
+
+def test_audit_key_revision_is_restricted_read_only_and_not_report_visible() -> None:
+    policy = NamespacePolicy()
+    path = "logs/audit/keys/00000001-KEYREV-ONE-" + "b" * 64 + ".json"
+    allowed = policy.authorize(
+        _ticket(
+            path,
+            intent=PathIntent.EXISTING_READ,
+            expected_kind=ExpectedKind.FILE,
+            exists=True,
+        ),
+        _context(
+            caller=Caller.AUDIT_SERVICE,
+            purpose=Purpose.READ_CONTROL,
+            classification=DataClassification.RESTRICTED,
+        ),
+    )
+    assert allowed.namespace is NamespaceId.AUDIT_KEY_REVISION
+    assert allowed.effective_classification is DataClassification.RESTRICTED
+    for caller, purpose, classification, intent in (
+        (Caller.REPORT_SERVICE, Purpose.READ_CONTROL, DataClassification.RESTRICTED, PathIntent.EXISTING_READ),
+        (Caller.AUDIT_SERVICE, Purpose.READ_CONTROL, DataClassification.INTERNAL, PathIntent.EXISTING_READ),
+        (Caller.AUDIT_SERVICE, Purpose.READ_CONTROL, DataClassification.RESTRICTED, PathIntent.NEW_WRITE),
+    ):
+        with pytest.raises(NamespacePolicyError):
+            policy.authorize(
+                _ticket(
+                    path,
+                    intent=intent,
+                    expected_kind=ExpectedKind.FILE,
+                    exists=intent is PathIntent.EXISTING_READ,
+                ),
+                _context(
+                    caller=caller,
+                    purpose=purpose,
+                    classification=classification,
+                ),
             )
 
 
@@ -1138,8 +1183,10 @@ def test_exact_grants_reject_caller_purpose_cross_products(
     with pytest.raises(NamespacePolicyError):
         NamespacePolicy().authorize(
             _ticket(
-                "Copy/ledger/events.jsonl",
-                intent=PathIntent.APPEND_EXISTING,
+                "Copy/ledger/segments/COPY-001/00000000000000000000-"
+                + "a" * 64
+                + ".json",
+                intent=PathIntent.EXISTING_READ,
                 expected_kind=ExpectedKind.FILE,
                 exists=True,
             ),

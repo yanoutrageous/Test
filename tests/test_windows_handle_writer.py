@@ -20,8 +20,10 @@ from app.safety.windows_handle_writer import (
     _ByHandleFileInformation,
     _FileAttributeTagInfo,
     _FileBasicInfo,
+    _FileIdBothDirectoryInfo,
     _FileId128,
     _FileIdInfo,
+    _FileRenameInfo,
     _FileStandardInfo,
     _WindowsApi,
     _WindowsHandleWriter,
@@ -100,6 +102,62 @@ def test_ctypes_structures_match_the_64_bit_windows_abi() -> None:
     assert _FileStandardInfo.delete_pending.offset == 20
     assert _FileStandardInfo.directory.offset == 21
     assert ctypes.sizeof(_ByHandleFileInformation) == 52
+    assert _FileRenameInfo.root_directory.offset == 8
+    assert _FileRenameInfo.file_name_length.offset == 16
+    assert _FileRenameInfo.file_name.offset == 20
+    assert ctypes.sizeof(_FileRenameInfo) == 24
+    assert _FileIdBothDirectoryInfo.file_attributes.offset == 56
+    assert _FileIdBothDirectoryInfo.short_name.offset == 70
+    assert _FileIdBothDirectoryInfo.file_id.offset == 96
+    assert _FileIdBothDirectoryInfo.file_name.offset == 104
+    assert ctypes.sizeof(_FileIdBothDirectoryInfo) == 112
+
+
+def test_rename_info_has_a_wchar_terminator_outside_the_declared_name() -> None:
+    captured: dict[str, bytes | int] = {}
+
+    class _Kernel:
+        @staticmethod
+        def SetFileInformationByHandle(
+            handle: int,
+            information_class: int,
+            buffer: object,
+            buffer_size: int,
+        ) -> int:
+            captured["handle"] = handle
+            captured["information_class"] = information_class
+            captured["buffer"] = ctypes.string_at(buffer, buffer_size)
+            captured["buffer_size"] = buffer_size
+            return 1
+
+    api = object.__new__(_WindowsApi)
+    api.kernel32 = _Kernel()
+    target = Path(r"D:\合成项目\0001-final.json")
+
+    api.rename_by_handle_no_replace(41, target)
+
+    encoded = str(target).encode("utf-16-le")
+    raw = captured["buffer"]
+    assert isinstance(raw, bytes)
+    offset = _FileRenameInfo.file_name.offset
+    assert captured["handle"] == 41
+    assert captured["information_class"] == _WindowsApi.FILE_RENAME_INFO
+    assert captured["buffer_size"] == offset + len(encoded) + 2
+    assert raw[offset : offset + len(encoded)] == encoded
+    assert raw[offset + len(encoded) : offset + len(encoded) + 2] == b"\0\0"
+    rename = _FileRenameInfo.from_buffer_copy(raw[: ctypes.sizeof(_FileRenameInfo)])
+    assert rename.replace_if_exists == 0
+    assert rename.root_directory is None
+    assert rename.file_name_length == len(encoded)
+
+
+def test_rename_info_rejects_an_embedded_nul_before_native_call() -> None:
+    api = object.__new__(_WindowsApi)
+
+    with pytest.raises(HandleWriterError) as captured:
+        api.rename_by_handle_no_replace(41, Path("invalid\0target.json"))
+
+    assert captured.value.code is HandleWriterCode.INVALID_REQUEST
 
 
 def test_factory_requires_current_launcher_token(
@@ -573,7 +631,7 @@ def test_short_write_fails_and_retains_unpublished_residue(
     assert residue.read_bytes() == payload[:3]
     with pytest.raises(HandleWriterError) as replay:
         writer.create_file(ticket, payload, expected_sha256=_sha256(payload))
-    assert replay.value.code is HandleWriterCode.TICKET_ALREADY_USED
+    assert replay.value.code is HandleWriterCode.WRITER_SEALED
 
 
 def test_same_length_corrupt_append_is_rejected_by_expected_after_hash(
@@ -837,7 +895,378 @@ def test_flush_failure_never_returns_success_and_consumes_ticket(
     assert (handle_lab.project / "flush-failure.staging").read_bytes() == payload
     with pytest.raises(HandleWriterError) as replay:
         writer.create_file(ticket, payload, expected_sha256=_sha256(payload))
-    assert replay.value.code is HandleWriterCode.TICKET_ALREADY_USED
+    assert replay.value.code is HandleWriterCode.WRITER_SEALED
+    with pytest.raises(HandleWriterError) as sealed:
+        writer.authorize_create_file("create-failure-must-not-open.bin")
+    assert sealed.value.code is HandleWriterCode.WRITER_SEALED
+
+
+def test_append_post_write_failure_seals_all_following_writes(
+    handle_lab: _HandleLab,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    writer = handle_lab.writer
+    target = handle_lab.project / "append-seal.bin"
+    target.write_bytes(b"before")
+    ticket = writer.authorize_append_file(target.name)
+
+    def fail_flush(_handle: int) -> None:
+        raise HandleWriterError(HandleWriterCode.FLUSH_FAILED, "injected append flush failure")
+
+    monkeypatch.setattr(writer, "_flush", fail_flush)
+    with pytest.raises(HandleWriterError) as captured:
+        writer.append_file(
+            ticket,
+            b"after",
+            expected_before_size=6,
+            expected_before_sha256=_sha256(b"before"),
+        )
+
+    assert captured.value.code is HandleWriterCode.FLUSH_FAILED
+    with pytest.raises(HandleWriterError) as sealed:
+        writer.authorize_create_file("must-not-open.bin")
+    assert sealed.value.code is HandleWriterCode.WRITER_SEALED
+
+
+def test_no_replace_publish_reopens_and_verifies_chinese_final_file(
+    handle_lab: _HandleLab,
+) -> None:
+    writer = handle_lab.writer
+    directory = handle_lab.project / "账本"
+    directory.mkdir()
+    payload = "不可变段\n".encode("utf-8")
+
+    receipt = writer.publish_new_file(
+        Path("账本") / "PENDING-0001.json",
+        Path("账本") / "0001-final.json",
+        payload,
+        expected_sha256=_sha256(payload),
+    )
+
+    assert not (directory / "PENDING-0001.json").exists()
+    assert (directory / "0001-final.json").read_bytes() == payload
+    assert receipt.operation == "PUBLISH_NEW_FILE"
+    assert receipt.sha256 == _sha256(payload)
+
+
+def test_publish_source_handle_uses_exact_access_share_and_flags(
+    handle_lab: _HandleLab,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    writer = handle_lab.writer
+    directory = handle_lab.project / "source-flags"
+    directory.mkdir()
+    staging = directory / "PENDING-0001.json"
+    calls: list[tuple[Path, dict[str, int]]] = []
+    original_open = writer._api.open_handle
+
+    def traced_open(path: Path, **kwargs: int) -> int:
+        calls.append((Path(path), dict(kwargs)))
+        return original_open(path, **kwargs)
+
+    monkeypatch.setattr(writer._api, "open_handle", traced_open)
+    writer.publish_new_file(
+        Path("source-flags") / staging.name,
+        Path("source-flags") / "0001-final.json",
+        b"exact-flags",
+        expected_sha256=_sha256(b"exact-flags"),
+    )
+
+    source_calls = [
+        kwargs
+        for path, kwargs in calls
+        if path == staging and kwargs["disposition"] == writer._api.CREATE_NEW
+    ]
+    assert source_calls == [
+        {
+            "access": (
+                writer._api.GENERIC_READ
+                | writer._api.GENERIC_WRITE
+                | writer._api.DELETE
+            ),
+            "share": writer._api.FILE_SHARE_READ,
+            "disposition": writer._api.CREATE_NEW,
+            "flags": (
+                writer._api.FILE_ATTRIBUTE_NORMAL
+                | writer._api.FILE_FLAG_OPEN_REPARSE_POINT
+                | writer._api.FILE_FLAG_WRITE_THROUGH
+            ),
+        }
+    ]
+
+
+def test_publish_source_share_blocks_external_path_rename_before_publish(
+    handle_lab: _HandleLab,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    writer = handle_lab.writer
+    directory = handle_lab.project / "source-share"
+    directory.mkdir()
+    blocked_target = directory / "external-rename-must-not-exist.json"
+    observed_errors: list[int | None] = []
+
+    def attempt_external_rename(staging: object, _target: object) -> None:
+        with pytest.raises(OSError) as captured:
+            os.replace(staging.path, blocked_target)
+        observed_errors.append(getattr(captured.value, "winerror", None))
+
+    monkeypatch.setattr(writer, "_after_stage_verified", attempt_external_rename)
+    writer.publish_new_file(
+        Path("source-share") / "PENDING-0001.json",
+        Path("source-share") / "0001-final.json",
+        b"share-fence",
+        expected_sha256=_sha256(b"share-fence"),
+    )
+
+    assert observed_errors == [32]
+    assert not blocked_target.exists()
+    assert {path.name for path in directory.iterdir()} == {"0001-final.json"}
+
+
+def test_publish_rejects_real_staging_hardlink_race_and_seals(
+    handle_lab: _HandleLab,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    writer = handle_lab.writer
+    directory = handle_lab.project / "source-hardlink-race"
+    directory.mkdir()
+    staging = directory / "PENDING-0001.json"
+    final = directory / "0001-final.json"
+    alias = directory / "synthetic-hardlink-alias.json"
+    payload = b"hardlink-race-payload"
+    blocked_write_errors: list[int | None] = []
+
+    def add_hardlink_after_verified_stage(
+        staged_ticket: object,
+        _target_ticket: object,
+    ) -> None:
+        with pytest.raises(HandleWriterError) as blocked:
+            writer._api.open_handle(
+                staged_ticket.path,
+                access=writer._api.GENERIC_WRITE,
+                share=(
+                    writer._api.FILE_SHARE_READ
+                    | writer._api.FILE_SHARE_WRITE
+                    | writer._api.FILE_SHARE_DELETE
+                ),
+                disposition=writer._api.OPEN_EXISTING,
+                flags=writer._api.FILE_FLAG_OPEN_REPARSE_POINT,
+            )
+        blocked_write_errors.append(blocked.value.winerror)
+        os.link(staged_ticket.path, alias)
+
+    monkeypatch.setattr(
+        writer,
+        "_after_stage_verified",
+        add_hardlink_after_verified_stage,
+    )
+    try:
+        with pytest.raises(HandleWriterError) as captured:
+            writer.publish_new_file(
+                Path("source-hardlink-race") / staging.name,
+                Path("source-hardlink-race") / final.name,
+                payload,
+                expected_sha256=_sha256(payload),
+            )
+
+        assert captured.value.code is HandleWriterCode.POSTCONDITION_FAILED
+        assert blocked_write_errors == [32]
+        assert not staging.exists()
+        assert final.read_bytes() == payload
+        assert alias.read_bytes() == payload
+        assert os.stat(final).st_nlink == 2
+        with pytest.raises(HandleWriterError) as sealed:
+            writer.authorize_create_file("blocked-after-hardlink-race.bin")
+        assert sealed.value.code is HandleWriterCode.WRITER_SEALED
+    finally:
+        if alias.exists():
+            (directory / "hardlink-race-cleanup.json").write_text(
+                json.dumps(
+                    {
+                        "action": "unlink-exact-synthetic-hardlink-alias",
+                        "alias": alias.name,
+                        "final": final.name,
+                        "sha256": _sha256(payload),
+                    },
+                    ensure_ascii=True,
+                    sort_keys=True,
+                )
+                + "\n",
+                encoding="utf-8",
+                newline="\n",
+            )
+            alias.unlink()
+
+    assert final.read_bytes() == payload
+    assert os.stat(final).st_nlink == 1
+
+
+def test_no_replace_publish_conflict_preserves_both_files_and_seals(
+    handle_lab: _HandleLab,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    writer = handle_lab.writer
+    directory = handle_lab.project / "conflict-ledger"
+    directory.mkdir()
+    final = directory / "0001-final.json"
+
+    def create_racing_target(_staging: object, _target: object) -> None:
+        final.write_bytes(b"existing")
+
+    monkeypatch.setattr(writer, "_after_stage_verified", create_racing_target)
+
+    with pytest.raises(HandleWriterError) as captured:
+        writer.publish_new_file(
+            Path("conflict-ledger") / "PENDING-0001.json",
+            Path("conflict-ledger") / final.name,
+            b"candidate",
+            expected_sha256=_sha256(b"candidate"),
+        )
+
+    assert captured.value.code is HandleWriterCode.TARGET_CONFLICT
+    assert final.read_bytes() == b"existing"
+    assert (directory / "PENDING-0001.json").read_bytes() == b"candidate"
+    with pytest.raises(HandleWriterError) as sealed:
+        writer.authorize_create_file("blocked-after-conflict.bin")
+    assert sealed.value.code is HandleWriterCode.WRITER_SEALED
+
+
+def test_publish_after_rename_failure_keeps_valid_final_and_seals(
+    handle_lab: _HandleLab,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    writer = handle_lab.writer
+    directory = handle_lab.project / "post-rename"
+    directory.mkdir()
+    payload = b"published-before-receipt"
+
+    def fail_after_publish(_staging: object, _target: object) -> None:
+        raise HandleWriterError(
+            HandleWriterCode.POSTCONDITION_FAILED,
+            "injected failure after source-handle rename",
+        )
+
+    monkeypatch.setattr(writer, "_after_publish", fail_after_publish)
+    with pytest.raises(HandleWriterError) as captured:
+        writer.publish_new_file(
+            Path("post-rename") / "PENDING-0001.json",
+            Path("post-rename") / "0001-final.json",
+            payload,
+            expected_sha256=_sha256(payload),
+        )
+
+    assert captured.value.code is HandleWriterCode.POSTCONDITION_FAILED
+    assert not (directory / "PENDING-0001.json").exists()
+    assert (directory / "0001-final.json").read_bytes() == payload
+    with pytest.raises(HandleWriterError) as sealed:
+        writer.authorize_create_file("blocked-after-post-rename.bin")
+    assert sealed.value.code is HandleWriterCode.WRITER_SEALED
+
+
+def test_flat_directory_snapshot_is_handle_bounded_and_repr_redacted(
+    handle_lab: _HandleLab,
+) -> None:
+    writer = handle_lab.writer
+    directory = handle_lab.project / "flat-store"
+    directory.mkdir()
+    (directory / "0001-a.json").write_bytes(b"alpha")
+    (directory / "0002-b.json").write_bytes(b"beta")
+
+    snapshot = writer.read_flat_directory(
+        "flat-store",
+        maximum_entries=8,
+        maximum_file_bytes=1024,
+        maximum_total_bytes=4096,
+    )
+
+    assert [(entry.name, entry.payload) for entry in snapshot.entries] == [
+        ("0001-a.json", b"alpha"),
+        ("0002-b.json", b"beta"),
+    ]
+    surface = repr(snapshot) + "".join(repr(entry) for entry in snapshot.entries)
+    assert "0001-a.json" not in surface
+    assert "0002-b.json" not in surface
+    assert str(directory) not in surface
+
+
+def test_flat_directory_rejects_child_directory_without_disclosure(
+    handle_lab: _HandleLab,
+) -> None:
+    writer = handle_lab.writer
+    directory = handle_lab.project / "flat-with-child"
+    directory.mkdir()
+    (directory / "unexpected-dir").mkdir()
+
+    with pytest.raises(HandleWriterError) as captured:
+        writer.read_flat_directory(
+            "flat-with-child",
+            maximum_entries=8,
+            maximum_file_bytes=1024,
+            maximum_total_bytes=4096,
+        )
+
+    assert captured.value.code in {
+        HandleWriterCode.TYPE_MISMATCH,
+        HandleWriterCode.HANDLE_OPEN_FAILED,
+    }
+    _assert_serialized_error_is_path_free(
+        captured.value,
+        str(directory),
+        "unexpected-dir",
+    )
+
+
+def test_runtime_mutex_registry_blocks_second_instance_until_release(
+    handle_lab: _HandleLab,
+) -> None:
+    first = handle_lab.writer
+    second = _create_test_handle_writer(handle_lab.project)
+    lease = first.acquire_runtime_mutex()
+    try:
+        with pytest.raises(HandleWriterError) as captured:
+            second.acquire_runtime_mutex()
+        assert captured.value.code is HandleWriterCode.MUTEX_BUSY
+    finally:
+        lease.close()
+
+    with second.acquire_runtime_mutex() as acquired:
+        assert acquired.abandoned is False
+
+
+def test_spent_ticket_tombstones_are_bounded(handle_lab: _HandleLab) -> None:
+    writer = handle_lab.writer
+    for index in range(8300):
+        writer._remember_spent(f"TICKET-{index:05d}")
+
+    assert len(writer._spent) == 8192
+    assert "TICKET-00000" not in writer._spent
+    assert "TICKET-08299" in writer._spent
+
+
+def test_seal_attempts_every_unused_ticket_after_one_release_failure(
+    handle_lab: _HandleLab,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    writer = handle_lab.writer
+    first = writer.authorize_create_file("unused-one.bin")
+    second = writer.authorize_create_file("unused-two.bin")
+    calls: list[str] = []
+    original_release = writer._path_authority.release
+
+    def flaky_release(ticket: object) -> bool:
+        calls.append(ticket.ticket_id)
+        if ticket is first:
+            raise RuntimeError("injected first unused release failure")
+        return original_release(ticket)
+
+    monkeypatch.setattr(writer._path_authority, "release", flaky_release)
+    writer.seal_after_indeterminate_mutation()
+
+    assert calls == [first.ticket_id, second.ticket_id]
+    assert writer._seal_cleanup_failures == 1
+    with pytest.raises(HandleWriterError) as sealed:
+        writer.authorize_create_file("sealed.bin")
+    assert sealed.value.code is HandleWriterCode.WRITER_SEALED
 
 
 def test_alternate_data_stream_is_rejected_without_default_stream_change(

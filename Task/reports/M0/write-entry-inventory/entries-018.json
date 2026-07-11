@@ -1,0 +1,35 @@
+{
+  "chunk_digest_sha256": "6170709c26f3d9897efbd594e9006bcb75221debae0526cec981f826215e028f",
+  "chunk_index": 18,
+  "entries": [
+    {
+      "call_chain": [
+        "scripts.run_safe_pytest.main"
+      ],
+      "callee": "os.mkdir",
+      "column": 4,
+      "detail": "directory creation",
+      "end_column": 24,
+      "end_line": 1153,
+      "entry_id": "WE-847F9745C4C75ABDE6E5D1AC",
+      "file": "scripts/run_safe_pytest.py",
+      "function": "scripts.run_safe_pytest.main",
+      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
+      "kind": "FILESYSTEM_DIRECTORY_CREATE",
+      "line": 1153,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "TEST_INFRASTRUCTURE",
+      "required_control": "S3_HANDLE_LEVEL_WORKSPACE_WRITER",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "SCRIPT:scripts/run_safe_pytest.py"
+      ],
+      "source_sha256": "ea0224d47d44de82126d6b1ea8522963c1ed86a7c47f0329cbfdd984479310b9",
+      "statement_fingerprint": "2936544fb8e87590fc4c946250f06759d40a5fa3ca655748ed4a2f5bb15b3a08",
+      "target_namespace": "TEST_LAB_RUNTIME"
+    }
+  ],
+  "entry_count": 1,
+  "schema_version": "2.0"
+}
