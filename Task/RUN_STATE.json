@@ -1,9 +1,9 @@
 {
   "state_version": "1.0.1",
   "plan_version": "1.0.1",
-  "updated_at": "2026-07-12T01:58:00+08:00",
+  "updated_at": "2026-07-12T02:08:21+08:00",
   "current_milestone": "M0",
-  "current_slice": "M0_S3E_final_candidate_explicit_publish",
+  "current_slice": "M0_S3F_synthetic_copy_dual_ledgers_design",
   "status": "RUNNING",
   "implementation_status": "IN_PROGRESS",
   "task_scope": {
@@ -20,12 +20,12 @@
     "base_commit": "bfd4d35973974a223f465cd08910f303518a8586",
     "remote": "https://github.com/yanoutrageous/Test.git",
     "planning_published_commit": "bfd4d35973974a223f465cd08910f303518a8586",
-    "publication_status": "M0_S3D_PUSHED_DRAFT_PR_OPEN",
+    "publication_status": "M0_S3E_PUSHED_DRAFT_PR_OPEN",
     "planning_pull_request": "https://github.com/yanoutrageous/Test/pull/1",
     "integration_pull_request": "https://github.com/yanoutrageous/Test/pull/2"
   },
-  "last_verified_checkpoint": "1b5b9bd9cddcdc472f92146748b6f8ab4f53b6f4",
-  "active_job_id": "M0-S3-E-PAIR-OPERATION-PUBLISH",
+  "last_verified_checkpoint": "39586568a405124417d105d8e876d25ec94e06e6",
+  "active_job_id": "M0-S3-F-SYNTHETIC-COPY-DUAL-LEDGERS",
   "active_writer": "/root",
   "completed_actions": [
     "read-only repository and reference-corpus review",
@@ -70,7 +70,8 @@
     "RUN-20260712-M0-S3E-008 passed 7 real core publish/recovery tests and RUN-20260712-M0-S3E-009 passed 366 combined S3-E/S3-D/writer/ledger/policy/static tests; protected tree, runtime watcher, handle fence, source inputs, and activity database remained clean",
     "S3-E final hardening added exact final pair revalidation head binding, five-segment transaction capacity reservation, typed native/recovery completion receipts, idempotent terminal replay, activated-key filtering, retired-epoch read-only enforcement, cross-ledger audit-head membership, and cooperative-writer-scoped recovery proof recomputation",
     "production inventory V9 final preview and tracked publication match byte-for-byte at 49 sources, 460 entries, 19 chunks, UNKNOWN=0, all entries UNMIGRATED_BLOCKED, inventory payload 339a14b1e8de24eb8ea97e6f98b791fd24928875be50ce8d9e43f62fbd3a6fee",
-    "RUN-20260712-M0-S3E-016 passed 30 core tests, RUN-20260712-M0-S3E-LAUNCHER-018 passed 72 launcher tests, and RUN-20260712-M0-S3E-COMBINED-019 passed 399 combined tests; all protected-tree, watcher, handle-fence, source-input, and activity-database checks were clean; three independent focused reviews found P0=0 and P1=0"
+    "RUN-20260712-M0-S3E-016 passed 30 core tests, RUN-20260712-M0-S3E-LAUNCHER-018 passed 72 launcher tests, and RUN-20260712-M0-S3E-COMBINED-019 passed 399 combined tests; all protected-tree, watcher, handle-fence, source-input, and activity-database checks were clean; three independent focused reviews found P0=0 and P1=0",
+    "M0-S3-E was explicitly staged as exactly 30 allowlisted files, independently audited with P0=0 and P1=0, committed as 39586568a405124417d105d8e876d25ec94e06e6, ordinary-pushed, and verified identical at local HEAD, origin, and Draft PR 2 head"
   ],
   "not_started": [
     "database migration",
@@ -84,6 +85,6 @@
   "blockers": [
     "M0-SYMLINK-CAPABILITY-001: two Test-local attempts to create a real directory symlink returned WinError 1314; no privilege elevation or Developer Mode change is authorized, so the actual symlink gate remains unverified while independent M0 work continues"
   ],
-  "next_required_action": "Explicitly stage only the audited S3-E allowlist, perform staged-snapshot review, commit, ordinary-push, and verify local/origin/Draft PR 2 heads. Then enter M0-S3-F synthetic Copy plus dual ledgers; SQLite remains blocked to S4. Keep production writer disconnected, all 460 entries UNMIGRATED_BLOCKED, and all real business data untouched.",
+  "next_required_action": "Design and implement M0-S3-F synthetic Copy with independently authenticated source and copy ledgers, handle-recomputed source/destination identity, size, and SHA-256, exact classification and locator redaction, crash reconciliation, and immutable Copy originals. SQLite remains blocked to S4. Keep production writer disconnected, all 460 entries UNMIGRATED_BLOCKED, and all real business data untouched.",
   "resume_rule": "Read execution_contract.json and all normative Task documents, verify git and filesystem state against this file, then continue from next_required_action without repeating completed work. Do not enter M1 in this task; after M0 is accepted, record STOP_PER_USER with M1 deferred to a new user task."
 }
