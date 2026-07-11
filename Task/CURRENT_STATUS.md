@@ -1,12 +1,12 @@
 # 当前状态
 
-更新时间：2026-07-11 20:36 +08:00
+更新时间：2026-07-11 20:49 +08:00
 
 ## 长期执行状态
 
 - 计划版本：1.0.1
 - 当前阶段：M0 入场审计完成，M0 尚未验收
-- 当前切片：`M0-S3-C durable segment ledger`本地冻结门已通过，正在形成并发布内部检查点；下一切片为 S3-D operation lease/job staging/tree evidence，S3 与 M0 门禁均未通过
+- 当前切片：`M0-S3-C durable segment ledger`已形成并发布内部检查点；下一切片为 S3-D operation lease/job staging/tree evidence，S3 与 M0 门禁均未通过
 - M0—M5 实现：M0 已开始；M1—M5 未开始
 - 本任务有效终点：按用户最新明确要求，仅完成 M0；M0 正式验收、提交、普通 push、checkpoint tag 和交接完成后立即停止，M1 延后到新的用户任务。项目整体 M0—M5 路线图保持不变，本条只限制当前任务执行范围
 - 当前禁止：活动数据库迁移、题库导入、OCR、正式排版、批量资产、备份切换和业务文件清理
@@ -46,13 +46,13 @@
 - M0-S1 候选核心、安全测试启动器与证据提交为`2dc2984`，已 push；远端 SHA 与本地一致
 - M0-S2 冻结证据为`RUN-20260711-M0-S2-EOL-020-FINAL`；实现和证据已作为`e82eb507414f9dd7b27282d8496e048016bca4ee`显式提交并普通 push，远端分支和 Draft PR #2 head 已核验一致
 - M0-S3-B 冻结证据为`RUN-20260711-M0-S3-WRITER-009`与`RUN-20260711-M0-S3-B-FULL-011`；实现、inventory、ADR 与报告已作为`793fb88055b19ea2de53395a07c4be523eeb5f73`显式提交并普通 push，远端分支和 Draft PR #2 head 已核验一致
-- M0-S3-C 本地冻结证据为`RUN-20260711-M0-S3C-WRITER-016-FINAL`与`RUN-20260711-M0-S3C-FULL-017-FINAL`；实现、inventory、ADR 与报告尚待显式提交、普通 push 和远端核验
+- M0-S3-C 冻结证据为`RUN-20260711-M0-S3C-WRITER-016-FINAL`与`RUN-20260711-M0-S3C-FULL-017-FINAL`；实现、inventory、ADR 与报告已作为`a999f32718b0ed22d2683585c7d079a0c9bbb749`显式提交并普通 push，origin、远端 refs 与 Draft PR #2 head 已核验一致
 - 长期草稿 PR：`https://github.com/yanoutrageous/Test/pull/2`（base=`main`，head=`agent/m0-m5-local-v1`）
 - 除 GitHub CLI 外，本轮未安装 OCR、TeX、模型、字体或其他项目依赖
 
 ## 当前长期执行的首批动作
 
-1. M0-S3-C 不可变 audit segment ledger、key revision、启动全链验证、source-handle no-replace publish 与 V7 inventory 已通过本地冻结门，正在形成发布检查点；
+1. M0-S3-C 不可变 audit segment ledger、key revision、启动全链验证、source-handle no-replace publish 与 V7 inventory 已作为`a999f32`完成显式提交、普通 push 与远端核验；
 2. M0-S3-D—H 建立 operation lease、job staging、实际 tree evidence、pair publish、Copy、quarantine 和受控外部进程；当前仍保持生产 writer 断开；
 3. 完成迁移/SQLite Backup API、领域 IR、金标、M0 真实流程和独立审计，形成 M0 验收、checkpoint tag 与交接后停止本任务；不得在本任务中进入 M1。
 

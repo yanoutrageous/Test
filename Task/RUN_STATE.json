@@ -1,9 +1,9 @@
 {
   "state_version": "1.0.1",
   "plan_version": "1.0.1",
-  "updated_at": "2026-07-11T20:36:00+08:00",
+  "updated_at": "2026-07-11T20:49:17+08:00",
   "current_milestone": "M0",
-  "current_slice": "M0_S3C_checkpoint_publication",
+  "current_slice": "M0_S3D_operation_lease_job_staging_and_tree_evidence",
   "status": "RUNNING",
   "implementation_status": "IN_PROGRESS",
   "task_scope": {
@@ -20,12 +20,12 @@
     "base_commit": "bfd4d35973974a223f465cd08910f303518a8586",
     "remote": "https://github.com/yanoutrageous/Test.git",
     "planning_published_commit": "bfd4d35973974a223f465cd08910f303518a8586",
-    "publication_status": "M0_S3C_LOCAL_ACCEPTED_PUBLICATION_PENDING",
+    "publication_status": "M0_S3C_PUSHED_DRAFT_PR_OPEN",
     "planning_pull_request": "https://github.com/yanoutrageous/Test/pull/1",
     "integration_pull_request": "https://github.com/yanoutrageous/Test/pull/2"
   },
-  "last_verified_checkpoint": "793fb88055b19ea2de53395a07c4be523eeb5f73",
-  "active_job_id": "M0-S3-C-CHECKPOINT",
+  "last_verified_checkpoint": "a999f32718b0ed22d2683585c7d079a0c9bbb749",
+  "active_job_id": "M0-S3-D-JOB-TREE-EVIDENCE",
   "active_writer": "/root",
   "completed_actions": [
     "read-only repository and reference-corpus review",
@@ -58,7 +58,8 @@
     "M0-S3-C Test-only source-handle no-replace publication, durable immutable audit segment ledger, key revision and rotation, Local named mutex, full-chain startup validation, and failure sealing implemented with production writer deliberately disconnected",
     "production inventory V7 frozen at 47 production sources, 451 entries, 19 chunks, UNKNOWN=0, all 451 entries UNMIGRATED_BLOCKED, production_writer_connected=false, and m0_exit_allowed=false",
     "RUN-20260711-M0-S3C-WRITER-016-FINAL passed 427 tests and RUN-20260711-M0-S3C-FULL-017-FINAL passed 515 tests, each with only the separately blocked real-symlink capability gate deselected; watcher, handle fence, process tree, immutable evidence, protected tree, source inputs, and activity database remained clean",
-    "independent S3-C design, test-matrix, scanner, inventory, and bypass reviews found no remaining P0/P1 after semantic truth-table and per-route canary expansion"
+    "independent S3-C design, test-matrix, scanner, inventory, and bypass reviews found no remaining P0/P1 after semantic truth-table and per-route canary expansion",
+    "M0-S3-C was explicitly staged as 31 allowlisted files, committed as a999f32718b0ed22d2683585c7d079a0c9bbb749, ordinary-pushed, and verified identical at origin, remote refs, and Draft PR 2 head"
   ],
   "not_started": [
     "database migration",
@@ -72,6 +73,6 @@
   "blockers": [
     "M0-SYMLINK-CAPABILITY-001: two Test-local attempts to create a real directory symlink returned WinError 1314; no privilege elevation or Developer Mode change is authorized, so the actual symlink gate remains unverified while independent M0 work continues"
   ],
-  "next_required_action": "Explicitly stage, commit, ordinary-push, and remotely verify the M0-S3-C checkpoint. Then begin M0-S3-D operation lease, fixed job staging, resource budgets, and observed tree evidence. Keep production writer disconnected, all 451 entries UNMIGRATED_BLOCKED, and all real business data untouched.",
+  "next_required_action": "Implement M0-S3-D operation lease, fixed job staging, resource budgets, and observed tree evidence, then independently audit and publish its checkpoint. Keep production writer disconnected, all 451 entries UNMIGRATED_BLOCKED until the next inventory rebuild, and all real business data untouched.",
   "resume_rule": "Read execution_contract.json and all normative Task documents, verify git and filesystem state against this file, then continue from next_required_action without repeating completed work. Do not enter M1 in this task; after M0 is accepted, record STOP_PER_USER with M1 deferred to a new user task."
 }
