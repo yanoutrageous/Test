@@ -1,12 +1,12 @@
 # 当前状态
 
-更新时间：2026-07-11 23:20 +08:00
+更新时间：2026-07-11 23:30 +08:00
 
 ## 长期执行状态
 
 - 计划版本：1.0.1
 - 当前阶段：M0 入场审计完成，M0 尚未验收
-- 当前切片：`M0-S3-D operation lease/job staging/tree evidence`实现、inventory、定向门禁和独立审计已通过，正在形成并发布内部检查点；S3 与 M0 总门仍未通过
+- 当前切片：`M0-S3-D operation lease/job staging/tree evidence`已形成并发布内部检查点；下一切片为 S3-E pair reservation/operation ledger/handle-bound publish，S3 与 M0 总门仍未通过
 - M0—M5 实现：M0 已开始；M1—M5 未开始
 - 本任务有效终点：按用户最新明确要求，仅完成 M0；M0 正式验收、提交、普通 push、checkpoint tag 和交接完成后立即停止，M1 延后到新的用户任务。项目整体 M0—M5 路线图保持不变，本条只限制当前任务执行范围
 - 当前禁止：活动数据库迁移、题库导入、OCR、正式排版、批量资产、备份切换和业务文件清理
@@ -47,14 +47,14 @@
 - M0-S2 冻结证据为`RUN-20260711-M0-S2-EOL-020-FINAL`；实现和证据已作为`e82eb507414f9dd7b27282d8496e048016bca4ee`显式提交并普通 push，远端分支和 Draft PR #2 head 已核验一致
 - M0-S3-B 冻结证据为`RUN-20260711-M0-S3-WRITER-009`与`RUN-20260711-M0-S3-B-FULL-011`；实现、inventory、ADR 与报告已作为`793fb88055b19ea2de53395a07c4be523eeb5f73`显式提交并普通 push，远端分支和 Draft PR #2 head 已核验一致
 - M0-S3-C 冻结证据为`RUN-20260711-M0-S3C-WRITER-016-FINAL`与`RUN-20260711-M0-S3C-FULL-017-FINAL`；实现、inventory、ADR 与报告已作为`a999f32718b0ed22d2683585c7d079a0c9bbb749`显式提交并普通 push，origin、远端 refs 与 Draft PR #2 head 已核验一致
-- M0-S3-D 冻结候选证据为`RUN-20260711-M0-S3D-022`与`RUN-20260711-M0-S3D-WRITER-014`；实现、V8 inventory、ADR 与报告已通过独立`NO P0 / NO P1`审计，当前待显式提交、普通 push 和远端核验
+- M0-S3-D 冻结证据为`RUN-20260711-M0-S3D-022`与`RUN-20260711-M0-S3D-WRITER-014`；实现、V8 inventory、ADR 与报告已作为`1b5b9bd9cddcdc472f92146748b6f8ab4f53b6f4`显式提交并普通 push，origin、远端 refs 与 Draft PR #2 head 已核验一致
 - 长期草稿 PR：`https://github.com/yanoutrageous/Test/pull/2`（base=`main`，head=`agent/m0-m5-local-v1`）
 - 除 GitHub CLI 外，本轮未安装 OCR、TeX、模型、字体或其他项目依赖
 
 ## 当前长期执行的首批动作
 
-1. M0-S3-D operation context pin、固定 job staging、不可变 contract、多维预算和 live double-pass tree observation 已通过门禁，下一动作是显式提交、普通 push 和远端核验；
-2. 随后执行 M0-S3-E—H 的 operation ledger、pair reservation 内 publish、Copy、quarantine 和受控外部进程；当前仍保持生产 writer 断开；
+1. M0-S3-D operation context pin、固定 job staging、不可变 contract、多维预算和 live double-pass tree observation 已作为`1b5b9bd`完成显式提交、普通 push 与远端核验；
+2. 当前执行 M0-S3-E—H 的 operation ledger、pair reservation 内 publish、Copy、quarantine 和受控外部进程；当前仍保持生产 writer 断开；
 3. 完成迁移/SQLite Backup API、领域 IR、金标、M0 真实流程和独立审计，形成 M0 验收、checkpoint tag 与交接后停止本任务；不得在本任务中进入 M1。
 
 ## 已知限制与未决项
