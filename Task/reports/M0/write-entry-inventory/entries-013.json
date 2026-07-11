@@ -1,7 +1,35 @@
 {
-  "chunk_digest_sha256": "464c35ed8cf3942c11707a0ac43b66054b72ec53a229158884942a4752a05600",
+  "chunk_digest_sha256": "3166f6c9863658548d86fd5d91b2763bfef9d203ab6de3b9a6ab6ec9e45227aa",
   "chunk_index": 13,
   "entries": [
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.stage10.write_stage10_quality_report"
+      ],
+      "callee": "app.database.connect_database",
+      "column": 9,
+      "detail": "legacy database gateway",
+      "end_column": 34,
+      "end_line": 303,
+      "entry_id": "WE-0AB5E28C517B2F176E6615A9",
+      "file": "app/stage10.py",
+      "function": "app.stage10.write_stage10_quality_report",
+      "input_source": "CLI_ARGUMENT_OR_CONFIG",
+      "kind": "DATABASE_GATEWAY",
+      "line": 303,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "REPORT_SERVICE",
+      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
+      "resolution": "ALIAS_RESOLVED",
+      "risk": "P1",
+      "root_ids": [
+        "CLI:MAIN"
+      ],
+      "source_sha256": "239b121c82a0478a4f6237829a9bb7f20545a56a09134f622f3cb00610604e7e",
+      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    },
     {
       "call_chain": [
         "app.cli.main",
@@ -712,37 +740,6 @@
       ],
       "source_sha256": "75be7f6e1ddc5b8ee07ae59ba5d230f818ed8d389f9799ec71d454826fbe9931",
       "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6",
-      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
-    },
-    {
-      "call_chain": [
-        "app.web.create_app",
-        "app.web._basket_questions",
-        "app.stage11.get_usability_states_by_question_ids"
-      ],
-      "callee": "app.database.initialize_database",
-      "column": 4,
-      "detail": "implicit schema/directory initialization",
-      "end_column": 32,
-      "end_line": 159,
-      "entry_id": "WE-2CE8263108FE7082CABB264B",
-      "file": "app/stage11.py",
-      "function": "app.stage11.get_usability_states_by_question_ids",
-      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
-      "kind": "DATABASE_IMPLICIT_INITIALIZER",
-      "line": 159,
-      "migration_status": "UNMIGRATED_BLOCKED",
-      "owner": "REPORT_SERVICE",
-      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
-      "resolution": "ALIAS_RESOLVED",
-      "risk": "P1",
-      "root_ids": [
-        "FACTORY:CREATE_APP",
-        "MODULE:APP",
-        "WEB:GET /paper-basket"
-      ],
-      "source_sha256": "75be7f6e1ddc5b8ee07ae59ba5d230f818ed8d389f9799ec71d454826fbe9931",
-      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     }
   ],

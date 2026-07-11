@@ -1,7 +1,35 @@
 {
-  "chunk_digest_sha256": "60cb9ac4eda8587509d5d979dc87bc6e9a75e29ebc4b51dd465007d3ae72d998",
+  "chunk_digest_sha256": "1d31e711e92cd33c3e117752fc3e9d17584c1d8b50c27e009fcd0181da7c7c2b",
   "chunk_index": 16,
   "entries": [
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.stage9_report.write_stage9_quality_report"
+      ],
+      "callee": "app.database.initialize_database",
+      "column": 4,
+      "detail": "implicit schema/directory initialization",
+      "end_column": 32,
+      "end_line": 41,
+      "entry_id": "WE-473A22E44F4CFA8A72ECE0F1",
+      "file": "app/stage9_report.py",
+      "function": "app.stage9_report.write_stage9_quality_report",
+      "input_source": "CLI_ARGUMENT_OR_CONFIG",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "line": 41,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "REPORT_SERVICE",
+      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
+      "resolution": "ALIAS_RESOLVED",
+      "risk": "P1",
+      "root_ids": [
+        "CLI:MAIN"
+      ],
+      "source_sha256": "1c24bc5a2b94b0c81359537dd012bf4bd8305deef4ac7e80a080fbfd05f5aafe",
+      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    },
     {
       "call_chain": [
         "app.cli.main",
@@ -709,37 +737,6 @@
       ],
       "source_sha256": "c995272cd908cb3fd9cf08e007ce9a408aacd0d44b53a2d673c9ef1420aa6f27",
       "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6",
-      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
-    },
-    {
-      "call_chain": [
-        "app.web.create_app",
-        "app.web._basket_questions",
-        "app.structured_content.get_structured_contents_by_question_ids"
-      ],
-      "callee": "app.database.connect_database().execute",
-      "column": 15,
-      "detail": "dynamic SQL is fail-closed because its effect cannot be proven",
-      "end_column": 9,
-      "end_line": 173,
-      "entry_id": "WE-E878C43E1F4A863CC0BB42DF",
-      "file": "app/structured_content.py",
-      "function": "app.structured_content.get_structured_contents_by_question_ids",
-      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
-      "kind": "SQLITE_DYNAMIC_SQL",
-      "line": 166,
-      "migration_status": "UNMIGRATED_BLOCKED",
-      "owner": "APPLICATION_SERVICE",
-      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
-      "resolution": "DYNAMIC",
-      "risk": "P0",
-      "root_ids": [
-        "FACTORY:CREATE_APP",
-        "MODULE:APP",
-        "WEB:GET /paper-basket"
-      ],
-      "source_sha256": "c995272cd908cb3fd9cf08e007ce9a408aacd0d44b53a2d673c9ef1420aa6f27",
-      "statement_fingerprint": "b3a013c198e15ed9d44ad66f470090cd3e335b5230ef884233756223ea4a22e8",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     }
   ],

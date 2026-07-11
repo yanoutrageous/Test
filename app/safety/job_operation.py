@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import secrets
 import shutil
 import threading
 import time
@@ -20,13 +21,25 @@ from app.safety.context import (
     validate_safe_id,
 )
 from app.safety.segment_ledger import DurableAuditLedger, LedgerHead
+from app.safety.operation_ledger import (
+    DurableOperationLedger,
+    OperationCompletionKind,
+    OperationSegmentReceipt,
+    OperationState,
+    OperationTransition,
+    OperationTreeEvidence,
+    RECOVERY_GUARANTEE_SCOPE,
+)
 from app.safety.windows_handle_writer import (
+    DirectoryPublishReceipt,
     DirectoryHandleLease,
     HandleWriterCode,
     HandleWriterError,
     TreeEntryKind,
     TreeScanBudget,
     _ObservedTreeLease,
+    _DirectoryPublishJournalPermit,
+    _ObservedHandle,
     _TreeLogicalRow,
     _TreeSnapshot,
     _ImmutableFileLease,
@@ -39,6 +52,7 @@ _JOB_RUNTIME_CONSTRUCTOR = object()
 _OPERATION_LEASE_CONSTRUCTOR = object()
 _STAGING_LEASE_CONSTRUCTOR = object()
 _OBSERVED_JOB_TREE_CONSTRUCTOR = object()
+_PUBLISH_JOURNAL_CONSTRUCTOR = object()
 
 
 class JobOperationCode(StrEnum):
@@ -53,6 +67,9 @@ class JobOperationCode(StrEnum):
     DISK_BUDGET = "DISK_BUDGET"
     TREE_MISMATCH = "TREE_MISMATCH"
     LEDGER_CHANGED = "LEDGER_CHANGED"
+    PUBLISH_UNAVAILABLE = "PUBLISH_UNAVAILABLE"
+    PUBLISH_FAILED = "PUBLISH_FAILED"
+    OPERATION_LEDGER_FAILED = "OPERATION_LEDGER_FAILED"
     OPERATION_FAILED = "OPERATION_FAILED"
 
 
@@ -97,6 +114,31 @@ class _ContextAuthority(Protocol):
         pin: Any,
         binding_sha256: str,
     ) -> None: ...
+
+    def _issue_publish_pair_for_job(
+        self,
+        source_path: str | Path,
+        target_path: str | Path,
+        **kwargs: Any,
+    ) -> Any: ...
+
+    def _reserve_publish_pair_for_job(
+        self,
+        token: Any,
+        **kwargs: Any,
+    ) -> tuple[Any, Any]: ...
+
+    def _finish_reserved_pair_for_job(
+        self,
+        reservation: Any,
+        **kwargs: Any,
+    ) -> None: ...
+
+    def _validate_reserved_pair_for_job(
+        self,
+        reservation: Any,
+        **kwargs: Any,
+    ) -> Any: ...
 
     def release_context(self, context: OperationContext) -> bool: ...
 
@@ -294,11 +336,35 @@ class ObservedTreeEvidence:
         raise TypeError("observed tree evidence cannot be serialized")
 
 
+@dataclass(frozen=True, slots=True)
+class PublishOperationReceipt:
+    transaction_id: str
+    pair_id: str
+    target_locator: str
+    completion_kind: OperationCompletionKind
+    native_directory_receipt_sha256: str | None
+    recovery_observation_receipt_sha256: str | None
+    recovery_guarantee_scope: str | None
+    committed_segment_sha256: str
+    committed_sequence: int
+    capability_state: str = "TEST_LOCAL_DURABLE_PAIR_PUBLISH"
+
+    def __repr__(self) -> str:
+        return (
+            "PublishOperationReceipt(transaction_id='<redacted>', pair_id='<redacted>', "
+            f"committed_sequence={self.committed_sequence}, target='<redacted>')"
+        )
+
+    def __reduce__(self) -> Any:
+        raise TypeError("publish operation receipts cannot be serialized")
+
+
 class _TestJobRuntime:
     __slots__ = (
         "_boundary",
         "_writer",
         "_ledger",
+        "_operation_ledger",
         "_workspace_root",
         "_lock",
         "_active_operation_ids",
@@ -310,6 +376,7 @@ class _TestJobRuntime:
         boundary: _ContextAuthority,
         writer: _WindowsHandleWriter,
         ledger: DurableAuditLedger,
+        operation_ledger: DurableOperationLedger | None,
         workspace_root: Path,
         *,
         _constructor: object,
@@ -318,6 +385,10 @@ class _TestJobRuntime:
             _constructor is not _JOB_RUNTIME_CONSTRUCTOR
             or type(writer) is not _WindowsHandleWriter
             or type(ledger) is not DurableAuditLedger
+            or (
+                operation_ledger is not None
+                and type(operation_ledger) is not DurableOperationLedger
+            )
             or writer._workspace_root != workspace_root
         ):
             raise JobOperationError(
@@ -327,10 +398,79 @@ class _TestJobRuntime:
         self._boundary = boundary
         self._writer = writer
         self._ledger = ledger
+        self._operation_ledger = operation_ledger
         self._workspace_root = workspace_root
         self._lock = threading.RLock()
         self._active_operation_ids: set[str] = set()
         self._spent_operation_ids: dict[str, None] = {}
+
+    def replay_committed_publish(
+        self,
+        context: OperationContext,
+        manifest: DeclaredTreeManifest,
+        budget: JobResourceBudget,
+    ) -> PublishOperationReceipt:
+        """Return the durable terminal receipt without attempting another rename."""
+
+        if self._operation_ledger is None:
+            raise JobOperationError(
+                JobOperationCode.PUBLISH_UNAVAILABLE,
+                "publish replay requires the durable operation ledger",
+            )
+        binding = self._validate_context_and_manifest(context, manifest, budget)
+        try:
+            with self._writer.acquire_runtime_mutex() as lease:
+                self._ledger._rescan_under_existing_mutex(lease)
+                self._validate_operation_audit_bindings(lease)
+                result = self._operation_ledger.operation_result_under_existing_mutex(
+                    lease,
+                    context.operation_id,
+                )
+                if result is None:
+                    raise JobOperationError(
+                        JobOperationCode.PUBLISH_UNAVAILABLE,
+                        "operation has no durable publish result",
+                    )
+                transition, receipt = result
+                if (
+                    transition.next_state
+                    not in {OperationState.COMMITTED, OperationState.RECOVERED_COMMIT}
+                    or transition.context_binding_sha256 != binding
+                    or transition.manifest_sha256 != manifest.manifest_sha256
+                    or transition.budget_sha256 != budget.digest
+                    or transition.completion_kind
+                    not in {
+                        OperationCompletionKind.NATIVE_COMMIT,
+                        OperationCompletionKind.RECOVERED_COMMIT_WITH_NATIVE_MUTATION,
+                        OperationCompletionKind.RECOVERED_COMMIT_OBSERVATION_ONLY,
+                    }
+                ):
+                    raise JobOperationError(
+                        JobOperationCode.PUBLISH_UNAVAILABLE,
+                        "operation is not an exact committed publish replay",
+                    )
+                return PublishOperationReceipt(
+                    transaction_id=transition.transaction_id,
+                    pair_id=transition.pair_id,
+                    target_locator=transition.target_locator,
+                    completion_kind=transition.completion_kind,
+                    native_directory_receipt_sha256=(
+                        transition.native_mutation_receipt_sha256
+                    ),
+                    recovery_observation_receipt_sha256=(
+                        transition.recovery_observation_receipt_sha256
+                    ),
+                    recovery_guarantee_scope=transition.recovery_guarantee_scope,
+                    committed_segment_sha256=receipt.segment_sha256,
+                    committed_sequence=receipt.sequence,
+                )
+        except JobOperationError:
+            raise
+        except Exception:
+            raise JobOperationError(
+                JobOperationCode.OPERATION_LEDGER_FAILED,
+                "durable publish replay failed safely",
+            ) from None
 
     def begin_operation(
         self,
@@ -367,6 +507,29 @@ class _TestJobRuntime:
             )
             mutex = self._writer.acquire_runtime_mutex()
             head = self._ledger._rescan_under_existing_mutex(mutex)
+            if self._operation_ledger is not None:
+                operation_head = self._operation_ledger._rescan_under_existing_mutex(
+                    mutex
+                )
+                self._validate_operation_audit_bindings(mutex)
+                if self._operation_ledger.signing_revision_id != head.active_revision_id:
+                    raise JobOperationError(
+                        JobOperationCode.PUBLISH_UNAVAILABLE,
+                        "retired operation epoch is read-only after audit key rotation",
+                    )
+                if operation_head.unresolved_transaction_ids:
+                    raise JobOperationError(
+                        JobOperationCode.PUBLISH_UNAVAILABLE,
+                        "unresolved publish transactions require explicit reconciliation",
+                    )
+                if self._operation_ledger.operation_result_under_existing_mutex(
+                    mutex,
+                    context.operation_id,
+                ) is not None:
+                    raise JobOperationError(
+                        JobOperationCode.OPERATION_BUSY,
+                        "operation identity already has a durable terminal or failed result",
+                    )
             return _OperationLease(
                 self,
                 context,
@@ -401,6 +564,17 @@ class _TestJobRuntime:
                 raise cleanup_error from None
             raise
 
+    def _validate_operation_audit_bindings(self, lease: Any) -> None:
+        operation_ledger = self._operation_ledger
+        if operation_ledger is None:
+            return
+        heads = operation_ledger.bound_audit_heads_under_existing_mutex(lease)
+        if not self._ledger._contains_all_segment_sha256_under_existing_mutex(
+            lease,
+            heads,
+        ):
+            operation_ledger._seal_cross_ledger_contradiction()
+
     def _validate_context_and_manifest(
         self,
         context: OperationContext,
@@ -432,10 +606,22 @@ class _TestJobRuntime:
                 JobOperationCode.INVALID_CONTEXT,
                 "operation context scopes do not exactly bind the job manifest",
             )
+        internal_job_actors = {
+            (Caller.TEST_LAB, Purpose.TEST),
+            (Caller.DATABASE_SERVICE, Purpose.INITIALIZE_STATE),
+            (Caller.DATABASE_SERVICE, Purpose.MUTATE_DATABASE),
+            (Caller.DATABASE_SERVICE, Purpose.BUILD_DERIVED),
+            (Caller.IMPORT_SERVICE, Purpose.COPY_SOURCE),
+            (Caller.IMPORT_SERVICE, Purpose.BUILD_DERIVED),
+            (Caller.ASSET_SERVICE, Purpose.BUILD_DERIVED),
+            (Caller.EXPORT_SERVICE, Purpose.BUILD_EXPORT),
+            (Caller.REPORT_SERVICE, Purpose.BUILD_EXPORT),
+            (Caller.BACKUP_SERVICE, Purpose.BACKUP),
+            (Caller.BACKUP_SERVICE, Purpose.RESTORE),
+        }
         allowed_actor = (
-            context.caller is Caller.TEST_LAB
-            and context.purpose is Purpose.TEST
-            and context.classification is DataClassification.INTERNAL
+            context.classification is DataClassification.INTERNAL
+            and (context.caller, context.purpose) in internal_job_actors
         ) or (
             context.caller is Caller.IMPORT_SERVICE
             and context.purpose is Purpose.COPY_SOURCE
@@ -507,6 +693,11 @@ class _OperationLease:
         "_owner_thread",
         "_started_at",
         "_staging",
+        "_reserved_pair",
+        "_pair_token",
+        "_pair_view",
+        "_transaction_id",
+        "_publish_receipt",
         "_state",
         "_closed",
     )
@@ -537,6 +728,11 @@ class _OperationLease:
         self._owner_thread = threading.get_ident()
         self._started_at = time.monotonic()
         self._staging: _JobStagingLease | None = None
+        self._reserved_pair: Any | None = None
+        self._pair_token: Any | None = None
+        self._pair_view: Any | None = None
+        self._transaction_id: str | None = None
+        self._publish_receipt: PublishOperationReceipt | None = None
         self._state = "ACTIVE"
         self._closed = False
 
@@ -610,6 +806,266 @@ class _OperationLease:
                 self._runtime._writer.seal_after_indeterminate_mutation()
                 raise cleanup_error from None
             raise
+
+    def authorize_publish(
+        self,
+        observed: _ObservedJobTreeLease,
+        target_relative_path: str | Path,
+        *,
+        checkpoint_manifest_sha256: str,
+    ) -> Any:
+        """Issue and reserve exactly one publish pair under the live job mutex."""
+
+        self._assert_live()
+        if (
+            self._runtime._operation_ledger is None
+            or self._state != "TREE_OBSERVED"
+            or self._staging is None
+            or type(observed) is not _ObservedJobTreeLease
+            or observed._staging is not self._staging
+            or self._reserved_pair is not None
+            or not _is_sha256(checkpoint_manifest_sha256)
+        ):
+            raise JobOperationError(
+                JobOperationCode.PUBLISH_UNAVAILABLE,
+                "publish authorization requires one exact observed tree and operation ledger",
+            )
+        evidence = observed.revalidate()
+        checkpoint_id = self._context.scope_value(ScopeKind.CHECKPOINT_ID)
+        if checkpoint_id is None:
+            raise JobOperationError(
+                JobOperationCode.INVALID_CONTEXT,
+                "publish authorization requires the checkpoint scope",
+            )
+        token: Any | None = None
+        reservation: Any | None = None
+        try:
+            token = self._runtime._boundary._issue_publish_pair_for_job(
+                self._staging._manifest_root,
+                target_relative_path,
+                manifest_id=self._manifest.manifest_id,
+                manifest_sha256=evidence.manifest_sha256,
+                source_tree_sha256=evidence.source_tree_sha256,
+                entry_count=evidence.entry_count,
+                total_bytes=evidence.total_bytes,
+                checkpoint_id=checkpoint_id,
+                checkpoint_manifest_sha256=checkpoint_manifest_sha256,
+                context=self._context,
+                pin=self._context_pin,
+                binding_sha256=self._context_binding,
+                runtime_mutex_lease=self._mutex,
+            )
+            reservation, view = self._runtime._boundary._reserve_publish_pair_for_job(
+                token,
+                context=self._context,
+                pin=self._context_pin,
+                binding_sha256=self._context_binding,
+                runtime_mutex_lease=self._mutex,
+            )
+            declared = view.evidence
+            if (
+                view.source_relative_path != self._staging._manifest_root
+                or declared.manifest_sha256 != evidence.manifest_sha256
+                or declared.source_tree_sha256 != evidence.source_tree_sha256
+                or declared.entry_count != evidence.entry_count
+                or declared.total_bytes != evidence.total_bytes
+            ):
+                raise JobOperationError(
+                    JobOperationCode.TREE_MISMATCH,
+                    "reserved pair declaration differs from the live observed tree",
+                )
+            previous_head = self._ledger_head
+            new_head = self._runtime._ledger._rescan_under_existing_mutex(self._mutex)
+            if (
+                new_head.epoch_id != previous_head.epoch_id
+                or new_head.active_revision_id != previous_head.active_revision_id
+                or new_head.active_revision_sequence
+                != previous_head.active_revision_sequence
+                or new_head.last_sequence != previous_head.last_sequence + 2
+                or new_head.segment_count != previous_head.segment_count + 2
+            ):
+                raise JobOperationError(
+                    JobOperationCode.LEDGER_CHANGED,
+                    "pair audit did not advance the exact expected ledger head",
+                )
+            observed._assert_local_live()
+            snapshot = observed._low_level.revalidate()
+            self._staging._compare_snapshot(snapshot)
+            self._ledger_head = new_head
+            observed._evidence = _evidence_from_snapshot(
+                snapshot,
+                self._budget,
+                new_head,
+            )
+            transaction_digest = hashlib.sha256(
+                b"M0-PUBLISH-TRANSACTION-ID-V1\0"
+                + self._context.digest.encode("ascii")
+                + view.pair_id.encode("ascii")
+            ).hexdigest().upper()
+            self._reserved_pair = reservation
+            self._pair_token = token
+            self._pair_view = view
+            self._transaction_id = f"TXN-{transaction_digest[:32]}"
+            self._state = "PAIR_RESERVED"
+            return token
+        except BaseException:
+            if reservation is not None and not getattr(reservation, "_closed", True):
+                try:
+                    self._runtime._boundary._finish_reserved_pair_for_job(
+                        reservation,
+                        context=self._context,
+                        pin=self._context_pin,
+                        binding_sha256=self._context_binding,
+                        lifecycle="FAILED",
+                    )
+                except BaseException:
+                    self._runtime._writer.seal_after_indeterminate_mutation()
+            self._state = "PAIR_AUTHORIZATION_FAILED_RESIDUE_RETAINED"
+            raise
+
+    def execute_publish_pair(
+        self,
+        token: Any,
+        observed: _ObservedJobTreeLease,
+    ) -> PublishOperationReceipt:
+        """The sole S3-E entry that may perform a directory-root mutation."""
+
+        self._assert_live()
+        if (
+            self._runtime._operation_ledger is None
+            or self._state != "PAIR_RESERVED"
+            or token is not self._pair_token
+            or type(observed) is not _ObservedJobTreeLease
+            or self._staging is None
+            or observed._staging is not self._staging
+            or self._reserved_pair is None
+            or self._pair_view is None
+            or self._transaction_id is None
+        ):
+            raise JobOperationError(
+                JobOperationCode.PUBLISH_UNAVAILABLE,
+                "publish execution requires the exact reserved pair and observed lease",
+            )
+        observed.revalidate()
+        previous_head = self._ledger_head
+        validated_view = self._runtime._boundary._validate_reserved_pair_for_job(
+            self._reserved_pair,
+            context=self._context,
+            pin=self._context_pin,
+            binding_sha256=self._context_binding,
+            runtime_mutex_lease=self._mutex,
+        )
+        if validated_view != self._pair_view:
+            raise JobOperationError(
+                JobOperationCode.PUBLISH_UNAVAILABLE,
+                "reserved pair changed before the mutation boundary",
+            )
+        final_head = self._runtime._ledger._rescan_under_existing_mutex(self._mutex)
+        if (
+            final_head.epoch_id != previous_head.epoch_id
+            or final_head.active_revision_id != previous_head.active_revision_id
+            or final_head.active_revision_sequence
+            != previous_head.active_revision_sequence
+            or final_head.last_sequence != previous_head.last_sequence + 1
+            or final_head.segment_count != previous_head.segment_count + 1
+        ):
+            raise JobOperationError(
+                JobOperationCode.LEDGER_CHANGED,
+                "final pair revalidation did not advance the exact audit head",
+            )
+        observed._assert_local_live()
+        final_snapshot = observed._low_level.revalidate()
+        self._staging._compare_snapshot(final_snapshot)
+        self._ledger_head = final_head
+        observed._evidence = _evidence_from_snapshot(
+            final_snapshot,
+            self._budget,
+            final_head,
+        )
+        directory_publish_permit = (
+            self._runtime._writer._issue_directory_publish_journal_permit(
+                observed._low_level
+            )
+        )
+        journal = _PublishOperationJournal(
+            self,
+            observed,
+            directory_publish_permit=directory_publish_permit,
+            _constructor=_PUBLISH_JOURNAL_CONSTRUCTOR,
+        )
+        directory_receipt: DirectoryPublishReceipt | None = None
+        try:
+            directory_receipt = self._runtime._writer._publish_observed_directory_no_replace(
+                observed._low_level,
+                self._pair_view.target_relative_path,
+                journal,
+            )
+            committed = journal.committed_receipt
+            if (
+                type(directory_receipt) is not DirectoryPublishReceipt
+                or committed is None
+                or committed.state is not OperationState.COMMITTED
+                or committed.transaction_id != self._transaction_id
+            ):
+                raise JobOperationError(
+                    JobOperationCode.OPERATION_LEDGER_FAILED,
+                    "directory publish returned without an exact committed ledger receipt",
+                )
+            receipt = PublishOperationReceipt(
+                transaction_id=self._transaction_id,
+                pair_id=self._pair_view.pair_id,
+                target_locator=self._pair_view.target_relative_path.as_posix(),
+                completion_kind=OperationCompletionKind.NATIVE_COMMIT,
+                native_directory_receipt_sha256=directory_receipt.receipt_sha256,
+                recovery_observation_receipt_sha256=None,
+                recovery_guarantee_scope=None,
+                committed_segment_sha256=committed.segment_sha256,
+                committed_sequence=committed.sequence,
+            )
+            self._runtime._boundary._finish_reserved_pair_for_job(
+                self._reserved_pair,
+                context=self._context,
+                pin=self._context_pin,
+                binding_sha256=self._context_binding,
+                lifecycle="CONSUMED",
+            )
+            self._publish_receipt = receipt
+            self._state = "PUBLISH_COMMITTED"
+            return receipt
+        except BaseException as exc:
+            terminal_already_committed = journal.committed_receipt is not None
+            if not terminal_already_committed:
+                try:
+                    journal.record_failure(exc)
+                except BaseException:
+                    self._runtime._writer.seal_after_indeterminate_mutation()
+            if (
+                self._reserved_pair is not None
+                and not getattr(self._reserved_pair, "_closed", True)
+            ):
+                try:
+                    self._runtime._boundary._finish_reserved_pair_for_job(
+                        self._reserved_pair,
+                        context=self._context,
+                        pin=self._context_pin,
+                        binding_sha256=self._context_binding,
+                        lifecycle=("CONSUMED" if terminal_already_committed else "FAILED"),
+                    )
+                except BaseException:
+                    self._runtime._writer.seal_after_indeterminate_mutation()
+            if terminal_already_committed or journal.mutation_may_have_occurred:
+                self._runtime._writer.seal_after_indeterminate_mutation()
+            self._state = (
+                "PUBLISH_COMMITTED_CLEANUP_FAILED"
+                if terminal_already_committed
+                else "PUBLISH_FAILED_RESIDUE_RETAINED"
+            )
+            if isinstance(exc, JobOperationError):
+                raise
+            raise JobOperationError(
+                JobOperationCode.PUBLISH_FAILED,
+                "handle-bound publish failed; residue was retained for reconciliation",
+            ) from None
 
     def _job_contract_bytes(self) -> bytes:
         head = self._ledger_head
@@ -724,6 +1180,21 @@ class _OperationLease:
                 self._staging._close_handles()
             except BaseException as exc:
                 close_error = exc
+        if (
+            self._reserved_pair is not None
+            and not getattr(self._reserved_pair, "_closed", True)
+        ):
+            try:
+                self._runtime._boundary._finish_reserved_pair_for_job(
+                    self._reserved_pair,
+                    context=self._context,
+                    pin=self._context_pin,
+                    binding_sha256=self._context_binding,
+                    lifecycle="FAILED",
+                )
+            except BaseException as exc:
+                close_error = close_error or exc
+                self._runtime._writer.seal_after_indeterminate_mutation()
         try:
             self._runtime._boundary._finish_job_operation_context(
                 self._context,
@@ -742,7 +1213,11 @@ class _OperationLease:
         except BaseException as exc:
             close_error = close_error or exc
         self._closed = True
-        self._state = "CLOSED_NO_BUSINESS_MUTATION"
+        self._state = (
+            "CLOSED_PUBLISH_COMMITTED"
+            if self._publish_receipt is not None
+            else "CLOSED_NO_COMMITTED_BUSINESS_MUTATION"
+        )
         if close_error is not None:
             raise close_error
 
@@ -1096,12 +1571,302 @@ class _ObservedJobTreeLease:
         raise TypeError("observed job tree leases cannot be serialized")
 
 
+class _PublishOperationJournal:
+    __slots__ = (
+        "_operation",
+        "_observed",
+        "_ledger",
+        "_source_evidence",
+        "_target_evidence",
+        "_state",
+        "_mutation_started",
+        "_mutation_receipt_sha256",
+        "_committed_receipt",
+        "_owner_thread",
+        "_directory_publish_permit",
+    )
+
+    def __init__(
+        self,
+        operation: _OperationLease,
+        observed: _ObservedJobTreeLease,
+        *,
+        directory_publish_permit: _DirectoryPublishJournalPermit,
+        _constructor: object,
+    ) -> None:
+        ledger = operation._runtime._operation_ledger
+        if (
+            _constructor is not _PUBLISH_JOURNAL_CONSTRUCTOR
+            or type(ledger) is not DurableOperationLedger
+            or observed._staging._operation is not operation
+            or type(directory_publish_permit) is not _DirectoryPublishJournalPermit
+        ):
+            raise TypeError("publish journals require the exact operation authority")
+        self._operation = operation
+        self._observed = observed
+        self._ledger = ledger
+        self._source_evidence: OperationTreeEvidence | None = None
+        self._target_evidence: OperationTreeEvidence | None = None
+        self._state: OperationState | None = None
+        self._mutation_started = False
+        self._mutation_receipt_sha256: str | None = None
+        self._committed_receipt: OperationSegmentReceipt | None = None
+        self._owner_thread = threading.get_ident()
+        self._directory_publish_permit = directory_publish_permit
+        directory_publish_permit._bind(
+            operation._runtime._writer,
+            observed._low_level,
+            self,
+        )
+
+    @property
+    def committed_receipt(self) -> OperationSegmentReceipt | None:
+        self._assert_local_owner()
+        return self._committed_receipt
+
+    @property
+    def mutation_may_have_occurred(self) -> bool:
+        self._assert_local_owner()
+        return self._mutation_started or self._state in {
+            OperationState.MUTATED,
+            OperationState.POSTCONDITION_VERIFIED,
+            OperationState.COMMITTED,
+            OperationState.IN_DOUBT,
+        }
+
+    def prepared(
+        self,
+        snapshot: _TreeSnapshot,
+        root: _ObservedHandle,
+    ) -> None:
+        self._assert_live()
+        if self._state is not None or type(snapshot) is not _TreeSnapshot or type(root) is not _ObservedHandle:
+            raise JobOperationError(
+                JobOperationCode.OPERATION_LEDGER_FAILED,
+                "publish PREPARED journal state is invalid",
+            )
+        expected = self._observed._evidence
+        if (
+            snapshot.manifest_sha256 != expected.manifest_sha256
+            or snapshot.source_tree_sha256 != expected.source_tree_sha256
+            or snapshot.topology_sha256 != expected.topology_sha256
+            or snapshot.entry_count != expected.entry_count
+            or snapshot.total_bytes != expected.total_bytes
+        ):
+            raise JobOperationError(
+                JobOperationCode.TREE_MISMATCH,
+                "PREPARED snapshot differs from the reserved observed evidence",
+            )
+        self._source_evidence = self._operation_tree_evidence(snapshot, root)
+        self._append(
+            next_state=OperationState.PREPARED,
+            mutation_attempted=False,
+        )
+
+    def mutation_started(self) -> None:
+        self._assert_live()
+        if self._state is not OperationState.PREPARED or self._mutation_started:
+            raise JobOperationError(
+                JobOperationCode.OPERATION_LEDGER_FAILED,
+                "publish mutation boundary is not in PREPARED",
+            )
+        self._mutation_started = True
+
+    def mutated(self, receipt: DirectoryPublishReceipt) -> None:
+        self._assert_live()
+        if (
+            self._state is not OperationState.PREPARED
+            or not self._mutation_started
+            or type(receipt) is not DirectoryPublishReceipt
+        ):
+            raise JobOperationError(
+                JobOperationCode.OPERATION_LEDGER_FAILED,
+                "publish MUTATED journal state is invalid",
+            )
+        self._mutation_receipt_sha256 = receipt.receipt_sha256
+        self._append(
+            next_state=OperationState.MUTATED,
+            mutation_attempted=True,
+        )
+
+    def postcondition_verified(
+        self,
+        snapshot: _TreeSnapshot,
+        root: _ObservedHandle,
+        receipt: DirectoryPublishReceipt,
+    ) -> None:
+        self._assert_live()
+        if (
+            self._state is not OperationState.MUTATED
+            or type(snapshot) is not _TreeSnapshot
+            or type(root) is not _ObservedHandle
+            or type(receipt) is not DirectoryPublishReceipt
+            or receipt.receipt_sha256 != self._mutation_receipt_sha256
+            or self._source_evidence is None
+        ):
+            raise JobOperationError(
+                JobOperationCode.OPERATION_LEDGER_FAILED,
+                "publish postcondition journal state is invalid",
+            )
+        target = self._operation_tree_evidence(snapshot, root)
+        if target != self._source_evidence:
+            raise JobOperationError(
+                JobOperationCode.TREE_MISMATCH,
+                "durable target evidence differs from PREPARED source evidence",
+            )
+        self._target_evidence = target
+        self._append(
+            next_state=OperationState.POSTCONDITION_VERIFIED,
+            mutation_attempted=True,
+        )
+        self._committed_receipt = self._append(
+            next_state=OperationState.COMMITTED,
+            mutation_attempted=True,
+        )
+
+    def record_failure(self, error: BaseException) -> None:
+        self._assert_live()
+        if (
+            self._state is None
+            or self._state in _TERMINAL_PUBLISH_STATES
+            or self._state is OperationState.IN_DOUBT
+        ):
+            return
+        deterministic_no_mutation = (
+            isinstance(error, HandleWriterError)
+            and error.code is HandleWriterCode.TARGET_CONFLICT
+        )
+        if self._state is OperationState.PREPARED and (
+            not self._mutation_started or deterministic_no_mutation
+        ):
+            self._mutation_started = False
+            self._append(
+                next_state=OperationState.ABORTED,
+                mutation_attempted=False,
+                error_code=self._error_code(error),
+            )
+            return
+        self._append(
+            next_state=OperationState.IN_DOUBT,
+            mutation_attempted=True,
+            error_code=self._error_code(error),
+        )
+
+    def _append(
+        self,
+        *,
+        next_state: OperationState,
+        mutation_attempted: bool,
+        error_code: str | None = None,
+    ) -> OperationSegmentReceipt:
+        operation = self._operation
+        view = operation._pair_view
+        source_evidence = self._source_evidence
+        if view is None or source_evidence is None or operation._transaction_id is None:
+            raise JobOperationError(
+                JobOperationCode.OPERATION_LEDGER_FAILED,
+                "publish journal lost its immutable transaction binding",
+            )
+        transition_key = (
+            f"{operation._transaction_id}|"
+            f"{'' if self._state is None else self._state.value}|{next_state.value}"
+        ).encode("ascii")
+        transition_id = "TRN-" + hashlib.sha256(
+            b"M0-OPERATION-TRANSITION-ID-V1\0" + transition_key
+        ).hexdigest().upper()[:32]
+        transition = OperationTransition(
+            transition_id=transition_id,
+            transaction_id=operation._transaction_id,
+            operation_id=operation._context.operation_id,
+            pair_id=view.pair_id,
+            previous_state=self._state,
+            next_state=next_state,
+            context_binding_sha256=operation._context_binding,
+            manifest_sha256=operation._manifest.manifest_sha256,
+            budget_sha256=operation._budget.digest,
+            source_locator=view.source_relative_path.as_posix(),
+            target_locator=view.target_relative_path.as_posix(),
+            source_evidence=source_evidence,
+            target_evidence=self._target_evidence,
+            audit_ledger_head_sha256=operation._ledger_head.last_segment_sha256 or "",
+            mutation_attempted=mutation_attempted,
+            native_mutation_receipt_sha256=self._mutation_receipt_sha256,
+            recovery_observation_receipt_sha256=None,
+            completion_kind=(
+                OperationCompletionKind.NATIVE_COMMIT
+                if next_state is OperationState.COMMITTED
+                else None
+            ),
+            error_code=error_code,
+            classification=operation._context.classification,
+        )
+        receipt = self._ledger._append_transition_under_existing_mutex(
+            operation._mutex,
+            transition,
+        )
+        self._state = next_state
+        return receipt
+
+    def _operation_tree_evidence(
+        self,
+        snapshot: _TreeSnapshot,
+        root: _ObservedHandle,
+    ) -> OperationTreeEvidence:
+        return OperationTreeEvidence(
+            manifest_sha256=snapshot.manifest_sha256,
+            source_tree_sha256=snapshot.source_tree_sha256,
+            topology_sha256=snapshot.topology_sha256,
+            durable_identity_sha256=self._ledger.durable_identity_digest(
+                root.volume_serial,
+                root.file_id,
+            ),
+            entry_count=snapshot.entry_count,
+            total_bytes=snapshot.total_bytes,
+        )
+
+    @staticmethod
+    def _error_code(error: BaseException) -> str:
+        if isinstance(error, HandleWriterError):
+            return error.code.value
+        if isinstance(error, JobOperationError):
+            return error.code.value
+        return "UNEXPECTED_FAILURE"
+
+    def _assert_live(self) -> None:
+        self._assert_local_owner()
+        self._operation._assert_live()
+
+    def _assert_local_owner(self) -> None:
+        if self._owner_thread != threading.get_ident():
+            raise JobOperationError(
+                JobOperationCode.INVALID_LEASE,
+                "publish journal cannot cross threads",
+            )
+
+    def __repr__(self) -> str:
+        return "_PublishOperationJournal(state='<redacted>', transaction='<redacted>')"
+
+    def __reduce__(self) -> Any:
+        raise TypeError("publish operation journals cannot be serialized")
+
+
+_TERMINAL_PUBLISH_STATES = frozenset(
+    {
+        OperationState.ABORTED,
+        OperationState.COMMITTED,
+        OperationState.RECOVERED_ABORT,
+        OperationState.RECOVERED_COMMIT,
+    }
+)
+
+
 def _build_test_job_runtime(
     boundary: _ContextAuthority,
     writer: _WindowsHandleWriter,
     ledger: DurableAuditLedger,
     workspace_root: Path,
     *,
+    operation_ledger: DurableOperationLedger | None = None,
     _constructor: object,
 ) -> _TestJobRuntime:
     if _constructor is not _JOB_RUNTIME_CONSTRUCTOR:
@@ -1113,6 +1878,7 @@ def _build_test_job_runtime(
         boundary,
         writer,
         ledger,
+        operation_ledger,
         workspace_root,
         _constructor=_JOB_RUNTIME_CONSTRUCTOR,
     )

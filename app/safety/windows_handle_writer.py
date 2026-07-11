@@ -34,6 +34,7 @@ _HANDLE_WRITER_CONSTRUCTOR = object()
 _DIRECTORY_LEASE_CONSTRUCTOR = object()
 _IMMUTABLE_FILE_LEASE_CONSTRUCTOR = object()
 _TREE_LEASE_CONSTRUCTOR = object()
+_DIRECTORY_PUBLISH_PERMIT_CONSTRUCTOR = object()
 _MUTEX_REGISTRY_LOCK = threading.Lock()
 _ACTIVE_MUTEX_NAMES: set[str] = set()
 _MAX_SPENT_TICKETS = 8192
@@ -140,6 +141,23 @@ class HandleWriteReceipt:
     sha256: str
     object_reference: str
     capability_state: str = "TEST_LOCAL_HANDLE_VERIFIED"
+
+
+@dataclass(frozen=True, slots=True)
+class DirectoryPublishReceipt:
+    operation: str
+    manifest_sha256: str
+    source_tree_sha256: str
+    topology_sha256: str
+    identity_digest: str
+    entry_count: int
+    total_bytes: int
+    object_reference: str
+    receipt_sha256: str
+    capability_state: str = "TEST_LOCAL_HANDLE_BOUND_DIRECTORY_PUBLISH"
+
+    def __reduce__(self) -> Any:
+        raise TypeError("directory publish receipts cannot be serialized")
 
 
 @dataclass(frozen=True, slots=True)
@@ -737,6 +755,31 @@ class _ObservedTreeLease:
             self._invalidated = True
             raise
 
+    def _consume_descendants_for_directory_publish(
+        self,
+        writer: _WindowsHandleWriter,
+    ) -> _TreeSnapshot:
+        """Consume the live observation immediately before a root rename.
+
+        Windows cannot rename a non-empty directory reliably while this lease
+        retains arbitrary descendant handles that deny delete sharing.  The
+        final full-tree revalidation happens first; only the root DELETE handle
+        and its parent fences survive this irreversible hand-off.
+        """
+
+        snapshot = self.revalidate()
+        self._assert_live_owner(writer)
+        handles = [node[1] for node in self._nodes]
+        self._nodes = ()
+        self._directory_listings = ()
+        self._closed = True
+        try:
+            writer._close_all(handles)
+        except BaseException:
+            self._invalidated = True
+            raise
+        return snapshot
+
     def _assert_live_owner(self, writer: _WindowsHandleWriter) -> None:
         if (
             self._closed
@@ -777,6 +820,80 @@ class _ObservedTreeLease:
 
     def __reduce__(self) -> Any:
         raise TypeError("observed tree leases cannot be serialized")
+
+
+class _DirectoryPublishJournalPermit:
+    """Single-use, writer-bound authority for the sole directory publish call."""
+
+    __slots__ = (
+        "_writer",
+        "_observed_tree",
+        "_owner_thread",
+        "_journal",
+        "_state",
+    )
+
+    def __init__(
+        self,
+        writer: _WindowsHandleWriter,
+        observed_tree: _ObservedTreeLease,
+        *,
+        _constructor: object,
+    ) -> None:
+        if (
+            _constructor is not _DIRECTORY_PUBLISH_PERMIT_CONSTRUCTOR
+            or type(writer) is not _WindowsHandleWriter
+            or type(observed_tree) is not _ObservedTreeLease
+        ):
+            raise TypeError("directory publish permits require the fixed writer")
+        observed_tree._assert_live_owner(writer)
+        self._writer = writer
+        self._observed_tree = observed_tree
+        self._owner_thread = threading.get_ident()
+        self._journal: Any | None = None
+        self._state = "ISSUED"
+
+    def _bind(self, writer: _WindowsHandleWriter, observed_tree: _ObservedTreeLease, journal: Any) -> None:
+        if (
+            self._state != "ISSUED"
+            or self._writer is not writer
+            or self._observed_tree is not observed_tree
+            or self._owner_thread != threading.get_ident()
+            or journal is None
+        ):
+            raise HandleWriterError(
+                HandleWriterCode.INVALID_REQUEST,
+                "directory publish permit cannot bind this journal",
+            )
+        observed_tree._assert_live_owner(writer)
+        self._journal = journal
+        self._state = "BOUND"
+
+    def _consume(
+        self,
+        writer: _WindowsHandleWriter,
+        observed_tree: _ObservedTreeLease,
+        journal: Any,
+    ) -> None:
+        if (
+            self._state != "BOUND"
+            or self._writer is not writer
+            or self._observed_tree is not observed_tree
+            or self._journal is not journal
+            or self._owner_thread != threading.get_ident()
+        ):
+            raise HandleWriterError(
+                HandleWriterCode.INVALID_REQUEST,
+                "directory publish permit is foreign, unbound, or already consumed",
+            )
+        observed_tree._assert_live_owner(writer)
+        self._state = "CONSUMED"
+
+    def __repr__(self) -> str:
+        return f"_DirectoryPublishJournalPermit(state='{self._state}', authority='<redacted>')"
+
+    def __reduce__(self) -> Any:
+        raise TypeError("directory publish permits cannot be serialized")
 
 
 class _WindowsApi:
@@ -2560,6 +2677,99 @@ class _WindowsHandleWriter:
             self._close_all([node[1] for node in nodes])
             raise
 
+    def _observe_existing_tree_snapshot(
+        self,
+        relative_path: str | os.PathLike[str],
+        budget: TreeScanBudget,
+    ) -> tuple[_TreeSnapshot, _ObservedHandle]:
+        """Return detached recovery evidence after a complete handle scan.
+
+        The returned tuple is evidence only, never mutation authority.  Every
+        handle and Guard ticket is consumed before return; callers must perform
+        a new scan for each recovery decision.
+        """
+
+        if type(budget) is not TreeScanBudget:
+            raise HandleWriterError(
+                HandleWriterCode.INVALID_REQUEST,
+                "existing tree recovery scan requires an exact budget",
+            )
+        ticket = self._authorize(
+            relative_path,
+            intent=PathIntent.EXISTING_READ,
+            expected_kind=ExpectedKind.DIRECTORY,
+        )
+        root_lease: DirectoryHandleLease | None = None
+        tree_lease: _ObservedTreeLease | None = None
+        with self._reserved(ticket, PathIntent.EXISTING_READ, ExpectedKind.DIRECTORY):
+            self._revalidate(ticket)
+            fences = self._fence_snapshot(ticket, omit_final=True)
+            root_handle = 0
+            try:
+                root_handle = self._api.open_handle(
+                    ticket.path,
+                    access=(
+                        self._api.FILE_LIST_DIRECTORY
+                        | self._api.FILE_TRAVERSE
+                        | self._api.FILE_READ_ATTRIBUTES
+                        | self._api.SYNCHRONIZE
+                    ),
+                    share=self._api.FILE_SHARE_READ,
+                    disposition=self._api.OPEN_EXISTING,
+                    flags=(
+                        self._api.FILE_FLAG_BACKUP_SEMANTICS
+                        | self._api.FILE_FLAG_OPEN_REPARSE_POINT
+                    ),
+                )
+                root_observed = self._observe_identity(root_handle)
+                if not root_observed.is_directory:
+                    raise HandleWriterError(
+                        HandleWriterCode.TYPE_MISMATCH,
+                        "existing recovery object is not a directory",
+                    )
+                self._require_default_stream_only(root_handle, directory=True)
+                self._verify_identity(ticket.chain_snapshot[-1], root_observed)
+                self._verify_final_path(root_handle, ticket.path)
+                self._verify_path_matches_handle(ticket.path, root_observed)
+                root_lease = DirectoryHandleLease(
+                    self,
+                    root_handle,
+                    ticket.path,
+                    root_observed,
+                    fence_handles=tuple(fences),
+                    _constructor=_DIRECTORY_LEASE_CONSTRUCTOR,
+                )
+                root_handle = 0
+                fences = []
+                root_lease._sealed_for_observation = True
+                tree_lease = self.observe_tree(root_lease, budget)
+                snapshot = tree_lease.revalidate()
+                return snapshot, root_observed
+            finally:
+                close_error: HandleWriterError | None = None
+                if tree_lease is not None and not tree_lease._closed:
+                    try:
+                        tree_lease.close()
+                    except HandleWriterError as exc:
+                        close_error = exc
+                if root_lease is not None and not root_lease._closed:
+                    try:
+                        root_lease.close()
+                    except HandleWriterError as exc:
+                        close_error = close_error or exc
+                if root_handle:
+                    try:
+                        self._api.close(root_handle)
+                    except HandleWriterError as exc:
+                        close_error = close_error or exc
+                try:
+                    self._close_all(fences)
+                except HandleWriterError as exc:
+                    close_error = close_error or exc
+                if close_error is not None:
+                    self._seal(HandleWriterCode.HANDLE_CLOSE_FAILED)
+                    raise close_error
+
     def _revalidate_immutable_file_lease(
         self,
         lease: _ImmutableFileLease,
@@ -3002,6 +3212,344 @@ class _WindowsHandleWriter:
                 HandleWriterCode.MUTATION_IN_DOUBT,
                 "handle-verified no-replace publish returned no receipt",
             ) from None
+        return result
+
+    def _issue_directory_publish_journal_permit(
+        self,
+        observed_tree: _ObservedTreeLease,
+    ) -> _DirectoryPublishJournalPermit:
+        """Issue the exact single-use authority consumed by the publish kernel."""
+
+        with self._lock:
+            if self._poisoned is not None:
+                raise HandleWriterError(
+                    HandleWriterCode.WRITER_SEALED,
+                    "directory publish permit cannot be issued by a sealed writer",
+                )
+        if type(observed_tree) is not _ObservedTreeLease:
+            raise HandleWriterError(
+                HandleWriterCode.INVALID_REQUEST,
+                "directory publish permit requires an exact observed tree",
+            )
+        observed_tree._assert_live_owner(self)
+        return _DirectoryPublishJournalPermit(
+            self,
+            observed_tree,
+            _constructor=_DIRECTORY_PUBLISH_PERMIT_CONSTRUCTOR,
+        )
+
+    def _publish_observed_directory_no_replace(
+        self,
+        observed_tree: _ObservedTreeLease,
+        target_relative_path: str | os.PathLike[str],
+        journal: Any,
+    ) -> DirectoryPublishReceipt:
+        """Publish one observed directory root through its existing DELETE handle.
+
+        This private S3-E primitive is callable only from the fixed job
+        operation.  The journal owns PREPARED/MUTATED/POSTCONDITION/COMMITTED
+        durability; the writer owns handle identity, no-replace rename and the
+        independent target rescan.  It intentionally does not claim to freeze
+        hostile external child-namespace writers.
+        """
+
+        required_callbacks = (
+            "prepared",
+            "mutation_started",
+            "mutated",
+            "postcondition_verified",
+            "record_failure",
+        )
+        permit = getattr(journal, "_directory_publish_permit", None)
+        if (
+            type(observed_tree) is not _ObservedTreeLease
+            or type(permit) is not _DirectoryPublishJournalPermit
+            or any(not callable(getattr(journal, name, None)) for name in required_callbacks)
+        ):
+            raise HandleWriterError(
+                HandleWriterCode.INVALID_REQUEST,
+                "directory publish requires an exact observed tree and journal",
+            )
+        permit._consume(self, observed_tree, journal)
+        observed_tree._assert_live_owner(self)
+        root = observed_tree._root
+        if root._parent_lease is None:
+            raise HandleWriterError(
+                HandleWriterCode.INVALID_TICKET,
+                "directory publish root lost its source-parent lease",
+            )
+        try:
+            source_relative = root._path.relative_to(self._workspace_root)
+        except ValueError:
+            raise HandleWriterError(
+                HandleWriterCode.INVALID_TEST_WORKSPACE,
+                "directory publish source escaped its fixed workspace",
+            ) from None
+        source = self._authorize(
+            source_relative,
+            intent=PathIntent.MOVE_SOURCE,
+            expected_kind=ExpectedKind.DIRECTORY,
+        )
+        try:
+            target = self._authorize(
+                target_relative_path,
+                intent=PathIntent.MOVE_TARGET,
+                expected_kind=ExpectedKind.DIRECTORY,
+            )
+        except BaseException:
+            self._discard_issued_ticket(source)
+            raise
+        target_fences: list[int] = []
+        target_root_lease: DirectoryHandleLease | None = None
+        target_observed_tree: _ObservedTreeLease | None = None
+        capabilities_consumed = False
+        mutation_attempted = False
+        native_succeeded = False
+        fully_committed = False
+        result: DirectoryPublishReceipt | None = None
+        source_root_before: _ObservedHandle | None = None
+        source_snapshot: _TreeSnapshot | None = None
+        try:
+            # PREPARED is written before the writer mutation reservation is
+            # entered.  Operation-ledger segment publication itself uses the
+            # same writer and must never be a re-entrant mutation.
+            self._revalidate(source)
+            self._revalidate(target)
+            self._require_existing_direct_parent(target)
+            if ntpath.normcase(ntpath.normpath(str(source.path))) != ntpath.normcase(
+                ntpath.normpath(str(root._path))
+            ):
+                raise HandleWriterError(
+                    HandleWriterCode.INVALID_TICKET,
+                    "observed root differs from the reserved source capability",
+                )
+            source_root_before = self._observe_identity(root._handle)
+            if (
+                not source_root_before.is_directory
+                or not self._same_object(root._observed, source_root_before)
+            ):
+                raise HandleWriterError(
+                    HandleWriterCode.HANDLE_IDENTITY_MISMATCH,
+                    "observed root identity changed before directory publish",
+                )
+            self._require_default_stream_only(root._handle, directory=True)
+            self._verify_final_path(root._handle, source.path)
+            self._verify_path_matches_handle(source.path, source_root_before)
+            target_fences = self._fence_snapshot(target)
+            if not target_fences:
+                raise HandleWriterError(
+                    HandleWriterCode.PRECONDITION_FAILED,
+                    "directory publish target lacks a verified parent fence",
+                )
+            target_parent_handle = target_fences[-1]
+            target_parent = self._observe_identity(target_parent_handle)
+            if (
+                not target_parent.is_directory
+                or target_parent.volume_serial != source_root_before.volume_serial
+            ):
+                raise HandleWriterError(
+                    HandleWriterCode.PRECONDITION_FAILED,
+                    "directory publish requires source and target on one volume",
+                )
+            self._require_default_stream_only(target_parent_handle, directory=True)
+            self._require_directory_name_absent(target_parent_handle, target.path.name)
+            self._require_directory_name_bound(
+                root._parent_lease._handle,
+                source.path.name,
+                source_root_before,
+            )
+            source_snapshot = observed_tree.revalidate()
+            journal.prepared(source_snapshot, source_root_before)
+
+            # Only the final verification and native root rename hold the
+            # writer's single-mutation reservation.  No ledger callback occurs
+            # until that reservation has released both Guard tickets.
+            with self._reserved_group(
+                (
+                    (source, PathIntent.MOVE_SOURCE, ExpectedKind.DIRECTORY),
+                    (target, PathIntent.MOVE_TARGET, ExpectedKind.DIRECTORY),
+                )
+            ):
+                capabilities_consumed = True
+                self._revalidate(source)
+                self._revalidate(target)
+                if observed_tree.revalidate() != source_snapshot:
+                    raise HandleWriterError(
+                        HandleWriterCode.DIRECTORY_CHANGED,
+                        "directory tree changed after PREPARED durability",
+                    )
+                consumed_snapshot = observed_tree._consume_descendants_for_directory_publish(
+                    self
+                )
+                if consumed_snapshot != source_snapshot:
+                    raise HandleWriterError(
+                        HandleWriterCode.DIRECTORY_CHANGED,
+                        "directory tree changed during publish hand-off",
+                    )
+                source_root_final_precheck = self._observe_identity(root._handle)
+                if not self._same_object(source_root_before, source_root_final_precheck):
+                    raise HandleWriterError(
+                        HandleWriterCode.HANDLE_IDENTITY_MISMATCH,
+                        "directory root identity changed at the mutation boundary",
+                    )
+                self._verify_final_path(root._handle, source.path)
+                self._verify_path_matches_handle(source.path, source_root_before)
+                self._require_directory_name_bound(
+                    root._parent_lease._handle,
+                    source.path.name,
+                    source_root_before,
+                )
+                self._require_directory_name_absent(
+                    target_parent_handle,
+                    target.path.name,
+                )
+                journal.mutation_started()
+                mutation_attempted = True
+                self._after_directory_publish_prepared(source, target)
+                try:
+                    self._api.rename_by_handle_no_replace(root._handle, target.path)
+                except HandleWriterError as exc:
+                    if exc.code is HandleWriterCode.TARGET_CONFLICT:
+                        mutation_attempted = False
+                    raise
+                native_succeeded = True
+                self._after_directory_publish_renamed(source, target)
+                source_root_after = self._observe_identity(root._handle)
+                self._verify_final_path(root._handle, target.path)
+                self._verify_path_matches_handle(target.path, source_root_before)
+                if (
+                    not self._same_object(source_root_before, source_root_after)
+                    or os.path.lexists(source.path)
+                ):
+                    raise HandleWriterError(
+                        HandleWriterCode.POSTCONDITION_FAILED,
+                        "renamed directory root failed its same-handle postcondition",
+                    )
+                self._require_directory_name_absent(
+                    root._parent_lease._handle,
+                    source.path.name,
+                )
+                self._require_directory_name_bound(
+                    target_parent_handle,
+                    target.path.name,
+                    source_root_before,
+                )
+                result = self._directory_publish_receipt(
+                    source_root_before,
+                    source_snapshot,
+                )
+
+            journal.mutated(result)
+            target_handle = self._api.open_handle(
+                target.path,
+                access=(
+                    self._api.FILE_LIST_DIRECTORY
+                    | self._api.FILE_TRAVERSE
+                    | self._api.FILE_READ_ATTRIBUTES
+                    | self._api.SYNCHRONIZE
+                ),
+                # The original FILE_CREATE root handle still owns
+                # FILE_ADD_FILE/FILE_ADD_SUBDIRECTORY access even after the
+                # job lease is logically sealed.  The independent read handle
+                # must therefore share WRITE as well as READ/DELETE; the
+                # original root handle continues to deny any new external
+                # writer, so this does not reopen mutation authority.
+                share=(
+                    self._api.FILE_SHARE_READ
+                    | self._api.FILE_SHARE_WRITE
+                    | self._api.FILE_SHARE_DELETE
+                ),
+                disposition=self._api.OPEN_EXISTING,
+                flags=(
+                    self._api.FILE_FLAG_BACKUP_SEMANTICS
+                    | self._api.FILE_FLAG_OPEN_REPARSE_POINT
+                ),
+            )
+            reopened = self._observe_identity(target_handle)
+            if not reopened.is_directory or not self._same_object(source_root_before, reopened):
+                try:
+                    self._api.close(target_handle)
+                except HandleWriterError:
+                    self._seal(HandleWriterCode.HANDLE_CLOSE_FAILED)
+                    raise
+                raise HandleWriterError(
+                    HandleWriterCode.POSTCONDITION_FAILED,
+                    "independently reopened target root has another identity",
+                )
+            target_root_lease = DirectoryHandleLease(
+                self,
+                target_handle,
+                target.path,
+                reopened,
+                _constructor=_DIRECTORY_LEASE_CONSTRUCTOR,
+            )
+            target_root_lease._sealed_for_observation = True
+            target_observed_tree = self.observe_tree(
+                target_root_lease,
+                observed_tree._budget,
+            )
+            target_snapshot = target_observed_tree.revalidate()
+            if target_snapshot != source_snapshot:
+                raise HandleWriterError(
+                    HandleWriterCode.TREE_MISMATCH,
+                    "published target tree differs from the PREPARED source tree",
+                )
+            journal.postcondition_verified(target_snapshot, reopened, result)
+            fully_committed = True
+        except BaseException as exc:
+            if source_snapshot is not None:
+                try:
+                    journal.record_failure(exc)
+                except BaseException:
+                    # A journal failure is itself indeterminate; sealing below
+                    # remains the only safe continuation.
+                    pass
+            if native_succeeded or mutation_attempted:
+                self._seal(HandleWriterCode.MUTATION_IN_DOUBT)
+            if isinstance(exc, HandleWriterError):
+                raise
+            raise HandleWriterError(
+                (
+                    HandleWriterCode.MUTATION_IN_DOUBT
+                    if native_succeeded or mutation_attempted
+                    else HandleWriterCode.PRECONDITION_FAILED
+                ),
+                "directory publish journal or postcondition failed safely",
+            ) from None
+        finally:
+            close_error: HandleWriterError | None = None
+            if not capabilities_consumed:
+                for ticket in (target, source):
+                    try:
+                        self._discard_issued_ticket(ticket)
+                    except HandleWriterError as cleanup_error:
+                        self._seal(HandleWriterCode.TICKET_RELEASE_FAILED)
+                        close_error = close_error or cleanup_error
+            if target_observed_tree is not None and not target_observed_tree._closed:
+                try:
+                    target_observed_tree.close()
+                except HandleWriterError as exc:
+                    close_error = exc
+            if target_root_lease is not None and not target_root_lease._closed:
+                try:
+                    target_root_lease.close()
+                except HandleWriterError as exc:
+                    close_error = close_error or exc
+            try:
+                self._close_all(target_fences)
+            except HandleWriterError as exc:
+                close_error = close_error or exc
+            if close_error is not None:
+                self._seal(HandleWriterCode.HANDLE_CLOSE_FAILED)
+                if fully_committed:
+                    raise close_error
+                raise close_error
+        if not fully_committed or result is None:
+            self._seal(HandleWriterCode.MUTATION_IN_DOUBT)
+            raise HandleWriterError(
+                HandleWriterCode.MUTATION_IN_DOUBT,
+                "directory publish completed without a durable terminal receipt",
+            )
         return result
 
     def _publish_new_file_impl(
@@ -3835,6 +4383,86 @@ class _WindowsHandleWriter:
             object_reference=reference,
         )
 
+    def _directory_publish_receipt(
+        self,
+        observed: _ObservedHandle,
+        snapshot: _TreeSnapshot,
+    ) -> DirectoryPublishReceipt:
+        object_reference = hashlib.sha256(
+            b"M0-S3-DIRECTORY-OBJECT-V1\0"
+            + self._receipt_key
+            + observed.volume_serial.to_bytes(8, "little")
+            + observed.file_id
+        ).hexdigest()
+        body = {
+            "entry_count": snapshot.entry_count,
+            "identity_digest": snapshot.identity_digest,
+            "manifest_sha256": snapshot.manifest_sha256,
+            "object_reference": object_reference,
+            "operation": "PUBLISH_OBSERVED_DIRECTORY",
+            "source_tree_sha256": snapshot.source_tree_sha256,
+            "topology_sha256": snapshot.topology_sha256,
+            "total_bytes": snapshot.total_bytes,
+        }
+        payload = json.dumps(
+            body,
+            ensure_ascii=True,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("ascii")
+        receipt_sha256 = hashlib.sha256(
+            b"M0-S3-DIRECTORY-PUBLISH-RECEIPT-V1\0" + payload
+        ).hexdigest()
+        return DirectoryPublishReceipt(**body, receipt_sha256=receipt_sha256)
+
+    def _require_directory_name_absent(
+        self,
+        parent_handle: int,
+        name: str,
+    ) -> None:
+        canonical = self._api._validated_relative_component(name)
+        folded = unicodedata.normalize("NFC", canonical).casefold()
+        entries = self._api.enumerate_directory_handle(
+            parent_handle,
+            maximum_entries=4096,
+        )
+        if any(
+            unicodedata.normalize("NFC", entry_name).casefold() == folded
+            for entry_name, _file_id, _attributes in entries
+        ):
+            raise HandleWriterError(
+                HandleWriterCode.TARGET_CONFLICT,
+                "directory publish target already exists or case-collides",
+            )
+
+    def _require_directory_name_bound(
+        self,
+        parent_handle: int,
+        name: str,
+        observed: _ObservedHandle,
+    ) -> None:
+        canonical = self._api._validated_relative_component(name)
+        folded = unicodedata.normalize("NFC", canonical).casefold()
+        matches = tuple(
+            (entry_name, file_id, attributes)
+            for entry_name, file_id, attributes in self._api.enumerate_directory_handle(
+                parent_handle,
+                maximum_entries=4096,
+            )
+            if unicodedata.normalize("NFC", entry_name).casefold() == folded
+        )
+        if (
+            len(matches) != 1
+            or matches[0][0] != canonical
+            or matches[0][1] != int.from_bytes(observed.file_id[:8], "little")
+            or not matches[0][2] & self._api.FILE_ATTRIBUTE_DIRECTORY
+            or matches[0][2] & _REPARSE_ATTRIBUTE
+        ):
+            raise HandleWriterError(
+                HandleWriterCode.POSTCONDITION_FAILED,
+                "directory parent no longer binds the exact root identity",
+            )
+
     def _close_all(self, handles: list[int]) -> None:
         close_error: HandleWriterError | None = None
         for handle in reversed(handles):
@@ -3869,3 +4497,17 @@ class _WindowsHandleWriter:
         target: GuardedPath,
     ) -> None:
         """Trusted-test crash injection point immediately after handle rename."""
+
+    def _after_directory_publish_prepared(
+        self,
+        source: GuardedPath,
+        target: GuardedPath,
+    ) -> None:
+        """Trusted-test injection point after PREPARED and before root rename."""
+
+    def _after_directory_publish_renamed(
+        self,
+        source: GuardedPath,
+        target: GuardedPath,
+    ) -> None:
+        """Trusted-test injection point after root rename and before MUTATED."""

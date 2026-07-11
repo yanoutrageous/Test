@@ -13,7 +13,7 @@ from typing import Any, Iterable, Iterator
 from app.config import PROJECT_ROOT
 
 
-SCANNER_VERSION = "M0-S3-STATIC-AUDIT-V8"
+SCANNER_VERSION = "M0-S3-STATIC-AUDIT-V9"
 PRODUCTION_ROOTS = ("app", "scripts")
 SOURCE_SUFFIXES = (".py", ".sql")
 SOURCE_BYTE_NORMALIZATION = "UTF8_LF_V1"
@@ -173,6 +173,7 @@ _AUDITED_PARAMETER_CALLS = frozenset(
         ("app/safety/production_guard.py", "app.safety.production_guard._BoundaryCore._record_audit_factory", "732a4cffe97798d2d7168ac628c0b44418f5d7aa59d2b01a2c4e0bed5d6e8f95"),
         ("app/safety/segment_ledger.py", "app.safety.segment_ledger.DurableAuditLedger.append_built_audit_batch", "cb759496c5a56f3ed8542517b7238a8f92e04a30717532b214115fceaad2d2fb"),
         ("app/safety/segment_ledger.py", "app.safety.segment_ledger.DurableAuditLedger._append_with_factory", "2849fb89cafd0e4a3cf746128c483671a03e1e3dbfc33bab25e78916ff4afe08"),
+        ("app/safety/segment_ledger.py", "app.safety.segment_ledger.DurableAuditLedger._append_built_audit_batch_under_existing_mutex", "9c11d8c09fa20e5aa7fa271b709fdd1b960705d79bce59f636a4d446e8c696d9"),
     }
 )
 
@@ -490,12 +491,15 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
     allowed_file = "app/safety/production_guard.py"
     ledger_file = "app/safety/segment_ledger.py"
     job_file = "app/safety/job_operation.py"
+    operation_file = "app/safety/operation_ledger.py"
+    writer_file = "app/safety/windows_handle_writer.py"
     safety_module_prefixes = (
         "app.safety.production_guard",
         "app.safety.namespace_policy",
         "app.safety.windows_handle_writer",
         "app.safety.segment_ledger",
         "app.safety.job_operation",
+        "app.safety.operation_ledger",
     )
     scope_aliases: dict[str, str] = dict(module.imports)
     for _ in range(8):
@@ -531,6 +535,7 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         "AuditKeyRevisionStore",
         "DurableAuditLedger",
         "DurableAuditSink",
+        "DurableOperationLedger",
         "_AuditAuthority",
         "_TestDurableBoundaryBundle",
         "_create_test_durable_boundary",
@@ -541,6 +546,11 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         "_IMMUTABLE_FILE_LEASE_CONSTRUCTOR",
         "_JobContextPin",
         "_JOB_CONTEXT_PIN_CONSTRUCTOR",
+        "_OPERATION_LEDGER_CONSTRUCTOR",
+        "_ReservedPairLease",
+        "_PAIR_RESERVATION_CONSTRUCTOR",
+        "_DirectoryPublishJournalPermit",
+        "_DIRECTORY_PUBLISH_PERMIT_CONSTRUCTOR",
         "_AUDIT_AUTHORITY_CONSTRUCTOR",
         "_LEDGER_CONSTRUCTOR",
         "_HANDLE_WRITER_CONSTRUCTOR",
@@ -573,6 +583,11 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         "_IMMUTABLE_FILE_LEASE_CONSTRUCTOR",
         "_JobContextPin",
         "_JOB_CONTEXT_PIN_CONSTRUCTOR",
+        "_OPERATION_LEDGER_CONSTRUCTOR",
+        "_ReservedPairLease",
+        "_PAIR_RESERVATION_CONSTRUCTOR",
+        "_DirectoryPublishJournalPermit",
+        "_DIRECTORY_PUBLISH_PERMIT_CONSTRUCTOR",
     }
     sensitive_assignments = {
         "CONTRACT_PROJECT_ROOT",
@@ -617,6 +632,9 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         "_JOB_RUNTIME_CONSTRUCTOR",
         "_IMMUTABLE_FILE_LEASE_CONSTRUCTOR",
         "_JOB_CONTEXT_PIN_CONSTRUCTOR",
+        "_OPERATION_LEDGER_CONSTRUCTOR",
+        "_PAIR_RESERVATION_CONSTRUCTOR",
+        "_DIRECTORY_PUBLISH_PERMIT_CONSTRUCTOR",
         "POLICY_ID",
         "POLICY_VERSION",
         "POLICY_DIGEST",
@@ -636,6 +654,7 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         "_WindowsHandleWriter": {
             allowed_file,
             job_file,
+            operation_file,
             "app/safety/windows_handle_writer.py",
         },
         "_WindowsApi": {
@@ -647,6 +666,7 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         "AuditKeyRevisionStore": {allowed_file, ledger_file},
         "DurableAuditLedger": {allowed_file, ledger_file, job_file},
         "DurableAuditSink": {allowed_file, ledger_file},
+        "DurableOperationLedger": {allowed_file, job_file, operation_file},
         "_AuditAuthority": {allowed_file},
         "_TestDurableBoundaryBundle": {allowed_file},
         "_create_test_durable_boundary": {allowed_file},
@@ -662,6 +682,11 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         },
         "_JobContextPin": {allowed_file},
         "_JOB_CONTEXT_PIN_CONSTRUCTOR": {allowed_file},
+        "_OPERATION_LEDGER_CONSTRUCTOR": {allowed_file, operation_file},
+        "_ReservedPairLease": {allowed_file},
+        "_PAIR_RESERVATION_CONSTRUCTOR": {allowed_file},
+        "_DirectoryPublishJournalPermit": {job_file, writer_file},
+        "_DIRECTORY_PUBLISH_PERMIT_CONSTRUCTOR": {writer_file},
         "_AUDIT_AUTHORITY_CONSTRUCTOR": {allowed_file},
         "_LEDGER_CONSTRUCTOR": {allowed_file, ledger_file},
         "_HANDLE_WRITER_CONSTRUCTOR": {
@@ -674,6 +699,112 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
             "app/safety/namespace_policy.py",
         },
     }
+    restricted_private_calls: dict[str, set[tuple[str, str]]] = {
+        "_issue_directory_publish_journal_permit": {
+            (job_file, "_OperationLease.execute_publish_pair"),
+        },
+        "_publish_observed_directory_no_replace": {
+            (job_file, "_OperationLease.execute_publish_pair"),
+        },
+        "_observe_existing_tree_snapshot": {
+            (allowed_file, "_reconcile_test_publish_operation.observe_once"),
+        },
+        "_append_transition_under_existing_mutex": {
+            (job_file, "_PublishOperationJournal._append"),
+            (allowed_file, "_reconcile_test_publish_operation"),
+        },
+        "transaction_result_under_existing_mutex": {
+            (allowed_file, "_reconcile_test_publish_operation"),
+        },
+        "operation_result_under_existing_mutex": {
+            (job_file, "_TestJobRuntime.replay_committed_publish"),
+            (job_file, "_TestJobRuntime.begin_operation"),
+        },
+        "_rescan_under_existing_mutex": {
+            (job_file, "_TestJobRuntime.replay_committed_publish"),
+            (job_file, "_TestJobRuntime.begin_operation"),
+            (job_file, "_OperationLease.authorize_publish"),
+            (job_file, "_OperationLease.execute_publish_pair"),
+            (job_file, "_JobStagingLease.seal_and_observe"),
+            (job_file, "_ObservedJobTreeLease.revalidate"),
+            (operation_file, "DurableOperationLedger.unresolved_under_existing_mutex"),
+            (operation_file, "DurableOperationLedger.operation_result_under_existing_mutex"),
+            (operation_file, "DurableOperationLedger.transaction_result_under_existing_mutex"),
+            (operation_file, "DurableOperationLedger.bound_audit_heads_under_existing_mutex"),
+            (allowed_file, "_create_test_operation_ledger"),
+            (allowed_file, "_reconcile_test_publish_operation"),
+            (ledger_file, "DurableAuditLedger._contains_segment_sha256_under_existing_mutex"),
+            (ledger_file, "DurableAuditLedger._contains_all_segment_sha256_under_existing_mutex"),
+            (ledger_file, "DurableAuditLedger._activated_revision_ids_under_existing_mutex"),
+        },
+        "bound_audit_heads_under_existing_mutex": {
+            (job_file, "_TestJobRuntime._validate_operation_audit_bindings"),
+            (allowed_file, "_create_test_operation_ledger"),
+        },
+        "_contains_all_segment_sha256_under_existing_mutex": {
+            (job_file, "_TestJobRuntime._validate_operation_audit_bindings"),
+            (allowed_file, "_create_test_operation_ledger"),
+            (ledger_file, "DurableAuditLedger._contains_segment_sha256_under_existing_mutex"),
+        },
+        "_activated_revision_ids_under_existing_mutex": {
+            (allowed_file, "_create_test_operation_ledger"),
+        },
+        "_seal_cross_ledger_contradiction": {
+            (job_file, "_TestJobRuntime._validate_operation_audit_bindings"),
+            (allowed_file, "_create_test_operation_ledger"),
+        },
+        "_build_recovery_observation_receipt_sha256": {
+            (operation_file, "DurableOperationLedger._validate_next_transition"),
+            (operation_file, "DurableOperationLedger._scan_under_mutex"),
+            (allowed_file, "_reconcile_test_publish_operation"),
+        },
+        "_record_factory_under_existing_mutex": {
+            (allowed_file, "_BoundaryCore._record_audit_factory"),
+        },
+        "_append_built_audit_batch_under_existing_mutex": {
+            (ledger_file, "DurableAuditSink._record_factory_under_existing_mutex"),
+        },
+        "_contains_segment_sha256_under_existing_mutex": {
+            (allowed_file, "_reconcile_test_publish_operation"),
+        },
+        "_issue_publish_pair_for_job": {
+            (job_file, "_OperationLease.authorize_publish"),
+        },
+        "_reserve_publish_pair_for_job": {
+            (job_file, "_OperationLease.authorize_publish"),
+        },
+        "_finish_reserved_pair_for_job": {
+            (job_file, "_OperationLease.authorize_publish"),
+            (job_file, "_OperationLease.execute_publish_pair"),
+            (job_file, "_OperationLease.close"),
+        },
+        "_validate_reserved_pair_for_job": {
+            (job_file, "_OperationLease.execute_publish_pair"),
+        },
+        "_seal_recovery_contradiction": {
+            (allowed_file, "_reconcile_test_publish_operation"),
+            (allowed_file, "_reconcile_test_publish_operation.observe_once"),
+            (allowed_file, "_reconcile_test_publish_operation.observe_pair"),
+        },
+        "_ReservedPairLease": {
+            (allowed_file, "_BoundaryCore._reserve_pair"),
+        },
+        "_DirectoryPublishJournalPermit": {
+            (writer_file, "_WindowsHandleWriter._issue_directory_publish_journal_permit"),
+        },
+    }
+    restricted_symbol_scopes: dict[str, set[tuple[str, str]]] = {
+        "_PAIR_RESERVATION_CONSTRUCTOR": {
+            (allowed_file, "<module>"),
+            (allowed_file, "_ReservedPairLease.__init__"),
+            (allowed_file, "_BoundaryCore._reserve_pair"),
+        },
+        "_DIRECTORY_PUBLISH_PERMIT_CONSTRUCTOR": {
+            (writer_file, "<module>"),
+            (writer_file, "_DirectoryPublishJournalPermit.__init__"),
+            (writer_file, "_WindowsHandleWriter._issue_directory_publish_journal_permit"),
+        },
+    }
     for node in ast.walk(module.tree):
         if isinstance(node, ast.ImportFrom):
             base = _resolve_import_module(module.module, node.module, node.level)
@@ -684,10 +815,12 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
                     in {
                         "app.safety.segment_ledger",
                         "app.safety.windows_handle_writer",
+                        "app.safety.operation_ledger",
                     }
                     and alias.name
                     in {
                         "DurableAuditLedger",
+                        "DurableOperationLedger",
                         "LedgerHead",
                         "DirectoryHandleLease",
                         "HandleWriterCode",
@@ -695,16 +828,24 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
                         "TreeEntryKind",
                         "TreeScanBudget",
                         "_ObservedTreeLease",
+                        "_ObservedHandle",
                         "_TreeLogicalRow",
                         "_TreeSnapshot",
                         "_ImmutableFileLease",
                         "_WindowsApi",
                         "_WindowsHandleWriter",
+                        "_DirectoryPublishJournalPermit",
                     }
+                )
+                operation_kernel_import = (
+                    module.file == operation_file
+                    and base == "app.safety.windows_handle_writer"
+                    and alias.name == "_WindowsHandleWriter"
                 )
                 if (
                     module.file != allowed_file
                     and not job_kernel_import
+                    and not operation_kernel_import
                     and base.startswith(safety_module_prefixes)
                     and (
                         alias.name == "*"
@@ -719,6 +860,17 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         if isinstance(node, (ast.Name, ast.Attribute)):
             resolved, _ = _resolve_callee(node, scope_aliases)
             leaf = resolved.rsplit(".", 1)[-1]
+            allowed_symbol_scopes = restricted_symbol_scopes.get(leaf)
+            if allowed_symbol_scopes is not None:
+                enclosing = _enclosing_function_qualname(node, module.parents)
+                if (module.file, enclosing) not in allowed_symbol_scopes:
+                    findings.append(
+                        (
+                            module.file,
+                            getattr(node, "lineno", 0),
+                            f"restricted private symbol {leaf} outside exact scope {enclosing}",
+                        )
+                    )
             if (
                 leaf in forbidden_constructors
                 and module.file not in symbol_definition_files.get(leaf, {allowed_file})
@@ -741,6 +893,18 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         if isinstance(node, ast.Call):
             callee, _ = _resolve_callee(node.func, scope_aliases)
             leaf = callee.rsplit(".", 1)[-1]
+            allowed_private_callers = restricted_private_calls.get(leaf)
+            if (
+                allowed_private_callers is not None
+                and (
+                    module.file,
+                    _enclosing_function_qualname(node, module.parents),
+                )
+                not in allowed_private_callers
+            ):
+                findings.append(
+                    (module.file, node.lineno, f"restricted private call {leaf}")
+                )
             if (
                 leaf in forbidden_constructors
                 and module.file
@@ -850,6 +1014,7 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
                         in {
                             "_HANDLE_WRITER_CONSTRUCTOR",
                             "_IMMUTABLE_FILE_LEASE_CONSTRUCTOR",
+                            "_DIRECTORY_PUBLISH_PERMIT_CONSTRUCTOR",
                             "_path_authority",
                             "_mutex_name",
                             "_ACTIVE_MUTEX_NAMES",
@@ -881,6 +1046,20 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
                     or (
                         module.file == job_file
                         and target_name in {"_ledger", "_JOB_RUNTIME_CONSTRUCTOR"}
+                    )
+                    or (
+                        module.file == operation_file
+                        and target_name
+                        in {
+                            "_storage",
+                            "_sealed_code",
+                            "_segments",
+                            "_head",
+                            "_epoch_id",
+                            "_SEGMENT_ROOT",
+                            "_OPERATION_LEDGER_CONSTRUCTOR",
+                            "_total_segment_bytes",
+                        }
                     )
                     or (
                         module.file == "app/safety/namespace_policy.py"

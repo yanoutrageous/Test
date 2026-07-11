@@ -27,6 +27,7 @@ from app.workspace_guard import (
 from app.safety.windows_handle_writer import (
     HandleWriterCode,
     HandleWriterError,
+    RuntimeMutexLease,
     _HANDLE_WRITER_CONSTRUCTOR,
     _WindowsApi,
     _WindowsHandleWriter,
@@ -41,7 +42,20 @@ from app.safety.segment_ledger import (
     _build_genesis_segment_bytes,
     build_key_revision_bytes,
 )
+from app.safety.operation_ledger import (
+    DurableOperationLedger,
+    OperationCompletionKind,
+    OperationLedgerError,
+    OperationSegmentReceipt,
+    OperationState,
+    OperationTransition,
+    OperationTreeEvidence,
+    _OPERATION_LEDGER_CONSTRUCTOR,
+    RECOVERY_GUARANTEE_SCOPE,
+    _build_recovery_observation_receipt_sha256,
+)
 from app.safety.job_operation import (
+    JobResourceBudget,
     _JOB_RUNTIME_CONSTRUCTOR,
     _TestJobRuntime,
     _build_test_job_runtime,
@@ -87,6 +101,7 @@ CONTRACT_PROJECT_ROOT = _contract_root()
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
 _TOKEN_CONSTRUCTOR = object()
 _JOB_CONTEXT_PIN_CONSTRUCTOR = object()
+_PAIR_RESERVATION_CONSTRUCTOR = object()
 _PRODUCTION_BOUNDARY_CONSTRUCTOR = object()
 _AUDIT_AUTHORITY_CONSTRUCTOR = object()
 _MAX_REGISTRY_ITEMS = 4096
@@ -494,6 +509,75 @@ class _PairRecord:
     lifecycle: CapabilityLifecycle = CapabilityLifecycle.ISSUED
 
 
+class _ReservedPairLease:
+    """Exact, thread-bound authority for one RESERVED pair lifecycle."""
+
+    __slots__ = (
+        "_core",
+        "_pair",
+        "_source",
+        "_target",
+        "_context_digest",
+        "_context_pin",
+        "_context_binding",
+        "_owner_thread",
+        "_closed",
+    )
+
+    def __init__(
+        self,
+        core: _BoundaryCore,
+        pair: _PairRecord,
+        source: _CandidateRecord,
+        target: _CandidateRecord,
+        context_digest: str,
+        context_pin: _JobContextPin | None,
+        context_binding: str | None,
+        *,
+        _constructor: object,
+    ) -> None:
+        if (
+            _constructor is not _PAIR_RESERVATION_CONSTRUCTOR
+            or type(pair) is not _PairRecord
+            or type(source) is not _CandidateRecord
+            or type(target) is not _CandidateRecord
+            or pair.lifecycle is not CapabilityLifecycle.RESERVED
+            or source.lifecycle is not CapabilityLifecycle.RESERVED
+            or target.lifecycle is not CapabilityLifecycle.RESERVED
+        ):
+            raise TypeError("reserved pair leases require exact RESERVED records")
+        self._core = core
+        self._pair = pair
+        self._source = source
+        self._target = target
+        self._context_digest = context_digest
+        self._context_pin = context_pin
+        self._context_binding = context_binding
+        self._owner_thread = threading.get_ident()
+        self._closed = False
+
+    def __repr__(self) -> str:
+        state = "CLOSED" if self._closed else "LIVE"
+        return f"_ReservedPairLease(state='{state}', pair='<redacted>')"
+
+    def __reduce__(self) -> Any:
+        raise TypeError("reserved pair leases cannot be serialized")
+
+
+@dataclass(frozen=True, slots=True)
+class _ReservedPairView:
+    pair_id: str
+    kind: PairKind
+    source_relative_path: Path
+    target_relative_path: Path
+    evidence: PairEvidence
+    topology_digest: str
+    effective_classification: DataClassification
+
+    def __reduce__(self) -> Any:
+        raise TypeError("reserved pair views cannot be serialized")
+
+
 _PUBLISH_TOPOLOGY: frozenset[tuple[NamespaceId, NamespaceId]] = frozenset(
     {
         (NamespaceId.JOB_WORKSPACE_INTERNAL, NamespaceId.COPY_SOURCE),
@@ -712,8 +796,9 @@ class _BoundaryCore:
         self.__pair_records: dict[str, _PairRecord] = {}
         self.__context_records: dict[str, _ContextRecord] = {}
         self.__job_context_pins: dict[str, _JobContextPin] = {}
-        self.__candidate_tombstones: dict[str, None] = {}
-        self.__pair_tombstones: dict[str, None] = {}
+        self.__pair_reservations: dict[str, _ReservedPairLease] = {}
+        self.__candidate_tombstones: dict[str, CapabilityLifecycle] = {}
+        self.__pair_tombstones: dict[str, CapabilityLifecycle] = {}
         self.__lock = threading.RLock()
         self._assert_invariants()
 
@@ -740,8 +825,17 @@ class _BoundaryCore:
                 "pair_live": len(self.__pair_records),
                 "context_live": len(self.__context_records),
                 "job_context_pins": len(self.__job_context_pins),
+                "pair_reservations": len(self.__pair_reservations),
                 "candidate_tombstones": len(self.__candidate_tombstones),
                 "pair_tombstones": len(self.__pair_tombstones),
+                "pair_consumed_tombstones": sum(
+                    state is CapabilityLifecycle.CONSUMED
+                    for state in self.__pair_tombstones.values()
+                ),
+                "pair_failed_tombstones": sum(
+                    state is CapabilityLifecycle.FAILED
+                    for state in self.__pair_tombstones.values()
+                ),
             }
         counts["guard_live"] = self.__guard.live_ticket_count
         return counts
@@ -890,7 +984,10 @@ class _BoundaryCore:
             if any(
                 candidate.lifecycle is CapabilityLifecycle.RESERVED
                 for candidate in related_candidates
-            ) or any(pair.lifecycle is CapabilityLifecycle.RESERVED for pair in related_pairs):
+            ) or any(pair.lifecycle is CapabilityLifecycle.RESERVED for pair in related_pairs) or any(
+                lease._pair.context_ticket_id == ticket_id
+                for lease in self.__pair_reservations.values()
+            ):
                 raise ProductionBoundaryError(
                     BoundaryErrorCode.INVALID_CONTEXT,
                     "operation context cannot close while a capability is reserved",
@@ -1043,7 +1140,10 @@ class _BoundaryCore:
             if any(
                 candidate.lifecycle is CapabilityLifecycle.RESERVED
                 for candidate in related_candidates
-            ) or any(pair.lifecycle is CapabilityLifecycle.RESERVED for pair in related_pairs):
+            ) or any(pair.lifecycle is CapabilityLifecycle.RESERVED for pair in related_pairs) or any(
+                lease._pair.context_ticket_id == ticket_id
+                for lease in self.__pair_reservations.values()
+            ):
                 raise ProductionBoundaryError(
                     BoundaryErrorCode.INVALID_CONTEXT,
                     "job operation context still owns a reserved capability",
@@ -1134,6 +1234,141 @@ class _BoundaryCore:
             context=context,
         )
 
+    def issue_publish_pair_for_job(
+        self,
+        source_path: str | os.PathLike[str],
+        target_path: str | os.PathLike[str],
+        *,
+        evidence: PairEvidence,
+        context: OperationContext,
+        context_pin: _JobContextPin,
+        context_binding: str,
+        runtime_mutex_lease: RuntimeMutexLease,
+    ) -> MovePairCandidate:
+        validated = self.validate_test_job_context_pin(
+            context,
+            context_pin,
+            context_binding,
+        )
+        if validated != context.digest:
+            raise ProductionBoundaryError(
+                BoundaryErrorCode.INVALID_CONTEXT,
+                "job pair issuance lost its exact context pin",
+                operation_reference=_public_operation_reference(context),
+            )
+        result = self._issue_pair(
+            kind=PairKind.PUBLISH,
+            source_path=source_path,
+            target_path=target_path,
+            evidence=evidence,
+            context=context,
+            runtime_mutex_lease=runtime_mutex_lease,
+        )
+        if type(result) is not MovePairCandidate:
+            raise ProductionBoundaryError(
+                BoundaryErrorCode.BOUNDARY_STATE_CHANGED,
+                "job pair issuance returned a changed capability type",
+            )
+        return result
+
+    def reserve_publish_pair_for_job(
+        self,
+        token: MovePairCandidate,
+        *,
+        context: OperationContext,
+        context_pin: _JobContextPin,
+        context_binding: str,
+        runtime_mutex_lease: RuntimeMutexLease,
+    ) -> tuple[_ReservedPairLease, _ReservedPairView]:
+        reservation: _ReservedPairLease | None = None
+        try:
+            reservation = self._reserve_pair(
+                token,
+                context,
+                context_pin=context_pin,
+                context_binding=context_binding,
+            )
+            if reservation._pair.kind is not PairKind.PUBLISH:
+                raise ProductionBoundaryError(
+                    BoundaryErrorCode.PAIR_MEMBER_MISMATCH,
+                    "job publish requires a publish pair capability",
+                    operation_reference=_public_operation_reference(context),
+                )
+            view = self._revalidate_reserved_pair(
+                reservation,
+                context,
+                runtime_mutex_lease=runtime_mutex_lease,
+            )
+            return reservation, view
+        except Exception:
+            if reservation is not None and not reservation._closed:
+                self._finish_pair(reservation, CapabilityLifecycle.FAILED)
+            raise
+
+    def finish_reserved_pair_for_job(
+        self,
+        reservation: _ReservedPairLease,
+        *,
+        context: OperationContext,
+        context_pin: _JobContextPin,
+        context_binding: str,
+        lifecycle: CapabilityLifecycle,
+    ) -> None:
+        if (
+            type(reservation) is not _ReservedPairLease
+            or reservation._context_pin is not context_pin
+            or reservation._context_binding != context_binding
+        ):
+            raise ProductionBoundaryError(
+                BoundaryErrorCode.BOUNDARY_STATE_CHANGED,
+                "job pair finalization authority differs",
+            )
+        validated = self.validate_test_job_context_pin(
+            context,
+            context_pin,
+            context_binding,
+        )
+        if validated != context.digest:
+            raise ProductionBoundaryError(
+                BoundaryErrorCode.INVALID_CONTEXT,
+                "job pair finalization lost its exact context pin",
+            )
+        self._finish_pair(reservation, lifecycle)
+
+    def validate_reserved_pair_for_job(
+        self,
+        reservation: _ReservedPairLease,
+        *,
+        context: OperationContext,
+        context_pin: _JobContextPin,
+        context_binding: str,
+        runtime_mutex_lease: RuntimeMutexLease,
+    ) -> _ReservedPairView:
+        if (
+            type(reservation) is not _ReservedPairLease
+            or reservation._context_pin is not context_pin
+            or reservation._context_binding != context_binding
+        ):
+            raise ProductionBoundaryError(
+                BoundaryErrorCode.BOUNDARY_STATE_CHANGED,
+                "job pair validation authority differs",
+            )
+        validated = self.validate_test_job_context_pin(
+            context,
+            context_pin,
+            context_binding,
+        )
+        if validated != context.digest:
+            raise ProductionBoundaryError(
+                BoundaryErrorCode.INVALID_CONTEXT,
+                "job pair validation lost its exact context pin",
+            )
+        return self._revalidate_reserved_pair(
+            reservation,
+            context,
+            runtime_mutex_lease=runtime_mutex_lease,
+        )
+
     def issue_quarantine_pair(
         self,
         source_path: str | os.PathLike[str],
@@ -1157,6 +1392,7 @@ class _BoundaryCore:
         target_path: str | os.PathLike[str] | None,
         evidence: PairEvidence,
         context: OperationContext,
+        runtime_mutex_lease: RuntimeMutexLease | None = None,
     ) -> MovePairCandidate | QuarantinePairCandidate:
         pair_id = secrets.token_hex(16).upper()
         source_relative: Path | None = None
@@ -1339,6 +1575,7 @@ class _BoundaryCore:
                             ),
                         ),
                         _public_operation_reference(context),
+                        runtime_mutex_lease=runtime_mutex_lease,
                     )
                 except Exception:
                     self.__candidate_records.pop(source_record.ticket_id, None)
@@ -1381,6 +1618,7 @@ class _BoundaryCore:
         context: OperationContext,
     ) -> MovePairCandidate | QuarantinePairCandidate:
         safe_context = context if type(context) is OperationContext else None
+        reservation: _ReservedPairLease | None = None
         pair_record: _PairRecord | None = None
         failure: ProductionBoundaryError | None = None
         try:
@@ -1391,75 +1629,20 @@ class _BoundaryCore:
                     "operation context is invalid",
                 )
             self._validate_context_authority(context)
-            pair_record, source_record, target_record = self._reserve_pair(
+            reservation = self._reserve_pair(
                 token,
                 context,
             )
-            self._validate_evidence_context(pair_record.evidence, context)
-            source_core = self.__guard.revalidate(source_record.core)
-            target_core = self.__guard.revalidate(target_record.core)
-            source_decision, target_decision = self.__policy._authorize_pair(
-                source_core,
-                target_core,
-                context,
-                pair_id=pair_record.pair_id,
-                evidence_digest=pair_record.evidence.digest,
-            )
-            self._verify_candidate_decision(source_record, source_core, source_decision)
-            self._verify_candidate_decision(target_record, target_core, target_decision)
-            self._validate_classification_flow(
-                context,
-                source_decision,
-                target_decision,
-            )
-            self._validate_pair_topology(
-                pair_record.kind,
-                source_core,
-                source_decision,
-                target_core,
-                target_decision,
-            )
-            topology_digest = self._topology_digest(
-                pair_record.kind,
-                pair_record.pair_id,
-                source_core,
-                source_decision,
-                target_core,
-                target_decision,
-                pair_record.evidence,
-            )
-            if topology_digest != pair_record.topology_digest:
-                raise ProductionBoundaryError(
-                    BoundaryErrorCode.PAIR_TOPOLOGY_CHANGED,
-                    "pair topology changed after candidate issuance",
-                    operation_reference=_public_operation_reference(context),
-                )
-            self._record_audit_factory(
-                lambda audit_hmac_key: (
-                    self._pair_member_event(
-                        source_record,
-                        pair_record,
-                        context=context,
-                        decision=source_decision,
-                        action=AuditAction.REVALIDATE,
-                        audit_hmac_key=audit_hmac_key,
-                    ),
-                    self._pair_member_event(
-                        target_record,
-                        pair_record,
-                        context=context,
-                        decision=target_decision,
-                        action=AuditAction.REVALIDATE,
-                        audit_hmac_key=audit_hmac_key,
-                    ),
-                ),
-                _public_operation_reference(context),
-            )
-            self._finish_pair(pair_record, CapabilityLifecycle.CONSUMED)
+            pair_record = reservation._pair
+            self._revalidate_reserved_pair(reservation, context)
+            self._finish_pair(reservation, CapabilityLifecycle.CONSUMED)
             return token
         except Exception as exc:
-            if pair_record is not None:
-                self._finish_pair(pair_record, CapabilityLifecycle.FAILED)
+            if reservation is not None and not reservation._closed:
+                try:
+                    self._finish_pair(reservation, CapabilityLifecycle.FAILED)
+                except Exception as cleanup_error:
+                    exc = cleanup_error
             failure = self._failure_after_denial(
                 error=exc,
                 relative_path=None,
@@ -1474,6 +1657,121 @@ class _BoundaryCore:
                 pair_id=pair_record.pair_id if pair_record else None,
             )
         raise failure from None
+
+    def _revalidate_reserved_pair(
+        self,
+        reservation: _ReservedPairLease,
+        context: OperationContext,
+        *,
+        runtime_mutex_lease: RuntimeMutexLease | None = None,
+    ) -> _ReservedPairView:
+        if (
+            type(reservation) is not _ReservedPairLease
+            or reservation._core is not self
+            or reservation._closed
+            or reservation._owner_thread != threading.get_ident()
+            or reservation._context_digest != context.digest
+        ):
+            raise ProductionBoundaryError(
+                BoundaryErrorCode.BOUNDARY_STATE_CHANGED,
+                "pair reservation is closed, foreign, replayed, or cross-thread",
+                operation_reference=_public_operation_reference(context),
+            )
+        if reservation._context_pin is not None:
+            validated = self.validate_test_job_context_pin(
+                context,
+                reservation._context_pin,
+                reservation._context_binding or "",
+            )
+            if validated != context.digest:
+                raise ProductionBoundaryError(
+                    BoundaryErrorCode.INVALID_CONTEXT,
+                    "pair reservation lost its job context pin",
+                    operation_reference=_public_operation_reference(context),
+                )
+        with self.__lock:
+            pair_record = reservation._pair
+            source_record = reservation._source
+            target_record = reservation._target
+            if (
+                self.__pair_reservations.get(pair_record.pair_id) is not reservation
+                or self.__pair_records.get(pair_record.pair_id) is not pair_record
+                or self.__candidate_records.get(source_record.ticket_id)
+                is not source_record
+                or self.__candidate_records.get(target_record.ticket_id)
+                is not target_record
+            ):
+                raise ProductionBoundaryError(
+                    BoundaryErrorCode.BOUNDARY_STATE_CHANGED,
+                    "pair reservation registry changed during revalidation",
+                    operation_reference=_public_operation_reference(context),
+                )
+        self._validate_evidence_context(pair_record.evidence, context)
+        source_core = self.__guard.revalidate(source_record.core)
+        target_core = self.__guard.revalidate(target_record.core)
+        source_decision, target_decision = self.__policy._authorize_pair(
+            source_core,
+            target_core,
+            context,
+            pair_id=pair_record.pair_id,
+            evidence_digest=pair_record.evidence.digest,
+        )
+        self._verify_candidate_decision(source_record, source_core, source_decision)
+        self._verify_candidate_decision(target_record, target_core, target_decision)
+        self._validate_classification_flow(context, source_decision, target_decision)
+        self._validate_pair_topology(
+            pair_record.kind,
+            source_core,
+            source_decision,
+            target_core,
+            target_decision,
+        )
+        topology_digest = self._topology_digest(
+            pair_record.kind,
+            pair_record.pair_id,
+            source_core,
+            source_decision,
+            target_core,
+            target_decision,
+            pair_record.evidence,
+        )
+        if topology_digest != pair_record.topology_digest:
+            raise ProductionBoundaryError(
+                BoundaryErrorCode.PAIR_TOPOLOGY_CHANGED,
+                "pair topology changed after candidate issuance",
+                operation_reference=_public_operation_reference(context),
+            )
+        self._record_audit_factory(
+            lambda audit_hmac_key: (
+                self._pair_member_event(
+                    source_record,
+                    pair_record,
+                    context=context,
+                    decision=source_decision,
+                    action=AuditAction.REVALIDATE,
+                    audit_hmac_key=audit_hmac_key,
+                ),
+                self._pair_member_event(
+                    target_record,
+                    pair_record,
+                    context=context,
+                    decision=target_decision,
+                    action=AuditAction.REVALIDATE,
+                    audit_hmac_key=audit_hmac_key,
+                ),
+            ),
+            _public_operation_reference(context),
+            runtime_mutex_lease=runtime_mutex_lease,
+        )
+        return _ReservedPairView(
+            pair_id=pair_record.pair_id,
+            kind=pair_record.kind,
+            source_relative_path=source_core.relative_path,
+            target_relative_path=target_core.relative_path,
+            evidence=pair_record.evidence,
+            topology_digest=pair_record.topology_digest,
+            effective_classification=pair_record.effective_classification,
+        )
 
     def describe_candidate(
         self,
@@ -1712,7 +2010,11 @@ class _BoundaryCore:
             if current is not None and current.lifecycle is CapabilityLifecycle.RESERVED:
                 core = current.core
                 del self.__candidate_records[ticket_id]
-                self._remember_tombstone(self.__candidate_tombstones, ticket_id)
+                self._remember_tombstone(
+                    self.__candidate_tombstones,
+                    ticket_id,
+                    lifecycle,
+                )
         if core is not None:
             self._release_core_tickets(core)
 
@@ -1792,8 +2094,29 @@ class _BoundaryCore:
         self,
         token: MovePairCandidate | QuarantinePairCandidate,
         context: OperationContext,
-    ) -> tuple[_PairRecord, _CandidateRecord, _CandidateRecord]:
+        *,
+        context_pin: _JobContextPin | None = None,
+        context_binding: str | None = None,
+    ) -> _ReservedPairLease:
         with self.__lock:
+            if (context_pin is None) != (context_binding is None):
+                raise ProductionBoundaryError(
+                    BoundaryErrorCode.INVALID_CONTEXT,
+                    "pair reservation context pin binding is incomplete",
+                    operation_reference=_public_operation_reference(context),
+                )
+            if context_pin is not None:
+                validated = self.validate_test_job_context_pin(
+                    context,
+                    context_pin,
+                    context_binding or "",
+                )
+                if validated != context.digest:
+                    raise ProductionBoundaryError(
+                        BoundaryErrorCode.INVALID_CONTEXT,
+                        "pair reservation context pin changed",
+                        operation_reference=_public_operation_reference(context),
+                    )
             pair = self._validate_pair_token(token, context)
             if pair.lifecycle is not CapabilityLifecycle.ISSUED:
                 raise ProductionBoundaryError(
@@ -1822,52 +2145,105 @@ class _BoundaryCore:
                     "pair members are unavailable or do not match their roles",
                     operation_reference=_public_operation_reference(context),
                 )
-            self.__pair_records[pair.pair_id] = replace(
+            reserved_pair = replace(
                 pair,
                 lifecycle=CapabilityLifecycle.RESERVED,
             )
-            self.__candidate_records[source.ticket_id] = replace(
+            reserved_source = replace(
                 source,
                 lifecycle=CapabilityLifecycle.RESERVED,
             )
-            self.__candidate_records[target.ticket_id] = replace(
+            reserved_target = replace(
                 target,
                 lifecycle=CapabilityLifecycle.RESERVED,
             )
-            return pair, source, target
+            lease = _ReservedPairLease(
+                self,
+                reserved_pair,
+                reserved_source,
+                reserved_target,
+                context.digest,
+                context_pin,
+                context_binding,
+                _constructor=_PAIR_RESERVATION_CONSTRUCTOR,
+            )
+            self.__pair_records[pair.pair_id] = reserved_pair
+            self.__candidate_records[source.ticket_id] = reserved_source
+            self.__candidate_records[target.ticket_id] = reserved_target
+            self.__pair_reservations[pair.pair_id] = lease
+            return lease
 
     def _finish_pair(
         self,
-        pair: _PairRecord,
+        lease: _ReservedPairLease,
         lifecycle: CapabilityLifecycle,
     ) -> None:
+        if (
+            type(lease) is not _ReservedPairLease
+            or lease._core is not self
+            or lease._owner_thread != threading.get_ident()
+            or lease._closed
+            or lifecycle
+            not in {CapabilityLifecycle.CONSUMED, CapabilityLifecycle.FAILED}
+        ):
+            raise ProductionBoundaryError(
+                BoundaryErrorCode.BOUNDARY_STATE_CHANGED,
+                "pair reservation cannot enter the requested terminal state",
+            )
         cores: list[GuardedPath] = []
         with self.__lock:
+            pair = lease._pair
             current_pair = self.__pair_records.get(pair.pair_id)
+            current_source = self.__candidate_records.get(pair.source_ticket_id)
+            current_target = self.__candidate_records.get(pair.target_ticket_id)
             if (
-                current_pair is not None
-                and current_pair.lifecycle is CapabilityLifecycle.RESERVED
+                self.__pair_reservations.get(pair.pair_id) is not lease
+                or current_pair is not pair
+                or current_source is not lease._source
+                or current_target is not lease._target
+                or pair.lifecycle is not CapabilityLifecycle.RESERVED
+                or current_source.lifecycle is not CapabilityLifecycle.RESERVED
+                or current_target.lifecycle is not CapabilityLifecycle.RESERVED
             ):
-                del self.__pair_records[pair.pair_id]
-                self._remember_tombstone(self.__pair_tombstones, pair.pair_id)
-            for ticket_id in (pair.source_ticket_id, pair.target_ticket_id):
-                member = self.__candidate_records.get(ticket_id)
-                if (
-                    member is not None
-                    and member.lifecycle is CapabilityLifecycle.RESERVED
-                ):
-                    cores.append(member.core)
-                    del self.__candidate_records[ticket_id]
-                    self._remember_tombstone(
-                        self.__candidate_tombstones,
-                        ticket_id,
-                    )
+                raise ProductionBoundaryError(
+                    BoundaryErrorCode.BOUNDARY_STATE_CHANGED,
+                    "pair reservation registry changed before finalization",
+                )
+            del self.__pair_reservations[pair.pair_id]
+            del self.__pair_records[pair.pair_id]
+            del self.__candidate_records[pair.source_ticket_id]
+            del self.__candidate_records[pair.target_ticket_id]
+            self._remember_tombstone(
+                self.__pair_tombstones,
+                pair.pair_id,
+                lifecycle,
+            )
+            for member in (lease._source, lease._target):
+                cores.append(member.core)
+                self._remember_tombstone(
+                    self.__candidate_tombstones,
+                    member.ticket_id,
+                    lifecycle,
+                )
+            lease._closed = True
         if cores:
             self._release_core_tickets(*cores)
 
     @staticmethod
-    def _remember_tombstone(registry: dict[str, None], identifier: str) -> None:
-        registry[identifier] = None
+    def _remember_tombstone(
+        registry: dict[str, CapabilityLifecycle],
+        identifier: str,
+        lifecycle: CapabilityLifecycle = CapabilityLifecycle.FAILED,
+    ) -> None:
+        if lifecycle not in {
+            CapabilityLifecycle.CONSUMED,
+            CapabilityLifecycle.FAILED,
+        }:
+            raise ProductionBoundaryError(
+                BoundaryErrorCode.BOUNDARY_STATE_CHANGED,
+                "capability tombstone requires an exact terminal lifecycle",
+            )
+        registry[identifier] = lifecycle
         while len(registry) > _MAX_TOMBSTONES:
             del registry[next(iter(registry))]
 
@@ -2394,13 +2770,26 @@ class _BoundaryCore:
         self,
         builder: Callable[[bytes], tuple[AuditEvent, ...]],
         operation_reference: str | None,
+        *,
+        runtime_mutex_lease: RuntimeMutexLease | None = None,
     ) -> None:
         try:
             if self.__durable_audit_sink is not None:
-                receipt = self.__durable_audit_sink.record_factory(builder)
+                receipt = (
+                    self.__durable_audit_sink.record_factory(builder)
+                    if runtime_mutex_lease is None
+                    else self.__durable_audit_sink._record_factory_under_existing_mutex(
+                        runtime_mutex_lease,
+                        builder,
+                    )
+                )
                 if type(receipt) is not AuditReceipt:
                     raise ValueError("durable audit sink returned an invalid receipt type")
             else:
+                if runtime_mutex_lease is not None:
+                    raise ValueError(
+                        "under-lease audit append requires the durable audit authority"
+                    )
                 events = builder(self.__audit_hmac_key)
                 receipt = self.__audit_sink.record_batch(events)
                 expected = audit_receipt(events)
@@ -2444,6 +2833,24 @@ class _BoundaryCore:
                 BoundaryErrorCode.BOUNDARY_STATE_CHANGED,
                 "namespace policy changed after boundary creation",
             )
+        with self.__lock:
+            for pair_id, lease in self.__pair_reservations.items():
+                pair = self.__pair_records.get(pair_id)
+                if (
+                    type(lease) is not _ReservedPairLease
+                    or lease._core is not self
+                    or lease._closed
+                    or pair is not lease._pair
+                    or pair.lifecycle is not CapabilityLifecycle.RESERVED
+                    or self.__candidate_records.get(pair.source_ticket_id)
+                    is not lease._source
+                    or self.__candidate_records.get(pair.target_ticket_id)
+                    is not lease._target
+                ):
+                    raise ProductionBoundaryError(
+                        BoundaryErrorCode.BOUNDARY_STATE_CHANGED,
+                        "pair reservation registry invariant changed",
+                    )
 
     @staticmethod
     def _require_relative(value: str | os.PathLike[str]) -> Path:
@@ -2702,6 +3109,99 @@ class _TestWorkspaceBoundary:
         binding_sha256: str,
     ) -> None:
         self.__core.finish_test_job_context(context, pin, binding_sha256)
+
+    def _issue_publish_pair_for_job(
+        self,
+        source_path: str | os.PathLike[str],
+        target_path: str | os.PathLike[str],
+        *,
+        manifest_id: str,
+        manifest_sha256: str,
+        source_tree_sha256: str,
+        entry_count: int,
+        total_bytes: int,
+        checkpoint_id: str,
+        checkpoint_manifest_sha256: str,
+        context: OperationContext,
+        pin: _JobContextPin,
+        binding_sha256: str,
+        runtime_mutex_lease: RuntimeMutexLease,
+    ) -> MovePairCandidate:
+        return self.__core.issue_publish_pair_for_job(
+            source_path,
+            target_path,
+            evidence=PairEvidence(
+                manifest_id=manifest_id,
+                manifest_sha256=manifest_sha256,
+                source_tree_sha256=source_tree_sha256,
+                entry_count=entry_count,
+                total_bytes=total_bytes,
+                checkpoint_id=checkpoint_id,
+                checkpoint_manifest_sha256=checkpoint_manifest_sha256,
+            ),
+            context=context,
+            context_pin=pin,
+            context_binding=binding_sha256,
+            runtime_mutex_lease=runtime_mutex_lease,
+        )
+
+    def _reserve_publish_pair_for_job(
+        self,
+        token: MovePairCandidate,
+        *,
+        context: OperationContext,
+        pin: _JobContextPin,
+        binding_sha256: str,
+        runtime_mutex_lease: RuntimeMutexLease,
+    ) -> tuple[_ReservedPairLease, _ReservedPairView]:
+        return self.__core.reserve_publish_pair_for_job(
+            token,
+            context=context,
+            context_pin=pin,
+            context_binding=binding_sha256,
+            runtime_mutex_lease=runtime_mutex_lease,
+        )
+
+    def _finish_reserved_pair_for_job(
+        self,
+        reservation: _ReservedPairLease,
+        *,
+        context: OperationContext,
+        pin: _JobContextPin,
+        binding_sha256: str,
+        lifecycle: str,
+    ) -> None:
+        try:
+            terminal = CapabilityLifecycle(lifecycle)
+        except (TypeError, ValueError):
+            raise ProductionBoundaryError(
+                BoundaryErrorCode.INVALID_ARGUMENT,
+                "job pair terminal lifecycle is invalid",
+            ) from None
+        self.__core.finish_reserved_pair_for_job(
+            reservation,
+            context=context,
+            context_pin=pin,
+            context_binding=binding_sha256,
+            lifecycle=terminal,
+        )
+
+    def _validate_reserved_pair_for_job(
+        self,
+        reservation: _ReservedPairLease,
+        *,
+        context: OperationContext,
+        pin: _JobContextPin,
+        binding_sha256: str,
+        runtime_mutex_lease: RuntimeMutexLease,
+    ) -> _ReservedPairView:
+        return self.__core.validate_reserved_pair_for_job(
+            reservation,
+            context=context,
+            context_pin=pin,
+            context_binding=binding_sha256,
+            runtime_mutex_lease=runtime_mutex_lease,
+        )
 
     def authorize(
         self,
@@ -3233,6 +3733,8 @@ def _create_test_durable_boundary(
 
 def _create_test_job_runtime(
     bundle: _TestDurableBoundaryBundle,
+    *,
+    operation_ledger: DurableOperationLedger | None = None,
 ) -> _TestJobRuntime:
     """Private S3-D factory; production boundary intentionally has no peer API."""
 
@@ -3241,13 +3743,252 @@ def _create_test_job_runtime(
             BoundaryErrorCode.INVALID_ARGUMENT,
             "job runtime requires an exact durable Test-local bundle",
         )
+    if operation_ledger is not None and type(operation_ledger) is not DurableOperationLedger:
+        raise ProductionBoundaryError(
+            BoundaryErrorCode.INVALID_ARGUMENT,
+            "job runtime operation ledger must be an exact durable authority",
+        )
     return _build_test_job_runtime(
         bundle.boundary,
         bundle.writer,
         bundle.ledger,
         bundle.writer._workspace_root,
+        operation_ledger=operation_ledger,
         _constructor=_JOB_RUNTIME_CONSTRUCTOR,
     )
+
+
+def _create_test_operation_ledger(
+    bundle: _TestDurableBoundaryBundle,
+    *,
+    epoch_id: str,
+    initialize: bool = False,
+    initialized_at_utc: str | None = None,
+) -> DurableOperationLedger:
+    """Private S3-E operation ledger factory; production remains disconnected."""
+
+    if type(bundle) is not _TestDurableBoundaryBundle or type(initialize) is not bool:
+        raise ProductionBoundaryError(
+            BoundaryErrorCode.INVALID_ARGUMENT,
+            "operation ledger requires an exact durable Test-local bundle",
+        )
+    try:
+        with bundle.writer.acquire_runtime_mutex() as lease:
+            bundle.ledger._rescan_under_existing_mutex(lease)
+            revision = bundle.ledger._active_revision()
+            activated_revision_ids = set(
+                bundle.ledger._activated_revision_ids_under_existing_mutex(lease)
+            )
+            known_revisions = tuple(
+                revision
+                for _revision_id, revision in sorted(
+                    bundle.key_store._load_all_under_mutex().items()
+                )
+                if _revision_id in activated_revision_ids
+            )
+            operation_ledger = DurableOperationLedger(
+                bundle.writer,
+                revision,
+                epoch_id=epoch_id,
+                policy_digest=bundle.boundary.policy_digest,
+                known_revisions=known_revisions,
+                initialize=initialize,
+                initialized_at_utc=initialized_at_utc,
+                _runtime_mutex_lease=lease,
+                _constructor=_OPERATION_LEDGER_CONSTRUCTOR,
+            )
+            bound_heads = operation_ledger.bound_audit_heads_under_existing_mutex(
+                lease
+            )
+            if not bundle.ledger._contains_all_segment_sha256_under_existing_mutex(
+                lease,
+                bound_heads,
+            ):
+                operation_ledger._seal_cross_ledger_contradiction()
+            return operation_ledger
+    except OperationLedgerError:
+        raise
+
+
+def _reconcile_test_publish_operation(
+    bundle: _TestDurableBoundaryBundle,
+    operation_ledger: DurableOperationLedger,
+    transaction_id: str,
+    budget: JobResourceBudget,
+) -> OperationSegmentReceipt:
+    """Append a recovery fact only when source/target truth is unambiguous.
+
+    Recovery never moves, overwrites or deletes anything.  It performs two
+    complete handle scans for every existing side under the same application
+    mutex and either appends RECOVERED_* or seals both authorities.
+    """
+
+    if (
+        type(bundle) is not _TestDurableBoundaryBundle
+        or type(operation_ledger) is not DurableOperationLedger
+        or type(budget) is not JobResourceBudget
+    ):
+        raise ProductionBoundaryError(
+            BoundaryErrorCode.INVALID_ARGUMENT,
+            "publish reconciliation requires exact Test-local authorities",
+        )
+    try:
+        validate_safe_id(transaction_id, field_name="transaction_id")
+    except Exception:
+        raise ProductionBoundaryError(
+            BoundaryErrorCode.INVALID_ARGUMENT,
+            "publish reconciliation transaction ID is invalid",
+        ) from None
+
+    def observe_once(locator: str) -> OperationTreeEvidence | None:
+        absolute = bundle.writer._workspace_root.joinpath(*locator.split("/"))
+        if not os.path.lexists(absolute):
+            return None
+        try:
+            snapshot, root = bundle.writer._observe_existing_tree_snapshot(
+                Path(*locator.split("/")),
+                budget.tree_budget,
+            )
+        except HandleWriterError:
+            operation_ledger._seal_recovery_contradiction()
+        return OperationTreeEvidence(
+            manifest_sha256=snapshot.manifest_sha256,
+            source_tree_sha256=snapshot.source_tree_sha256,
+            topology_sha256=snapshot.topology_sha256,
+            durable_identity_sha256=operation_ledger.durable_identity_digest(
+                root.volume_serial,
+                root.file_id,
+            ),
+            entry_count=snapshot.entry_count,
+            total_bytes=snapshot.total_bytes,
+        )
+
+    def observe_pair() -> tuple[OperationTreeEvidence | None, OperationTreeEvidence | None]:
+        first = (
+            observe_once(previous.source_locator),
+            observe_once(previous.target_locator),
+        )
+        second = (
+            observe_once(previous.source_locator),
+            observe_once(previous.target_locator),
+        )
+        if first != second:
+            operation_ledger._seal_recovery_contradiction()
+        return second
+
+    with bundle.writer.acquire_runtime_mutex() as lease:
+        result = operation_ledger.transaction_result_under_existing_mutex(
+            lease,
+            transaction_id,
+        )
+        if result is None:
+            operation_ledger._seal_recovery_contradiction()
+        previous, existing_receipt = result
+        current_audit_head = bundle.ledger._rescan_under_existing_mutex(lease)
+        if (
+            budget.digest != previous.budget_sha256
+            or not bundle.ledger._contains_segment_sha256_under_existing_mutex(
+                lease,
+                previous.audit_ledger_head_sha256,
+            )
+        ):
+            operation_ledger._seal_recovery_contradiction()
+        if previous.next_state in {
+            OperationState.ABORTED,
+            OperationState.COMMITTED,
+            OperationState.RECOVERED_ABORT,
+            OperationState.RECOVERED_COMMIT,
+        }:
+            return existing_receipt
+        source, target = observe_pair()
+        source_exact = source == previous.source_evidence
+        target_exact = target == previous.source_evidence
+        source_absent = source is None
+        target_absent = target is None
+        next_state: OperationState
+        mutation_attempted: bool
+        target_evidence: OperationTreeEvidence | None
+        reason: str
+        if source_exact and target_absent and (
+            previous.next_state is OperationState.PREPARED
+            or (
+                previous.next_state is OperationState.IN_DOUBT
+                and previous.native_mutation_receipt_sha256 is None
+            )
+        ):
+            next_state = OperationState.RECOVERED_ABORT
+            mutation_attempted = previous.mutation_attempted
+            target_evidence = None
+            reason = "SOURCE_EXACT_TARGET_ABSENT"
+        elif source_absent and target_exact and previous.next_state in {
+            OperationState.PREPARED,
+            OperationState.MUTATED,
+            OperationState.POSTCONDITION_VERIFIED,
+            OperationState.IN_DOUBT,
+        }:
+            next_state = OperationState.RECOVERED_COMMIT
+            mutation_attempted = True
+            target_evidence = target
+            reason = "SOURCE_ABSENT_TARGET_EXACT"
+        else:
+            operation_ledger._seal_recovery_contradiction()
+        transition_id = "TRN-" + hashlib.sha256(
+            b"M0-RECOVERY-TRANSITION-ID-V1\0"
+            + transaction_id.encode("ascii")
+            + bytes(previous.next_state.value, "ascii")
+            + next_state.value.encode("ascii")
+        ).hexdigest().upper()[:32]
+        native_mutation_receipt_sha256 = previous.native_mutation_receipt_sha256
+        recovery_observation_receipt_sha256: str | None = None
+        completion_kind = None
+        if next_state is OperationState.RECOVERED_COMMIT and target_evidence is not None:
+            recovery_observation_receipt_sha256 = (
+                _build_recovery_observation_receipt_sha256(
+                    previous,
+                    target_evidence,
+                    current_audit_head.last_segment_sha256 or "0" * 64,
+                )
+            )
+            completion_kind = (
+                OperationCompletionKind.RECOVERED_COMMIT_WITH_NATIVE_MUTATION
+                if native_mutation_receipt_sha256 is not None
+                else OperationCompletionKind.RECOVERED_COMMIT_OBSERVATION_ONLY
+            )
+        transition = OperationTransition(
+            transition_id=transition_id,
+            transaction_id=previous.transaction_id,
+            operation_id=previous.operation_id,
+            pair_id=previous.pair_id,
+            previous_state=previous.next_state,
+            next_state=next_state,
+            context_binding_sha256=previous.context_binding_sha256,
+            manifest_sha256=previous.manifest_sha256,
+            budget_sha256=previous.budget_sha256,
+            source_locator=previous.source_locator,
+            target_locator=previous.target_locator,
+            source_evidence=previous.source_evidence,
+            target_evidence=target_evidence,
+            audit_ledger_head_sha256=previous.audit_ledger_head_sha256,
+            mutation_attempted=mutation_attempted,
+            native_mutation_receipt_sha256=native_mutation_receipt_sha256,
+            recovery_observation_receipt_sha256=(
+                recovery_observation_receipt_sha256
+            ),
+            completion_kind=completion_kind,
+            recovery_reason=reason,
+            recovery_guarantee_scope=RECOVERY_GUARANTEE_SCOPE,
+            recovery_authority_head_sha256=(
+                current_audit_head.last_segment_sha256 or "0" * 64
+            ),
+            classification=previous.classification,
+        )
+        recovery_receipt = operation_ledger._append_transition_under_existing_mutex(
+            lease,
+            transition,
+        )
+        if observe_pair() != (source, target):
+            operation_ledger._seal_recovery_contradiction()
+        return recovery_receipt
 
 
 def _canonical_json_bytes(payload: dict[str, Any]) -> bytes:

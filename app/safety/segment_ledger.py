@@ -1604,6 +1604,55 @@ class DurableAuditLedger:
                 ) from None
             return self._required_head()
 
+    def _contains_segment_sha256_under_existing_mutex(
+        self,
+        lease: RuntimeMutexLease,
+        segment_sha256: str,
+    ) -> bool:
+        """Return whether an authenticated historical audit head is in this epoch."""
+
+        if type(segment_sha256) is not str or not _SHA256.fullmatch(segment_sha256):
+            raise LedgerError(
+                LedgerCode.INVALID_REQUEST,
+                "historical audit segment lookup requires a canonical SHA-256 digest",
+            )
+        return self._contains_all_segment_sha256_under_existing_mutex(
+            lease,
+            (segment_sha256,),
+        )
+
+    def _contains_all_segment_sha256_under_existing_mutex(
+        self,
+        lease: RuntimeMutexLease,
+        segment_sha256s: tuple[str, ...],
+    ) -> bool:
+        if (
+            type(segment_sha256s) is not tuple
+            or any(
+                type(item) is not str or not _SHA256.fullmatch(item)
+                for item in segment_sha256s
+            )
+        ):
+            raise LedgerError(
+                LedgerCode.INVALID_REQUEST,
+                "historical audit segment lookup requires exact SHA-256 digests",
+            )
+        self._rescan_under_existing_mutex(lease)
+        committed = {segment.segment_sha256 for segment in self._segments}
+        return all(item in committed for item in segment_sha256s)
+
+    def _activated_revision_ids_under_existing_mutex(
+        self,
+        lease: RuntimeMutexLease,
+    ) -> tuple[str, ...]:
+        self._rescan_under_existing_mutex(lease)
+        activated = {self._initial_revision_id}
+        for segment in self._segments:
+            activated.add(segment.revision.revision_id)
+            if segment.transition_to is not None:
+                activated.add(segment.transition_to.revision_id)
+        return tuple(sorted(activated))
+
     def append_audit_batch(
         self,
         events: tuple[AuditEvent, ...],
@@ -1631,6 +1680,75 @@ class DurableAuditLedger:
             lambda revision: builder(revision.audit_hmac_key),
             created_at_utc=created_at_utc,
         )
+
+    def _append_built_audit_batch_under_existing_mutex(
+        self,
+        lease: RuntimeMutexLease,
+        builder: Callable[[bytes], tuple[AuditEvent, ...]],
+        *,
+        created_at_utc: str | None = None,
+    ) -> tuple[tuple[AuditEvent, ...], SegmentReceipt]:
+        """Append while an exact S3 job lease already owns the writer mutex.
+
+        This is deliberately private: pair issuance/revalidation inside one
+        job operation must not attempt a nested named-mutex acquisition.  It
+        retains the normal full-chain scan, immutable publish, readback and
+        post-publish rescan semantics.
+        """
+
+        if (
+            type(lease) is not RuntimeMutexLease
+            or lease._writer is not self._storage
+            or not callable(builder)
+        ):
+            raise LedgerError(
+                LedgerCode.INVALID_REQUEST,
+                "under-lease audit append requires its exact mutex and builder",
+            )
+        try:
+            lease._assert_live_owner(self._storage)
+        except HandleWriterError:
+            raise LedgerError(
+                LedgerCode.INVALID_REQUEST,
+                "under-lease audit append mutex is not live on its owner thread",
+            ) from None
+        created = created_at_utc or _now_utc_seconds()
+        with self._lock:
+            self._require_open()
+            try:
+                self._scan_under_mutex(
+                    startup_abandoned=lease.abandoned,
+                    allow_empty=False,
+                )
+                active = self._active_revision()
+                try:
+                    events = builder(active.audit_hmac_key)
+                except LedgerError:
+                    raise
+                except Exception:
+                    raise LedgerError(
+                        LedgerCode.INVALID_REQUEST,
+                        "under-lease audit event builder failed safely",
+                    ) from None
+                committed = self._append_events_under_mutex(
+                    events,
+                    created_at_utc=created,
+                    active=active,
+                )
+                return events, committed
+            except LedgerError as exc:
+                if exc.code is not LedgerCode.INVALID_REQUEST:
+                    self._seal(exc.code)
+                raise LedgerError(
+                    exc.code,
+                    "under-lease audit segment append failed safely",
+                ) from None
+            except HandleWriterError:
+                self._seal(LedgerCode.STORAGE_FAILURE)
+                raise LedgerError(
+                    LedgerCode.STORAGE_FAILURE,
+                    "under-lease audit segment storage failed safely",
+                ) from None
 
     def _append_with_factory(
         self,
@@ -2123,6 +2241,26 @@ class DurableAuditSink:
             _raise_ledger_error(receipt_error)
         if expected is None:
             raise AssertionError("committed durable audit receipt completed without a result")
+        self._accept_committed(events, expected, committed)
+        return expected
+
+    def _record_factory_under_existing_mutex(
+        self,
+        lease: RuntimeMutexLease,
+        builder: Callable[[bytes], tuple[AuditEvent, ...]],
+    ) -> AuditReceipt:
+        events, committed = self._ledger._append_built_audit_batch_under_existing_mutex(
+            lease,
+            builder,
+        )
+        try:
+            expected = audit_receipt(events)
+        except Exception:
+            self._ledger._seal(LedgerCode.STORAGE_FAILURE)
+            raise LedgerError(
+                LedgerCode.STORAGE_FAILURE,
+                "committed under-lease audit receipt could not be recomputed safely",
+            ) from None
         self._accept_committed(events, expected, committed)
         return expected
 

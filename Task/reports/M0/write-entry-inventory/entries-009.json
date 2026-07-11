@@ -1,7 +1,34 @@
 {
-  "chunk_digest_sha256": "0658b38bff377622ea3593f9095eb6b106ac1315fa553a42f7db682900e65490",
+  "chunk_digest_sha256": "4e74f8c3311531df89ff8338a9df4277a46d5160fcc7b3d755fc07ed692b88a7",
   "chunk_index": 9,
   "entries": [
+    {
+      "call_chain": [
+        "<sql-script>"
+      ],
+      "callee": "SQL:CREATE",
+      "column": 0,
+      "detail": "schema statement CREATE",
+      "end_column": 6,
+      "end_line": 334,
+      "entry_id": "WE-78B46E522AFE729D23B779F0",
+      "file": "app/schema.sql",
+      "function": "<sql-script>",
+      "input_source": "STATIC_SOURCE_DECLARATION",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "line": 334,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "MODULE-LOAD"
+      ],
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "99f6179e1db53d9e5b6b307d4b24556dfa651b13da4e1a22f6700f1fc5630b17",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    },
     {
       "call_chain": [
         "<sql-script>"
@@ -648,33 +675,6 @@
       ],
       "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
       "statement_fingerprint": "c9deb50170259d3ef4d8bda0b605af6a1d1fd0df763ddf46aa1cbe123e44afaa",
-      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
-    },
-    {
-      "call_chain": [
-        "<sql-script>"
-      ],
-      "callee": "SQL:DELETE",
-      "column": 0,
-      "detail": "schema statement DELETE",
-      "end_column": 6,
-      "end_line": 478,
-      "entry_id": "WE-A05C420906799933E1370496",
-      "file": "app/schema.sql",
-      "function": "<sql-script>",
-      "input_source": "STATIC_SOURCE_DECLARATION",
-      "kind": "SQLITE_SCHEMA_MUTATION",
-      "line": 478,
-      "migration_status": "UNMIGRATED_BLOCKED",
-      "owner": "APPLICATION_SERVICE",
-      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
-      "resolution": "EXACT",
-      "risk": "P1",
-      "root_ids": [
-        "MODULE-LOAD"
-      ],
-      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
-      "statement_fingerprint": "c3f519914f3cb7cfac1c4f5e1ecd660a8b8a34f252db1888a4292f69b3526b32",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     }
   ],

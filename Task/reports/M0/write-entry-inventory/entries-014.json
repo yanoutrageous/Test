@@ -1,7 +1,38 @@
 {
-  "chunk_digest_sha256": "36f5d9a2c22f734b30e5a519fd1b2a0f091c4744f15f1cb206abc757d89228cf",
+  "chunk_digest_sha256": "281261bb029699fa44e98b50dc6ac3cd8bd5c02f97b23e73f9f547656360e4d4",
   "chunk_index": 14,
   "entries": [
+    {
+      "call_chain": [
+        "app.web.create_app",
+        "app.web._basket_questions",
+        "app.stage11.get_usability_states_by_question_ids"
+      ],
+      "callee": "app.database.initialize_database",
+      "column": 4,
+      "detail": "implicit schema/directory initialization",
+      "end_column": 32,
+      "end_line": 159,
+      "entry_id": "WE-2CE8263108FE7082CABB264B",
+      "file": "app/stage11.py",
+      "function": "app.stage11.get_usability_states_by_question_ids",
+      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "line": 159,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "REPORT_SERVICE",
+      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
+      "resolution": "ALIAS_RESOLVED",
+      "risk": "P1",
+      "root_ids": [
+        "FACTORY:CREATE_APP",
+        "MODULE:APP",
+        "WEB:GET /paper-basket"
+      ],
+      "source_sha256": "75be7f6e1ddc5b8ee07ae59ba5d230f818ed8d389f9799ec71d454826fbe9931",
+      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    },
     {
       "call_chain": [
         "app.web.create_app",
@@ -673,33 +704,6 @@
       ],
       "source_sha256": "f61b9775939cdebfaf669b8f45031475c212b07c8bb3fdc0e0d605758b418f33",
       "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976",
-      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
-    },
-    {
-      "call_chain": [
-        "app.stage14.Stage14QualityService.generate_visual_repair_candidates"
-      ],
-      "callee": "app.database.initialize_database",
-      "column": 8,
-      "detail": "implicit schema/directory initialization",
-      "end_column": 41,
-      "end_line": 593,
-      "entry_id": "WE-B5A322E1169B31DAFE470F61",
-      "file": "app/stage14.py",
-      "function": "app.stage14.Stage14QualityService.generate_visual_repair_candidates",
-      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
-      "kind": "DATABASE_IMPLICIT_INITIALIZER",
-      "line": 593,
-      "migration_status": "UNMIGRATED_BLOCKED",
-      "owner": "REPORT_SERVICE",
-      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
-      "resolution": "ALIAS_RESOLVED",
-      "risk": "P1",
-      "root_ids": [
-        "INTERNAL-DIRECT"
-      ],
-      "source_sha256": "f61b9775939cdebfaf669b8f45031475c212b07c8bb3fdc0e0d605758b418f33",
-      "statement_fingerprint": "fd5e65fec6c126443b7b26acdd25c79a688e8096a89a52e9dce945a71eaaf53e",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     }
   ],

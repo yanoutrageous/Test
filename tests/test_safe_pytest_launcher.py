@@ -173,6 +173,51 @@ def test_s3d_mode_has_a_fixed_non_injectable_selection(tmp_path: Path) -> None:
     ]
 
 
+@pytest.mark.parametrize(
+    ("mode", "selection"),
+    (
+        ("s3e_core", ["tests/test_publish_operation.py"]),
+        (
+            "s3e",
+            [
+                "tests/test_publish_operation.py",
+                "tests/test_job_operation.py",
+                "tests/test_windows_handle_writer.py",
+                "tests/test_segment_ledger.py",
+                "tests/test_workspace_policy.py",
+                "tests/test_write_entry_inventory.py",
+            ],
+        ),
+    ),
+)
+def test_s3e_modes_have_exact_non_injectable_selections(
+    tmp_path: Path,
+    mode: str,
+    selection: list[str],
+) -> None:
+    run_root = tmp_path / f"RUN-{mode.upper()}-MODE"
+    run_root.mkdir()
+    command, basetemp, junit = _build_command(
+        tmp_path,
+        run_root,
+        mode=mode,
+        exclude_symlink=False,
+    )
+    assert command == [
+        sys.executable,
+        "-m",
+        "pytest",
+        *selection,
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "--basetemp",
+        str(basetemp),
+        "--junitxml",
+        str(junit),
+    ]
+
+
 def test_launcher_refuses_to_reuse_existing_basetemp(tmp_path: Path) -> None:
     run_root = tmp_path / "RUN-SAFE-002"
     run_root.mkdir()

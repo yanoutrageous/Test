@@ -1172,6 +1172,17 @@ def _build_command(
             "tests/test_windows_handle_writer.py",
             "tests/test_segment_ledger.py",
         ]
+    elif mode == "s3e":
+        selection = [
+            "tests/test_publish_operation.py",
+            "tests/test_job_operation.py",
+            "tests/test_windows_handle_writer.py",
+            "tests/test_segment_ledger.py",
+            "tests/test_workspace_policy.py",
+            "tests/test_write_entry_inventory.py",
+        ]
+    elif mode == "s3e_core":
+        selection = ["tests/test_publish_operation.py"]
     elif mode == "launcher":
         selection = ["tests/test_safe_pytest_launcher.py"]
     elif mode == "symlink":
@@ -1210,7 +1221,16 @@ def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
     parser.add_argument("--run-id", required=True)
     parser.add_argument(
         "--mode",
-        choices=("full", "guard", "writer", "s3d", "launcher", "symlink"),
+        choices=(
+            "full",
+            "guard",
+            "writer",
+            "s3d",
+            "s3e",
+            "s3e_core",
+            "launcher",
+            "symlink",
+        ),
         required=True,
     )
     parser.add_argument(

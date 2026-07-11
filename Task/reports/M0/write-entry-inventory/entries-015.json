@@ -1,7 +1,34 @@
 {
-  "chunk_digest_sha256": "0dc0cc46aa8a937706fdd79cb9fa2ea8ee199a3ef0611141aa54b4ed0bea7f56",
+  "chunk_digest_sha256": "edc6b75338b819d5e6eccc2deb73321ce27d1058a233bc605fa030e9b2a7d4bd",
   "chunk_index": 15,
   "entries": [
+    {
+      "call_chain": [
+        "app.stage14.Stage14QualityService.generate_visual_repair_candidates"
+      ],
+      "callee": "app.database.initialize_database",
+      "column": 8,
+      "detail": "implicit schema/directory initialization",
+      "end_column": 41,
+      "end_line": 593,
+      "entry_id": "WE-B5A322E1169B31DAFE470F61",
+      "file": "app/stage14.py",
+      "function": "app.stage14.Stage14QualityService.generate_visual_repair_candidates",
+      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "line": 593,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "REPORT_SERVICE",
+      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
+      "resolution": "ALIAS_RESOLVED",
+      "risk": "P1",
+      "root_ids": [
+        "INTERNAL-DIRECT"
+      ],
+      "source_sha256": "f61b9775939cdebfaf669b8f45031475c212b07c8bb3fdc0e0d605758b418f33",
+      "statement_fingerprint": "fd5e65fec6c126443b7b26acdd25c79a688e8096a89a52e9dce945a71eaaf53e",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    },
     {
       "call_chain": [
         "app.stage14.Stage14QualityService.generate_visual_repair_candidates"
@@ -658,34 +685,6 @@
       "source_sha256": "318c97d137e3c5742456859ddfcd5dead32d1302c539cb734f8825d25d1c3754",
       "statement_fingerprint": "86f4fcd7ba8ac4229ffebb068525703319cef9e075936bc6eb4ae92a282f85f3",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_FILESYSTEM"
-    },
-    {
-      "call_chain": [
-        "app.cli.main",
-        "app.stage9_report.write_stage9_quality_report"
-      ],
-      "callee": "app.database.initialize_database",
-      "column": 4,
-      "detail": "implicit schema/directory initialization",
-      "end_column": 32,
-      "end_line": 41,
-      "entry_id": "WE-473A22E44F4CFA8A72ECE0F1",
-      "file": "app/stage9_report.py",
-      "function": "app.stage9_report.write_stage9_quality_report",
-      "input_source": "CLI_ARGUMENT_OR_CONFIG",
-      "kind": "DATABASE_IMPLICIT_INITIALIZER",
-      "line": 41,
-      "migration_status": "UNMIGRATED_BLOCKED",
-      "owner": "REPORT_SERVICE",
-      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
-      "resolution": "ALIAS_RESOLVED",
-      "risk": "P1",
-      "root_ids": [
-        "CLI:MAIN"
-      ],
-      "source_sha256": "1c24bc5a2b94b0c81359537dd012bf4bd8305deef4ac7e80a080fbfd05f5aafe",
-      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db",
-      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     }
   ],
   "entry_count": 25,

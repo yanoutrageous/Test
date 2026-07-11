@@ -1198,3 +1198,127 @@ def test_private_job_lease_constructors_have_synthetic_bypass_canaries(
     assert f"private import {symbol}" in rendered
     assert f"constructor {module}.{symbol}" in rendered
     assert f"forbidden symbol reference {module}.{symbol}" in rendered
+
+
+def test_operation_ledger_and_publish_kernel_bypasses_are_visible() -> None:
+    findings = scan_unauthorized_guard_source(
+        '''
+from app.safety.operation_ledger import (
+    DurableOperationLedger,
+    _OPERATION_LEDGER_CONSTRUCTOR,
+)
+
+ledger = DurableOperationLedger(object(), object(), epoch_id="E", policy_digest="0" * 64)
+token = _OPERATION_LEDGER_CONSTRUCTOR
+writer._publish_observed_directory_no_replace(tree, "target", journal)
+writer._observe_existing_tree_snapshot("source", budget)
+ledger._append_transition_under_existing_mutex(mutex, transition)
+boundary._issue_publish_pair_for_job("source", "target")
+''',
+        file="app/synthetic.py",
+    )
+    rendered = "\n".join(detail for _file, _line, detail in findings)
+    assert "private import DurableOperationLedger" in rendered
+    assert "private import _OPERATION_LEDGER_CONSTRUCTOR" in rendered
+    assert "constructor app.safety.operation_ledger.DurableOperationLedger" in rendered
+    for symbol in (
+        "_publish_observed_directory_no_replace",
+        "_observe_existing_tree_snapshot",
+        "_append_transition_under_existing_mutex",
+        "_issue_publish_pair_for_job",
+    ):
+        assert f"restricted private call {symbol}" in rendered
+
+
+@pytest.mark.parametrize(
+    ("file", "source", "line", "detail"),
+    (
+        (
+            "app/safety/job_operation.py",
+            "def unrelated():\n    writer._publish_observed_directory_no_replace(tree, target, journal)\n",
+            2,
+            "restricted private call _publish_observed_directory_no_replace",
+        ),
+        (
+            "app/safety/job_operation.py",
+            "def unrelated():\n    writer._issue_directory_publish_journal_permit(tree)\n",
+            2,
+            "restricted private call _issue_directory_publish_journal_permit",
+        ),
+        (
+            "app/safety/job_operation.py",
+            "def unrelated():\n    boundary._reserve_publish_pair_for_job(token)\n",
+            2,
+            "restricted private call _reserve_publish_pair_for_job",
+        ),
+        (
+            "app/safety/job_operation.py",
+            "def unrelated():\n    boundary._finish_reserved_pair_for_job(lease)\n",
+            2,
+            "restricted private call _finish_reserved_pair_for_job",
+        ),
+        (
+            "app/safety/job_operation.py",
+            "def unrelated():\n    boundary._validate_reserved_pair_for_job(lease)\n",
+            2,
+            "restricted private call _validate_reserved_pair_for_job",
+        ),
+        (
+            "app/safety/production_guard.py",
+            "def unrelated():\n    ledger._seal_recovery_contradiction()\n",
+            2,
+            "restricted private call _seal_recovery_contradiction",
+        ),
+        (
+            "app/safety/production_guard.py",
+            "def unrelated():\n    _ReservedPairLease(object())\n",
+            2,
+            "restricted private call _ReservedPairLease",
+        ),
+        (
+            "app/safety/production_guard.py",
+            "def unrelated():\n    value = _PAIR_RESERVATION_CONSTRUCTOR\n",
+            2,
+            "restricted private symbol _PAIR_RESERVATION_CONSTRUCTOR outside exact scope unrelated",
+        ),
+        (
+            "app/safety/windows_handle_writer.py",
+            "def unrelated():\n    value = _DIRECTORY_PUBLISH_PERMIT_CONSTRUCTOR\n",
+            2,
+            "restricted private symbol _DIRECTORY_PUBLISH_PERMIT_CONSTRUCTOR outside exact scope unrelated",
+        ),
+    ),
+)
+def test_privileged_routes_are_rejected_outside_exact_qualified_scope(
+    file: str,
+    source: str,
+    line: int,
+    detail: str,
+) -> None:
+    assert scan_unauthorized_guard_source(source, file=file) == ((file, line, detail),)
+
+
+def test_exact_job_publish_scopes_remain_the_only_allowed_synthetic_callers() -> None:
+    source = '''
+class _OperationLease:
+    def authorize_publish(self):
+        boundary._issue_publish_pair_for_job(source, target)
+        boundary._reserve_publish_pair_for_job(token)
+        boundary._finish_reserved_pair_for_job(reservation)
+
+    def execute_publish_pair(self):
+        boundary._validate_reserved_pair_for_job(reservation)
+        writer._issue_directory_publish_journal_permit(tree)
+        writer._publish_observed_directory_no_replace(tree, target, journal)
+        boundary._finish_reserved_pair_for_job(reservation)
+
+    def close(self):
+        boundary._finish_reserved_pair_for_job(reservation)
+'''
+    assert (
+        scan_unauthorized_guard_source(
+            source,
+            file="app/safety/job_operation.py",
+        )
+        == ()
+    )

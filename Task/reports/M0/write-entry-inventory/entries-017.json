@@ -1,7 +1,38 @@
 {
-  "chunk_digest_sha256": "9db62588fa4aad875b3172e513d2edcb10c01880008f283192a42796c9ee7235",
+  "chunk_digest_sha256": "0ac40bc3c0590858769ef0f5b7c807b0641d5cb5232782ce1536b6bec3d5d9b2",
   "chunk_index": 17,
   "entries": [
+    {
+      "call_chain": [
+        "app.web.create_app",
+        "app.web._basket_questions",
+        "app.structured_content.get_structured_contents_by_question_ids"
+      ],
+      "callee": "app.database.connect_database().execute",
+      "column": 15,
+      "detail": "dynamic SQL is fail-closed because its effect cannot be proven",
+      "end_column": 9,
+      "end_line": 173,
+      "entry_id": "WE-E878C43E1F4A863CC0BB42DF",
+      "file": "app/structured_content.py",
+      "function": "app.structured_content.get_structured_contents_by_question_ids",
+      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "line": 166,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
+      "resolution": "DYNAMIC",
+      "risk": "P0",
+      "root_ids": [
+        "FACTORY:CREATE_APP",
+        "MODULE:APP",
+        "WEB:GET /paper-basket"
+      ],
+      "source_sha256": "c995272cd908cb3fd9cf08e007ce9a408aacd0d44b53a2d673c9ef1420aa6f27",
+      "statement_fingerprint": "b3a013c198e15ed9d44ad66f470090cd3e335b5230ef884233756223ea4a22e8",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    },
     {
       "call_chain": [
         "app.cli.main",
@@ -283,7 +314,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "8d27cbbcc0cfd7ae85ded1b009bf951636829d077ebc40000656dc0152c83acb",
+      "source_sha256": "6c72b1816a0e98e91880f72c68fedfb7a19fe82ef00b4d168ac7aa04a62cdf17",
       "statement_fingerprint": "3474f55c4f2c4ff899bf534b507dc606ac6ca48c4335543ec7104e00d9f58fff",
       "target_namespace": "TEST_LAB_RUNTIME"
     },
@@ -310,7 +341,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "8d27cbbcc0cfd7ae85ded1b009bf951636829d077ebc40000656dc0152c83acb",
+      "source_sha256": "6c72b1816a0e98e91880f72c68fedfb7a19fe82ef00b4d168ac7aa04a62cdf17",
       "statement_fingerprint": "3bae3dc169ca6f62e914ee9e23e5e96473cdab49dfb58fd9402aa70921a5a7ab",
       "target_namespace": "TEST_LAB_RUNTIME"
     },
@@ -337,7 +368,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "8d27cbbcc0cfd7ae85ded1b009bf951636829d077ebc40000656dc0152c83acb",
+      "source_sha256": "6c72b1816a0e98e91880f72c68fedfb7a19fe82ef00b4d168ac7aa04a62cdf17",
       "statement_fingerprint": "c6083b9fc5d56593852805263998f951047036e3aceeaad14e38dd86cad70fec",
       "target_namespace": "TEST_LAB_RUNTIME"
     },
@@ -364,7 +395,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "8d27cbbcc0cfd7ae85ded1b009bf951636829d077ebc40000656dc0152c83acb",
+      "source_sha256": "6c72b1816a0e98e91880f72c68fedfb7a19fe82ef00b4d168ac7aa04a62cdf17",
       "statement_fingerprint": "7dd9222051d8d2f4cd1b2700fe9c7e2eb6fbb34fa87670438efe9a6ac7dbea73",
       "target_namespace": "TEST_LAB_RUNTIME"
     },
@@ -391,7 +422,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "8d27cbbcc0cfd7ae85ded1b009bf951636829d077ebc40000656dc0152c83acb",
+      "source_sha256": "6c72b1816a0e98e91880f72c68fedfb7a19fe82ef00b4d168ac7aa04a62cdf17",
       "statement_fingerprint": "713f2b33010d6c8bc094fa6a54412e54dc5a1e45f3e89a87edb65dd4e363817d",
       "target_namespace": "TEST_LAB_RUNTIME"
     },
@@ -418,7 +449,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "8d27cbbcc0cfd7ae85ded1b009bf951636829d077ebc40000656dc0152c83acb",
+      "source_sha256": "6c72b1816a0e98e91880f72c68fedfb7a19fe82ef00b4d168ac7aa04a62cdf17",
       "statement_fingerprint": "2cc7784b0a5e02e898c0632852598ebb4021ff2be70d7ebb38196afc46f42ee8",
       "target_namespace": "TEST_LAB_RUNTIME"
     },
@@ -445,7 +476,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "8d27cbbcc0cfd7ae85ded1b009bf951636829d077ebc40000656dc0152c83acb",
+      "source_sha256": "6c72b1816a0e98e91880f72c68fedfb7a19fe82ef00b4d168ac7aa04a62cdf17",
       "statement_fingerprint": "7780013ca247acef940f6ad9307d1a12740d569665d56c15c68627898ebe3593",
       "target_namespace": "TEST_LAB_RUNTIME"
     },
@@ -472,7 +503,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "8d27cbbcc0cfd7ae85ded1b009bf951636829d077ebc40000656dc0152c83acb",
+      "source_sha256": "6c72b1816a0e98e91880f72c68fedfb7a19fe82ef00b4d168ac7aa04a62cdf17",
       "statement_fingerprint": "3474f55c4f2c4ff899bf534b507dc606ac6ca48c4335543ec7104e00d9f58fff",
       "target_namespace": "TEST_LAB_RUNTIME"
     },
@@ -499,7 +530,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "8d27cbbcc0cfd7ae85ded1b009bf951636829d077ebc40000656dc0152c83acb",
+      "source_sha256": "6c72b1816a0e98e91880f72c68fedfb7a19fe82ef00b4d168ac7aa04a62cdf17",
       "statement_fingerprint": "3581288a39b35fe56d04b96cc58cb53790df4a970fb88b21caac1aa1e1343501",
       "target_namespace": "TEST_LAB_RUNTIME"
     },
@@ -526,7 +557,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "8d27cbbcc0cfd7ae85ded1b009bf951636829d077ebc40000656dc0152c83acb",
+      "source_sha256": "6c72b1816a0e98e91880f72c68fedfb7a19fe82ef00b4d168ac7aa04a62cdf17",
       "statement_fingerprint": "f0a9ae2d79a439a8f7d35f56cc6bcf8da2b4f06730f663e0c51adec23827db91",
       "target_namespace": "TEST_LAB_RUNTIME"
     },
@@ -553,7 +584,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "8d27cbbcc0cfd7ae85ded1b009bf951636829d077ebc40000656dc0152c83acb",
+      "source_sha256": "6c72b1816a0e98e91880f72c68fedfb7a19fe82ef00b4d168ac7aa04a62cdf17",
       "statement_fingerprint": "04f901d0661301ce7fc0835272521ac5aacd94c087c142c5f7cbb85c241d6bd0",
       "target_namespace": "TEST_LAB_RUNTIME"
     },
@@ -580,7 +611,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "8d27cbbcc0cfd7ae85ded1b009bf951636829d077ebc40000656dc0152c83acb",
+      "source_sha256": "6c72b1816a0e98e91880f72c68fedfb7a19fe82ef00b4d168ac7aa04a62cdf17",
       "statement_fingerprint": "3474f55c4f2c4ff899bf534b507dc606ac6ca48c4335543ec7104e00d9f58fff",
       "target_namespace": "TEST_LAB_RUNTIME"
     },
@@ -607,7 +638,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "8d27cbbcc0cfd7ae85ded1b009bf951636829d077ebc40000656dc0152c83acb",
+      "source_sha256": "6c72b1816a0e98e91880f72c68fedfb7a19fe82ef00b4d168ac7aa04a62cdf17",
       "statement_fingerprint": "a7c9b2b34e1fadc7266f395530a22512410990d5a2f4f710a5a0c11f90578baf",
       "target_namespace": "TEST_LAB_RUNTIME"
     },
@@ -634,7 +665,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "8d27cbbcc0cfd7ae85ded1b009bf951636829d077ebc40000656dc0152c83acb",
+      "source_sha256": "6c72b1816a0e98e91880f72c68fedfb7a19fe82ef00b4d168ac7aa04a62cdf17",
       "statement_fingerprint": "3474f55c4f2c4ff899bf534b507dc606ac6ca48c4335543ec7104e00d9f58fff",
       "target_namespace": "TEST_LAB_RUNTIME"
     },
@@ -661,36 +692,8 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "8d27cbbcc0cfd7ae85ded1b009bf951636829d077ebc40000656dc0152c83acb",
+      "source_sha256": "6c72b1816a0e98e91880f72c68fedfb7a19fe82ef00b4d168ac7aa04a62cdf17",
       "statement_fingerprint": "0ed45f1623111ffecce2d095757eead3569acae114d695de5f13e429dc1c9e75",
-      "target_namespace": "TEST_LAB_RUNTIME"
-    },
-    {
-      "call_chain": [
-        "scripts.run_safe_pytest.main",
-        "scripts.run_safe_pytest._write_json_exclusive"
-      ],
-      "callee": "path.open",
-      "column": 9,
-      "detail": "file open in write-capable mode",
-      "end_column": 55,
-      "end_line": 1134,
-      "entry_id": "WE-680C971CD114550914B22DC0",
-      "file": "scripts/run_safe_pytest.py",
-      "function": "scripts.run_safe_pytest._write_json_exclusive",
-      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
-      "kind": "FILESYSTEM_FILE_WRITE",
-      "line": 1134,
-      "migration_status": "UNMIGRATED_BLOCKED",
-      "owner": "TEST_INFRASTRUCTURE",
-      "required_control": "S3_HANDLE_LEVEL_WORKSPACE_WRITER",
-      "resolution": "EXACT",
-      "risk": "P1",
-      "root_ids": [
-        "SCRIPT:scripts/run_safe_pytest.py"
-      ],
-      "source_sha256": "8d27cbbcc0cfd7ae85ded1b009bf951636829d077ebc40000656dc0152c83acb",
-      "statement_fingerprint": "eaad0385c9491cef1c1af69461a24e870a5f40901ab3ab2c2f31f76b60f6f81f",
       "target_namespace": "TEST_LAB_RUNTIME"
     }
   ],

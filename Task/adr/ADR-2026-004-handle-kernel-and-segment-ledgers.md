@@ -177,6 +177,26 @@ S3-D 已在 Test-local candidate 中实现并通过独立复核，冻结以下�
 
 本补充拒绝把 directory share mode、oplock 或`ReadDirectoryChangesW`描述为 child namespace 强锁；也拒绝将单次 hash 摘要跨生命周期保存后直接用于发布。
 
+## S3-E 补充：pair reservation 内的目录根发布与独立 operation chain
+
+S3-E 采用以下不可逆约束：
+
+1. pair/source/target registry 必须先原子替换为 exact `RESERVED` copies，再签发 owner-thread、context-pin、binding-bound `_ReservedPairLease`；旧 `ISSUED`对象不能成为 reservation authority；
+2. 实际 mutation 只有 `_OperationLease.execute_publish_pair()`一个入口。旧 `revalidate_pair()`继续只做候选重验并消费，不允许随后裸调用 rename；
+3. pair ISSUE/REVALIDATE 在 operation 已持有的 exact named-mutex lease 内追加 audit segment，禁止嵌套 mutex；初始授权后 audit head 必须恰好推进两个 segment，mutation 前最终 REVALIDATE 再精确推进一个 segment；两次都重新冻结 live observed evidence，`PREPARED`绑定最终 head；
+4. mutation 状态进入独立 `logs/operations/segments/<epoch>` chain，不复用 audit event schema。operation segment 使用独立 domain/HMAC、previous hash、PENDING-to-no-replace publish、启动/追加前后全链扫描和固定资源上限；新事务在`PREPARED`前预留最坏五段生命周期和字节容量；
+5. `PREPARED` durable 之前禁止调用 native rename；目录 child handles在最后一次完整 revalidate 后关闭，只保留同一 source-root DELETE handle和父目录围栏；
+6. rename 只调用 `SetFileInformationByHandle`且`ReplaceIfExists=false`；native success 后必须核对同一 volume/file ID、source gone、target exact binding，再写`MUTATED`；
+7. target 必须独立重开并完整复算 manifest/tree/topology/identity/count/bytes；`POSTCONDITION_VERIFIED`和`COMMITTED`都持久化且重扫确认后才消费 pair并返回成功；
+8. native mutation 可能发生后的任何异常先尽力持久化`IN_DOUBT`再 seal；COMMITTED 后 cleanup 失败通过相同 operation ID 只返回既有分型 receipt，不再次 rename；
+9. 重启恢复只追加事实，不移动、覆盖、删除或清理：source exact/target absent 可恢复撤销；source absent/target same-root exact 可恢复提交；双存、双失、mismatch、同内容不同 root ID或链/预算/audit head漂移一律`RECOVERY_CONTRADICTION`并 seal。恢复 reason/state/scope/authority head/observation receipt 必须由前序 durable facts重算，scope 固定为`COOPERATIVE_APPLICATION_WRITERS_ONLY`；
+10. S3-E 只启用 INTERNAL 合成目录。RESTRICTED locator、Copy 双 ledger和 quarantine/restore 分别留给 S3-F/G，不通过临时明文路径或自创加密绕过。
+11. operation epoch 以 genesis 时 active revision 锚定独立签名 key。audit rotation 后旧 epoch 仅允许 replay/recovery，新事务必须用当前 active revision 初始化新 epoch；未实际激活的 key-store revision 不得成为 authority；factory、begin、replay、recovery都核对引用的 audit heads仍在认证链中。
+
+Windows 共享语义的实测补充：source-root handle在创建时取得`FILE_ADD_FILE/FILE_ADD_SUBDIRECTORY`，逻辑 seal 不能撤回既有 access。因此独立 target verification handle 必须 share READ/WRITE/DELETE 才能与原 handle共存；原 handle仍只 share READ，外部新写 handle仍被拒绝。该要求不是 child namespace 强锁。
+
+S3-E 仍不声称 hostile-writer 原子 snapshot。普通用户态目录 handle无法冻结 child namespace，且 rename 前必须关闭 descendant handles。named mutex约束本应用协作写者；最后检查、no-replace、post-rescan和恢复真值表负责检测剩余竞态，检测到不确定性只封存现场。
+
 ## 回滚
 
 S3-A/B 只增加合同、Test-local候选代码和安全实验室证据，不迁移活动数据库、不移动业务资产、不改变活动指针。失败时以普通 Git revert 形成新提交；保留实验室和审计现场，不清理用户文件。
