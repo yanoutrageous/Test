@@ -1,10 +1,10 @@
 {
   "state_version": "1.0.1",
   "plan_version": "1.0.1",
-  "updated_at": "2026-07-13T13:22:55+08:00",
+  "updated_at": "2026-07-13T22:00:02+08:00",
   "current_milestone": "M0",
-  "current_slice": "M0_S3F_synthetic_copy_dual_ledgers_design",
-  "status": "RUNNING",
+  "current_slice": "M0_S3F_synthetic_copy_dual_ledgers_paused_before_safe_regression",
+  "status": "CHECKPOINTED",
   "implementation_status": "IN_PROGRESS",
   "task_scope": {
     "effective_terminal_gate": "M0_MILESTONE_ACCEPTED",
@@ -13,18 +13,32 @@
     "project_contract_m0_m5_unchanged": true,
     "source": "latest_explicit_user_instruction"
   },
+  "pause_history": [
+    {
+      "paused_at": "2026-07-12T02:16:57+08:00",
+      "reason": "USER_REQUESTED_COMPUTER_SHUTDOWN",
+      "resumed_at": "2026-07-13T13:22:55+08:00",
+      "resume_verified_head": "26fdf8794b9fc90c4ea8702bb9e91877fe4e5600",
+      "resume_audit_result": "PASS_LOCAL_ORIGIN_PR_HEAD_CLEAN_TREE_NO_ACTIVE_WRITER_DATABASE_HASH_UNCHANGED"
+    }
+  ],
   "pause": {
-    "paused_at": "2026-07-12T02:16:57+08:00",
-    "reason": "USER_REQUESTED_COMPUTER_SHUTDOWN",
-    "verified_head_before_pause_record": "f6a94eb075735bf2c1de5eefff148bb0b068d4b1",
-    "s3e_published_head": "39586568a405124417d105d8e876d25ec94e06e6",
-    "worktree_was_clean_before_pause_record": true,
+    "paused_at": "2026-07-13T22:00:02+08:00",
+    "reason": "USER_REQUESTED_NEAREST_SAFE_CHECKPOINT",
+    "verified_head_before_pause_record": "01cfbb12012040b03e82745e828cf3ff85dc1bf1",
+    "verified_origin_head_before_pause_record": "01cfbb12012040b03e82745e828cf3ff85dc1bf1",
+    "worktree_was_clean_before_pause_record": false,
+    "worktree_before_pause_record": "36_TRACKED_MODIFIED_7_UNTRACKED_S3F_IMPLEMENTATION_FILES",
     "business_mutation_in_progress": false,
     "real_business_data_touched": false,
-    "resume_from": "M0-S3-F design freeze before any implementation change; the pause-record commit itself must be verified from local/origin/PR heads",
-    "resumed_at": "2026-07-13T13:22:55+08:00",
-    "resume_verified_head": "26fdf8794b9fc90c4ea8702bb9e91877fe4e5600",
-    "resume_audit_result": "PASS_LOCAL_ORIGIN_PR_HEAD_CLEAN_TREE_NO_ACTIVE_WRITER_DATABASE_HASH_UNCHANGED"
+    "safe_launcher_active": false,
+    "activity_database_sha256": "1505BF05BD8E385EADA30642110596363C561C330DA02A40A497072064AD1C94",
+    "reserved_run_ids_confirmed_unused": [
+      "RUN-20260713-M0-S3F-INTEGRATION-021",
+      "RUN-20260713-M0-S3F-LAUNCHER-022",
+      "RUN-20260713-M0-S3F-COMBINED-023"
+    ],
+    "resume_from": "Keep the dirty S3-F implementation intact. Re-read the pause report, verify local/origin head, dirty-file set, no active safe launcher, database SHA-256, and unused run IDs. Finish the interrupted exception-boundary documentation re-audit, then run the three reserved safe regressions. Do not enter S3-G before S3-F acceptance."
   },
   "project_root": "D:\\AAA命题\\Test",
   "git": {
@@ -39,7 +53,7 @@
   },
   "last_verified_checkpoint": "39586568a405124417d105d8e876d25ec94e06e6",
   "active_job_id": "M0-S3-F-SYNTHETIC-COPY-DUAL-LEDGERS",
-  "active_writer": "/root",
+  "active_writer": null,
   "completed_actions": [
     "read-only repository and reference-corpus review",
     "long-horizon M0-M5 plan designed",
@@ -98,6 +112,6 @@
   "blockers": [
     "M0-SYMLINK-CAPABILITY-001: two Test-local attempts to create a real directory symlink returned WinError 1314; no privilege elevation or Developer Mode change is authorized, so the actual symlink gate remains unverified while independent M0 work continues"
   ],
-  "next_required_action": "Continue the M0-S3-F design freeze and implementation. Synthetic Copy must use independently authenticated source and copy ledgers, handle-recomputed source/destination identity, size and SHA-256, exact classification and locator redaction, crash reconciliation, and immutable Copy originals. SQLite remains blocked to S4; production writer remains disconnected; all 460 entries remain UNMIGRATED_BLOCKED; real business data remains untouched.",
-  "resume_rule": "Read execution_contract.json and all normative Task documents, verify git and filesystem state against this file, then continue from next_required_action without repeating completed work. Do not enter M1 in this task; after M0 is accepted, record STOP_PER_USER with M1 deferred to a new user task."
+  "next_required_action": "Resume only on a new explicit user instruction. First close the interrupted exception-boundary documentation re-audit, then run the unused S3-F core, launcher, and combined safe regressions. Do not repeat the already completed implementation fixes, do not reuse RUN-020, and do not enter S3-G until S3-F has accepted evidence.",
+  "resume_rule": "Read AGENTS.md, Base/Base.md, execution_contract.json, all normative Task documents, and Task/reports/M0/M0-S3-F-pause-20260713.md. Verify local/origin head, the recorded dirty worktree, no active launcher or mutation, activity database SHA-256, free disk, and run-ID nonexistence before continuing. Do not enter M1 in this task; after M0 is accepted, record STOP_PER_USER with M1 deferred to a new user task."
 }

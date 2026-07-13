@@ -1,12 +1,12 @@
 # 当前状态
 
-更新时间：2026-07-13 13:22 +08:00
+更新时间：2026-07-13 22:00 +08:00
 
 ## 长期执行状态
 
 - 计划版本：1.0.1
 - 当前阶段：M0 入场审计完成，M0 尚未验收
-- 当前切片：已按用户要求从关机暂停点恢复，继续`M0-S3-F synthetic Copy + dual ledgers`设计冻结与实现；恢复前已核验本地、origin 和 Draft PR #2 head 均为`26fdf8794b9fc90c4ea8702bb9e91877fe4e5600`、工作区干净、无活动 writer、活动 SQLite 哈希不变；S3 与 M0 总门仍未通过
+- 当前切片：按用户要求在最近安全断点暂停`M0-S3-F synthetic Copy + dual ledgers`；实现候选及失败修复保留在未提交工作区，尚未运行修复后的核心/launcher/组合安全回归；S3 与 M0 总门仍未通过
 - M0—M5 实现：M0 已开始；M1—M5 未开始
 - 本任务有效终点：按用户最新明确要求，仅完成 M0；M0 正式验收、提交、普通 push、checkpoint tag 和交接完成后立即停止，M1 延后到新的用户任务。项目整体 M0—M5 路线图保持不变，本条只限制当前任务执行范围
 - 当前禁止：活动数据库迁移、题库导入、OCR、正式排版、批量资产、备份切换和业务文件清理
@@ -30,7 +30,7 @@
 - 生产静态 inventory V9 覆盖`app/`和`scripts/`的 49 个源文件、460 个副作用入口和 19 个分片；`UNKNOWN=0`、未授权安全内核构造 0，但 460 项仍全部`UNMIGRATED_BLOCKED`
 - Policy V7 digest 为`8df50ded...e4d88`；生产 boundary 固定根且`writer_available=false`，`m0_exit_allowed=false`
 - S3-E 最终核心回归`RUN-20260712-M0-S3E-016`为`30 passed`，launcher 门`RUN-20260712-M0-S3E-LAUNCHER-018`为`72 passed`，组合门`RUN-20260712-M0-S3E-COMBINED-019`为`399 passed`；JUnit failure/error/skip 均为 0
-- RUN-009 保护树前后均 93,762 条、运行时变更 0、句柄围栏 93,762 个；活动 SQLite 前后 SHA-256 相同；source inputs unchanged
+- RUN-009 保护树前后均 93,762 条、运行时变更 0、句柄围栏 93,762 个；活动 SQLite 前后 SHA-256 相同。旧结果字段`source inputs unchanged`只是该次已监测保护集的起止/运行时证据，不声称监控整机或未登记外部源
 - Scanner V9 使用`UTF8_LF_V1`规范化并加入 operation ledger、pair reservation、最终 revalidation、跨账本 ancestor 和目录 publish/recovery 私有调用 exact canary；inventory payload 为`339a14b1...d3a6fee`，生产 writer 与`m0_exit_allowed`均为 false
 
 ## 工具与发布状态
@@ -59,10 +59,13 @@
 
 ## 当前暂停检查点
 
-- 暂停时间：2026-07-12 02:16:57 +08:00；原因：用户准备关闭电脑；
-- 暂停记录前已核验 head：`f6a94eb075735bf2c1de5eefff148bb0b068d4b1`；暂停记录写入前工作区干净，本地与 origin 一致；最终暂停提交以恢复时本地/origin/PR 三方一致的当前 head 为准；
-- 没有进行中的业务 mutation，没有处理真实业务数据；生产 writer 仍断开，460 个入口仍全部`UNMIGRATED_BLOCKED`；
-- 已于 2026-07-13 13:22:55 +08:00 完成恢复核验：本地、origin、Draft PR #2 均为`26fdf8794b9fc90c4ea8702bb9e91877fe4e5600`，工作区干净，旧 writer PID 不存在，活动 SQLite SHA-256 未变化；现从 S3-F 设计冻结继续，不重复 S3-E，不进入 M1。
+- 暂停时间：2026-07-13 22:00:02 +08:00；原因：用户要求在最近可恢复安全断点暂停；
+- 暂停记录前本地与 origin head 均为`01cfbb12012040b03e82745e828cf3ff85dc1bf1`；没有活动 safe launcher 或 Git 进程，没有进行中的业务 mutation，没有处理真实业务数据；
+- 活动 SQLite SHA-256 仍为`1505BF05BD8E385EADA30642110596363C561C330DA02A40A497072064AD1C94`，D 盘可用空间为 588,403,019,776 bytes；生产 writer 仍断开，460 个入口仍全部`UNMIGRATED_BLOCKED`；
+- 暂停记录前工作区为 36 个 tracked modified 与 7 个 untracked S3-F 文件。不得清理、覆盖或丢弃这些候选；完整恢复入口见`Task/reports/M0/M0-S3-F-pause-20260713.md`；
+- `RUN-20260713-M0-S3F-INTEGRATION-020`为修复前证据：167 项中 150 通过、17 失败，但数据库、保护树、运行时 watcher、句柄围栏、合成源 witness、进程树和 immutable evidence 均保持安全。17 项对应修复已经完成编译/导入预检，尚未以 safe launcher 复跑；
+- V4 Copy plan/opaque TXN 独立复审为 P0=0/P1=0；异常边界代码复审为 P0=0/P1=0。其威胁模型文档 P1 已修正文案，但因本次暂停，最终文档复审尚未收口；
+- 已确认`RUN-20260713-M0-S3F-INTEGRATION-021`、`RUN-20260713-M0-S3F-LAUNCHER-022`、`RUN-20260713-M0-S3F-COMBINED-023`均未创建。恢复后先复核文档边界，再依次使用这些唯一编号运行；不得复用 RUN-020，不得提前进入 S3-G。
 
 ## 已知限制与未决项
 
@@ -72,6 +75,6 @@
 - S2 `PairEvidence`仍只是候选声明；S3-E 实际 mutation 只在 exact `_ReservedPairLease`和 live observed lease 内执行，声明或 detached 摘要都不能授权 rename。
 - audit key revision 位于 Test 内、Git 忽略的本地明文存储；不能抵御已取得 Test 读取权的恶意本机用户；没有外部 witness 时也不能证明完整账本尾部未被一致回滚。
 - Test-only writer 的 spent-ticket 记忆和诊断缓存已固定上限；ReFS/128-bit File ID 高位非零兼容、硬件断电语义和业务 operation recovery 仍未声明通过。
-- 安全测试实验室针对受信任、已审阅的仓库测试代码，不是任意 hostile native-code 的 OS sandbox。
+- 安全测试实验室针对受信任、已审阅的仓库测试代码，不是 hostile native-code 或 hostile same-process Python 反射/monkeypatch 的 OS/语言沙箱；S3-F 异常 vault 只收窄经密封公开 boundary 的正常调用泄漏面，不能隔离能够绕过 boundary 的恶意同进程代码。
 - 普通用户态 Windows 目录 handle/oplock 不能冻结 child namespace；S3-E 已使用最后检查、内核 no-replace、target full rescan 与`IN_DOUBT`/seal，但仍不声明 hostile-writer 原子快照。
 - 本机普通账户不能创建实际目录 symlink（WinError 1314）；不自动启用开发者模式或提升权限，该门禁保持 IN_PROGRESS。
