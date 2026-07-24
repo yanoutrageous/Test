@@ -1,12 +1,12 @@
 # 当前状态
 
-更新时间：2026-07-24 12:26 +08:00
+更新时间：2026-07-24 12:29 +08:00
 
 ## 长期执行状态
 
 - 计划版本：1.1.0
 - 当前阶段：M0 入场审计完成，M0 尚未验收
-- 当前切片：`M0 portable root + relocation rebaseline`与`M0-S3-F synthetic Copy + dual ledgers`候选均已通过本机验收；新机发布工具链已恢复，73 个 allowlisted 文件已显式暂存并通过 staged 审计，等待 checkpoint commit/push。门禁禁止在 checkpoint 前进入 S3-G，S3 与 M0 总门仍未通过
+- 当前切片：portable root 与`M0-S3-F synthetic Copy + dual ledgers`已作为`f9756df79d979ef10f54fc4634f15849857019da`完成显式提交、普通 push 和远端核验；当前进入 S3-G quarantine、保留式 restore 与冲突恢复，S3 与 M0 总门仍未通过
 - M0—M5 实现：M0 已开始；M1—M5 未开始
 - 本任务有效终点：按用户后续明确要求，连续完成修订后的 M0—M5，直到真实用户流程、恢复演练和客户交付包全部通过；不得把 M0 或代码完成误报为终局
 - 当前禁止：活动数据库迁移、题库导入、OCR、正式排版、批量资产、备份切换和业务文件清理
@@ -17,7 +17,7 @@
 - 生产根改为`PORTABLE_LOCAL_NTFS_V1`：受信任`app/project_root.py`位置与根`.exam-bank-root.json`精确内容共同授权；marker 不含盘符/用户名/绝对路径，cwd、环境变量、配置和调用者参数不能扩大根。
 - Python 3.12.13、Flask 3.1.3、PyMuPDF 1.28.0、pytest 9.1.1、SQLite 3.50.4 均已导入；现有`.venv`可继续验证，但`pyvenv.cfg`保留旧机创建命令，因此不作为未来迁移产物，后续电脑默认按`requirements.txt`重建。
 - 活动数据库 SHA-256 仍为`1505bf05bd8e385eada30642110596363c561c330da02a40a497072064ad1c94`，`integrity_check=ok`、外键违规 0，核心业务表仍为空；迁移重定根当前没有业务数据改写风险。
-- Git 分支`agent/m0-m5-local-v1`、本地 HEAD、origin 分支和远端 refs 经 04:00 后重新 fetch 仍均为`6e225c8e4ba06332a197a1acdcbd1f86edce4d99`；恢复前 S3-F 脏工作区为 42 项（35 tracked、7 untracked），聚合 SHA-256 为`85f9541403491f3aebc6aa5dc1d381b53e8f1594edfc3568a12b8a3455eb0469`，已原样保留并增量修改。当前 portable-root、S3-F 与证据合计 73 项（60 tracked、13 untracked）尚未提交。
+- Git 分支`agent/m0-m5-local-v1`、本地 HEAD、origin 分支、远端 refs 与 Draft PR #2 head 均为`f9756df79d979ef10f54fc4634f15849857019da`；S3-F 恢复前脏候选与 portable-root 增量已完整固化，checkpoint 后工作区干净。
 - 旧主机 writer lock（`DESKTOP-GU0STBA`/PID 283856）已确认失效；本机以`RUN-20260724-M0-PORTABLE-ROOT-024`取得 Git 忽略的单写者锁，没有业务 mutation。
 - `RUN-20260724-M0-PORTABLE-FULL-037`最终退出码 0：JUnit 961 passed，failure/error/skip 均为 0；保护树前后均 126,030 项且 digest 相同，活动数据库、运行树、immutable evidence、watcher、句柄围栏、进程树和 80 个登记合成来源均通过。RUN-025/031/034/036 作为失败收敛证据保留，不再代表当前功能状态。
 - 现有`tmp`约 7.65 GiB，E 卷剩余空间约 29.91 GiB，全量保护树门成本较高。未获用户明确授权前不得删除或压缩历史运行；完整保护树门保留为低频验收，后续高频回归策略必须另行受审计且不能降低外部零写入保证。
@@ -51,7 +51,7 @@
 
 - 用户已明确授权无交互继续完成交付；新电脑已通过 WinGet 用户范围安装 GitHub CLI 2.96.0。
 - 本机 Git 自身可访问远端；Git Credential Manager 中的 GitHub OAuth 凭据经临时`GH_TOKEN`环境桥接后，`gh api user`和`gh auth status`验证账号为`yanoutrageous`。令牌未写入命令、报告或仓库，也未降级保存为明文文件。
-- GitHub App 已确认仓库公开且未归档、当前账号具有 admin/push 权限、默认分支为`main`，Draft PR #2 仍 open/mergeable，head 为`6e225c8e4ba06332a197a1acdcbd1f86edce4d99`
+- GitHub App 与 CLI 已确认仓库公开且未归档、当前账号具有 admin/push 权限、默认分支为`main`；Draft PR #2 为 OPEN/DRAFT/CLEAN/MERGEABLE，head 为`f9756df79d979ef10f54fc4634f15849857019da`
 - 本仓库 Git 作者邮箱已改为 GitHub noreply 地址，未修改全局 Git 配置，避免公开提交暴露个人邮箱
 - 规划提交范围、隐私、二进制、大文件、忽略规则和远端同名分支已通过独立只读审计
 - 规划契约提交`522393d`及状态提交`bfd4d35`已普通 push 到`agent/long-run-execution-spec`
@@ -69,7 +69,7 @@
 
 1. M0-S3-D operation context pin、固定 job staging、不可变 contract、多维预算和 live double-pass tree observation 已作为`1b5b9bd`完成显式提交、普通 push 与远端核验；
 2. M0-S3-E exact reservation、独立 operation chain、source-root no-replace publish、target rescan 与只追加恢复真值表已通过本地组合门和独立暂存审计，并作为`39586568a405124417d105d8e876d25ec94e06e6`完成普通 push；
-3. portable root 与 S3-F 合成 Copy/双 ledger 已由`RUN-20260724-M0-PORTABLE-FULL-037`验收；下一动作是精确暂存审计、checkpoint commit 和普通 push，随后进入 S3-G；
+3. portable root 与 S3-F 合成 Copy/双 ledger 已由`RUN-20260724-M0-PORTABLE-FULL-037`验收，并作为`f9756df79d979ef10f54fc4634f15849857019da`完成精确暂存审计、checkpoint commit、普通 push 与远端核验；当前进入 S3-G；
 4. 按长期终点继续完成 M0—M5；只有 M5 客户交付包、真实用户流程和恢复演练全部通过后才可结束，不得把 M0 checkpoint 当作终局。
 
 ## 历史暂停检查点（已于 2026-07-24恢复）
@@ -79,8 +79,8 @@
 - 活动 SQLite SHA-256 当时为`1505BF05BD8E385EADA30642110596363C561C330DA02A40A497072064AD1C94`，旧 D 盘当时可用空间为 588,403,019,776 bytes；生产 writer 仍断开，460 个入口仍全部`UNMIGRATED_BLOCKED`；
 - 暂停记录前工作区为 36 个 tracked modified 与 7 个 untracked S3-F 文件。不得清理、覆盖或丢弃这些候选；完整恢复入口见`Task/reports/M0/M0-S3-F-pause-20260713.md`；
 - `RUN-20260713-M0-S3F-INTEGRATION-020`为修复前历史证据：167 项中 150 通过、17 失败，但安全门保持清洁；对应修复现已由新根`RUN-20260724-M0-PORTABLE-FULL-037`的 961 项全绿回归取代；
-- V4 Copy plan/opaque TXN 与异常边界复审的 P0/P1 均已收口；S3-F 当前只缺显式 Git checkpoint；
-- `RUN-20260713-M0-S3F-INTEGRATION-021`、`RUN-20260713-M0-S3F-LAUNCHER-022`、`RUN-20260713-M0-S3F-COMBINED-023`均为 superseded/unused，永不复用；完成当前 checkpoint 后可进入 S3-G。
+- V4 Copy plan/opaque TXN 与异常边界复审的 P0/P1 均已收口；S3-F Git checkpoint 已完成；
+- `RUN-20260713-M0-S3F-INTEGRATION-021`、`RUN-20260713-M0-S3F-LAUNCHER-022`、`RUN-20260713-M0-S3F-COMBINED-023`均为 superseded/unused，永不复用。
 
 ## 已知限制与未决项
 

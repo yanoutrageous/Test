@@ -2,8 +2,8 @@
 
 ## 结论
 
-- 切片结论：**ACCEPTED_PENDING_GIT_CHECKPOINT**
-- S3-F 候选已通过当前 E 根的完整语义、安全和恢复回归，可进入显式暂存审计、commit 和普通 push。
+- 切片结论：**ACCEPTED**
+- S3-F 已通过当前 E 根的完整语义、安全和恢复回归，并完成显式暂存审计、checkpoint commit、普通 push 与远端核验。
 - production writer 仍断开；SQLite 通用 Copy、真实资料、quarantine/restore 和 M0 总门均未开放。
 
 ## 本切片范围
@@ -72,7 +72,7 @@ RESTRICTED 使用独立目标分区及 HMAC-only locator；活动 SQLite、sidec
 
 ## Git 状态
 
-本报告生成时 S3-F 仍是保留的脏工作区候选。下一动作必须：
+下列 checkpoint 步骤已全部执行：
 
 1. 对精确 allowlist 做 diff、隐私、密钥、二进制和大文件审计；
 2. 显式暂存，禁止`git add -A`；
@@ -100,3 +100,11 @@ RESTRICTED 使用独立目标分区及 HMAC-only locator；活动 SQLite、sidec
 - 扫描 staged 新增内容 30,864 行，常见 token、私钥、Bearer token 和高风险 secret assignment 命中 0。
 - staged `.exam-bank-root.json`SHA-256 为`5a8010438f974544be816df10eac8adbd13b172373fa8f680a31932a5745c405`。
 - staged V16 的 53 个生产源码哈希/大小与 19 个 inventory 分片文件哈希全部匹配；inventory payload 仍为`e31de8130346d87eb1b92109f88580cbb5ea33502d0b316a48a27fe7c172659c`。
+
+### 发布结果
+
+- commit：`f9756df79d979ef10f54fc4634f15849857019da`
+- branch：`agent/m0-m5-local-v1`
+- local/origin/GitHub ref/Draft PR #2 head：全部一致
+- Draft PR #2：OPEN、DRAFT、CLEAN、MERGEABLE
+- checkpoint 后工作区：clean
