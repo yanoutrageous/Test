@@ -695,6 +695,7 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         "_JobContextPin",
         "_JOB_CONTEXT_PIN_CONSTRUCTOR",
         "_OPERATION_LEDGER_CONSTRUCTOR",
+        "_resolve_reviewed_operation_epochs_under_existing_mutex",
         "_ReservedPairLease",
         "_PAIR_RESERVATION_CONSTRUCTOR",
         "_DirectoryPublishJournalPermit",
@@ -765,6 +766,7 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         "_JobContextPin",
         "_JOB_CONTEXT_PIN_CONSTRUCTOR",
         "_OPERATION_LEDGER_CONSTRUCTOR",
+        "_resolve_reviewed_operation_epochs_under_existing_mutex",
         "_ReservedPairLease",
         "_PAIR_RESERVATION_CONSTRUCTOR",
         "_DirectoryPublishJournalPermit",
@@ -937,6 +939,10 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         "_JobContextPin": {allowed_file},
         "_JOB_CONTEXT_PIN_CONSTRUCTOR": {allowed_file},
         "_OPERATION_LEDGER_CONSTRUCTOR": {allowed_file, operation_file},
+        "_resolve_reviewed_operation_epochs_under_existing_mutex": {
+            allowed_file,
+            operation_file,
+        },
         "_ReservedPairLease": {allowed_file},
         "_PAIR_RESERVATION_CONSTRUCTOR": {allowed_file},
         "_DirectoryPublishJournalPermit": {job_file, writer_file},
@@ -1093,7 +1099,7 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
             ),
             (
                 copy_ledger_file,
-                "DurableCopyLedgers._authenticated_publish_terminal_bindings_under_existing_mutex",
+                "DurableCopyLedgers._authenticated_publish_terminal_bindings_for_epochs_under_existing_mutex",
             ),
         },
         "operation_result_under_existing_mutex": {
@@ -1124,6 +1130,10 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
             (operation_file, "DurableOperationLedger.transaction_result_under_existing_mutex"),
             (operation_file, "DurableOperationLedger.bound_audit_heads_under_existing_mutex"),
             (operation_file, "DurableOperationLedger.authenticated_segment_sha256s_under_existing_mutex"),
+            (
+                operation_file,
+                "_resolve_reviewed_operation_epochs_under_existing_mutex",
+            ),
             (allowed_file, "_create_test_operation_ledger"),
             (allowed_file, "_create_test_copy_ledgers"),
             (allowed_file, "_reconcile_test_publish_operation"),
@@ -1143,6 +1153,14 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
             (
                 copy_ledger_file,
                 "DurableCopyLedgers._authenticated_publish_terminal_bindings_under_existing_mutex",
+            ),
+            (
+                copy_ledger_file,
+                "DurableCopyLedgers._authenticated_publish_terminal_bindings_for_epochs_under_existing_mutex",
+            ),
+            (
+                copy_ledger_file,
+                "DurableCopyLedgers._validate_full_dag_with_operation_epochs_under_existing_mutex",
             ),
             (
                 copy_ledger_file,
@@ -1170,6 +1188,11 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         "bound_audit_heads_under_existing_mutex": {
             (job_file, "_TestJobRuntime._validate_operation_audit_bindings"),
             (allowed_file, "_create_test_operation_ledger"),
+            (allowed_file, "_create_test_copy_ledgers"),
+            (
+                copy_ledger_file,
+                "DurableCopyLedgers._validate_full_dag_with_operation_epochs_under_existing_mutex",
+            ),
         },
         "_contains_all_segment_sha256_under_existing_mutex": {
             (job_file, "_TestJobRuntime._validate_operation_audit_bindings"),
@@ -1189,6 +1212,7 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         "_seal_cross_ledger_contradiction": {
             (job_file, "_TestJobRuntime._validate_operation_audit_bindings"),
             (allowed_file, "_create_test_operation_ledger"),
+            (allowed_file, "_create_test_copy_ledgers"),
         },
         "_build_recovery_observation_receipt_sha256": {
             (operation_file, "DurableOperationLedger._validate_next_transition"),
@@ -1266,20 +1290,12 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
                 copy_ledger_file,
                 "DurableCopyLedgers._authenticate_persisted_publish_plan",
             ),
-            (
-                copy_ledger_file,
-                "DurableCopyLedgers._authenticated_publish_terminal_bindings_under_existing_mutex",
-            ),
             (copy_operation_file, "_TestLocalCopyOperation._copy_provenance_material"),
         },
         "publish_operation_binding": {
             (
                 copy_ledger_file,
                 "DurableCopyLedgers._issue_operation_absence_witness_under_existing_mutex",
-            ),
-            (
-                copy_ledger_file,
-                "DurableCopyLedgers._authenticated_publish_terminal_bindings_under_existing_mutex",
             ),
             (copy_operation_file, "_TestLocalCopyOperation._publish_operation_binding"),
         },
@@ -1292,6 +1308,32 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
                 copy_ledger_file,
                 "DurableCopyLedgers._verify_external_ancestors_under_existing_mutex",
             ),
+        },
+        "_authenticated_publish_terminal_bindings_for_epochs_under_existing_mutex": {
+            (
+                copy_ledger_file,
+                "DurableCopyLedgers._authenticated_publish_terminal_bindings_under_existing_mutex",
+            ),
+            (
+                copy_ledger_file,
+                "DurableCopyLedgers._validate_full_dag_with_operation_epochs_under_existing_mutex",
+            ),
+        },
+        "_validate_full_dag_with_operation_epochs_under_existing_mutex": {
+            (
+                copy_ledger_file,
+                "DurableCopyLedgers._preflight_new_epoch_under_existing_mutex",
+            ),
+            (allowed_file, "_create_test_copy_ledgers"),
+        },
+        "_verify_operation_absence_witness_under_existing_mutex": {
+            (
+                copy_ledger_file,
+                "DurableCopyLedgers._authenticated_publish_terminal_bindings_for_epochs_under_existing_mutex",
+            ),
+        },
+        "_resolve_reviewed_operation_epochs_under_existing_mutex": {
+            (allowed_file, "_create_test_copy_ledgers"),
         },
         "_create_synthetic_reference_read_policy": {
             (allowed_file, "_create_test_copy_operation"),
@@ -1572,9 +1614,17 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         },
         "bound_audit_ancestors_under_existing_mutex": {
             (copy_ledger_file, "DurableCopyLedgers._verify_external_ancestors_under_existing_mutex"),
+            (
+                copy_ledger_file,
+                "DurableCopyLedgers._validate_full_dag_with_operation_epochs_under_existing_mutex",
+            ),
         },
         "bound_publish_terminals_under_existing_mutex": {
             (copy_ledger_file, "DurableCopyLedgers._verify_external_ancestors_under_existing_mutex"),
+            (
+                copy_ledger_file,
+                "DurableCopyLedgers._validate_full_dag_with_operation_epochs_under_existing_mutex",
+            ),
         },
         "_issue_authenticated_ancestors_under_existing_mutex": {
             (allowed_file, "_create_test_copy_ledgers"),
@@ -1585,6 +1635,7 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
             (copy_operation_file, "_TestLocalCopyOperation._verify_all_ancestors"),
         },
         "authenticated_segment_sha256s_under_existing_mutex": {
+            (allowed_file, "_create_test_copy_ledgers"),
             (copy_ledger_file, "DurableCopyLedgers._issue_authenticated_ancestors_under_existing_mutex"),
             (copy_ledger_file, "DurableCopyLedgers._verify_external_ancestors_under_existing_mutex"),
             (
@@ -1594,6 +1645,14 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
             (
                 copy_ledger_file,
                 "DurableCopyLedgers._authenticated_publish_terminal_bindings_under_existing_mutex",
+            ),
+            (
+                copy_ledger_file,
+                "DurableCopyLedgers._authenticated_publish_terminal_bindings_for_epochs_under_existing_mutex",
+            ),
+            (
+                copy_ledger_file,
+                "DurableCopyLedgers._validate_full_dag_with_operation_epochs_under_existing_mutex",
             ),
         },
         "_create_test_copy_ledgers": set(),
@@ -1641,7 +1700,7 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
             (copy_ledger_file, "DurableCopyLedgers.publish_operation_binding"),
             (
                 copy_ledger_file,
-                "DurableCopyLedgers._authenticated_publish_terminal_bindings_under_existing_mutex",
+                "DurableCopyLedgers._authenticated_publish_terminal_bindings_for_epochs_under_existing_mutex",
             ),
         },
         "_RestrictedRecoveryLocatorRecord": {
@@ -1932,6 +1991,11 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         (external_source_file, "_create_synthetic_reference_read_policy"),
         (copy_ledger_file, "_derive_copy_ledger_epoch_id"),
         (copy_ledger_file, "_copy_epoch_pair_presence.present"),
+        (operation_file, "_operation_epoch_catalog"),
+        (
+            operation_file,
+            "_resolve_reviewed_operation_epochs_under_existing_mutex",
+        ),
         (allowed_file, "_AuditAuthority.__post_init__"),
         (allowed_file, "_create_test_job_runtime"),
         (allowed_file, "_create_test_copy_ledgers"),

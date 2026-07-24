@@ -288,6 +288,21 @@ S3-G 在 Test-local candidate 中冻结以下合同：
 
 冻结证据为`RUN-20260724-M0-S3G-CORE-053`（16/16）、`RUN-20260724-M0-S3G-GATE-058`（543/543）和整理后重复门`RUN-20260724-M0-S3G-POSTCLEAN-059`（543/543）。GATE-058 的保护树前后 140,985 项，POSTCLEAN-059 降至 8,394 项；两轮的活动数据库、runtime watcher、句柄围栏、run tree、不可变证据、源码见证和进程树全部一致或有效。S3-H 的真实子进程 crash matrix、历史 operation resolver、全 DAG 复核和独立 S3 冻结审计仍是后续必需项。
 
+## S3-H 实现冻结补充（2026-07-24）
+
+S3-H 关闭本 ADR 第 7 节保留的历史验证缺口，并冻结以下合同：
+
+1. operation epoch resolver 必须在同一 runtime mutex 内对固定`logs/operations/segments`执行有界 no-follow catalog；最多 256 个 canonical epoch。名称/大小写冲突、非普通目录、Reparse、身份替换、清单漂移或未知对象均 fail closed。
+2. resolver 使用 audit ledger 已激活 revision 完整认证每个历史 operation epoch，并在退出前重新核对全部 epoch 身份和目录 catalog；验证过程中发生漂移时 seal。
+3. Copy rotation preflight 必须把 audit、所有历史 operation epoch 和所有历史 Copy source/copy 双链作为一个完整 DAG 验证。单 epoch helper 只允许委托给 multi-epoch validator，不能成为 rotation 的历史证明。
+4. operation segment SHA 和 opaque epoch reference 必须各自有唯一 owner。typed terminal 或 absence witness 无法解析到唯一历史 epoch、引用损坏/缺失、revision 不同或 transaction receipt 不一致时保持现场并 seal，不自动修复、补链或跳过旧历史。
+5. crash/race 真值表固定覆盖 cooperative mutex、hostile target/source drift、native boundary 后`IN_DOUBT`、rename 前后和 terminal append 前后的真实`os._exit`。恢复只追加一个可证明 terminal，fresh reopen replay 不增加 segment、不重复 mutation。
+6. hostile external writer 原子 freeze 仍不作保证；支持范围继续是`COOPERATIVE_APPLICATION_WRITERS_ONLY`。无法唯一解释的 namespace 状态必须检测并 seal。
+7. safe launcher 在正常主进程退出但 Job Object 仍有意外子进程时，必须显式终止并等待 active process 列表归零后才返回；仅依赖 kill-on-close 的异步效果不足以作为返回后零活动进程证明。
+8. S3-H 不连接 production writer、不迁移 468 个入口、不改写活动 SQLite 或真实业务资料。SQLite migration/Backup API 继续留给 S4。
+
+冻结证据为`RUN-20260724-M0-S3H-INVENTORY-GATE-078`（34/34）和 S3 总门`RUN-20260724-M0-S3H-S3-TOTAL-079`（997/997，另有一个独立 symlink 能力用例按既定规则排除）。最终门的保护树前后均 4,741 项，活动 SQLite、runtime watcher、句柄围栏、run tree、不可变证据、80 个源码见证和进程树全部一致或有效。独立只读复核重新计算 JUnit、19 个 inventory chunk 和 53 个`UTF8_LF_V1`源码哈希，差异为 0。
+
 ## 回滚
 
 S3-A/B 只增加合同、Test-local候选代码和安全实验室证据，不迁移活动数据库、不移动业务资产、不改变活动指针。失败时以普通 Git revert 形成新提交；保留实验室和审计现场，不清理用户文件。

@@ -1522,6 +1522,134 @@ def test_copy_rotation_seals_on_historical_asymmetry_or_corruption_without_repai
     assert bundle.writer._poisoned is not None
 
 
+@pytest.mark.parametrize("damage_mode", ("MISSING", "CORRUPT"))
+def test_copy_rotation_requires_referenced_historical_operation_epoch(
+    compat_project: Path,
+    damage_mode: str,
+) -> None:
+    project, bundle = _create_boundary(
+        compat_project,
+        suffix=f"COPY-OP-HISTORY-{damage_mode}",
+    )
+    run_scope_id = f"RUN-COPY-OP-HISTORY-{damage_mode}"
+    old_revision = bundle.ledger._active_revision()
+    old_operation_epoch = f"RUN-COPY-OP-HISTORY-{damage_mode}-OLD-OPERATIONS"
+    old_operation = _initialize_operation_epoch(
+        project,
+        bundle,
+        old_operation_epoch,
+        "2026-07-13T03:30:00Z",
+    )
+    old_epoch, old_source_directory, old_copy_directory = (
+        _create_copy_epoch_directories(project, old_revision, run_scope_id)
+    )
+    old_ledgers = _create_test_copy_ledgers(
+        bundle,
+        old_operation,
+        epoch_id=old_epoch,
+        run_scope_id=run_scope_id,
+        initialize=True,
+        initialized_at_utc="2026-07-13T03:30:01Z",
+    )
+    source = _copy_source_record(
+        f"copy-op-history-{damage_mode.lower()}",
+        bundle.ledger.head.last_segment_sha256,
+    )
+    with bundle.writer.acquire_runtime_mutex() as lease:
+        source_receipt = old_ledgers._append_source_under_existing_mutex(
+            lease,
+            source,
+            created_at_utc="2026-07-13T03:30:02Z",
+        )
+        terminal = old_ledgers._append_transition_under_existing_mutex(
+            lease,
+            _copy_recovered_abort(
+                f"copy-op-history-{damage_mode.lower()}",
+                old_ledgers,
+                old_operation,
+                lease,
+                source,
+                source_receipt,
+                bundle.ledger.head.last_segment_sha256,
+            ),
+            created_at_utc="2026-07-13T03:30:03Z",
+        )
+    assert terminal.state is CopyState.RECOVERED_ABORT
+    assert old_ledgers.head.pending_source_count == 0
+
+    new_revision = _activate_second_revision(
+        bundle,
+        suffix=f"COPY-OP-HISTORY-{damage_mode}",
+        created_at_utc="2026-07-13T03:30:04Z",
+        rotated_at_utc="2026-07-13T03:30:05Z",
+    )
+    new_operation = _initialize_operation_epoch(
+        project,
+        bundle,
+        f"RUN-COPY-OP-HISTORY-{damage_mode}-NEW-OPERATIONS",
+        "2026-07-13T03:30:06Z",
+    )
+    new_epoch, new_source_directory, new_copy_directory = (
+        _create_copy_epoch_directories(project, new_revision, run_scope_id)
+    )
+
+    old_operation_directory = (
+        project
+        / "logs"
+        / "operations"
+        / "segments"
+        / old_operation_epoch
+    )
+    old_operation_snapshot = tuple(
+        (path.name, _extended_test_host_path(path).read_bytes())
+        for path in sorted(_segment_entries(old_operation_directory))
+    )
+    displaced_directory = (
+        project / "tmp" / f"DETACHED-{old_operation_epoch}"
+    )
+    if damage_mode == "MISSING":
+        displaced_directory.parent.mkdir(parents=True, exist_ok=True)
+        old_operation_directory.rename(displaced_directory)
+        assert not old_operation_directory.exists()
+    else:
+        genesis = next(_segment_entries(old_operation_directory))
+        _extended_test_host_path(genesis).write_bytes(
+            b"corrupt-historical-operation-genesis\n"
+        )
+
+    with pytest.raises((CopyLedgerError, OperationLedgerError)) as rejected:
+        _create_test_copy_ledgers(
+            bundle,
+            new_operation,
+            epoch_id=new_epoch,
+            run_scope_id=run_scope_id,
+            initialize=True,
+            initialized_at_utc="2026-07-13T03:30:07Z",
+        )
+    if damage_mode == "MISSING":
+        assert type(rejected.value) is CopyLedgerError
+        assert rejected.value.code is CopyLedgerCode.CROSS_REFERENCE_INVALID
+        assert tuple(
+            (path.name, _extended_test_host_path(path).read_bytes())
+            for path in sorted(_segment_entries(displaced_directory))
+        ) == old_operation_snapshot
+        assert not old_operation_directory.exists()
+    else:
+        assert type(rejected.value) is OperationLedgerError
+        assert rejected.value.code in {
+            OperationLedgerCode.CHAIN_CORRUPT,
+            OperationLedgerCode.AUTHENTICATION_FAILED,
+        }
+        assert _extended_test_host_path(genesis).read_bytes() == (
+            b"corrupt-historical-operation-genesis\n"
+        )
+    assert tuple(_segment_entries(new_source_directory)) == ()
+    assert tuple(_segment_entries(new_copy_directory)) == ()
+    assert bundle.writer._poisoned is not None
+    assert tuple(_segment_entries(old_source_directory))
+    assert tuple(_segment_entries(old_copy_directory))
+
+
 def test_copy_three_rotations_preserve_historical_epochs_and_only_latest_accepts_new_work(
     compat_project: Path,
 ) -> None:

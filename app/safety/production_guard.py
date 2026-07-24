@@ -56,6 +56,7 @@ from app.safety.operation_ledger import (
     _OPERATION_LEDGER_CONSTRUCTOR,
     RECOVERY_GUARANTEE_SCOPE,
     _build_recovery_observation_receipt_sha256,
+    _resolve_reviewed_operation_epochs_under_existing_mutex,
 )
 from app.safety.copy_ledger import (
     CopyLedgerCode,
@@ -4844,54 +4845,94 @@ def _create_test_copy_ledgers(
                 )
                 if revision_id in activated_revision_ids
             )
-            if initialize:
-                DurableCopyLedgers._preflight_new_epoch_under_existing_mutex(
+            with _resolve_reviewed_operation_epochs_under_existing_mutex(
+                bundle.writer,
+                revision,
+                policy_digest=bundle.boundary.policy_digest,
+                activated_revisions=known_revisions,
+                lease=lease,
+            ) as resolved_operation_ledgers:
+                audit_inventory = (
+                    bundle.ledger.authenticated_segment_sha256s_under_existing_mutex(
+                        lease
+                    )
+                )
+                resolved_by_epoch = {
+                    item.head.epoch_id: item
+                    for item in resolved_operation_ledgers
+                }
+                selected_operation = resolved_by_epoch.get(
+                    operation_ledger.head.epoch_id
+                )
+                if (
+                    selected_operation is None
+                    or selected_operation.head != operation_ledger.head
+                    or any(
+                        item.policy_digest != audit_policy_digest
+                        or item.signing_revision_id not in activated_revision_ids
+                        or not set(
+                            item.bound_audit_heads_under_existing_mutex(lease)
+                        ).issubset(set(audit_inventory))
+                        for item in resolved_operation_ledgers
+                    )
+                ):
+                    operation_ledger._seal_cross_ledger_contradiction()
+                if initialize:
+                    DurableCopyLedgers._preflight_new_epoch_under_existing_mutex(
+                        bundle.writer,
+                        revision,
+                        epoch_id=canonical_epoch,
+                        run_scope_id=canonical_run_scope,
+                        policy_digest=bundle.boundary.policy_digest,
+                        activated_revisions=known_revisions,
+                        audit_ledger=bundle.ledger,
+                        operation_ledgers=resolved_operation_ledgers,
+                        lease=lease,
+                    )
+                ledgers = DurableCopyLedgers(
                     bundle.writer,
                     revision,
                     epoch_id=canonical_epoch,
                     run_scope_id=canonical_run_scope,
                     policy_digest=bundle.boundary.policy_digest,
-                    activated_revisions=known_revisions,
-                    lease=lease,
+                    known_revisions=known_revisions,
+                    audit_ledger=bundle.ledger,
+                    initialize=initialize,
+                    initialized_at_utc=initialized_at_utc,
+                    _runtime_mutex_lease=lease,
+                    _constructor=_COPY_LEDGERS_CONSTRUCTOR,
                 )
-            ledgers = DurableCopyLedgers(
-                bundle.writer,
-                revision,
-                epoch_id=canonical_epoch,
-                run_scope_id=canonical_run_scope,
-                policy_digest=bundle.boundary.policy_digest,
-                known_revisions=known_revisions,
-                audit_ledger=bundle.ledger,
-                initialize=initialize,
-                initialized_at_utc=initialized_at_utc,
-                _runtime_mutex_lease=lease,
-                _constructor=_COPY_LEDGERS_CONSTRUCTOR,
-            )
-            if (
-                ledgers.signing_revision_id
-                != operation_ledger.signing_revision_id
-                or (
-                    initialize
-                    and ledgers.signing_revision_id != audit_head.active_revision_id
+                if (
+                    ledgers.signing_revision_id
+                    != operation_ledger.signing_revision_id
+                    or (
+                        initialize
+                        and ledgers.signing_revision_id
+                        != audit_head.active_revision_id
+                    )
+                ):
+                    ledgers._seal(CopyLedgerCode.CROSS_REFERENCE_INVALID)
+                    raise ProductionBoundaryError(
+                        BoundaryErrorCode.INVALID_ARGUMENT,
+                        "copy and publish ledgers do not share one activated revision",
+                    )
+                ancestor_capability = (
+                    ledgers._issue_authenticated_ancestors_under_existing_mutex(
+                        lease,
+                        bundle.ledger,
+                        operation_ledger,
+                    )
                 )
-            ):
-                ledgers._seal(CopyLedgerCode.CROSS_REFERENCE_INVALID)
-                raise ProductionBoundaryError(
-                    BoundaryErrorCode.INVALID_ARGUMENT,
-                    "copy and publish ledgers do not share one activated revision",
+                ledgers._verify_external_ancestors_under_existing_mutex(
+                    lease,
+                    ancestor_capability,
                 )
-            ancestor_capability = (
-                ledgers._issue_authenticated_ancestors_under_existing_mutex(
+                ledgers._validate_full_dag_with_operation_epochs_under_existing_mutex(
                     lease,
                     bundle.ledger,
-                    operation_ledger,
+                    resolved_operation_ledgers,
                 )
-            )
-            ledgers._verify_external_ancestors_under_existing_mutex(
-                lease,
-                ancestor_capability,
-            )
-            return ledgers
+                return ledgers
     except (CopyLedgerError, OperationLedgerError):
         raise
 

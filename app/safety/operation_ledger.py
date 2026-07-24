@@ -4,15 +4,18 @@ import hashlib
 import hmac
 import json
 import ntpath
+import os
 import re
 import secrets
+import stat
 import threading
+from contextlib import contextmanager
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path, PureWindowsPath
 from types import MappingProxyType
-from typing import Any, NoReturn
+from typing import Any, Iterator, NoReturn
 
 from app.safety.context import DataClassification, validate_safe_id
 from app.safety.segment_ledger import AuditKeyRevision, canonical_json_bytes
@@ -38,6 +41,7 @@ _MAX_SEGMENT_BYTES = 512 * 1024
 _MAX_TRANSITION_SEGMENT_BYTES = 64 * 1024
 _MAX_LEDGER_BYTES = 64 * 1024 * 1024
 _TRANSACTION_SEGMENT_RESERVATION = 5
+_MAX_OPERATION_EPOCHS = 256
 RECOVERY_GUARANTEE_SCOPE = "COOPERATIVE_APPLICATION_WRITERS_ONLY"
 
 
@@ -226,6 +230,204 @@ def _reviewed_operation_policy_request(
             "operation policy digest has no unique reviewed parser binding",
         )
     return matches[0]
+
+
+def _operation_epoch_catalog(
+    storage: _WindowsHandleWriter,
+) -> tuple[tuple[Any, ...], tuple[tuple[Any, ...], ...]]:
+    """Return one bounded no-follow identity snapshot of the epoch directory.
+
+    The snapshot is only a catalog fence.  Every selected epoch is subsequently
+    opened and authenticated through ``DurableOperationLedger`` under the same
+    application mutex, then both the chains and this catalog are rescanned.
+    """
+
+    if type(storage) is not _WindowsHandleWriter:
+        raise OperationLedgerError(
+            OperationLedgerCode.INVALID_REQUEST,
+            "operation epoch catalog requires exact Test-local storage",
+        )
+    root = storage._workspace_root / _SEGMENT_ROOT
+
+    def identity(value: os.stat_result) -> tuple[Any, ...]:
+        return (
+            value.st_dev,
+            value.st_ino,
+            value.st_mode,
+            value.st_nlink,
+            value.st_size,
+            value.st_mtime_ns,
+            value.st_ctime_ns,
+            getattr(value, "st_file_attributes", 0),
+            getattr(value, "st_reparse_tag", 0),
+        )
+
+    try:
+        root_stat = os.lstat(root)
+        root_attributes = getattr(root_stat, "st_file_attributes", 0)
+        if (
+            not stat.S_ISDIR(root_stat.st_mode)
+            or stat.S_ISLNK(root_stat.st_mode)
+            or root_attributes
+            & getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
+            or getattr(root_stat, "st_reparse_tag", 0)
+        ):
+            raise OperationLedgerError(
+                OperationLedgerCode.CHAIN_CORRUPT,
+                "operation epoch catalog root is not a plain directory",
+            )
+        rows: list[tuple[Any, ...]] = []
+        folded_names: set[str] = set()
+        with os.scandir(root) as entries:
+            for entry in entries:
+                if len(rows) >= _MAX_OPERATION_EPOCHS:
+                    raise OperationLedgerError(
+                        OperationLedgerCode.RESOURCE_LIMIT,
+                        "operation epoch catalog exceeds its fixed entry limit",
+                    )
+                try:
+                    canonical_name = validate_safe_id(
+                        entry.name,
+                        field_name="operation_epoch_id",
+                    )
+                except Exception:
+                    raise OperationLedgerError(
+                        OperationLedgerCode.UNKNOWN_ENTRY,
+                        "operation epoch catalog contains an unknown entry",
+                    ) from None
+                folded = canonical_name.casefold()
+                if folded in folded_names:
+                    raise OperationLedgerError(
+                        OperationLedgerCode.CHAIN_CORRUPT,
+                        "operation epoch catalog contains a case collision",
+                    )
+                child_stat = entry.stat(follow_symlinks=False)
+                child_attributes = getattr(
+                    child_stat,
+                    "st_file_attributes",
+                    0,
+                )
+                if (
+                    not stat.S_ISDIR(child_stat.st_mode)
+                    or stat.S_ISLNK(child_stat.st_mode)
+                    or child_attributes
+                    & getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
+                    or getattr(child_stat, "st_reparse_tag", 0)
+                ):
+                    raise OperationLedgerError(
+                        OperationLedgerCode.UNKNOWN_ENTRY,
+                        "operation epoch catalog entry is not a plain directory",
+                    )
+                folded_names.add(folded)
+                rows.append((canonical_name, *identity(child_stat)))
+    except OperationLedgerError:
+        raise
+    except OSError:
+        raise OperationLedgerError(
+            OperationLedgerCode.STORAGE_FAILURE,
+            "operation epoch catalog cannot be observed safely",
+        ) from None
+    return identity(root_stat), tuple(sorted(rows, key=lambda row: row[0]))
+
+
+@contextmanager
+def _resolve_reviewed_operation_epochs_under_existing_mutex(
+    storage: _WindowsHandleWriter,
+    active_revision: AuditKeyRevision,
+    *,
+    policy_digest: str,
+    activated_revisions: tuple[AuditKeyRevision, ...],
+    lease: RuntimeMutexLease,
+) -> Iterator[tuple[DurableOperationLedger, ...]]:
+    """Authenticate every present operation epoch under one cooperative mutex.
+
+    The raw epoch names are never persisted by this resolver.  The first and
+    final catalog snapshots must match, and every chain is rescanned after the
+    caller completes its cross-ledger DAG validation.
+    """
+
+    if (
+        type(storage) is not _WindowsHandleWriter
+        or type(active_revision) is not AuditKeyRevision
+        or type(activated_revisions) is not tuple
+        or not activated_revisions
+        or any(type(item) is not AuditKeyRevision for item in activated_revisions)
+        or type(lease) is not RuntimeMutexLease
+        or lease._writer is not storage
+    ):
+        raise OperationLedgerError(
+            OperationLedgerCode.INVALID_REQUEST,
+            "operation epoch resolution requires exact activated authorities",
+        )
+    try:
+        lease._assert_live_owner(storage)
+        canonical_policy = _require_sha256(policy_digest, "policy_digest")
+        catalog = _operation_epoch_catalog(storage)
+        epoch_names = tuple(row[0] for row in catalog[1])
+        if not epoch_names:
+            raise OperationLedgerError(
+                OperationLedgerCode.CHAIN_CORRUPT,
+                "operation epoch catalog is empty",
+            )
+        ledgers = tuple(
+            DurableOperationLedger(
+                storage,
+                active_revision,
+                epoch_id=epoch_name,
+                policy_digest=canonical_policy,
+                known_revisions=activated_revisions,
+                initialize=False,
+                _runtime_mutex_lease=lease,
+                _constructor=_OPERATION_LEDGER_CONSTRUCTOR,
+            )
+            for epoch_name in epoch_names
+        )
+        if len({item.head.epoch_id for item in ledgers}) != len(ledgers):
+            raise OperationLedgerError(
+                OperationLedgerCode.CHAIN_CORRUPT,
+                "operation epoch resolution is ambiguous",
+            )
+    except OperationLedgerError:
+        storage.seal_after_indeterminate_mutation()
+        raise
+    except HandleWriterError:
+        storage.seal_after_indeterminate_mutation()
+        raise OperationLedgerError(
+            OperationLedgerCode.STORAGE_FAILURE,
+            "operation epoch resolution failed its storage fence",
+        ) from None
+    except Exception:
+        storage.seal_after_indeterminate_mutation()
+        raise OperationLedgerError(
+            OperationLedgerCode.CHAIN_CORRUPT,
+            "operation epoch resolution rejected invalid historical state",
+        ) from None
+
+    yield ledgers
+
+    try:
+        for item in ledgers:
+            item._rescan_under_existing_mutex(lease)
+        if _operation_epoch_catalog(storage) != catalog:
+            raise OperationLedgerError(
+                OperationLedgerCode.CHAIN_CORRUPT,
+                "operation epoch catalog changed during full DAG validation",
+            )
+    except OperationLedgerError:
+        storage.seal_after_indeterminate_mutation()
+        raise
+    except HandleWriterError:
+        storage.seal_after_indeterminate_mutation()
+        raise OperationLedgerError(
+            OperationLedgerCode.STORAGE_FAILURE,
+            "operation epoch resolution failed its storage fence",
+        ) from None
+    except Exception:
+        storage.seal_after_indeterminate_mutation()
+        raise OperationLedgerError(
+            OperationLedgerCode.CHAIN_CORRUPT,
+            "operation epoch resolution changed during full DAG validation",
+        ) from None
 
 
 class OperationState(StrEnum):

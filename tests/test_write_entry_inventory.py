@@ -2058,22 +2058,20 @@ def build_copy_provenance_material(source, receipt, manifest_id):
 
 class DurableCopyLedgers:
     def _authenticated_publish_terminal_bindings_under_existing_mutex(
-        self, mutex, operation_ledger
+        self, mutex, operation_ledger, audit_inventory
     ):
-        operation_ledger.transaction_result_under_existing_mutex(
-            mutex, transaction_id
+        return self._authenticated_publish_terminal_bindings_for_epochs_under_existing_mutex(
+            mutex, (operation_ledger,), audit_inventory
         )
-        material = build_copy_provenance_material(
-            source, receipt, manifest_id="M"
-        )
-        self.publish_operation_binding(
-            operation_reference=reference,
-            transaction_binding_sha256=transaction,
-            copy_binding_sha256=copy,
-            target_locator=target,
-            classification=classification,
-        )
-        return (material.provenance_sha256,)
+
+    def _authenticated_publish_terminal_bindings_for_epochs_under_existing_mutex(
+        self, mutex, operation_ledgers, audit_inventory
+    ):
+        for operation_ledger in operation_ledgers:
+            operation_ledger.transaction_result_under_existing_mutex(
+                mutex, transaction_id
+            )
+        return ()
 
     def _issue_authenticated_ancestors_under_existing_mutex(
         self, mutex, audit_ledger, operation_ledger
@@ -2083,7 +2081,7 @@ class DurableCopyLedgers:
         audit = audit_ledger.authenticated_segment_sha256s_under_existing_mutex(mutex)
         publish = operation_ledger.authenticated_segment_sha256s_under_existing_mutex(mutex)
         terminals = self._authenticated_publish_terminal_bindings_under_existing_mutex(
-            mutex, operation_ledger
+            mutex, operation_ledger, audit
         )
         return _AuthenticatedCopyAncestors(
             self._storage,
@@ -2093,10 +2091,10 @@ class DurableCopyLedgers:
         )
 
     def _verify_external_ancestors_under_existing_mutex(self, mutex, capability):
-        capability._audit_ledger.authenticated_segment_sha256s_under_existing_mutex(mutex)
+        audit = capability._audit_ledger.authenticated_segment_sha256s_under_existing_mutex(mutex)
         capability._operation_ledger.authenticated_segment_sha256s_under_existing_mutex(mutex)
         self._authenticated_publish_terminal_bindings_under_existing_mutex(
-            mutex, capability._operation_ledger
+            mutex, capability._operation_ledger, audit
         )
         tuple(capability._publish_terminal_binding_sha256s)
         str(capability._copy_cross_reference_sha256)

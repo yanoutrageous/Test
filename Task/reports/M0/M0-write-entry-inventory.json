@@ -17,7 +17,7 @@
     "SQLITE_SCHEMA_MUTATION": 120,
     "SQLITE_TRANSACTION": 41
   },
-  "entries_digest_sha256": "3c16f3ad490ecab4aa7a7d09a28cc2b8f52060ca215f41cb4254e0d3c82fe4e6",
+  "entries_digest_sha256": "ddbd195c43989b57de19e03077f090f60ed6887973bb4e55e8397453d1616e91",
   "entry_chunk_size": 25,
   "entry_chunks": [
     {
@@ -57,10 +57,10 @@
       "serialized_file_sha256": "9577f2f27da9514b88b964674dafcb142288a9d793b2eea63b66778501303301"
     },
     {
-      "canonical_payload_sha256": "df286d35532f6ec37b84be1feab5b32b1f8348efc2550d420dc874f027de9d68",
+      "canonical_payload_sha256": "7b20328c0bf53cb8af228024a068eccf264d9204886dc6374d6d38d85a464cc6",
       "entry_count": 25,
       "path": "Task/reports/M0/write-entry-inventory/entries-006.json",
-      "serialized_file_sha256": "12cca9ddbbc031c852723b3ceadb8a479c4963ff2af6646f16b46d79398c55c4"
+      "serialized_file_sha256": "a3fa14b80d05e1b6215391dcd7fcf6e74d16fea3cb5cfe05eed9cd70230cc33b"
     },
     {
       "canonical_payload_sha256": "8de1fbf8464efba714fcf24c4bd5d32b4b89e1abaad9e14494f18f0ecb246a26",
@@ -123,16 +123,16 @@
       "serialized_file_sha256": "75a02511ea24f44ea979f73da675f998a803bbae638cee557d886f33fe01550e"
     },
     {
-      "canonical_payload_sha256": "11a8a9eb77899021dcfcd131288e4a9e01606ac9e652d4e750578cef98d2e1e2",
+      "canonical_payload_sha256": "48718661d2d6eafdf2673bd754b2ce0e379631662ab34113eaf298af3bff0a69",
       "entry_count": 25,
       "path": "Task/reports/M0/write-entry-inventory/entries-017.json",
-      "serialized_file_sha256": "997ba79e01be790ebed2cbe9343bf56d0f2683dfb57065ddd9441937fac3e30f"
+      "serialized_file_sha256": "47c6cfbca813175e5e879eb6ab646e8fc0b17fb89f90c0300dca9c8673eaf5d2"
     },
     {
-      "canonical_payload_sha256": "4cf1e5cdde83b8082167e488b1d9f6b86721f039347b538d8f422676eec2fe4c",
+      "canonical_payload_sha256": "585d38aa4f4dd17cc548a5fe342ac1598382d8b3887c3c492007997e69e313b2",
       "entry_count": 18,
       "path": "Task/reports/M0/write-entry-inventory/entries-018.json",
-      "serialized_file_sha256": "4edf6d47c5764f981c86799eff4dede80374f3947412945dd4dee3c7a4f22585"
+      "serialized_file_sha256": "eae98a3f40613057a558a06636a8df094c6b3138d5bfd901b06f3cff8350ab51"
     }
   ],
   "entry_count": 468,
@@ -149,19 +149,19 @@
     "unknown_dynamic_count": 0,
     "unmigrated_count": 468
   },
-  "generated_at": "2026-07-24T20:12:33+08:00",
+  "generated_at": "2026-07-24T22:50:50.6246937+08:00",
   "global_status": "UNMIGRATED_BLOCKED",
   "included_roots": [
     "app",
     "scripts"
   ],
-  "inventory_digest_sha256": "89536763bcb33d8624354fccf4539a6489fa6eb1688ba7fd345202d4b5d5d42e",
+  "inventory_digest_sha256": "6f9624ecfa941e54cfb1e8f08015952d725785ae15bd1bd9a1a338e27d0d9d9a",
   "project_root_id": "CONTRACT_PROJECT_ROOT",
   "scanner_version": "M0-S3-STATIC-AUDIT-V16",
   "schema_version": "2.0",
   "source_byte_normalization": "UTF8_LF_V1",
   "source_dirty": true,
-  "source_head": "0ac5c033a44d83ecd4d466a84e954a82d55926ed",
+  "source_head": "ee783eaaf3002e969e71fa83d1daaeb302e01769",
   "source_manifest": [
     {
       "file": "app/__init__.py",
@@ -322,8 +322,8 @@
     {
       "file": "app/safety/copy_ledger.py",
       "normalization": "UTF8_LF_V1",
-      "sha256": "23c4fe40c9eb9354b54b724edda125f8ae6708a7485773c3a29024dc03250db3",
-      "size_bytes": 177988
+      "sha256": "357f8ed4666a99b51b9f49fa53e8852659ac360faa1b253ecd22a4e67055605b",
+      "size_bytes": 185395
     },
     {
       "file": "app/safety/copy_operation.py",
@@ -352,14 +352,14 @@
     {
       "file": "app/safety/operation_ledger.py",
       "normalization": "UTF8_LF_V1",
-      "sha256": "61b4755e407bbfda9f7b5b39b702625d78d7dae9e2524d0597418ecc459af8a0",
-      "size_bytes": 90596
+      "sha256": "59fdcf4aa958f66bc01e4ebb881ac240272eec9c0b4889a50758fe142dde39a1",
+      "size_bytes": 98569
     },
     {
       "file": "app/safety/production_guard.py",
       "normalization": "UTF8_LF_V1",
-      "sha256": "849bbcc485cf909dc404482831e6faa0f46bf38d1834bea0a182fa24b7920c9f",
-      "size_bytes": 204498
+      "sha256": "75d114fcda4ee238739d61eea0750e72c7611edc236869bcdaf953bdc44de871",
+      "size_bytes": 206576
     },
     {
       "file": "app/safety/segment_ledger.py",
@@ -370,8 +370,8 @@
     {
       "file": "app/safety/static_audit.py",
       "normalization": "UTF8_LF_V1",
-      "sha256": "8a7adcb92302543324df9c80c35afee83a42d40d90edaf3f9a79f220339da73e",
-      "size_bytes": 225254
+      "sha256": "89b25408180e7d2cb1ea65df3ea9da2ee1b1532d263d57df0aaaace8a3923fdf",
+      "size_bytes": 227961
     },
     {
       "file": "app/safety/windows_handle_writer.py",
@@ -478,9 +478,9 @@
     {
       "file": "scripts/run_safe_pytest.py",
       "normalization": "UTF8_LF_V1",
-      "sha256": "5dba6afd1e28a20689b1396bdbcd04a327a71c4a180484ae98e4bec083df7182",
-      "size_bytes": 93217
+      "sha256": "529011ee761439f2e17cebea3175848bb1380ef7efa00f7f0152a9cecbc28cc0",
+      "size_bytes": 95648
     }
   ],
-  "source_manifest_digest_sha256": "f488f1548a72eb33fa824b04c642d24c9f33561ba3fd96f5f662b12182574a21"
+  "source_manifest_digest_sha256": "1943028542323bcd43bba9223947bb38e437e7941332ca7d9b87f998fe473569"
 }

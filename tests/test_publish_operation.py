@@ -3,7 +3,10 @@ from __future__ import annotations
 import hashlib
 import hmac
 import json
+import os
 import shutil
+import subprocess
+import sys
 import threading
 from dataclasses import dataclass, replace
 from pathlib import Path
@@ -62,6 +65,55 @@ class _PublishLab:
     bundle: object
     operation_ledger: object
     runtime: object
+
+
+S3H_CRASH_RACE_TRUTH_TABLE = (
+    (
+        "COOPERATIVE_WRITER_MUTEX",
+        "MUTEX_BUSY_NO_MUTATION",
+        "tests/test_job_operation.py::test_two_process_mutex_busy_rolls_back_pin_and_same_context_retries",
+    ),
+    (
+        "HOSTILE_TARGET_CREATED_PRE_RENAME",
+        "ABORTED_NO_OVERWRITE",
+        "tests/test_publish_operation.py::test_target_race_after_prepared_aborts_without_overwrite",
+    ),
+    (
+        "HOSTILE_SOURCE_NAMESPACE_DRIFT_PRE_BOUNDARY",
+        "REJECTED_NO_MUTATION",
+        "tests/test_windows_handle_writer.py::test_publish_source_share_blocks_external_path_rename_before_publish",
+    ),
+    (
+        "HOSTILE_NAMESPACE_DRIFT_AFTER_NATIVE_BOUNDARY",
+        "IN_DOUBT_AND_WRITER_SEALED",
+        "tests/test_windows_handle_writer.py::test_publish_after_rename_failure_keeps_valid_final_and_seals",
+    ),
+    (
+        "PROCESS_CRASH_BEFORE_RENAME",
+        "RECOVERED_ABORT_ONCE",
+        "tests/test_publish_operation.py::test_real_process_publish_crash_points_reconcile_once[BEFORE_RENAME-71-2-RECOVERED_ABORT]",
+    ),
+    (
+        "PROCESS_CRASH_AFTER_RENAME",
+        "RECOVERED_COMMIT_ONCE",
+        "tests/test_publish_operation.py::test_real_process_publish_crash_points_reconcile_once[AFTER_RENAME-72-2-RECOVERED_COMMIT]",
+    ),
+    (
+        "PROCESS_CRASH_BEFORE_TERMINAL_APPEND",
+        "RECOVERED_COMMIT_ONCE",
+        "tests/test_publish_operation.py::test_real_process_publish_crash_points_reconcile_once[BEFORE_TERMINAL_APPEND-73-4-RECOVERED_COMMIT]",
+    ),
+    (
+        "PROCESS_CRASH_AFTER_TERMINAL_APPEND",
+        "COMMITTED_REPLAY_NO_GROWTH",
+        "tests/test_publish_operation.py::test_real_process_publish_crash_points_reconcile_once[AFTER_TERMINAL_APPEND-74-5-COMMITTED]",
+    ),
+    (
+        "HOSTILE_EXTERNAL_WRITER_FREEZE",
+        "NOT_GUARANTEED_DETECT_AND_SEAL",
+        "RECOVERY_GUARANTEE_SCOPE=COOPERATIVE_APPLICATION_WRITERS_ONLY",
+    ),
+)
 
 
 @pytest.fixture
@@ -193,6 +245,129 @@ def _prepare_publish(
         checkpoint_manifest_sha256=_sha(b"checkpoint-manifest"),
     )
     return operation, observed, token, payload
+
+
+def _run_real_publish_crash_child(
+    lab: _PublishLab,
+    *,
+    crash_point: str,
+    expected_exit_code: int,
+    export_id: str,
+    operation_id: str,
+) -> subprocess.CompletedProcess[bytes]:
+    child_code = r'''
+import json
+import os
+import sys
+from pathlib import Path
+
+from app.safety.operation_ledger import DurableOperationLedger
+from app.safety.production_guard import (
+    _create_test_durable_boundary,
+    _create_test_job_runtime,
+    _create_test_operation_ledger,
+)
+from app.safety.windows_handle_writer import _WindowsHandleWriter
+from tests.test_publish_operation import _PublishLab, _prepare_publish
+
+project = Path(sys.argv[1])
+crash_point = sys.argv[2]
+expected_exit_code = int(sys.argv[3])
+export_id = sys.argv[4]
+operation_id = sys.argv[5]
+bundle = _create_test_durable_boundary(
+    project,
+    initialize=False,
+    epoch_id="RUN-S3E-AUDIT",
+    initial_revision_sequence=1,
+    initial_revision_id="KEYREV-S3E-ONE",
+    master_key=b"E" * 32,
+    key_created_at_utc="2026-07-11T16:00:00Z",
+)
+operation_ledger = _create_test_operation_ledger(
+    bundle,
+    epoch_id="RUN-S3E-OPERATIONS",
+    initialize=False,
+)
+lab = _PublishLab(
+    project=project,
+    protected=project.parent / "protected",
+    sentinel=project.parent / "protected" / "sentinel.bin",
+    bundle=bundle,
+    operation_ledger=operation_ledger,
+    runtime=_create_test_job_runtime(
+        bundle,
+        operation_ledger=operation_ledger,
+    ),
+)
+operation, observed, token, _payload = _prepare_publish(
+    lab,
+    export_id=export_id,
+    operation_id=operation_id,
+)
+
+if crash_point in {"BEFORE_RENAME", "AFTER_RENAME"}:
+    hook_name = (
+        "_after_directory_publish_prepared"
+        if crash_point == "BEFORE_RENAME"
+        else "_after_directory_publish_renamed"
+    )
+
+    def crash_at_rename_boundary(
+        _writer: object,
+        _source: object,
+        _target: object,
+    ) -> None:
+        os._exit(expected_exit_code)
+
+    setattr(_WindowsHandleWriter, hook_name, crash_at_rename_boundary)
+else:
+    original_publish_segment = DurableOperationLedger._publish_segment
+
+    def crash_at_terminal_append(
+        self: DurableOperationLedger,
+        sequence: int,
+        segment_sha256: str,
+        payload: bytes,
+    ) -> None:
+        value = json.loads(payload.decode("ascii", "strict"))
+        transition = value.get("transition")
+        is_committed = (
+            type(transition) is dict
+            and transition.get("next_state") == "COMMITTED"
+        )
+        if is_committed and crash_point == "BEFORE_TERMINAL_APPEND":
+            os._exit(expected_exit_code)
+        original_publish_segment(self, sequence, segment_sha256, payload)
+        if is_committed and crash_point == "AFTER_TERMINAL_APPEND":
+            os._exit(expected_exit_code)
+
+    DurableOperationLedger._publish_segment = crash_at_terminal_append
+
+operation.execute_publish_pair(token, observed)
+raise AssertionError("configured real crash point did not terminate the child")
+'''
+    return subprocess.run(
+        [
+            sys.executable,
+            "-B",
+            "-c",
+            child_code,
+            str(lab.project),
+            crash_point,
+            str(expected_exit_code),
+            export_id,
+            operation_id,
+        ],
+        cwd=Path(__file__).parent.parent,
+        env=os.environ.copy(),
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        shell=False,
+        check=False,
+        timeout=40,
+    )
 
 
 def _restricted_copy_context(lab: _PublishLab):
@@ -781,6 +956,138 @@ def test_unresolved_operation_blocks_then_recovers_abort_without_mutation(
         JobResourceBudget.conservative_test_default(),
     ):
         pass
+
+
+def test_s3h_crash_race_truth_table_is_complete_and_unambiguous() -> None:
+    cases = tuple(row[0] for row in S3H_CRASH_RACE_TRUTH_TABLE)
+    outcomes = tuple(row[1] for row in S3H_CRASH_RACE_TRUTH_TABLE)
+
+    assert len(S3H_CRASH_RACE_TRUTH_TABLE) == 9
+    assert len(set(cases)) == len(cases)
+    assert all(outcome and outcome == outcome.upper() for outcome in outcomes)
+    assert S3H_CRASH_RACE_TRUTH_TABLE[-1] == (
+        "HOSTILE_EXTERNAL_WRITER_FREEZE",
+        "NOT_GUARANTEED_DETECT_AND_SEAL",
+        "RECOVERY_GUARANTEE_SCOPE=COOPERATIVE_APPLICATION_WRITERS_ONLY",
+    )
+
+
+@pytest.mark.parametrize(
+    (
+        "crash_point",
+        "exit_code",
+        "segment_count_before",
+        "expected_terminal_state",
+    ),
+    (
+        ("BEFORE_RENAME", 71, 2, OperationState.RECOVERED_ABORT),
+        ("AFTER_RENAME", 72, 2, OperationState.RECOVERED_COMMIT),
+        (
+            "BEFORE_TERMINAL_APPEND",
+            73,
+            4,
+            OperationState.RECOVERED_COMMIT,
+        ),
+        ("AFTER_TERMINAL_APPEND", 74, 5, OperationState.COMMITTED),
+    ),
+    ids=(
+        "BEFORE_RENAME-71-2-RECOVERED_ABORT",
+        "AFTER_RENAME-72-2-RECOVERED_COMMIT",
+        "BEFORE_TERMINAL_APPEND-73-4-RECOVERED_COMMIT",
+        "AFTER_TERMINAL_APPEND-74-5-COMMITTED",
+    ),
+)
+def test_real_process_publish_crash_points_reconcile_once(
+    publish_lab: _PublishLab,
+    crash_point: str,
+    exit_code: int,
+    segment_count_before: int,
+    expected_terminal_state: OperationState,
+) -> None:
+    suffix = crash_point.replace("_", "-")
+    export_id = f"EXPORT-S3H-{suffix}"
+    operation_id = f"OP-S3H-{suffix}"
+    completed = _run_real_publish_crash_child(
+        publish_lab,
+        crash_point=crash_point,
+        expected_exit_code=exit_code,
+        export_id=export_id,
+        operation_id=operation_id,
+    )
+    assert completed.returncode == exit_code, (
+        completed.stdout.decode("utf-8", "replace"),
+        completed.stderr.decode("utf-8", "replace"),
+    )
+    assert publish_lab.sentinel.read_bytes() == (
+        b"publish-operation-protected-sentinel"
+    )
+    reopened = _reopen_publish_lab(publish_lab)
+    assert reopened.operation_ledger.head.segment_count == segment_count_before
+    assert len(reopened.operation_ledger._transaction_history) == 1
+    transaction_id, history = next(
+        iter(reopened.operation_ledger._transaction_history.items())
+    )
+    previous_state = history[-1].next_state
+    expected_previous_state = {
+        "BEFORE_RENAME": OperationState.PREPARED,
+        "AFTER_RENAME": OperationState.PREPARED,
+        "BEFORE_TERMINAL_APPEND": OperationState.POSTCONDITION_VERIFIED,
+        "AFTER_TERMINAL_APPEND": OperationState.COMMITTED,
+    }[crash_point]
+    assert previous_state is expected_previous_state
+    if previous_state is OperationState.COMMITTED:
+        assert reopened.operation_ledger.head.unresolved_transaction_ids == ()
+    else:
+        assert reopened.operation_ledger.head.unresolved_transaction_ids == (
+            transaction_id,
+        )
+
+    source = (
+        publish_lab.project
+        / "tmp"
+        / "jobs"
+        / "INTERNAL"
+        / "JOB-S3E-PUBLISH"
+        / "publish"
+        / "MANIFEST-S3E-ONE"
+    )
+    target = publish_lab.project / "data" / "exports" / export_id
+    if crash_point == "BEFORE_RENAME":
+        assert (source / "document.txt").read_bytes() == b"published-content"
+        assert not target.exists()
+    else:
+        assert not source.exists()
+        assert (target / "document.txt").read_bytes() == b"published-content"
+
+    recovered = _reconcile_test_publish_operation(
+        reopened.bundle,
+        reopened.operation_ledger,
+        transaction_id,
+        JobResourceBudget.conservative_test_default(),
+    )
+    assert recovered.state is expected_terminal_state
+    expected_segment_count = (
+        segment_count_before
+        if crash_point == "AFTER_TERMINAL_APPEND"
+        else segment_count_before + 1
+    )
+    assert reopened.operation_ledger.head.segment_count == expected_segment_count
+    assert reopened.operation_ledger.head.unresolved_transaction_ids == ()
+
+    fresh = _reopen_publish_lab(reopened)
+    before_replay = fresh.operation_ledger.head.segment_count
+    replayed = _reconcile_test_publish_operation(
+        fresh.bundle,
+        fresh.operation_ledger,
+        transaction_id,
+        JobResourceBudget.conservative_test_default(),
+    )
+    assert replayed == recovered
+    assert fresh.operation_ledger.head.segment_count == before_replay
+    assert fresh.operation_ledger.head.unresolved_transaction_ids == ()
+    assert publish_lab.sentinel.read_bytes() == (
+        b"publish-operation-protected-sentinel"
+    )
 
 
 def test_rename_before_mutated_crash_recovers_commit_from_exact_target(

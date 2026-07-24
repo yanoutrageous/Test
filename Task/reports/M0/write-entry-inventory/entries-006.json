@@ -1,5 +1,5 @@
 {
-  "chunk_digest_sha256": "df286d35532f6ec37b84be1feab5b32b1f8348efc2550d420dc874f027de9d68",
+  "chunk_digest_sha256": "7b20328c0bf53cb8af228024a068eccf264d9204886dc6374d6d38d85a464cc6",
   "chunk_index": 6,
   "entries": [
     {
@@ -138,7 +138,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "23c4fe40c9eb9354b54b724edda125f8ae6708a7485773c3a29024dc03250db3",
+      "source_sha256": "357f8ed4666a99b51b9f49fa53e8852659ac360faa1b253ecd22a4e67055605b",
       "statement_fingerprint": "4484fef7e7611b9e341478d7b0e3f066d4f9ed3f360d5dfef6e513cd20083c3c",
       "target_namespace": "FIXED_DURABLE_LEDGER_STORE"
     },
@@ -177,13 +177,13 @@
       "column": 12,
       "detail": "fixed durable ledger publication gateway",
       "end_column": 13,
-      "end_line": 1878,
+      "end_line": 2080,
       "entry_id": "WE-C2967CDDC295AE442EFFCBAB",
       "file": "app/safety/operation_ledger.py",
       "function": "app.safety.operation_ledger.DurableOperationLedger._publish_segment",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "DURABLE_LEDGER_GATEWAY",
-      "line": 1873,
+      "line": 2075,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "SAFETY_SERVICE",
       "required_control": "S3_FIXED_FACTORY_HANDLE_PUBLISH_AND_CHAIN_VALIDATION",
@@ -192,7 +192,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "61b4755e407bbfda9f7b5b39b702625d78d7dae9e2524d0597418ecc459af8a0",
+      "source_sha256": "59fdcf4aa958f66bc01e4ebb881ac240272eec9c0b4889a50758fe142dde39a1",
       "statement_fingerprint": "f200b06398fa828e5b0b0493967b625d45669a8972f0ed878977688ed29d7ecb",
       "target_namespace": "FIXED_DURABLE_LEDGER_STORE"
     },

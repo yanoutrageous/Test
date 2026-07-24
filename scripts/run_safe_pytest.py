@@ -59,7 +59,9 @@ SOURCE_WITNESS_SOURCE_MAX_BYTES = RUN_TREE_MAX_FILE_BYTES
 SOURCE_WITNESS_KEY_DOMAIN = b"SAFE-PYTEST-SOURCE-WITNESS-KEY-V1\0"
 SOURCE_WITNESS_LOCATOR_DOMAIN = b"SAFE-PYTEST-SOURCE-WITNESS-LOCATOR-V1\0"
 SOURCE_WITNESS_AUTH_DOMAIN = b"SAFE-PYTEST-SOURCE-WITNESS-AUTH-V1\0"
-SOURCE_REGISTRATION_REQUIRED_MODES = frozenset({"full", "s3f", "s3f_core"})
+SOURCE_REGISTRATION_REQUIRED_MODES = frozenset(
+    {"full", "s3f", "s3f_core", "s3h"}
+)
 RUN_RESULT_SCHEMA_VERSION = "1.2"
 PROTECTED_TREE_SNAPSHOT_FORMAT = "gzip-canonical-json-v1"
 SHA256_PATTERN = re.compile(r"[0-9a-f]{64}")
@@ -1717,6 +1719,35 @@ def _build_command(
         ]
     elif mode == "s3g_core":
         selection = ["tests/test_quarantine_restore_operation.py"]
+    elif mode == "s3h":
+        selection = [
+            "tests/test_publish_operation.py",
+            "tests/test_policy_epoch_compatibility.py",
+            "tests/test_copy_operation.py",
+            "tests/test_copy_ledger.py",
+            "tests/test_external_source.py",
+            "tests/test_quarantine_restore_operation.py",
+            "tests/test_job_operation.py",
+            "tests/test_windows_handle_writer.py",
+            "tests/test_segment_ledger.py",
+            "tests/test_workspace_policy.py",
+            "tests/test_write_entry_inventory.py",
+        ]
+    elif mode == "s3h_core":
+        selection = [
+            "tests/test_publish_operation.py::test_s3h_crash_race_truth_table_is_complete_and_unambiguous",
+            "tests/test_publish_operation.py::test_real_process_publish_crash_points_reconcile_once",
+            "tests/test_publish_operation.py::test_target_race_after_prepared_aborts_without_overwrite",
+            "tests/test_policy_epoch_compatibility.py",
+            "tests/test_job_operation.py::test_two_process_mutex_busy_rolls_back_pin_and_same_context_retries",
+            "tests/test_windows_handle_writer.py::test_publish_source_share_blocks_external_path_rename_before_publish",
+            "tests/test_windows_handle_writer.py::test_publish_after_rename_failure_keeps_valid_final_and_seals",
+            "tests/test_write_entry_inventory.py::test_tracked_inventory_matches_full_current_scanner_and_source_manifest",
+            "tests/test_write_entry_inventory.py::test_source_manifest_is_checkout_independent_utf8_lf",
+            "tests/test_write_entry_inventory.py::test_inventory_counts_and_policy_metadata_are_internally_consistent",
+            "tests/test_write_entry_inventory.py::test_full_digests_cover_policy_metadata_and_are_key_order_stable",
+            "tests/test_write_entry_inventory.py::test_no_current_production_module_bypasses_fixed_boundary",
+        ]
     elif mode == "launcher":
         selection = ["tests/test_safe_pytest_launcher.py"]
     elif mode == "symlink":
@@ -1770,6 +1801,8 @@ def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
             "s3f_core",
             "s3g",
             "s3g_core",
+            "s3h",
+            "s3h_core",
             "launcher",
             "symlink",
         ),
@@ -1898,9 +1931,23 @@ def _run_test_process(
                 if not active:
                     break
                 time.sleep(0.05)
+            unexpected_processes = bool(active)
+            if unexpected_processes:
+                job.terminate(96)
+                for _ in range(100):
+                    active = job.active_process_ids()
+                    if not active:
+                        break
+                    time.sleep(0.05)
             closed = job.close()
             job = None
-            return exit_code, False, closed and not active, None, budget_peak
+            return (
+                exit_code,
+                False,
+                closed and not unexpected_processes and not active,
+                None,
+                budget_peak,
+            )
 
         tree_terminated = False
         if job is not None:

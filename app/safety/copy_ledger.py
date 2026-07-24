@@ -2154,6 +2154,8 @@ class DurableCopyLedgers:
         run_scope_id: str,
         policy_digest: str,
         activated_revisions: tuple[AuditKeyRevision, ...],
+        audit_ledger: DurableAuditLedger,
+        operation_ledgers: tuple[DurableOperationLedger, ...],
         lease: RuntimeMutexLease,
     ) -> tuple[CopyLedgersHead, ...]:
         """Prove rotation safety before either new genesis can be published.
@@ -2164,10 +2166,9 @@ class DurableCopyLedgers:
         writer; healthy pending history merely blocks rotation so callers can
         reopen that prior epoch for replay or terminal recovery.
 
-        This preflight authenticates the historical Copy pair and its pending
-        state for this logical RUN.  It does not resolve every historical
-        publish-operation epoch, so it must not be treated as a complete
-        historical cross-ledger DAG attestation.
+        Every historical Copy pair is also resolved against the complete,
+        authenticated operation-epoch catalog and the audit chain before a new
+        genesis is allowed.
         """
 
         if (
@@ -2178,6 +2179,15 @@ class DurableCopyLedgers:
             or any(
                 type(item) is not AuditKeyRevision
                 for item in activated_revisions
+            )
+            or type(audit_ledger) is not DurableAuditLedger
+            or audit_ledger._storage is not storage
+            or type(operation_ledgers) is not tuple
+            or not operation_ledgers
+            or any(
+                type(item) is not DurableOperationLedger
+                or item._storage is not storage
+                for item in operation_ledgers
             )
             or type(lease) is not RuntimeMutexLease
             or lease._writer is not storage
@@ -2293,6 +2303,11 @@ class DurableCopyLedgers:
                     initialize=False,
                     _runtime_mutex_lease=lease,
                     _constructor=_COPY_LEDGERS_CONSTRUCTOR,
+                )
+                historical._validate_full_dag_with_operation_epochs_under_existing_mutex(
+                    lease,
+                    audit_ledger,
+                    operation_ledgers,
                 )
                 historical_head = historical.head
             except CopyLedgerError:
@@ -3611,27 +3626,76 @@ class DurableCopyLedgers:
         operation_ledger: DurableOperationLedger,
         audit_inventory: tuple[str, ...],
     ) -> tuple[str, ...]:
-        """Resolve every terminal Copy fact through typed terminal/absence proof."""
+        """Resolve terminal Copy facts against one exact operation epoch."""
+
+        return self._authenticated_publish_terminal_bindings_for_epochs_under_existing_mutex(
+            lease,
+            (operation_ledger,),
+            audit_inventory,
+        )
+
+    def _authenticated_publish_terminal_bindings_for_epochs_under_existing_mutex(
+        self,
+        lease: RuntimeMutexLease,
+        operation_ledgers: tuple[DurableOperationLedger, ...],
+        audit_inventory: tuple[str, ...],
+    ) -> tuple[str, ...]:
+        """Resolve every terminal Copy fact through one unique operation epoch."""
 
         self._require_mutex(lease)
         if (
-            type(operation_ledger) is not DurableOperationLedger
-            or operation_ledger._storage is not self._storage
+            type(operation_ledgers) is not tuple
+            or not operation_ledgers
+            or any(
+                type(item) is not DurableOperationLedger
+                or item._storage is not self._storage
+                for item in operation_ledgers
+            )
             or not self._is_exact_ancestor_inventory(audit_inventory)
         ):
             raise CopyLedgerError(
                 CopyLedgerCode.INVALID_REQUEST,
-                "publish terminal authentication requires the co-located operation ledger",
+                "publish terminal authentication requires exact co-located operation epochs",
             )
         try:
             self._rescan_under_existing_mutex(lease)
-            operation_inventory = (
-                operation_ledger.authenticated_segment_sha256s_under_existing_mutex(
-                    lease
+            operation_epochs: dict[
+                str,
+                tuple[DurableOperationLedger, tuple[str, ...]],
+            ] = {}
+            segment_owners: dict[
+                str,
+                tuple[DurableOperationLedger, tuple[str, ...]],
+            ] = {}
+            epoch_reference_owners: dict[
+                str,
+                tuple[DurableOperationLedger, tuple[str, ...]],
+            ] = {}
+            for operation_ledger in operation_ledgers:
+                operation_inventory = (
+                    operation_ledger.authenticated_segment_sha256s_under_existing_mutex(
+                        lease
+                    )
                 )
-            )
-            if not self._is_exact_ancestor_inventory(operation_inventory):
-                raise ValueError("operation inventory is not exact")
+                operation_head = operation_ledger.head
+                if (
+                    not self._is_exact_ancestor_inventory(operation_inventory)
+                    or operation_ledger.policy_digest != self._policy_digest
+                    or operation_head.epoch_id in operation_epochs
+                ):
+                    raise ValueError("operation epoch inventory is not exact")
+                owner = (operation_ledger, operation_inventory)
+                operation_epochs[operation_head.epoch_id] = owner
+                epoch_reference = self._operation_epoch_reference_hmac(
+                    operation_head.epoch_id
+                )
+                if epoch_reference in epoch_reference_owners:
+                    raise ValueError("operation epoch reference is ambiguous")
+                epoch_reference_owners[epoch_reference] = owner
+                for segment_sha256 in operation_inventory:
+                    if segment_sha256 in segment_owners:
+                        raise ValueError("operation segment belongs to multiple epochs")
+                    segment_owners[segment_sha256] = owner
             terminal_bindings: list[str] = []
             for transaction_binding, history in sorted(self._copy_histories.items()):
                 transition = history[-1]
@@ -3657,6 +3721,19 @@ class DurableCopyLedgers:
                 if terminal_sha256 is None:
                     if absence_witness is None:
                         raise ValueError("terminal Copy fact has no publish resolution")
+                    owner = epoch_reference_owners.get(
+                        absence_witness.operation_epoch_reference_hmac_sha256
+                    )
+                    if owner is None:
+                        raise ValueError("operation absence epoch is missing")
+                    operation_ledger, operation_inventory = owner
+                    if (
+                        operation_ledger.signing_revision_id
+                        != self._revision.revision_id
+                    ):
+                        raise ValueError(
+                            "operation absence epoch uses another signing revision"
+                        )
                     terminal_bindings.append(
                         self._verify_operation_absence_witness_under_existing_mutex(
                             lease,
@@ -3668,6 +3745,17 @@ class DurableCopyLedgers:
                         )
                     )
                     continue
+                owner = segment_owners.get(terminal_sha256)
+                if owner is None:
+                    raise ValueError("typed publish terminal epoch is missing")
+                operation_ledger, operation_inventory = owner
+                if (
+                    operation_ledger.signing_revision_id
+                    != self._revision.revision_id
+                ):
+                    raise ValueError(
+                        "typed publish terminal epoch uses another signing revision"
+                    )
                 publish_transaction_id = transition.publish_transaction_id
                 terminal_state = transition.publish_terminal_state
                 if publish_transaction_id is None or terminal_state is None:
@@ -3907,6 +3995,84 @@ class DurableCopyLedgers:
                 }
             )
         ).hexdigest()
+
+    def _validate_full_dag_with_operation_epochs_under_existing_mutex(
+        self,
+        lease: RuntimeMutexLease,
+        audit_ledger: DurableAuditLedger,
+        operation_ledgers: tuple[DurableOperationLedger, ...],
+    ) -> tuple[str, ...]:
+        """Authenticate Audit -> operation epochs -> both Copy chains as one DAG."""
+
+        self._require_mutex(lease)
+        if (
+            type(audit_ledger) is not DurableAuditLedger
+            or audit_ledger._storage is not self._storage
+            or type(operation_ledgers) is not tuple
+            or not operation_ledgers
+            or any(
+                type(item) is not DurableOperationLedger
+                or item._storage is not self._storage
+                for item in operation_ledgers
+            )
+        ):
+            raise CopyLedgerError(
+                CopyLedgerCode.INVALID_REQUEST,
+                "full Copy DAG validation requires exact co-located authorities",
+            )
+        try:
+            audit_inventory = (
+                audit_ledger.authenticated_segment_sha256s_under_existing_mutex(
+                    lease
+                )
+            )
+            if not self._is_exact_ancestor_inventory(audit_inventory):
+                raise ValueError("audit inventory is not exact")
+            audit_set = set(audit_inventory)
+            operation_segment_set: set[str] = set()
+            for operation_ledger in operation_ledgers:
+                operation_inventory = (
+                    operation_ledger.authenticated_segment_sha256s_under_existing_mutex(
+                        lease
+                    )
+                )
+                if not self._is_exact_ancestor_inventory(operation_inventory):
+                    raise ValueError("operation inventory is not exact")
+                if operation_segment_set.intersection(operation_inventory):
+                    raise ValueError("operation epoch segment inventories overlap")
+                operation_segment_set.update(operation_inventory)
+                if not set(
+                    operation_ledger.bound_audit_heads_under_existing_mutex(
+                        lease
+                    )
+                ).issubset(audit_set):
+                    raise ValueError("operation epoch audit ancestry is missing")
+            terminal_bindings = (
+                self._authenticated_publish_terminal_bindings_for_epochs_under_existing_mutex(
+                    lease,
+                    operation_ledgers,
+                    audit_inventory,
+                )
+            )
+            if (
+                not self._is_exact_publish_terminal_binding_inventory(
+                    terminal_bindings
+                )
+                or not set(
+                    self.bound_audit_ancestors_under_existing_mutex(lease)
+                ).issubset(audit_set)
+                or not set(
+                    self.bound_publish_terminals_under_existing_mutex(lease)
+                ).issubset(operation_segment_set)
+            ):
+                raise ValueError("Copy DAG ancestry is incomplete")
+            return terminal_bindings
+        except (CopyLedgerError, LedgerError, OperationLedgerError, ValueError):
+            self._seal(CopyLedgerCode.CROSS_REFERENCE_INVALID)
+            raise CopyLedgerError(
+                CopyLedgerCode.CROSS_REFERENCE_INVALID,
+                "Copy history has no complete authenticated cross-ledger DAG",
+            ) from None
 
     def _issue_authenticated_ancestors_under_existing_mutex(
         self,

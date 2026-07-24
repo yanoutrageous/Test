@@ -1,6 +1,6 @@
 # 当前状态
 
-更新时间：2026-07-24 21:14 +08:00
+更新时间：2026-07-24 23:25 +08:00
 
 ## 目标已恢复（2026-07-24）
 
@@ -11,6 +11,16 @@
 - `RUN-20260724-M0-S3G-S3E-039`因调用方 stdout 管道关闭而以 120 退出，但保护树、数据库、watcher、句柄围栏、run tree 与 source witness 均保持安全；`RUN-20260724-M0-S3G-CORE-040`因重定向日志句柄位于受保护`tmp`而在 pytest 前安全停止。两个编号均不得复用。
 - safe launcher 输出捕获、gzip 证据、quarantine 日期分区、原生移动、RESTRICTED 恢复、retained restore、静态 inventory 和 S3-G 验收均已完成；精确提交和远端核验也已通过，S3-H 继续保持 production writer 断开。
 - 完整暂停恢复清单与候选文件哈希见`Task/reports/M0/M0-S3-G-pause-20260724.md`。下方其他章节保留为此前基线；如与本节冲突，以本节和`Task/RUN_STATE.json`的最新恢复记录为准。
+
+## S3-H 与 S3 总门本地验收（2026-07-24）
+
+- 历史 operation epoch resolver 已在同一 mutex 内完成有界 no-follow catalog、全部 activated revision 认证和结束时身份/清单复核；Copy rotation 现在验证 Audit → 全部 Operation epoch → 全部历史 Copy source/copy 双链的完整 DAG。
+- 九行 crash/race 真值表已冻结；四个真实子进程分别在 rename 前后和 COMMITTED terminal append 前后使用`os._exit(71—74)`，恢复只追加一次 terminal，fresh reopen replay 不增长账本、不重复 mutation。
+- `RUN-20260724-M0-S3H-INVENTORY-GATE-078`为 34/34；最终 S3 总门`RUN-20260724-M0-S3H-S3-TOTAL-079`为 997/997，failure/error/skip 均为 0，另有一个本机无权限创建真实目录 symlink 的独立能力用例按既定规则排除。
+- 079 的保护树前后均 4,741 项，活动 SQLite、runtime watcher、句柄围栏、run tree、不可变证据、80 个源码见证和进程树全部通过。独立只读复核重新计算 JUnit、19 个 inventory chunk 和 53 个`UTF8_LF_V1`源码哈希，差异为 0。
+- 最终 inventory preview 为`RUN-20260724-M0-S3H-INVENTORY-077`：53 个生产源、468 个入口、19 个分片、`UNKNOWN=0`；全部入口仍为`UNMIGRATED_BLOCKED`，production writer 与`m0_exit_allowed`均为 false。payload SHA-256 为`6f9624ecfa941e54cfb1e8f08015952d725785ae15bd1bd9a1a338e27d0d9d9a`。
+- 156 个旧测试运行和 4 个被替代的 inventory preview 已进入校验归档并可恢复地迁出热目录；`tmp/test_lab`只保留最终 079（约 104.2 MB），`tmp/inventory_preview`只保留 077（约 0.52 MB）。E 盘当前约 60.63 GiB 可用。
+- S3-H/S3 总门已经本地通过，精确 Git 检查点和远端核验正在执行；通过后下一切片为 M0-S4 SQLite migration/Backup API。完整证据见`Task/reports/M0/M0-S3-H-crash-race-inventory-freeze.md`。
 
 ## S3-G 本地验收与门禁存储整理（2026-07-24）
 
@@ -26,7 +36,7 @@
 
 - 计划版本：1.1.0
 - 当前阶段：M0 入场审计完成，M0 尚未验收
-- 当前切片：S3-G 已验收、提交、push 并远端核验；S3-H 正在进行，S3 总门和 M0 总门均未通过
+- 当前切片：S3-H 与 S3 总门已本地验收，精确 Git 检查点/远端核验正在执行；M0 总门尚未通过
 - M0—M5 实现：M0 已开始；M1—M5 未开始
 - 本任务有效终点：按用户后续明确要求，连续完成修订后的 M0—M5，直到真实用户流程、恢复演练和客户交付包全部通过；不得把 M0 或代码完成误报为终局
 - 当前禁止：活动数据库迁移、题库导入、OCR、正式排版、批量资产、备份切换和业务文件清理
@@ -40,7 +50,7 @@
 - Git 分支`agent/m0-m5-local-v1`、本地 HEAD、origin 分支、远端 refs 与 Draft PR #2 head 已在 S3-G 核验时均为`a757e181a64aea9cbbc91669b7ad48b043bbafd6`；S3-G checkpoint 后工作区干净。
 - 旧主机 writer lock（`DESKTOP-GU0STBA`/PID 283856）已确认失效；当前由本机 Codex 进程以`RUN-20260724-M0-S3H-COORD-060`持有 Git 忽略的单写者锁，没有业务 mutation。
 - `RUN-20260724-M0-PORTABLE-FULL-037`最终退出码 0：JUnit 961 passed，failure/error/skip 均为 0；保护树前后均 126,030 项且 digest 相同，活动数据库、运行树、immutable evidence、watcher、句柄围栏、进程树和 80 个登记合成来源均通过。RUN-025/031/034/036 作为失败收敛证据保留，不再代表当前功能状态。
-- `tmp/test_lab`现只保留最新 POSTCLEAN-059，约 2.1 MB；两个便携归档约 624.7 MB。141 个归档覆盖的旧运行已迁出热目录，保留规则与新电脑迁移规则见`Task/TEST_GATE_RETENTION.md`；完整保护树门仍保留，不降低外部零写入保证。
+- `tmp/test_lab`现只保留最终 S3-TOTAL-079，约 104.2 MB；6 个便携归档约 617.1 MiB。156 个归档覆盖的旧测试运行已迁出热目录，保留规则与新电脑迁移规则见`Task/TEST_GATE_RETENTION.md`；完整保护树门仍保留，不降低外部零写入保证。
 - 旧 D 路径上的 S1—S3-E 实现、提交和语义测试结果仍是历史证据，但其卷、路径链、保护树和外部零写入结论不能直接授权 E 路径。`RUN-20260713-...-021/022/023`不再作为恢复运行计划使用；新基线只使用 2026-07-24 的新唯一 run ID。
 - Git 忽略的`Task/local/REFERENCE_PATHS.local.md`已按本机 E 路径重绑定；外部资料仍只读，任何处理仍需先进入当前`PROJECT_ROOT\Copy`并核对哈希。
 - 本机映射中的 16 个逻辑参考集、共 25 个明确文件或目录均已只读确认存在；该存在性只对当前电脑成立，下一次迁移必须重新核对，不进入 Git 合同。
@@ -65,13 +75,13 @@
 - Policy V7 digest 为`8df50ded...e4d88`；生产 boundary 固定根且`writer_available=false`，`m0_exit_allowed=false`
 - S3-E 最终核心回归`RUN-20260712-M0-S3E-016`为`30 passed`，launcher 门`RUN-20260712-M0-S3E-LAUNCHER-018`为`72 passed`，组合门`RUN-20260712-M0-S3E-COMBINED-019`为`399 passed`；JUnit failure/error/skip 均为 0
 - RUN-009 保护树前后均 93,762 条、运行时变更 0、句柄围栏 93,762 个；活动 SQLite 前后 SHA-256 相同。旧结果字段`source inputs unchanged`只是该次已监测保护集的起止/运行时证据，不声称监控整机或未登记外部源
-- Scanner V16 使用`UTF8_LF_V1`规范化并加入 portable-root authority、external-source、Copy 双账本、operation ledger、pair reservation、最终 revalidation、跨账本 ancestor、目录 publish/recovery 和 quarantine/retained-restore exact canary；inventory digest 为`89536763bcb33d8624354fccf4539a6489fa6eb1688ba7fd345202d4b5d5d42e`，生产 writer 与`m0_exit_allowed`均为 false
+- Scanner V16 使用`UTF8_LF_V1`规范化并加入 portable-root authority、external-source、Copy 双账本、全部历史 operation epoch、同 mutex 全 DAG、pair reservation、最终 revalidation、目录 publish/recovery 和 quarantine/retained-restore exact canary；inventory digest 为`6f9624ecfa941e54cfb1e8f08015952d725785ae15bd1bd9a1a338e27d0d9d9a`，生产 writer 与`m0_exit_allowed`均为 false
 
 ## 工具与发布状态
 
 - 用户已明确授权无交互继续完成交付；新电脑已通过 WinGet 用户范围安装 GitHub CLI 2.96.0。
 - 本机 Git 自身可访问远端；Git Credential Manager 中的 GitHub OAuth 凭据经临时`GH_TOKEN`环境桥接后，`gh api user`和`gh auth status`验证账号为`yanoutrageous`。令牌未写入命令、报告或仓库，也未降级保存为明文文件。
-- GitHub App 与 CLI 已确认仓库公开且未归档、当前账号具有 admin/push 权限、默认分支为`main`；Draft PR #2 为 OPEN/DRAFT/MERGEABLE，head 为`a757e181a64aea9cbbc91669b7ad48b043bbafd6`
+- GitHub App 与 CLI 已确认仓库公开且未归档、当前账号具有 admin/push 权限、默认分支为`main`；S3-G 发布元数据后本地/origin head 为`ee783eaaf3002e969e71fa83d1daaeb302e01769`，S3-H 远端状态将在本次检查点后复核
 - 本仓库 Git 作者邮箱已改为 GitHub noreply 地址，未修改全局 Git 配置，避免公开提交暴露个人邮箱
 - 规划提交范围、隐私、二进制、大文件、忽略规则和远端同名分支已通过独立只读审计
 - 规划契约提交`522393d`及状态提交`bfd4d35`已普通 push 到`agent/long-run-execution-spec`
@@ -90,8 +100,9 @@
 1. M0-S3-D operation context pin、固定 job staging、不可变 contract、多维预算和 live double-pass tree observation 已作为`1b5b9bd`完成显式提交、普通 push 与远端核验；
 2. M0-S3-E exact reservation、独立 operation chain、source-root no-replace publish、target rescan 与只追加恢复真值表已通过本地组合门和独立暂存审计，并作为`39586568a405124417d105d8e876d25ec94e06e6`完成普通 push；
 3. portable root 与 S3-F 合成 Copy/双 ledger 已由`RUN-20260724-M0-PORTABLE-FULL-037`验收，并作为`f9756df79d979ef10f54fc4634f15849857019da`完成精确暂存审计、checkpoint commit、普通 push 与远端核验；
-4. S3-G quarantine/retained restore 已由 CORE-053、INVENTORY-057、GATE-058 与清理后 POSTCLEAN-059 验收，并作为`a757e181a64aea9cbbc91669b7ad48b043bbafd6`完成精确提交、普通 push 与远端核验；当前已进入 S3-H；
-5. 按长期终点继续完成 M0—M5；只有 M5 客户交付包、真实用户流程和恢复演练全部通过后才可结束，不得把 M0 checkpoint 当作终局。
+4. S3-G quarantine/retained restore 已由 CORE-053、INVENTORY-057、GATE-058 与清理后 POSTCLEAN-059 验收，并作为`a757e181a64aea9cbbc91669b7ad48b043bbafd6`完成精确提交、普通 push 与远端核验；
+5. S3-H 历史 operation resolver、完整 DAG、真实 crash/race 矩阵、最终 inventory 和 S3 总门已由 INVENTORY-GATE-078 与 S3-TOTAL-079 本地验收，正在形成精确 Git 检查点；
+6. 按长期终点继续完成 M0—M5；只有 M5 客户交付包、真实用户流程和恢复演练全部通过后才可结束，不得把 M0 checkpoint 当作终局。
 
 ## 历史暂停检查点（已于 2026-07-24恢复）
 
@@ -107,10 +118,10 @@
 
 - 精确字体许可尚未审计：不阻塞金标测量，但阻塞“字体完全一比一”的正式声明。
 - 当前备份只能位于`PROJECT_ROOT`内：不具备异卷灾备能力，不能对客户宣称可抵御整个产品根所在卷故障。
-- 固定权限但物理路径可迁移的 production boundary、Policy V7、Test-only 句柄 writer、audit/operation/Copy 双账本和 S3-E—G publish/copy/quarantine/recovery 已通过当前新机组合门，但 production writer 仍断开；468 个入口尚未迁移，在 S3-H、数据库和后续门禁完成前不得处理真实资料。
+- 固定权限但物理路径可迁移的 production boundary、Policy V7、Test-only 句柄 writer、audit/全部历史 operation epoch/Copy 双账本和 S3-E—H publish/copy/quarantine/recovery 已通过当前新机 S3 总门，但 production writer 仍断开；468 个入口尚未迁移，在 S4—S6 和后续门禁完成前不得处理真实资料。
 - S2 `PairEvidence`仍只是候选声明；S3-E 实际 mutation 只在 exact `_ReservedPairLease`和 live observed lease 内执行，声明或 detached 摘要都不能授权 rename。
 - audit key revision 位于 Test 内、Git 忽略的本地明文存储；不能抵御已取得 Test 读取权的恶意本机用户；没有外部 witness 时也不能证明完整账本尾部未被一致回滚。
 - Test-only writer 的 spent-ticket 记忆和诊断缓存已固定上限；ReFS/128-bit File ID 高位非零兼容、硬件断电语义和业务 operation recovery 仍未声明通过。
 - 安全测试实验室针对受信任、已审阅的仓库测试代码，不是 hostile native-code 或 hostile same-process Python 反射/monkeypatch 的 OS/语言沙箱；S3-F 异常 vault 只收窄经密封公开 boundary 的正常调用泄漏面，不能隔离能够绕过 boundary 的恶意同进程代码。
 - 普通用户态 Windows 目录 handle/oplock 不能冻结 child namespace；S3-E 已使用最后检查、内核 no-replace、target full rescan 与`IN_DOUBT`/seal，但仍不声明 hostile-writer 原子快照。
-- 本机普通账户不能创建实际目录 symlink；独立安全运行`RUN-20260724-M0-SYMLINK-CAPABILITY-038`仅因 WinError 1314 失败，其余保护证据清洁。不自动启用开发者模式或提升权限，该能力门保持 IN_PROGRESS，但不阻塞不依赖 symlink 创建权限的 S3-H 工作。
+- 本机普通账户不能创建实际目录 symlink；独立安全运行`RUN-20260724-M0-SYMLINK-CAPABILITY-038`仅因 WinError 1314 失败，其余保护证据清洁。不自动启用开发者模式或提升权限；该能力门保持 IN_PROGRESS，不否定已排除该能力用例的 S3 总门，但必须在 M0 总门前单独处置或准确接受限制。

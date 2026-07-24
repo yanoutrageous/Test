@@ -619,9 +619,42 @@ def test_s3d_mode_has_a_fixed_non_injectable_selection(tmp_path: Path) -> None:
                 "tests/test_write_entry_inventory.py",
             ],
         ),
+        (
+            "s3h_core",
+            [
+                "tests/test_publish_operation.py::test_s3h_crash_race_truth_table_is_complete_and_unambiguous",
+                "tests/test_publish_operation.py::test_real_process_publish_crash_points_reconcile_once",
+                "tests/test_publish_operation.py::test_target_race_after_prepared_aborts_without_overwrite",
+                "tests/test_policy_epoch_compatibility.py",
+                "tests/test_job_operation.py::test_two_process_mutex_busy_rolls_back_pin_and_same_context_retries",
+                "tests/test_windows_handle_writer.py::test_publish_source_share_blocks_external_path_rename_before_publish",
+                "tests/test_windows_handle_writer.py::test_publish_after_rename_failure_keeps_valid_final_and_seals",
+                "tests/test_write_entry_inventory.py::test_tracked_inventory_matches_full_current_scanner_and_source_manifest",
+                "tests/test_write_entry_inventory.py::test_source_manifest_is_checkout_independent_utf8_lf",
+                "tests/test_write_entry_inventory.py::test_inventory_counts_and_policy_metadata_are_internally_consistent",
+                "tests/test_write_entry_inventory.py::test_full_digests_cover_policy_metadata_and_are_key_order_stable",
+                "tests/test_write_entry_inventory.py::test_no_current_production_module_bypasses_fixed_boundary",
+            ],
+        ),
+        (
+            "s3h",
+            [
+                "tests/test_publish_operation.py",
+                "tests/test_policy_epoch_compatibility.py",
+                "tests/test_copy_operation.py",
+                "tests/test_copy_ledger.py",
+                "tests/test_external_source.py",
+                "tests/test_quarantine_restore_operation.py",
+                "tests/test_job_operation.py",
+                "tests/test_windows_handle_writer.py",
+                "tests/test_segment_ledger.py",
+                "tests/test_workspace_policy.py",
+                "tests/test_write_entry_inventory.py",
+            ],
+        ),
     ),
 )
-def test_s3e_through_s3g_modes_have_exact_non_injectable_selections(
+def test_s3e_through_s3h_modes_have_exact_non_injectable_selections(
     tmp_path: Path,
     mode: str,
     selection: list[str],
@@ -1556,7 +1589,7 @@ def test_effective_exit_code_records_protected_state_gate_and_skips() -> None:
 def test_only_copy_bearing_modes_require_a_registered_source_witness() -> None:
     assert RUN_RESULT_SCHEMA_VERSION == "1.2"
     assert SOURCE_REGISTRATION_REQUIRED_MODES == frozenset(
-        {"full", "s3f", "s3f_core"}
+        {"full", "s3f", "s3f_core", "s3h"}
     )
     assert {
         "guard",
@@ -1566,6 +1599,7 @@ def test_only_copy_bearing_modes_require_a_registered_source_witness() -> None:
         "s3e_core",
         "s3g",
         "s3g_core",
+        "s3h_core",
         "launcher",
         "symlink",
     }.isdisjoint(SOURCE_REGISTRATION_REQUIRED_MODES)
@@ -1597,6 +1631,7 @@ def test_only_copy_bearing_modes_require_a_registered_source_witness() -> None:
         "s3e_core",
         "s3g",
         "s3g_core",
+        "s3h_core",
         "launcher",
         "symlink",
     }:

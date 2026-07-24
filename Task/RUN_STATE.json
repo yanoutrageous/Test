@@ -1,7 +1,7 @@
 {
   "state_version": "1.1.0",
   "plan_version": "1.1.0",
-  "updated_at": "2026-07-24T21:14:22+08:00",
+  "updated_at": "2026-07-24T23:25:00+08:00",
   "current_milestone": "M0",
   "current_slice": "M0_S3H_CRASH_RACE_INVENTORY_FREEZE",
   "status": "RUNNING",
@@ -167,9 +167,8 @@
       }
     ],
     "known_incomplete": [
-      "S3-H real subprocess crash/race matrix is not yet accepted",
-      "historical operation epoch resolver and same-mutex full DAG validation remain for S3-H",
-      "production writer remains disconnected and all 468 inventory entries remain UNMIGRATED_BLOCKED"
+      "production writer remains disconnected and all 468 inventory entries remain UNMIGRATED_BLOCKED",
+      "M0-S4 SQLite migration and Backup API, M0-S5 domain/IR/gold baseline, and M0-S6 real user flows remain"
     ],
     "resume_from": "Continue S3-H from the remotely verified S3-G checkpoint a757e181a64aea9cbbc91669b7ad48b043bbafd6 with new unique run IDs. Keep production writer disconnected and real business data untouched."
   },
@@ -245,11 +244,71 @@
       "status": "PASSED"
     }
   },
+  "s3h_freeze": {
+    "local_acceptance_status": "PASSED_AWAITING_EXPLICIT_GIT_CHECKPOINT",
+    "operation_epoch_resolver": "PASSED_BOUNDED_NOFOLLOW_SAME_MUTEX_ALL_ACTIVATED_REVISIONS",
+    "full_dag": "PASSED_AUDIT_TO_ALL_OPERATION_EPOCHS_TO_ALL_COPY_EPOCHS",
+    "crash_race_truth_table_rows": 9,
+    "real_process_crash_exit_codes": [
+      71,
+      72,
+      73,
+      74
+    ],
+    "inventory": {
+      "run_id": "RUN-20260724-M0-S3H-INVENTORY-077",
+      "source_count": 53,
+      "entry_count": 468,
+      "chunk_count": 19,
+      "unknown_dynamic_count": 0,
+      "unmigrated_count": 468,
+      "production_writer_connected": false,
+      "m0_exit_allowed": false,
+      "inventory_payload_sha256": "6f9624ecfa941e54cfb1e8f08015952d725785ae15bd1bd9a1a338e27d0d9d9a",
+      "manifest_file_sha256": "df0a9bafe99303b0052c9dbff86b0b05bb8b69683ed1bfb5831ee5c564a7bc6f"
+    },
+    "core_gate": {
+      "run_id": "RUN-20260724-M0-S3H-INVENTORY-GATE-078",
+      "effective_exit_code": 0,
+      "pytest_tests": 34,
+      "pytest_failures": 0
+    },
+    "s3_total_gate": {
+      "run_id": "RUN-20260724-M0-S3H-S3-TOTAL-079",
+      "created_at": "2026-07-24T22:58:34+08:00",
+      "finished_at": "2026-07-24T23:20:31+08:00",
+      "effective_exit_code": 0,
+      "pytest_tests": 997,
+      "pytest_failures": 0,
+      "pytest_errors": 0,
+      "pytest_skipped": 0,
+      "symlink_capability_deselected": 1,
+      "protected_tree_entries": 4741,
+      "protected_tree_unchanged": true,
+      "activity_database_unchanged": true,
+      "runtime_monitor_unchanged": true,
+      "handle_fence_valid": true,
+      "run_tree_safe": true,
+      "immutable_evidence_unchanged": true,
+      "source_witness_count": 80,
+      "source_witness_valid": true,
+      "process_tree_terminated": true
+    },
+    "independent_read_only_audit": {
+      "status": "PASS",
+      "junit_tests": 997,
+      "junit_failures": 0,
+      "inventory_chunk_mismatches": 0,
+      "normalized_source_mismatches": 0,
+      "error_count": 0
+    },
+    "report": "Task/reports/M0/M0-S3-H-crash-race-inventory-freeze.md"
+  },
   "storage_maintenance": {
-    "performed_at": "2026-07-24T20:56:00+08:00",
+    "performed_at": "2026-07-24T23:24:30+08:00",
     "user_authorized": true,
     "scope": "GIT_IGNORED_TEST_LAB_INVENTORY_PREVIEW_AND_TOOL_CACHE_ONLY",
-    "archive_covered_run_directories": 141,
+    "archive_covered_run_directories": 156,
     "archives": [
       {
         "relative_path": "tmp/test_lab_archives/test-lab-history-through-RUN-20260724-M0-S3G-CORE-050.tar.gz",
@@ -266,13 +325,47 @@
         "manifest_entries": 8739,
         "top_level_runs": 5,
         "unsafe_paths": 0
+      },
+      {
+        "relative_path": "tmp/test_lab_archives/test-lab-increment-RUN-20260724-M0-S3G-POSTCLEAN-059-through-S3H-POLICY-067.tar.gz",
+        "bytes": 8005286,
+        "sha256": "f226a3b9bcdbd0e84a4088db38b7533d627cee9c2444c3bb119e4dd1d98d3400",
+        "manifest_entries": 6471,
+        "top_level_runs": 8,
+        "unsafe_paths": 0
+      },
+      {
+        "relative_path": "tmp/test_lab_archives/inventory-previews-RUN-20260724-M0-S3G-INVENTORY-057-and-S3H-INVENTORY-068.tar.gz",
+        "bytes": 98676,
+        "sha256": "25c99dcb47eb6c89d0c121dcadc72ea8a651e0f0c318163a9446adb9fb7615bc",
+        "manifest_entries": 44,
+        "top_level_runs": 2,
+        "unsafe_paths": 0
+      },
+      {
+        "relative_path": "tmp/test_lab_archives/test-lab-RUN-20260724-M0-S3H-070-through-078.tar.gz",
+        "bytes": 14103077,
+        "sha256": "5bdc4786012e69488f5c40d279333bd464a905ee7e1ea9d80f470c6cbf02d30d",
+        "manifest_entries": 20312,
+        "top_level_runs": 7,
+        "unsafe_paths": 0
+      },
+      {
+        "relative_path": "tmp/test_lab_archives/inventory-previews-RUN-20260724-M0-S3H-069-and-073.tar.gz",
+        "bytes": 98736,
+        "sha256": "f99715af4e60b46a58b47964cac94fc0cc2dc9ee069382c8e7b55b40a0bf1e74",
+        "manifest_entries": 44,
+        "top_level_runs": 2,
+        "unsafe_paths": 0
       }
     ],
+    "archive_total_bytes": 647039891,
     "archive_git_tracked": false,
-    "hot_retained_run": "RUN-20260724-M0-S3G-POSTCLEAN-059",
+    "hot_retained_run": "RUN-20260724-M0-S3H-S3-TOTAL-079",
+    "hot_retained_inventory_preview": "RUN-20260724-M0-S3H-INVENTORY-077",
     "hot_retained_run_archived": false,
     "hot_run_count_after": 1,
-    "historical_runs_moved_outside_repository": 141,
+    "historical_runs_moved_outside_repository": 156,
     "archive_coverage_difference_count": 0,
     "recursive_delete_blocked_by_execution_policy": true,
     "delete_bypass_attempted": false,
@@ -281,7 +374,8 @@
     "cross_volume_move_free_bytes_before": 19009196032,
     "cross_volume_move_free_bytes_after": 21416464384,
     "cross_volume_move_free_bytes_delta": 2407268352,
-    "old_inventory_previews_moved": 26,
+    "old_inventory_previews_moved": 30,
+    "s3h_final_e_free_bytes": 65099968512,
     "workspace_caches_moved": true,
     "representative_evidence_hashes_unchanged": true,
     "report": "Task/reports/M0/M0-evidence-storage-20260724.md",
@@ -378,7 +472,13 @@
     "RUN-20260724-M0-S3G-CORE-053 passed 16 core tests; RUN-20260724-M0-S3G-GATE-058 and post-cleanup RUN-20260724-M0-S3G-POSTCLEAN-059 each passed 543 combined tests with zero failure/error/skip and all safety gates clean",
     "production inventory V16 rebuilt at 53 sources, 468 entries, 19 chunks, UNKNOWN=0, all entries UNMIGRATED_BLOCKED, production_writer_connected=false, m0_exit_allowed=false, and inventory digest 89536763bcb33d8624354fccf4539a6489fa6eb1688ba7fd345202d4b5d5d42e",
     "141 older gate runs are covered by two fully listed path-safe tar.gz archives and were moved out of the hot repository tree after recursive deletion was blocked; only unarchived current POSTCLEAN-059 remains hot, and the same S3-G gate fell from 140985 protected objects and about 19 minutes to 8394 objects and 4 minutes 10 seconds",
-    "M0-S3-G was explicitly staged as exactly 20 allowlisted files, committed as a757e181a64aea9cbbc91669b7ad48b043bbafd6, ordinary-pushed, and verified identical at local HEAD, origin, remote refs, and Draft PR 2 head; PR remains open, draft, and mergeable"
+    "M0-S3-G was explicitly staged as exactly 20 allowlisted files, committed as a757e181a64aea9cbbc91669b7ad48b043bbafd6, ordinary-pushed, and verified identical at local HEAD, origin, remote refs, and Draft PR 2 head; PR remains open, draft, and mergeable",
+    "S3-H added a bounded no-follow historical operation epoch resolver and verifies Audit to every Operation epoch to every historical Copy source/copy pair as one same-mutex authenticated DAG",
+    "the nine-row crash/race truth table includes four real os._exit points before/after rename and before/after COMMITTED append; fresh reopen reconciliation is single-shot and replay does not mutate or grow the ledger",
+    "RUN-20260724-M0-S3H-INVENTORY-GATE-078 passed 34 tests and RUN-20260724-M0-S3H-S3-TOTAL-079 passed 997 tests with zero failures/errors/skips; protected tree, activity database, runtime watcher, handle fence, run tree, immutable evidence, 80 source witnesses, and process tree all passed",
+    "production inventory V16 final preview RUN-20260724-M0-S3H-INVENTORY-077 matches tracked bytes at 53 sources, 468 entries, 19 chunks, UNKNOWN=0, all entries UNMIGRATED_BLOCKED, payload 6f9624ecfa941e54cfb1e8f08015952d725785ae15bd1bd9a1a338e27d0d9d9a",
+    "independent PowerShell and .NET audit recomputed JUnit, every inventory chunk, and all 53 UTF8_LF_V1 source hashes with zero mismatches",
+    "156 superseded test runs and four superseded inventory previews are covered by verified relative-path archives and moved out of the hot E-drive tree; only final run 079 and preview 077 remain hot"
   ],
   "not_started": [
     "database migration",
@@ -392,6 +492,6 @@
   "blockers": [
     "M0-SYMLINK-CAPABILITY-001: RUN-20260724-M0-SYMLINK-CAPABILITY-038 returned WinError 1314 when the ordinary account attempted to create a real directory symlink; all other safety gates in that run were clean, no privilege elevation or Developer Mode change is authorized, and independent M0 work may continue"
   ],
-  "next_required_action": "Implement and validate S3-H real subprocess crash points, cooperative/hostile race truth table, historical operation epoch resolver, same-mutex full DAG validation, corrupt-chain sealing, final inventory freeze, and the S3 total gate.",
-  "resume_rule": "Continue S3-H from verified checkpoint a757e181a64aea9cbbc91669b7ad48b043bbafd6 and POSTCLEAN-059. Never reuse a run ID or treat an old physical-root result as current. Keep production writer disconnected and real business data untouched through S3-H and the remaining M0 gates."
+  "next_required_action": "Create the exact S3-H Git checkpoint, ordinary-push it, verify local/origin/remote/Draft-PR head equality, then begin M0-S4 SQLite append-only migration and Backup API work.",
+  "resume_rule": "Resume from the final S3-H gate RUN-20260724-M0-S3H-S3-TOTAL-079 and inventory preview 077. Never reuse a run ID or treat an old physical-root result as current. Keep production writer disconnected and real business data untouched through S4-S6 and the remaining M0 gates."
 }
