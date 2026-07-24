@@ -1,11 +1,11 @@
 {
   "state_version": "1.1.0",
   "plan_version": "1.1.0",
-  "updated_at": "2026-07-24T13:21:17+08:00",
+  "updated_at": "2026-07-24T21:06:44+08:00",
   "current_milestone": "M0",
-  "current_slice": "M0_S3G_QUARANTINE_RETAINED_RESTORE",
-  "status": "PAUSED",
-  "implementation_status": "PAUSED_WITH_UNVERIFIED_WIP_CHECKPOINT",
+  "current_slice": "M0_S3G_ACCEPTED_AWAITING_GIT_CHECKPOINT",
+  "status": "RUNNING",
+  "implementation_status": "LOCAL_ACCEPTANCE_PASSED_AWAITING_GIT_CHECKPOINT",
   "task_scope": {
     "effective_terminal_gate": "M5_CUSTOMER_DELIVERY_ACCEPTED",
     "stop_after_m0": false,
@@ -32,8 +32,10 @@
   "pause": {
     "paused_at": "2026-07-24T13:21:17+08:00",
     "reason": "USER_REQUESTED_GOAL_PAUSE_AT_MINIMUM_RESUMABLE_CHECKPOINT",
-    "status": "PAUSED",
-    "goal_status": "PAUSED_BY_USER",
+    "status": "RESUMED",
+    "goal_status": "RESUMED_BY_USER",
+    "resumed_at": "2026-07-24T15:25:58+08:00",
+    "resume_audit_result": "PASS_LOCAL_ORIGIN_HEAD_EQUAL_CLEAN_TREE_WIP_HASHES_MATCH_ROOT_NTFS_NO_REPARSE_DATABASE_UNCHANGED_NO_ACTIVE_LAUNCHER_WRITER_LOCK_REACQUIRED",
     "current_slice": "M0_S3G_QUARANTINE_RETAINED_RESTORE",
     "verified_base_head_before_candidate_checkpoint": "d9f047734b6715110e10479801798864a878a184",
     "verified_origin_head_before_candidate_checkpoint": "d9f047734b6715110e10479801798864a878a184",
@@ -59,15 +61,118 @@
         "run_id": "RUN-20260724-M0-S3G-CORE-040",
         "status": "SAFETY_STOP_BEFORE_PYTEST",
         "cause": "REDIRECTED_LOG_HANDLE_WAS_OPEN_UNDER_PROTECTED_TMP_OUTSIDE_EXCLUDED_RUN_ROOT"
+      },
+      {
+        "run_id": "RUN-20260724-M0-S3G-LAUNCHER-046",
+        "status": "PASSED",
+        "effective_exit_code": 0,
+        "pytest_tests": 88,
+        "protected_tree_unchanged": true,
+        "activity_database_unchanged": true,
+        "snapshot_format": "gzip-canonical-json-v1"
+      },
+      {
+        "run_id": "RUN-20260724-M0-S3G-DIAG-049",
+        "status": "FAILED_FUNCTIONALLY_SAFETY_GATES_PASSED",
+        "cause": "NATIVE_RELATIVE_RENAME_WINERROR_87"
+      },
+      {
+        "run_id": "RUN-20260724-M0-S3G-CORE-050",
+        "status": "FAILED_FUNCTIONALLY_SAFETY_GATES_PASSED",
+        "pytest_tests": 4,
+        "pytest_failures": 4,
+        "protected_tree_unchanged": true,
+        "activity_database_unchanged": true
+      },
+      {
+        "run_id": "RUN-20260724-M0-S3G-CORE-051",
+        "status": "PASSED_INTERMEDIATE",
+        "effective_exit_code": 0,
+        "pytest_tests": 4,
+        "pytest_failures": 0
+      },
+      {
+        "run_id": "RUN-20260724-M0-S3G-CORE-052",
+        "status": "FAILED_FUNCTIONALLY_SAFETY_GATES_PASSED",
+        "effective_exit_code": 1,
+        "pytest_tests": 16,
+        "pytest_failures": 1,
+        "cause": "RESTRICTED_RESTART_RECOVERY_LOCATOR_NOT_YET_SUPPORTED"
+      },
+      {
+        "run_id": "RUN-20260724-M0-S3G-CORE-053",
+        "status": "PASSED",
+        "effective_exit_code": 0,
+        "pytest_tests": 16,
+        "pytest_failures": 0,
+        "protected_tree_unchanged": true,
+        "activity_database_unchanged": true
+      },
+      {
+        "run_id": "RUN-20260724-M0-S3G-COMBINED-056",
+        "status": "FAILED_STATIC_AUDIT_ONLY_SAFETY_GATES_PASSED",
+        "effective_exit_code": 1,
+        "pytest_tests": 537,
+        "pytest_failures": 2,
+        "cause": "NEW_EXACT_QUARANTINE_RESTORE_SCOPES_NOT_YET_REGISTERED"
+      },
+      {
+        "run_id": "RUN-20260724-M0-S3G-INVENTORY-057",
+        "status": "PASSED",
+        "source_count": 53,
+        "entry_count": 468,
+        "chunk_count": 19,
+        "unknown_dynamic_count": 0,
+        "unmigrated_count": 468,
+        "inventory_digest_sha256": "89536763bcb33d8624354fccf4539a6489fa6eb1688ba7fd345202d4b5d5d42e"
+      },
+      {
+        "run_id": "RUN-20260724-M0-S3G-GATE-058",
+        "status": "PASSED",
+        "effective_exit_code": 0,
+        "pytest_tests": 543,
+        "pytest_failures": 0,
+        "pytest_errors": 0,
+        "pytest_skipped": 0,
+        "protected_tree_entries": 140985,
+        "protected_tree_unchanged": true,
+        "runtime_monitor_unchanged": true,
+        "handle_fence_valid": true,
+        "run_tree_safe": true,
+        "immutable_evidence_unchanged": true,
+        "process_tree_terminated": true,
+        "source_witness_valid": true,
+        "activity_database_unchanged": true
+      },
+      {
+        "run_id": "RUN-20260724-M0-S3G-POSTCLEAN-059",
+        "status": "PASSED",
+        "started_at": "2026-07-24T20:59:32+08:00",
+        "finished_at": "2026-07-24T21:03:42+08:00",
+        "effective_exit_code": 0,
+        "pytest_tests": 543,
+        "pytest_failures": 0,
+        "pytest_errors": 0,
+        "pytest_skipped": 0,
+        "protected_tree_entries": 8394,
+        "protected_tree_unchanged": true,
+        "runtime_monitor_unchanged": true,
+        "handle_fence_valid": true,
+        "run_tree_safe": true,
+        "run_tree_bytes": 2074395,
+        "immutable_evidence_unchanged": true,
+        "process_tree_terminated": true,
+        "source_witness_valid": true,
+        "activity_database_unchanged": true
       }
     ],
     "known_incomplete": [
-      "S3-G functional tests have not completed",
-      "quarantine date partition creation is not implemented",
-      "static audit and inventory are not updated",
-      "S3-G acceptance and S3-H have not started"
+      "S3-G local acceptance has passed but its exact Git checkpoint and remote verification are pending",
+      "S3-H real subprocess crash/race matrix has not started",
+      "historical operation epoch resolver and same-mutex full DAG validation remain for S3-H",
+      "production writer remains disconnected and all 468 inventory entries remain UNMIGRATED_BLOCKED"
     ],
-    "resume_from": "Re-read AGENTS.md, Base/Base.md, Task/CURRENT_STATUS.md, Task/RUN_STATE.json, and Task/reports/M0/M0-S3-G-pause-20260724.md. Verify the pause checkpoint, clean worktree, local/origin equality, no active launcher or business mutation, and unchanged database hash. First fix safe-launcher child output capture so redirected handles live only under the excluded run root, then use a new unique run ID for s3g_core. Complete S3-G tests, date partition behavior, static inventory, and acceptance before S3-H."
+    "resume_from": "Complete the exact S3-G staging audit, Git checkpoint, ordinary push, and remote verification. Then begin S3-H with new unique run IDs. Keep production writer disconnected and real business data untouched."
   },
   "relocation_rebase": {
     "resumed_at": "2026-07-24T01:28:58+08:00",
@@ -141,6 +246,48 @@
       "status": "PASSED"
     }
   },
+  "storage_maintenance": {
+    "performed_at": "2026-07-24T20:56:00+08:00",
+    "user_authorized": true,
+    "scope": "GIT_IGNORED_TEST_LAB_INVENTORY_PREVIEW_AND_TOOL_CACHE_ONLY",
+    "archive_covered_run_directories": 141,
+    "archives": [
+      {
+        "relative_path": "tmp/test_lab_archives/test-lab-history-through-RUN-20260724-M0-S3G-CORE-050.tar.gz",
+        "bytes": 579609191,
+        "sha256": "1ad25c3bed0f3595ea7938110a6f26ee6f81a7e360e44e330c2d7fc1352093c6",
+        "manifest_entries": 130617,
+        "top_level_runs": 136,
+        "unsafe_paths": 0
+      },
+      {
+        "relative_path": "tmp/test_lab_archives/test-lab-increment-RUN-20260724-M0-S3G-CORE-051-through-GATE-058.tar.gz",
+        "bytes": 45124925,
+        "sha256": "8406233724602cb8a341aa6fe767e63f37d2a14785a46451dde448cbd4980485",
+        "manifest_entries": 8739,
+        "top_level_runs": 5,
+        "unsafe_paths": 0
+      }
+    ],
+    "archive_git_tracked": false,
+    "hot_retained_run": "RUN-20260724-M0-S3G-POSTCLEAN-059",
+    "hot_retained_run_archived": false,
+    "hot_run_count_after": 1,
+    "historical_runs_moved_outside_repository": 141,
+    "archive_coverage_difference_count": 0,
+    "recursive_delete_blocked_by_execution_policy": true,
+    "delete_bypass_attempted": false,
+    "outside_repository_staging_is_canonical": false,
+    "ntfs_compression_enabled_with_inheritance": true,
+    "cross_volume_move_free_bytes_before": 19009196032,
+    "cross_volume_move_free_bytes_after": 21416464384,
+    "cross_volume_move_free_bytes_delta": 2407268352,
+    "old_inventory_previews_moved": 26,
+    "workspace_caches_moved": true,
+    "representative_evidence_hashes_unchanged": true,
+    "report": "Task/reports/M0/M0-evidence-storage-20260724.md",
+    "retention_contract": "Task/TEST_GATE_RETENTION.md"
+  },
   "project_root": {
     "authority": "TRUSTED_MODULE_PLUS_ROOT_MARKER",
     "marker": ".exam-bank-root.json",
@@ -153,7 +300,7 @@
     "base_commit": "bfd4d35973974a223f465cd08910f303518a8586",
     "remote": "https://github.com/yanoutrageous/Test.git",
     "planning_published_commit": "bfd4d35973974a223f465cd08910f303518a8586",
-    "publication_status": "M0_S3G_WIP_PAUSE_CHECKPOINT_AND_PAUSE_RECORD",
+    "publication_status": "M0_S3G_LOCAL_ACCEPTANCE_AWAITING_EXACT_CHECKPOINT",
     "planning_pull_request": "https://github.com/yanoutrageous/Test/pull/1",
     "integration_pull_request": "https://github.com/yanoutrageous/Test/pull/2"
   },
@@ -162,8 +309,8 @@
   "active_job_id": "M0-S3G-QUARANTINE-RETAINED-RESTORE",
   "active_writer": {
     "owner": "/root",
-    "run_id": "RUN-20260724-M0-PORTABLE-ROOT-024",
-    "details": "Task/state/writer.lock (Git-ignored local state; status PAUSED)"
+    "run_id": "RUN-20260724-M0-S3G-RESUME-041",
+    "details": "Task/state/writer.lock (Git-ignored local state; status ACTIVE)"
   },
   "completed_actions": [
     "read-only repository and reference-corpus review",
@@ -214,7 +361,7 @@
     "portable root candidate now binds authority to app/project_root.py plus exact path-free .exam-bank-root.json and removes the fixed D path from production guard, safe launcher, bootstrap, external-source policy, static audit, and inventory tooling",
     "RUN-20260724-M0-PORTABLE-LAUNCHER-025 failed only after its caller closed stdout, while 101937 protected objects, runtime watcher, handle fence, immutable evidence, process tree, and activity database remained unchanged",
     "portable root authority is accepted on the new E-drive location: trusted app/project_root.py plus exact path-free .exam-bank-root.json now replaces a fixed physical drive path across production guard, launcher, bootstrap, external-source policy, static audit, and inventory tooling",
-    "production inventory V16 is frozen at 53 production sources, 464 entries, 19 chunks, UNKNOWN=0, unauthorized authority/guard construction findings=0, all 464 entries UNMIGRATED_BLOCKED, and payload e31de8130346d87eb1b92109f88580cbb5ea33502d0b316a48a27fe7c172659c",
+    "the portable-root and S3-F checkpoint inventory V16 snapshot contained 53 production sources, 464 entries, 19 chunks, UNKNOWN=0, all entries UNMIGRATED_BLOCKED, and payload e31de8130346d87eb1b92109f88580cbb5ea33502d0b316a48a27fe7c172659c; it is superseded by the later S3-G V16 rebuild",
     "RUN-20260724-M0-PORTABLE-FULL-037 passed 961 tests with zero failures/errors/skips; 126030 protected objects, activity database, run tree, immutable evidence, runtime watcher, handle fence, process tree, and 80 registered synthetic sources remained valid",
     "M0-S3-F synthetic external-source Copy, independent source/copy segment ledgers, typed terminal recovery, and no-replace publication are accepted locally and await an explicit staged Git checkpoint before S3-G",
     "new-computer Git fetch and noninteractive push dry-run passed; GitHub App confirmed repository admin/push permission and Draft PR 2 head",
@@ -222,7 +369,13 @@
     "S3-F checkpoint read-only preflight audited exactly 73 candidates with zero forbidden paths, secret-pattern findings, binaries, deletions, renames, or files over 1 MiB; all 53 normalized production-source hashes and all 19 serialized inventory chunk hashes match V16",
     "GitHub CLI 2.96.0 installed on the new computer under renewed user authorization; Git Credential Manager OAuth identity bridge verified gh API access as yanoutrageous without persisting the token in the repository or reports",
     "exactly 73 allowlisted files were explicitly staged without git add -A; cached diff check, forbidden-path, binary, deletion, rename, over-1MiB, and 30864-line secret scans passed, while the staged root marker, all 53 normalized production sources, and all 19 inventory chunks matched frozen hashes",
-    "portable-root and M0-S3-F acceptance checkpoint committed as f9756df79d979ef10f54fc4634f15849857019da, ordinary-pushed, and verified identical at local HEAD, origin, GitHub refs, and Draft PR 2 head; PR reports CLEAN and MERGEABLE"
+    "portable-root and M0-S3-F acceptance checkpoint committed as f9756df79d979ef10f54fc4634f15849857019da, ordinary-pushed, and verified identical at local HEAD, origin, GitHub refs, and Draft PR 2 head; PR reports CLEAN and MERGEABLE",
+    "S3-G Test-local quarantine now creates and pins UTC classification partitions, holds a live target-parent lease, moves the exact observed source tree with no-replace handle rename, and replays committed terminals without a second mutation",
+    "S3-G retained restore preserves the quarantine source, copies through a newly verified staging tree, rejects target conflicts without overwrite, and invalidates on source identity or content drift",
+    "RESTRICTED quarantine restart recovery uses an owner-thread, exact-context, single-use opaque locator capability and validates derived source/target HMACs against the authenticated operation terminal",
+    "RUN-20260724-M0-S3G-CORE-053 passed 16 core tests; RUN-20260724-M0-S3G-GATE-058 and post-cleanup RUN-20260724-M0-S3G-POSTCLEAN-059 each passed 543 combined tests with zero failure/error/skip and all safety gates clean",
+    "production inventory V16 rebuilt at 53 sources, 468 entries, 19 chunks, UNKNOWN=0, all entries UNMIGRATED_BLOCKED, production_writer_connected=false, m0_exit_allowed=false, and inventory digest 89536763bcb33d8624354fccf4539a6489fa6eb1688ba7fd345202d4b5d5d42e",
+    "141 older gate runs are covered by two fully listed path-safe tar.gz archives and were moved out of the hot repository tree after recursive deletion was blocked; only unarchived current POSTCLEAN-059 remains hot, and the same S3-G gate fell from 140985 protected objects and about 19 minutes to 8394 objects and 4 minutes 10 seconds"
   ],
   "not_started": [
     "database migration",
@@ -236,6 +389,6 @@
   "blockers": [
     "M0-SYMLINK-CAPABILITY-001: RUN-20260724-M0-SYMLINK-CAPABILITY-038 returned WinError 1314 when the ordinary account attempted to create a real directory symlink; all other safety gates in that run were clean, no privilege elevation or Developer Mode change is authorized, and independent M0 work may continue"
   ],
-  "next_required_action": "PAUSED_BY_USER. Do not continue until the user replies. On resume, repair safe-launcher output capture inside the excluded run root and rerun S3-G core with a new unique run ID before any further implementation.",
-  "resume_rule": "Wait for an explicit user reply. Then read AGENTS.md, Base/Base.md, execution_contract.json, all normative Task documents, CURRENT_STATUS, RUN_STATE, the portable-root ADR/report, and the S3-G pause report. Discover the root from the trusted module plus marker; never reuse a recorded run ID or treat an old physical-root safety result as current. Verify Git, writer/launcher state, database integrity/hash, disk budget, local reference mapping, and dependency imports before resuming S3-G."
+  "next_required_action": "Perform an exact allowlisted staging audit, commit and ordinary-push the S3-G checkpoint, verify origin and Draft PR 2 head, then begin S3-H with new unique run IDs.",
+  "resume_rule": "Continue from the locally accepted S3-G candidate and its CORE-053, INVENTORY-057, GATE-058, and POSTCLEAN-059 evidence. Never reuse a run ID or treat an old physical-root result as current. Keep production writer disconnected and real business data untouched through S3-H and the remaining M0 gates."
 }

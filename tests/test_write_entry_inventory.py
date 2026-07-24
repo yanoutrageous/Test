@@ -1419,6 +1419,139 @@ class _OperationLease:
     )
 
 
+def test_exact_quarantine_and_retained_restore_scopes_remain_clean() -> None:
+    job_source = '''
+class _TestJobRuntime:
+    def replay_committed_quarantine(self):
+        ledger._rescan_under_existing_mutex(mutex)
+        reference = operation_ledger.operation_reference(operation_id, classification)
+        return operation_ledger.operation_result_under_existing_mutex(mutex, reference)
+
+class _OperationLease:
+    def observe_quarantine_source(self):
+        return ledger._rescan_under_existing_mutex(mutex)
+
+    def prepare_retained_restore(self):
+        return ledger._rescan_under_existing_mutex(mutex)
+
+    def authorize_quarantine(self):
+        ledger._rescan_under_existing_mutex(mutex)
+        boundary._finish_reserved_pair_for_job(reservation)
+
+    def execute_quarantine_pair(self):
+        boundary._validate_reserved_pair_for_job(reservation)
+        ledger._rescan_under_existing_mutex(mutex)
+        writer._issue_directory_publish_journal_permit(tree)
+        writer._publish_observed_directory_no_replace(tree, target, journal)
+        operation_ledger.transaction_result_under_existing_mutex(mutex, transaction)
+        boundary._finish_reserved_pair_for_job(reservation)
+
+class _ObservedQuarantineTreeLease:
+    def revalidate(self):
+        return self._operation._runtime._ledger._rescan_under_existing_mutex(
+            self._operation._mutex
+        )
+
+class _RetainedRestoreSourceLease:
+    def operation_tree_evidence(self):
+        ledger = self._operation._runtime._operation_ledger
+        root = self._operation._runtime._writer._observe_identity(handle)
+        self._operation._runtime._writer._same_object(observed, root)
+        return ledger.durable_tree_evidence_identity_digest(
+            root.volume_serial,
+            root.file_id,
+            self.revalidate().tree_identity_material,
+        )
+'''
+    assert (
+        scan_unauthorized_guard_source(
+            job_source,
+            file="app/safety/job_operation.py",
+        )
+        == ()
+    )
+
+    recovery_source = '''
+class _BoundaryCore:
+    def consume_restricted_recovery_locator(self, capability, transaction_id):
+        record = self.__restricted_recovery_records.get(locator_id)
+        quarantine_pair_id = (
+            record.target_relative_path.name
+            if record.context.purpose is Purpose.QUARANTINE
+            else None
+        )
+        return quarantine_pair_id
+'''
+    assert (
+        scan_unauthorized_guard_source(
+            recovery_source,
+            file="app/safety/production_guard.py",
+        )
+        == ()
+    )
+
+
+@pytest.mark.parametrize(
+    ("file", "source", "expected"),
+    [
+        (
+            "app/safety/job_operation.py",
+            "class _TestJobRuntime:\n"
+            "    def replay_committed_quarantine_extra(self):\n"
+            "        return ledger.operation_result_under_existing_mutex(mutex, ref)\n",
+            "restricted private call operation_result_under_existing_mutex",
+        ),
+        (
+            "app/safety/job_operation.py",
+            "class _ObservedQuarantineTreeLease:\n"
+            "    def unrelated(self):\n"
+            "        return self._operation._runtime._ledger\n",
+            "sensitive authority attribute access",
+        ),
+        (
+            "app/safety/job_operation.py",
+            "class _RetainedRestoreSourceLease:\n"
+            "    def unrelated(self):\n"
+            "        return self._operation._runtime._writer\n",
+            "sensitive authority attribute access",
+        ),
+        (
+            "app/safety/production_guard.py",
+            "class _BoundaryCore:\n"
+            "    def consume_restricted_recovery_locator(self, capability, transaction_id):\n"
+            "        record = self.__restricted_recovery_records.get(locator_id)\n"
+            "        leaked = (\n"
+            "            record.target_relative_path.name\n"
+            "            if record.context.purpose is Purpose.QUARANTINE\n"
+            "            else None\n"
+            "        )\n",
+            "restricted recovery attribute access",
+        ),
+        (
+            "app/safety/production_guard.py",
+            "class _BoundaryCore:\n"
+            "    def consume_restricted_recovery_locator(self, capability, transaction_id):\n"
+            "        record = self.__restricted_recovery_records.get(locator_id)\n"
+            "        return record.target_relative_path.name\n",
+            "restricted recovery attribute access",
+        ),
+    ],
+)
+def test_quarantine_and_retained_restore_scopes_fail_closed(
+    file: str,
+    source: str,
+    expected: str,
+) -> None:
+    details = {
+        detail
+        for _finding_file, _line, detail in scan_unauthorized_guard_source(
+            source,
+            file=file,
+        )
+    }
+    assert any(expected in detail for detail in details)
+
+
 def test_s3_f_copy_authority_bypasses_and_plain_attribute_chains_are_visible() -> None:
     findings = scan_unauthorized_guard_source(
         '''

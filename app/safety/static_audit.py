@@ -1022,9 +1022,11 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         },
         "_issue_directory_publish_journal_permit": {
             (job_file, "_OperationLease.execute_publish_pair"),
+            (job_file, "_OperationLease.execute_quarantine_pair"),
         },
         "_publish_observed_directory_no_replace": {
             (job_file, "_OperationLease.execute_publish_pair"),
+            (job_file, "_OperationLease.execute_quarantine_pair"),
         },
         "_observe_existing_tree_snapshot": {
             (allowed_file, "_reconcile_test_publish_operation.observe_once"),
@@ -1062,6 +1064,7 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         "transaction_result_under_existing_mutex": {
             (allowed_file, "_reconcile_test_publish_operation"),
             (job_file, "_OperationLease.execute_publish_pair"),
+            (job_file, "_OperationLease.execute_quarantine_pair"),
             (copy_operation_file, "_TestLocalCopyOperation._try_replay"),
             (
                 copy_operation_file,
@@ -1095,6 +1098,7 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         },
         "operation_result_under_existing_mutex": {
             (job_file, "_TestJobRuntime.replay_committed_publish"),
+            (job_file, "_TestJobRuntime.replay_committed_quarantine"),
             (job_file, "_TestJobRuntime.begin_operation"),
             (copy_operation_file, "_TestLocalCopyOperation._append_failure_fact"),
             (
@@ -1104,11 +1108,17 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         },
         "_rescan_under_existing_mutex": {
             (job_file, "_TestJobRuntime.replay_committed_publish"),
+            (job_file, "_TestJobRuntime.replay_committed_quarantine"),
             (job_file, "_TestJobRuntime.begin_operation"),
+            (job_file, "_OperationLease.observe_quarantine_source"),
+            (job_file, "_OperationLease.prepare_retained_restore"),
             (job_file, "_OperationLease.authorize_publish"),
+            (job_file, "_OperationLease.authorize_quarantine"),
             (job_file, "_OperationLease.execute_publish_pair"),
+            (job_file, "_OperationLease.execute_quarantine_pair"),
             (job_file, "_JobStagingLease.seal_and_observe"),
             (job_file, "_ObservedJobTreeLease.revalidate"),
+            (job_file, "_ObservedQuarantineTreeLease.revalidate"),
             (operation_file, "DurableOperationLedger.unresolved_under_existing_mutex"),
             (operation_file, "DurableOperationLedger.operation_result_under_existing_mutex"),
             (operation_file, "DurableOperationLedger.transaction_result_under_existing_mutex"),
@@ -1202,11 +1212,14 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         },
         "_finish_reserved_pair_for_job": {
             (job_file, "_OperationLease.authorize_publish"),
+            (job_file, "_OperationLease.authorize_quarantine"),
             (job_file, "_OperationLease.execute_publish_pair"),
+            (job_file, "_OperationLease.execute_quarantine_pair"),
             (job_file, "_OperationLease.close"),
         },
         "_validate_reserved_pair_for_job": {
             (job_file, "_OperationLease.execute_publish_pair"),
+            (job_file, "_OperationLease.execute_quarantine_pair"),
         },
         "_seal_recovery_contradiction": {
             (allowed_file, "_reconcile_test_publish_operation"),
@@ -1349,6 +1362,7 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         },
         "operation_reference": {
             (job_file, "_TestJobRuntime.replay_committed_publish"),
+            (job_file, "_TestJobRuntime.replay_committed_quarantine"),
             (job_file, "_TestJobRuntime.begin_operation"),
             (job_file, "_PublishOperationJournal._append"),
             (
@@ -1933,6 +1947,8 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         (allowed_file, "_TestWorkspaceBoundary._consume_restricted_recovery_locator"),
         (allowed_file, "_TestWorkspaceBoundary._issue_restricted_copy_recovery_locator"),
         (allowed_file, "_TestWorkspaceBoundary._consume_restricted_copy_recovery_locator"),
+        (job_file, "_ObservedQuarantineTreeLease.revalidate"),
+        (job_file, "_RetainedRestoreSourceLease.operation_tree_evidence"),
     }
 
     def authority_attribute_access_allowed(enclosing: str) -> bool:
@@ -2186,7 +2202,67 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
                 and not canonical_other.args
                 and not canonical_other.keywords
             )
-            return exact_type_check or canonical_compare
+            quarantine_name = parent
+            quarantine_choice = (
+                module.parents.get(quarantine_name)
+                if isinstance(quarantine_name, ast.Attribute)
+                else None
+            )
+            quarantine_assignment = (
+                module.parents.get(quarantine_choice)
+                if isinstance(quarantine_choice, ast.IfExp)
+                else None
+            )
+            quarantine_test = (
+                quarantine_choice.test
+                if isinstance(quarantine_choice, ast.IfExp)
+                else None
+            )
+            exact_quarantine_pair_id_derivation = (
+                attribute == "target_relative_path"
+                and isinstance(node.value, ast.Name)
+                and node.value.id == "record"
+                and isinstance(quarantine_name, ast.Attribute)
+                and quarantine_name.value is node
+                and quarantine_name.attr == "name"
+                and isinstance(quarantine_choice, ast.IfExp)
+                and quarantine_choice.body is quarantine_name
+                and isinstance(quarantine_choice.orelse, ast.Constant)
+                and quarantine_choice.orelse.value is None
+                and isinstance(quarantine_test, ast.Compare)
+                and isinstance(quarantine_test.left, ast.Attribute)
+                and quarantine_test.left.attr == "purpose"
+                and isinstance(quarantine_test.left.value, ast.Attribute)
+                and quarantine_test.left.value.attr == "context"
+                and isinstance(quarantine_test.left.value.value, ast.Name)
+                and quarantine_test.left.value.value.id == "record"
+                and len(quarantine_test.ops) == 1
+                and isinstance(quarantine_test.ops[0], ast.Is)
+                and len(quarantine_test.comparators) == 1
+                and isinstance(quarantine_test.comparators[0], ast.Attribute)
+                and isinstance(quarantine_test.comparators[0].value, ast.Name)
+                and quarantine_test.comparators[0].value.id == "Purpose"
+                and quarantine_test.comparators[0].attr == "QUARANTINE"
+                and (
+                    (
+                        isinstance(quarantine_assignment, ast.Assign)
+                        and len(quarantine_assignment.targets) == 1
+                        and isinstance(quarantine_assignment.targets[0], ast.Name)
+                        and quarantine_assignment.targets[0].id
+                        == "quarantine_pair_id"
+                    )
+                    or (
+                        isinstance(quarantine_assignment, ast.AnnAssign)
+                        and isinstance(quarantine_assignment.target, ast.Name)
+                        and quarantine_assignment.target.id == "quarantine_pair_id"
+                    )
+                )
+            )
+            return (
+                exact_type_check
+                or canonical_compare
+                or exact_quarantine_pair_id_derivation
+            )
         return allowed
 
     def assigned_local_name(call: ast.Call) -> str | None:

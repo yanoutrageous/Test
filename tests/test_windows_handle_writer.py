@@ -143,7 +143,7 @@ def test_rename_info_has_a_wchar_terminator_outside_the_declared_name() -> None:
     offset = _FileRenameInfo.file_name.offset
     assert captured["handle"] == 41
     assert captured["information_class"] == _WindowsApi.FILE_RENAME_INFO
-    assert captured["buffer_size"] == offset + len(encoded) + 2
+    assert captured["buffer_size"] == ctypes.sizeof(_FileRenameInfo) + len(encoded)
     assert raw[offset : offset + len(encoded)] == encoded
     assert raw[offset + len(encoded) : offset + len(encoded) + 2] == b"\0\0"
     rename = _FileRenameInfo.from_buffer_copy(raw[: ctypes.sizeof(_FileRenameInfo)])

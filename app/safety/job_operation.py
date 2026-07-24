@@ -8,6 +8,7 @@ import threading
 import time
 import unicodedata
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path
 from typing import Any, Protocol
@@ -991,6 +992,7 @@ class _OperationLease:
         "_started_at",
         "_staging",
         "_quarantine_source",
+        "_quarantine_partition",
         "_retained_restore",
         "_reserved_pair",
         "_pair_token",
@@ -1031,6 +1033,7 @@ class _OperationLease:
         self._started_at = time.monotonic()
         self._staging: _JobStagingLease | None = None
         self._quarantine_source: _ObservedQuarantineTreeLease | None = None
+        self._quarantine_partition: DirectoryHandleLease | None = None
         self._retained_restore: _PreparedRetainedRestore | None = None
         self._reserved_pair: Any | None = None
         self._pair_token: Any | None = None
@@ -1434,9 +1437,24 @@ class _OperationLease:
             )
         token: Any | None = None
         reservation: Any | None = None
+        partition_lease: DirectoryHandleLease | None = None
         try:
+            quarantine_date = datetime.now(UTC).date().isoformat()
+            partition_relative = (
+                Path("data")
+                / "quarantine"
+                / self._context.classification.value
+                / quarantine_date
+            )
+            partition_lease = (
+                self._runtime._writer._open_or_create_quarantine_partition(
+                    partition_relative,
+                    self._mutex,
+                )
+            )
             token = self._runtime._boundary._issue_quarantine_pair_for_job(
                 observed._source_relative_path,
+                quarantine_date=quarantine_date,
                 manifest_id=self._manifest.manifest_id,
                 manifest_sha256=evidence.manifest_sha256,
                 source_tree_sha256=evidence.source_tree_sha256,
@@ -1462,6 +1480,7 @@ class _OperationLease:
             if (
                 view.source_relative_path != observed._source_relative_path
                 or getattr(view.kind, "value", None) != "QUARANTINE"
+                or view.target_relative_path.parent != partition_relative
                 or declared.manifest_sha256 != evidence.manifest_sha256
                 or declared.source_tree_sha256 != evidence.source_tree_sha256
                 or declared.entry_count != evidence.entry_count
@@ -1503,6 +1522,8 @@ class _OperationLease:
             self._pair_token = token
             self._pair_view = view
             self._transaction_id = f"TXN-{transaction_digest[:32]}"
+            self._quarantine_partition = partition_lease
+            partition_lease = None
             self._state = "QUARANTINE_PAIR_RESERVED"
             return token
         except BaseException:
@@ -1515,6 +1536,11 @@ class _OperationLease:
                         binding_sha256=self._context_binding,
                         lifecycle="FAILED",
                     )
+                except BaseException:
+                    self._runtime._writer.seal_after_indeterminate_mutation()
+            if partition_lease is not None and not partition_lease._closed:
+                try:
+                    partition_lease.close()
                 except BaseException:
                     self._runtime._writer.seal_after_indeterminate_mutation()
             self._state = "QUARANTINE_AUTHORIZATION_FAILED_SOURCE_RETAINED"
@@ -1727,6 +1753,7 @@ class _OperationLease:
             or observed is not self._quarantine_source
             or self._reserved_pair is None
             or self._pair_view is None
+            or self._quarantine_partition is None
             or getattr(self._pair_view.kind, "value", None) != "QUARANTINE"
             or self._transaction_id is None
         ):
@@ -1788,6 +1815,7 @@ class _OperationLease:
                     self._pair_view.target_relative_path,
                     journal,
                     quarantine=True,
+                    target_parent_lease=self._quarantine_partition,
                 )
             )
             committed = journal.committed_receipt
@@ -2038,6 +2066,15 @@ class _OperationLease:
         if self._quarantine_source is not None and not self._quarantine_source._closed:
             try:
                 self._quarantine_source.close()
+            except BaseException as exc:
+                self._close_had_secondary_error = True
+                close_error = close_error or exc
+        if (
+            self._quarantine_partition is not None
+            and not self._quarantine_partition._closed
+        ):
+            try:
+                self._quarantine_partition.close()
             except BaseException as exc:
                 self._close_had_secondary_error = True
                 close_error = close_error or exc
@@ -3196,7 +3233,6 @@ def _validate_internal_quarantine_object_path(
         or path.parts[:3] != ("data", "quarantine", "INTERNAL")
         or any(part in {"", ".", ".."} for part in path.parts)
         or len(path.parts[4]) != 32
-        or path.parts[4] != path.parts[4].upper()
         or any(character not in "0123456789ABCDEF" for character in path.parts[4])
     ):
         raise JobOperationError(

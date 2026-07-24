@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import gzip
 import hashlib
 import json
 import os
@@ -15,6 +16,7 @@ import scripts.run_safe_pytest as launcher_module
 from scripts.run_safe_pytest import (
     RUN_ID_PATTERN,
     RUN_RESULT_SCHEMA_VERSION,
+    PROTECTED_TREE_SNAPSHOT_FORMAT,
     SOURCE_WITNESS_FILE_NAME,
     SOURCE_WITNESS_SCHEMA_VERSION,
     SOURCE_WITNESS_SCOPE,
@@ -40,6 +42,7 @@ from scripts.run_safe_pytest import (
     _validate_source_witness_bytes,
     _verify_run_tree_no_reparse,
     _windows_extended_path,
+    _write_gzip_json_exclusive,
     _write_json_exclusive,
     main,
 )
@@ -179,6 +182,27 @@ def test_evidence_json_round_trips_an_unpaired_utf16_code_unit(
     raw = evidence.read_bytes()
     assert b"\\udedf" in raw
     assert json.loads(raw)["value"] == value
+
+
+def test_protected_snapshot_is_deterministic_compressed_and_exclusive(
+    tmp_path: Path,
+) -> None:
+    first = tmp_path / "first.json.gz"
+    second = tmp_path / "second.json.gz"
+    payload = {
+        "schema_version": "1.0",
+        "entry_count": 1,
+        "entries": {"F:中文.txt": {"kind": "file", "sha256": "a" * 64}},
+    }
+
+    _write_gzip_json_exclusive(first, payload)
+    _write_gzip_json_exclusive(second, payload)
+
+    assert PROTECTED_TREE_SNAPSHOT_FORMAT == "gzip-canonical-json-v1"
+    assert first.read_bytes() == second.read_bytes()
+    assert json.loads(gzip.decompress(first.read_bytes())) == payload
+    with pytest.raises(FileExistsError):
+        _write_gzip_json_exclusive(first, payload)
 
 
 def test_source_witness_is_canonical_authenticated_and_path_redacted() -> None:
@@ -1321,6 +1345,45 @@ def test_process_job_reports_and_kills_an_unexpected_background_child(
     assert not _pid_is_running(pid)
 
 
+def test_process_output_is_captured_inside_the_run_root(tmp_path: Path) -> None:
+    code = (
+        "import sys; "
+        "print('captured stdout', flush=True); "
+        "print('captured stderr', file=sys.stderr, flush=True)"
+    )
+    exit_code, timed_out, tree_terminated, budget_error, _budget_peak = (
+        _run_test_process(
+            [sys.executable, "-B", "-c", code],
+            project_root=Path(__file__).parent.parent,
+            run_root=tmp_path,
+            environment=os.environ.copy(),
+            timeout_seconds=10,
+        )
+    )
+    assert exit_code == 0
+    assert not timed_out
+    assert tree_terminated
+    assert budget_error is None
+    assert (tmp_path / "pytest-stdout.log").read_text(
+        encoding="utf-8"
+    ) == "captured stdout\n"
+    assert (tmp_path / "pytest-stderr.log").read_text(
+        encoding="utf-8"
+    ) == "captured stderr\n"
+
+
+def test_process_output_capture_refuses_existing_log_targets(tmp_path: Path) -> None:
+    (tmp_path / "pytest-stdout.log").write_bytes(b"existing")
+    with pytest.raises(SafetyStop, match="output logs must not exist"):
+        _run_test_process(
+            [sys.executable, "-B", "-c", "pass"],
+            project_root=Path(__file__).parent.parent,
+            run_root=tmp_path,
+            environment=os.environ.copy(),
+            timeout_seconds=10,
+        )
+
+
 def test_process_job_terminates_the_full_tree_on_timeout(tmp_path: Path) -> None:
     child_pid = tmp_path / "timeout-child.pid"
     parent_code = (
@@ -1491,7 +1554,7 @@ def test_effective_exit_code_records_protected_state_gate_and_skips() -> None:
 
 
 def test_only_copy_bearing_modes_require_a_registered_source_witness() -> None:
-    assert RUN_RESULT_SCHEMA_VERSION == "1.1"
+    assert RUN_RESULT_SCHEMA_VERSION == "1.2"
     assert SOURCE_REGISTRATION_REQUIRED_MODES == frozenset(
         {"full", "s3f", "s3f_core"}
     )

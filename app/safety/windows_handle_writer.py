@@ -13,6 +13,7 @@ import threading
 import unicodedata
 from contextlib import contextmanager
 from dataclasses import dataclass, field
+from datetime import date
 from enum import StrEnum
 from pathlib import Path
 from typing import Any, Iterator, NoReturn, Protocol
@@ -1342,6 +1343,71 @@ class _WindowsApi:
             post_success_code=HandleWriterCode.MUTATION_IN_DOUBT,
         )
 
+    def create_relative_quarantine_partition(
+        self,
+        parent_handle: int,
+        name: str,
+    ) -> int:
+        """Create and retain a read-only handle to a fixed partition."""
+
+        return self._nt_create_relative(
+            parent_handle,
+            name,
+            desired_access=(
+                self.FILE_LIST_DIRECTORY
+                | self.FILE_TRAVERSE
+                | self.FILE_READ_ATTRIBUTES
+                | self.SYNCHRONIZE
+            ),
+            # Windows opens the rename target directory internally for write.
+            # The retained RootDirectory handle therefore requests no write
+            # access itself and shares that internal write, while still
+            # denying DELETE sharing so the partition cannot be replaced.
+            share_access=self.FILE_SHARE_READ | self.FILE_SHARE_WRITE,
+            create_disposition=self.NT_FILE_CREATE,
+            create_options=(
+                self.FILE_DIRECTORY_FILE
+                | self.FILE_WRITE_THROUGH
+                | self.FILE_SYNCHRONOUS_IO_NONALERT
+                | self.NT_FILE_OPEN_REPARSE_POINT
+            ),
+            expected_information=self.FILE_CREATED,
+            conflict_code=HandleWriterCode.DIRECTORY_CREATE_FAILED,
+            post_success_code=HandleWriterCode.MUTATION_IN_DOUBT,
+        )
+
+    def open_relative_quarantine_partition(
+        self,
+        parent_handle: int,
+        name: str,
+    ) -> int:
+        """Open an existing fixed partition for observation and relative rename."""
+
+        return self._nt_create_relative(
+            parent_handle,
+            name,
+            desired_access=(
+                self.FILE_LIST_DIRECTORY
+                | self.FILE_TRAVERSE
+                | self.FILE_READ_ATTRIBUTES
+                | self.SYNCHRONIZE
+            ),
+            # Match the fixed-partition create contract: the kernel's target
+            # write may coexist, while rename/delete of the partition itself
+            # remains denied.
+            share_access=self.FILE_SHARE_READ | self.FILE_SHARE_WRITE,
+            create_disposition=self.NT_FILE_OPEN,
+            create_options=(
+                self.FILE_DIRECTORY_FILE
+                | self.FILE_WRITE_THROUGH
+                | self.FILE_SYNCHRONOUS_IO_NONALERT
+                | self.NT_FILE_OPEN_REPARSE_POINT
+            ),
+            expected_information=self.FILE_OPENED,
+            conflict_code=HandleWriterCode.HANDLE_OPEN_FAILED,
+            post_success_code=HandleWriterCode.HANDLE_OPEN_FAILED,
+        )
+
     def create_relative_file(self, parent_handle: int, name: str) -> int:
         return self._nt_create_relative(
             parent_handle,
@@ -1484,7 +1550,19 @@ class _WindowsApi:
             )
 
     def rename_by_handle_no_replace(self, handle: int, target: Path) -> None:
-        target_text = self._win32_path_text(target)
+        self._rename_by_handle_no_replace(
+            handle,
+            self._win32_path_text(target),
+            root_directory=None,
+        )
+
+    def _rename_by_handle_no_replace(
+        self,
+        handle: int,
+        target_text: str,
+        *,
+        root_directory: int | None,
+    ) -> None:
         encoded = target_text.encode("utf-16-le", "strict")
         if not encoded or len(encoded) > 64 * 1024 or len(encoded) % 2:
             raise HandleWriterError(
@@ -1492,17 +1570,16 @@ class _WindowsApi:
                 "rename target has an invalid bounded Windows name",
             )
         name_offset = int(_FileRenameInfo.file_name.offset)
-        # FILE_RENAME_INFO.FileNameLength excludes the terminator, while the
-        # variable-length WCHAR buffer still needs room for one.  Supplying an
-        # unterminated buffer can make a filesystem driver consume adjacent
-        # bytes and append stale characters to the destination name.
-        wchar_nul_size = ctypes.sizeof(ctypes.c_wchar)
+        # Windows requires at least sizeof(FILE_RENAME_INFO) plus the declared
+        # FileName bytes.  Using only the FileName field offset under-allocates
+        # the variable-length structure on 64-bit Windows.  The zeroed tail
+        # also supplies a terminator even though FileNameLength excludes it.
         buffer = ctypes.create_string_buffer(
-            name_offset + len(encoded) + wchar_nul_size
+            ctypes.sizeof(_FileRenameInfo) + len(encoded)
         )
         rename = ctypes.cast(buffer, ctypes.POINTER(_FileRenameInfo)).contents
         rename.replace_if_exists = 0
-        rename.root_directory = None
+        rename.root_directory = root_directory
         rename.file_name_length = len(encoded)
         ctypes.memmove(ctypes.addressof(buffer) + name_offset, encoded, len(encoded))
         if not self.kernel32.SetFileInformationByHandle(
@@ -1721,6 +1798,7 @@ class _WindowsHandleWriter:
             result = self._create_directory_lease_impl(
                 ticket,
                 parent_lease=parent_lease,
+                fixed_quarantine_partition=False,
             )
         except HandleWriterError as exc:
             if exc.code is HandleWriterCode.HANDLE_CLOSE_FAILED:
@@ -1751,7 +1829,13 @@ class _WindowsHandleWriter:
         ticket: GuardedPath,
         *,
         parent_lease: DirectoryHandleLease | None,
+        fixed_quarantine_partition: bool,
     ) -> DirectoryHandleLease:
+        if type(fixed_quarantine_partition) is not bool:
+            raise HandleWriterError(
+                HandleWriterCode.INVALID_REQUEST,
+                "directory creation mode must be exact",
+            )
         with self._reserved(
             ticket,
             PathIntent.CREATE_DIRECTORY,
@@ -1799,9 +1883,16 @@ class _WindowsHandleWriter:
                     )
                 self._after_fences(ticket)
                 self._revalidate(ticket)
-                created_handle = self._api.create_relative_directory(
-                    parent_handle,
-                    ticket.path.name,
+                created_handle = (
+                    self._api.create_relative_quarantine_partition(
+                        parent_handle,
+                        ticket.path.name,
+                    )
+                    if fixed_quarantine_partition
+                    else self._api.create_relative_directory(
+                        parent_handle,
+                        ticket.path.name,
+                    )
                 )
                 observed = self._observe_identity(created_handle)
                 if not observed.is_directory or observed.link_count < 1:
@@ -1860,6 +1951,137 @@ class _WindowsHandleWriter:
                     self._api._win32_path_text(ticket.path)
                 ):
                     self._seal(HandleWriterCode.MUTATION_IN_DOUBT)
+                if close_error is not None:
+                    self._seal(HandleWriterCode.HANDLE_CLOSE_FAILED)
+                    raise close_error
+
+    def _open_or_create_quarantine_partition(
+        self,
+        relative_path: str | os.PathLike[str],
+        mutex: RuntimeMutexLease,
+    ) -> DirectoryHandleLease:
+        """Bind one exact classification/date partition for a quarantine move."""
+
+        self._require_unsealed()
+        if type(mutex) is not RuntimeMutexLease:
+            raise HandleWriterError(
+                HandleWriterCode.MUTEX_FAILED,
+                "quarantine partition binding requires the exact runtime mutex",
+            )
+        mutex._assert_live_owner(self)
+        canonical = self._validated_quarantine_partition(relative_path)
+        if os.path.lexists(self._api._win32_path_text(self._workspace_root / canonical)):
+            ticket = self._authorize(
+                canonical,
+                intent=PathIntent.EXISTING_READ,
+                expected_kind=ExpectedKind.DIRECTORY,
+            )
+            return self._open_existing_quarantine_partition_lease(ticket, mutex)
+
+        ticket = self._authorize(
+            canonical,
+            intent=PathIntent.CREATE_DIRECTORY,
+            expected_kind=ExpectedKind.DIRECTORY,
+        )
+        try:
+            lease = self._create_directory_lease_impl(
+                ticket,
+                parent_lease=None,
+                fixed_quarantine_partition=True,
+            )
+            mutex._assert_live_owner(self)
+            return lease
+        except HandleWriterError:
+            raise
+        except Exception:
+            self._seal(HandleWriterCode.MUTATION_IN_DOUBT)
+            raise HandleWriterError(
+                HandleWriterCode.MUTATION_IN_DOUBT,
+                "quarantine partition creation failed indeterminately",
+            ) from None
+
+    def _open_existing_quarantine_partition_lease(
+        self,
+        ticket: GuardedPath,
+        mutex: RuntimeMutexLease,
+    ) -> DirectoryHandleLease:
+        lease: DirectoryHandleLease | None = None
+        fences: list[int] = []
+        partition_handle = 0
+        succeeded = False
+        try:
+            with self._reserved(
+                ticket,
+                PathIntent.EXISTING_READ,
+                ExpectedKind.DIRECTORY,
+            ):
+                mutex._assert_live_owner(self)
+                self._revalidate(ticket)
+                if (
+                    not ticket.chain_snapshot
+                    or ticket.chain_snapshot[-1].path != ticket.path
+                    or len(ticket.chain_snapshot) < 2
+                    or ticket.chain_snapshot[-2].path != ticket.path.parent
+                ):
+                    raise HandleWriterError(
+                        HandleWriterCode.PRECONDITION_FAILED,
+                        "existing quarantine partition lacks its exact parent chain",
+                    )
+                fences = self._fence_snapshot(ticket, omit_final=True)
+                if not fences:
+                    raise HandleWriterError(
+                        HandleWriterCode.PRECONDITION_FAILED,
+                        "existing quarantine partition lacks a verified parent fence",
+                    )
+                partition_handle = self._api.open_relative_quarantine_partition(
+                    fences[-1],
+                    ticket.path.name,
+                )
+                observed = self._observe_identity(partition_handle)
+                if not observed.is_directory or observed.link_count < 1:
+                    raise HandleWriterError(
+                        HandleWriterCode.TYPE_MISMATCH,
+                        "existing quarantine partition is not a directory",
+                    )
+                self._require_default_stream_only(partition_handle, directory=True)
+                self._verify_identity(ticket.chain_snapshot[-1], observed)
+                self._verify_final_path(partition_handle, ticket.path)
+                self._verify_path_matches_handle(ticket.path, observed)
+                after = self._observe_identity(partition_handle)
+                if not self._same_object(observed, after):
+                    raise HandleWriterError(
+                        HandleWriterCode.HANDLE_IDENTITY_MISMATCH,
+                        "existing quarantine partition identity changed while binding",
+                    )
+                lease = DirectoryHandleLease(
+                    self,
+                    partition_handle,
+                    ticket.path,
+                    observed,
+                    fence_handles=tuple(fences),
+                    _constructor=_DIRECTORY_LEASE_CONSTRUCTOR,
+                )
+                partition_handle = 0
+                fences = []
+                succeeded = True
+                return lease
+        finally:
+            if not succeeded:
+                close_error: HandleWriterError | None = None
+                if lease is not None and not lease._closed:
+                    try:
+                        lease.close()
+                    except HandleWriterError as exc:
+                        close_error = exc
+                if partition_handle:
+                    try:
+                        self._api.close(partition_handle)
+                    except HandleWriterError as exc:
+                        close_error = close_error or exc
+                try:
+                    self._close_all(fences)
+                except HandleWriterError as exc:
+                    close_error = close_error or exc
                 if close_error is not None:
                     self._seal(HandleWriterCode.HANDLE_CLOSE_FAILED)
                     raise close_error
@@ -3825,6 +4047,7 @@ class _WindowsHandleWriter:
         journal: Any,
         *,
         quarantine: bool = False,
+        target_parent_lease: DirectoryHandleLease | None = None,
     ) -> DirectoryPublishReceipt:
         """Move one observed directory root through its existing DELETE handle.
 
@@ -3847,6 +4070,11 @@ class _WindowsHandleWriter:
             type(observed_tree) is not _ObservedTreeLease
             or type(permit) is not _DirectoryPublishJournalPermit
             or type(quarantine) is not bool
+            or (
+                quarantine
+                and type(target_parent_lease) is not DirectoryHandleLease
+            )
+            or (not quarantine and target_parent_lease is not None)
             or any(not callable(getattr(journal, name, None)) for name in required_callbacks)
         ):
             raise HandleWriterError(
@@ -3926,14 +4154,35 @@ class _WindowsHandleWriter:
             self._require_default_stream_only(root._handle, directory=True)
             self._verify_final_path(root._handle, source.path)
             self._verify_path_matches_handle(source.path, source_root_before)
-            target_fences = self._fence_snapshot(target)
-            if not target_fences:
-                raise HandleWriterError(
-                    HandleWriterCode.PRECONDITION_FAILED,
-                    "directory publish target lacks a verified parent fence",
-                )
-            target_parent_handle = target_fences[-1]
-            target_parent = self._observe_identity(target_parent_handle)
+            if target_parent_lease is not None:
+                target_parent_lease._assert_live_owner(self)
+                if (
+                    ntpath.normcase(
+                        ntpath.normpath(str(target_parent_lease._path))
+                    )
+                    != ntpath.normcase(ntpath.normpath(str(target.path.parent)))
+                    or not target.chain_snapshot
+                    or target.chain_snapshot[-1].path != target.path.parent
+                ):
+                    raise HandleWriterError(
+                        HandleWriterCode.INVALID_TICKET,
+                        "quarantine partition lease does not bind the target parent",
+                    )
+                target_fences = self._fence_snapshot(target, omit_final=True)
+                target_parent_handle = target_parent_lease._handle
+                target_parent = self._observe_identity(target_parent_handle)
+                self._verify_identity(target.chain_snapshot[-1], target_parent)
+                self._verify_final_path(target_parent_handle, target.path.parent)
+                self._verify_path_matches_handle(target.path.parent, target_parent)
+            else:
+                target_fences = self._fence_snapshot(target)
+                if not target_fences:
+                    raise HandleWriterError(
+                        HandleWriterCode.PRECONDITION_FAILED,
+                        "directory publish target lacks a verified parent fence",
+                    )
+                target_parent_handle = target_fences[-1]
+                target_parent = self._observe_identity(target_parent_handle)
             if (
                 not target_parent.is_directory
                 or target_parent.volume_serial != source_root_before.volume_serial
@@ -3980,6 +4229,24 @@ class _WindowsHandleWriter:
                 capabilities_consumed = True
                 self._revalidate(source)
                 self._revalidate(target)
+                if target_parent_lease is not None:
+                    target_parent_lease._assert_live_owner(self)
+                    current_target_parent = self._observe_identity(
+                        target_parent_lease._handle
+                    )
+                    if not self._same_object(target_parent, current_target_parent):
+                        raise HandleWriterError(
+                            HandleWriterCode.HANDLE_IDENTITY_MISMATCH,
+                            "quarantine partition identity changed at mutation boundary",
+                        )
+                    self._verify_final_path(
+                        target_parent_lease._handle,
+                        target.path.parent,
+                    )
+                    self._verify_path_matches_handle(
+                        target.path.parent,
+                        current_target_parent,
+                    )
                 if observed_tree.revalidate() != source_snapshot:
                     raise HandleWriterError(
                         HandleWriterCode.DIRECTORY_CHANGED,
@@ -4014,7 +4281,10 @@ class _WindowsHandleWriter:
                 mutation_attempted = True
                 self._after_directory_publish_prepared(source, target)
                 try:
-                    self._api.rename_by_handle_no_replace(root._handle, target.path)
+                    self._api.rename_by_handle_no_replace(
+                        root._handle,
+                        target.path,
+                    )
                 except HandleWriterError as exc:
                     if exc.code is HandleWriterCode.TARGET_CONFLICT:
                         mutation_attempted = False
@@ -4359,6 +4629,44 @@ class _WindowsHandleWriter:
                 "SHA-256 preconditions must be lowercase hexadecimal",
             )
         return value
+
+    @staticmethod
+    def _validated_quarantine_partition(
+        value: str | os.PathLike[str],
+    ) -> Path:
+        try:
+            raw = os.fspath(value)
+        except TypeError:
+            raw = None
+        if type(raw) is not str:
+            raise HandleWriterError(
+                HandleWriterCode.INVALID_REQUEST,
+                "quarantine partition path must be exact text",
+            )
+        candidate = Path(raw)
+        if (
+            candidate.is_absolute()
+            or len(candidate.parts) != 4
+            or candidate.parts[:2] != ("data", "quarantine")
+            or candidate.parts[2] not in {"INTERNAL", "RESTRICTED"}
+        ):
+            raise HandleWriterError(
+                HandleWriterCode.INVALID_REQUEST,
+                "quarantine partition path is outside the fixed layout",
+            )
+        try:
+            parsed = date.fromisoformat(candidate.parts[3])
+        except ValueError:
+            raise HandleWriterError(
+                HandleWriterCode.INVALID_REQUEST,
+                "quarantine partition date is invalid",
+            ) from None
+        if parsed.isoformat() != candidate.parts[3]:
+            raise HandleWriterError(
+                HandleWriterCode.INVALID_REQUEST,
+                "quarantine partition date is non-canonical",
+            )
+        return candidate
 
     @contextmanager
     def _reserved(

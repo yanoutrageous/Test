@@ -274,6 +274,20 @@ S3-F 必须通过正常、边界、失败、恢复、安全、属性和故障注
 2. 公开 Copy-ledger `EXISTING_READ`票据只证明当前 context 的 RUN_ID 到 opaque epoch 路径映射唯一且由已激活 audit revision 支持；票据不解析 segment，也不证明 JSON、HMAC、previous-hash chain 或业务状态真实。任何正式消费者必须通过`DurableCopyLedgers`完整解析/HMAC 验证或使用 typed receipt，才能把读取字节当作账本事实。
 3. 上述限制不降低当前 Test-local Copy 的成功条件：本切片仍须对当前事务 fresh reopen 两条链并验证 source/copy/operation/audit 交叉祖先；限制只禁止把该当前事务证明外推为“所有历史 epoch 的完整 DAG 已验证”。
 
+## S3-G 实现冻结补充（2026-07-24）
+
+S3-G 在 Test-local candidate 中冻结以下合同：
+
+1. quarantine 固定目标为`data/quarantine/<classification>/<UTC-date>/<pair_id>`。日期由 boundary 在 operation 生命周期内钉住；`pair_id`为`YYYYMMDD`加 24 个大写十六进制字符，日期可复核且随机部分为 96 bit。
+2. mutation 只接受 exact `_ObservedQuarantineTreeLease`、`_ReservedPairLease`和 live target-partition handle。source 身份由 source-root handle 决定；target partition 从授权到 rename 始终持有 live parent lease。目标已存在、partition 被替换或任一身份漂移时不覆盖并 fail closed。
+3. Windows `FILE_RENAME_INFO.RootDirectory`相对形式在当前受支持环境返回 Win32 87，且文档合同不支持把它当作通用相对目录 rename。实现使用同卷固定根内的 absolute target、source-handle rename 与`ReplaceIfExists=false`，并在调用前复核 live target-parent lease。
+4. INTERNAL operation locator 使用 canonical safe-relative path；RESTRICTED locator 只持久 HMAC。RESTRICTED 重启恢复须由同 boundary、同 exact context 重新签发 owner-thread、single-use、purpose-bound opaque capability；不得从 HMAC 反推或在业务层保存明文路径。
+5. retained restore 只读观察 canonical INTERNAL quarantine object，复制到新 staging，完整复算后走普通 no-replace publish；quarantine 原对象始终保留。目标冲突不覆盖，source 改写或换身份时零发布。
+6. rename 前崩溃只可追加唯一`RECOVERED_ABORT`；rename 后只有 exact target evidence 唯一证明 mutation 时可追加`RECOVERED_COMMIT`。terminal replay 不再次 mutation；矛盾状态保持现场并 seal。
+7. S3-G 不增加永久 purge、通用 delete 或 production writer。生产 inventory 仍全部`UNMIGRATED_BLOCKED`，活动 SQLite 和真实资料不进入本切片。
+
+冻结证据为`RUN-20260724-M0-S3G-CORE-053`（16/16）、`RUN-20260724-M0-S3G-GATE-058`（543/543）和整理后重复门`RUN-20260724-M0-S3G-POSTCLEAN-059`（543/543）。GATE-058 的保护树前后 140,985 项，POSTCLEAN-059 降至 8,394 项；两轮的活动数据库、runtime watcher、句柄围栏、run tree、不可变证据、源码见证和进程树全部一致或有效。S3-H 的真实子进程 crash matrix、历史 operation resolver、全 DAG 复核和独立 S3 冻结审计仍是后续必需项。
+
 ## 回滚
 
 S3-A/B 只增加合同、Test-local候选代码和安全实验室证据，不迁移活动数据库、不移动业务资产、不改变活动指针。失败时以普通 Git revert 形成新提交；保留实验室和审计现场，不清理用户文件。

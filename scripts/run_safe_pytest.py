@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import gzip
 import hashlib
 import hmac
 import json
@@ -59,7 +60,8 @@ SOURCE_WITNESS_KEY_DOMAIN = b"SAFE-PYTEST-SOURCE-WITNESS-KEY-V1\0"
 SOURCE_WITNESS_LOCATOR_DOMAIN = b"SAFE-PYTEST-SOURCE-WITNESS-LOCATOR-V1\0"
 SOURCE_WITNESS_AUTH_DOMAIN = b"SAFE-PYTEST-SOURCE-WITNESS-AUTH-V1\0"
 SOURCE_REGISTRATION_REQUIRED_MODES = frozenset({"full", "s3f", "s3f_core"})
-RUN_RESULT_SCHEMA_VERSION = "1.1"
+RUN_RESULT_SCHEMA_VERSION = "1.2"
+PROTECTED_TREE_SNAPSHOT_FORMAT = "gzip-canonical-json-v1"
 SHA256_PATTERN = re.compile(r"[0-9a-f]{64}")
 WINDOWS_EXTENDED_PATH_PREFIX = "\\\\?\\"
 WINDOWS_EXTENDED_UNC_PREFIX = "\\\\?\\UNC\\"
@@ -1625,6 +1627,20 @@ def _write_json_exclusive(path: Path, payload: dict[str, Any]) -> None:
         handle.write("\n")
 
 
+def _write_gzip_json_exclusive(path: Path, payload: dict[str, Any]) -> None:
+    canonical = _canonical_json_bytes(payload) + b"\n"
+    compressed = gzip.compress(canonical, compresslevel=6, mtime=0)
+    with open(_filesystem_path(path), "xb") as handle:
+        handle.write(compressed)
+    try:
+        with gzip.open(_filesystem_path(path), "rb") as handle:
+            verified = handle.read()
+    except (OSError, EOFError) as exc:
+        raise SafetyStop("compressed protected-tree evidence is unreadable") from exc
+    if verified != canonical:
+        raise SafetyStop("compressed protected-tree evidence failed readback")
+
+
 def _build_command(
     project_root: Path,
     run_root: Path,
@@ -1732,6 +1748,10 @@ def _build_command(
     return command, basetemp, junit
 
 
+def _process_output_paths(run_root: Path) -> tuple[Path, Path]:
+    return run_root / "pytest-stdout.log", run_root / "pytest-stderr.log"
+
+
 def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Run pytest in a new, fail-closed Test-local safety laboratory.",
@@ -1777,6 +1797,24 @@ def _run_test_process(
     if os.name == "nt":
         creationflags = int(getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)) | 0x00000004
         job = _WindowsJob()
+    stdout_path, stderr_path = _process_output_paths(run_root)
+    if os.path.lexists(stdout_path) or os.path.lexists(stderr_path):
+        if job is not None:
+            job.close()
+        raise SafetyStop("pytest output logs must not exist before the child starts")
+    try:
+        stdout_handle = open(_filesystem_path(stdout_path), "xb", buffering=0)
+    except Exception:
+        if job is not None:
+            job.close()
+        raise
+    try:
+        stderr_handle = open(_filesystem_path(stderr_path), "xb", buffering=0)
+    except Exception:
+        stdout_handle.close()
+        if job is not None:
+            job.close()
+        raise
     try:
         process = subprocess.Popen(
             command,
@@ -1785,10 +1823,14 @@ def _run_test_process(
             shell=False,
             creationflags=creationflags,
             start_new_session=os.name != "nt",
+            stdout=stdout_handle,
+            stderr=stderr_handle,
         )
     except Exception:
         if job is not None:
             job.close()
+        stderr_handle.close()
+        stdout_handle.close()
         raise
     if job is not None:
         try:
@@ -1813,6 +1855,8 @@ def _run_test_process(
                         process.wait(timeout=30)
                     except Exception:
                         pass
+                    stderr_handle.close()
+                    stdout_handle.close()
             raise
     deadline = time.monotonic() + timeout_seconds
     next_budget_check = time.monotonic()
@@ -1893,6 +1937,8 @@ def _run_test_process(
     finally:
         if job is not None:
             job.close()
+        stderr_handle.close()
+        stdout_handle.close()
 
 
 def _effective_exit_code(
@@ -2008,6 +2054,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         mode=args.mode,
         exclude_symlink=args.exclude_symlink,
     )
+    pytest_stdout, pytest_stderr = _process_output_paths(run_root)
     database = project_root / "data" / "db" / "question_bank.sqlite3"
     _verify_existing_chain(database)
     if not database.is_file():
@@ -2017,8 +2064,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         excluded_root=run_root,
     )
     protected_digest_before = _snapshot_digest(protected_before)
-    _write_json_exclusive(
-        run_root / "protected-tree-before.json",
+    protected_before_path = run_root / "protected-tree-before.json.gz"
+    protected_after_path = run_root / "protected-tree-after.json.gz"
+    _write_gzip_json_exclusive(
+        protected_before_path,
         {
             "schema_version": "1.0",
             "entry_count": len(protected_before),
@@ -2079,6 +2128,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         "run_root": str(run_root),
         "basetemp": str(basetemp),
         "junit": str(junit),
+        "pytest_stdout": str(pytest_stdout),
+        "pytest_stderr": str(pytest_stderr),
         "command": command,
         "timeout_seconds": args.timeout_seconds,
         "launch_token_sha256": launch_token_sha256,
@@ -2104,6 +2155,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         },
         "protected_tree_entry_count_before": len(protected_before),
         "protected_tree_digest_before": protected_digest_before,
+        "protected_tree_snapshot_format": PROTECTED_TREE_SNAPSHOT_FORMAT,
+        "protected_tree_snapshot_before": protected_before_path.name,
+        "protected_tree_snapshot_after": protected_after_path.name,
         "protected_runtime_monitor": "ReadDirectoryChangesW recursive",
         "protected_handle_fence": "deny write/delete sharing on existing objects",
         "activity_database": str(database.relative_to(project_root)),
@@ -2112,7 +2166,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     _write_json_exclusive(run_root / "run-manifest.json", manifest)
     immutable_evidence_paths = (
         run_root / ".safety-marker.json",
-        run_root / "protected-tree-before.json",
+        protected_before_path,
         run_root / "run-manifest.json",
     )
     immutable_evidence_before = {
@@ -2160,8 +2214,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     protected_handle_fence_valid = protected_handle_fence_error is None
     protected_digest_after = _snapshot_digest(protected_after)
-    _write_json_exclusive(
-        run_root / "protected-tree-after.json",
+    _write_gzip_json_exclusive(
+        protected_after_path,
         {
             "schema_version": "1.0",
             "entry_count": len(protected_after),
@@ -2171,6 +2225,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     protected_changes = _snapshot_changes(protected_before, protected_after)
     protected_tree_unchanged = not protected_changes
+    protected_snapshot_before_evidence = _regular_file_evidence(
+        protected_before_path
+    )
+    protected_snapshot_after_evidence = _regular_file_evidence(
+        protected_after_path
+    )
     database_after = _sha256(database) if database.is_file() else None
     database_unchanged = database_before == database_after
     run_tree_safe = True
@@ -2244,6 +2304,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             junit_valid = True
         except SafetyStop as exc:
             junit_error = str(exc)
+    pytest_stdout_evidence = _regular_file_evidence(pytest_stdout)
+    pytest_stderr_evidence = _regular_file_evidence(pytest_stderr)
     effective_exit_code = _effective_exit_code(
         pytest_exit_code=pytest_exit_code,
         junit_valid=junit_valid,
@@ -2299,6 +2361,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         "junit_failures": junit_details.get("failures"),
         "junit_errors": junit_details.get("errors"),
         "junit_skipped": junit_details.get("skipped"),
+        "pytest_stdout": pytest_stdout_evidence,
+        "pytest_stderr": pytest_stderr_evidence,
         "run_tree_safe": run_tree_safe,
         "run_tree_error": run_tree_error,
         "run_tree_metrics": run_tree_metrics,
@@ -2315,6 +2379,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         "protected_tree_entry_count_after": len(protected_after),
         "protected_tree_digest_before": protected_digest_before,
         "protected_tree_digest_after": protected_digest_after,
+        "protected_tree_snapshot_format": PROTECTED_TREE_SNAPSHOT_FORMAT,
+        "protected_tree_snapshot_before": protected_snapshot_before_evidence,
+        "protected_tree_snapshot_after": protected_snapshot_after_evidence,
         "protected_tree_unchanged": protected_tree_unchanged,
         "protected_runtime_monitor_valid": protected_runtime_monitor_valid,
         "protected_runtime_monitor_error": protected_runtime_error,
@@ -2349,7 +2416,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         "source_state_mismatches": source_state_mismatches,
     }
     _write_json_exclusive(run_root / "run-result.json", result)
-    print(json.dumps(result, ensure_ascii=True, sort_keys=True))
+    try:
+        print(json.dumps(result, ensure_ascii=True, sort_keys=True))
+    except (BrokenPipeError, OSError, ValueError):
+        pass
     return effective_exit_code
 
 
@@ -2357,5 +2427,8 @@ if __name__ == "__main__":
     try:
         raise SystemExit(main())
     except SafetyStop as exc:
-        print(f"SAFETY_STOP: {exc}", file=sys.stderr)
+        try:
+            print(f"SAFETY_STOP: {exc}", file=sys.stderr)
+        except (BrokenPipeError, OSError, ValueError):
+            pass
         raise SystemExit(96) from exc

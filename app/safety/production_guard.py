@@ -117,6 +117,8 @@ def _contract_root(_root: Path = _VERIFIED_PROJECT_ROOT) -> Path:
 
 CONTRACT_PROJECT_ROOT = _contract_root()
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
+_QUARANTINE_DATE = re.compile(r"^[0-9]{4}-[0-9]{2}-[0-9]{2}$")
+_QUARANTINE_PAIR_ID = re.compile(r"^[0-9]{8}[0-9A-F]{24}$")
 _TOKEN_CONSTRUCTOR = object()
 _JOB_CONTEXT_PIN_CONSTRUCTOR = object()
 _PAIR_RESERVATION_CONSTRUCTOR = object()
@@ -223,6 +225,39 @@ class ProductionBoundaryError(PermissionError):
         self.operation_reference = operation_reference
         self.message = message
         super().__init__(f"{code.value}: {message}")
+
+
+def _validate_quarantine_date(value: str) -> str:
+    if type(value) is not str or not _QUARANTINE_DATE.fullmatch(value):
+        raise ProductionBoundaryError(
+            BoundaryErrorCode.INVALID_ARGUMENT,
+            "quarantine date is invalid",
+        )
+    try:
+        parsed = datetime.strptime(value, "%Y-%m-%d").date()
+    except ValueError:
+        raise ProductionBoundaryError(
+            BoundaryErrorCode.INVALID_ARGUMENT,
+            "quarantine date is invalid",
+        ) from None
+    if parsed.isoformat() != value:
+        raise ProductionBoundaryError(
+            BoundaryErrorCode.INVALID_ARGUMENT,
+            "quarantine date is non-canonical",
+        )
+    return value
+
+
+def _quarantine_date_from_pair_id(value: str) -> str:
+    if type(value) is not str or not _QUARANTINE_PAIR_ID.fullmatch(value):
+        raise ProductionBoundaryError(
+            BoundaryErrorCode.INVALID_ARGUMENT,
+            "quarantine recovery pair ID is invalid",
+        )
+    compact_date = value[:8]
+    return _validate_quarantine_date(
+        f"{compact_date[:4]}-{compact_date[4:6]}-{compact_date[6:8]}"
+    )
 
 
 class WriterUnavailableError(ProductionBoundaryError):
@@ -1187,6 +1222,7 @@ class _BoundaryCore:
         transaction_id: str,
         *,
         _purpose: str = _RESTRICTED_RECOVERY_PURPOSE_PUBLISH,
+        _quarantine_pair_id: str | None = None,
     ) -> _RestrictedRecoveryLocatorCapability:
         """Issue an opaque handle to boundary-owned RESTRICTED recovery authority."""
 
@@ -1207,7 +1243,11 @@ class _BoundaryCore:
                 "restricted recovery transaction is invalid",
             ) from None
         self._validate_context_authority(context)
-        source, target = self._derive_restricted_recovery_paths(context, _purpose)
+        source, target = self._derive_restricted_recovery_paths(
+            context,
+            _purpose,
+            quarantine_pair_id=_quarantine_pair_id,
+        )
         ticket_id = context.authority_ticket_id
         if ticket_id is None:
             raise AssertionError("validated recovery context lost its authority")
@@ -1355,10 +1395,16 @@ class _BoundaryCore:
                             current_owner_thread_object
                         )
                     )
+                    quarantine_pair_id = (
+                        record.target_relative_path.name
+                        if record.context.purpose is Purpose.QUARANTINE
+                        else None
+                    )
                     expected_source, expected_target = (
                         self._derive_restricted_recovery_paths(
                             record.context,
                             record.purpose,
+                            quarantine_pair_id=quarantine_pair_id,
                         )
                     )
                     self._validate_context_authority(record.context)
@@ -1512,6 +1558,8 @@ class _BoundaryCore:
         self,
         context: OperationContext,
         purpose: str,
+        *,
+        quarantine_pair_id: str | None = None,
     ) -> tuple[Path, Path]:
         scope_values = {scope.kind: scope.value for scope in context.scopes}
         publish_scope_kinds = frozenset(
@@ -1531,6 +1579,16 @@ class _BoundaryCore:
             else scope_kinds
             in (publish_scope_kinds, _RESTRICTED_COPY_RECOVERY_SCOPE_KINDS)
         )
+        quarantine_recovery = (
+            type(context) is OperationContext
+            and purpose == _RESTRICTED_RECOVERY_PURPOSE_PUBLISH
+            and context.purpose is Purpose.QUARANTINE
+        )
+        expected_context_purpose = (
+            Purpose.QUARANTINE
+            if quarantine_recovery
+            else Purpose.COPY_SOURCE
+        )
         if (
             type(context) is not OperationContext
             or type(purpose) is not str
@@ -1538,7 +1596,7 @@ class _BoundaryCore:
             or not scopes_are_exact
             or context.classification is not DataClassification.RESTRICTED
             or context.caller is not Caller.IMPORT_SERVICE
-            or context.purpose is not Purpose.COPY_SOURCE
+            or context.purpose is not expected_context_purpose
             or scope_values.get(ScopeKind.RUN_ID) != context.run_id
             or scope_values.get(ScopeKind.JOB_ID) != context.job_id
             or scope_values.get(ScopeKind.OPERATION_ID) != context.operation_id
@@ -1554,6 +1612,28 @@ class _BoundaryCore:
         copy_id = scope_values.get(ScopeKind.COPY_ID)
         if copy_id is None or context.manifest_id is None:
             raise AssertionError("validated recovery scopes became unavailable")
+        if quarantine_recovery:
+            if type(quarantine_pair_id) is not str:
+                raise ProductionBoundaryError(
+                    BoundaryErrorCode.INVALID_ARGUMENT,
+                    "quarantine recovery requires its authenticated pair ID",
+                )
+            quarantine_date = _quarantine_date_from_pair_id(
+                quarantine_pair_id
+            )
+            return (
+                Path("Copy") / "restricted" / copy_id,
+                Path("data")
+                / "quarantine"
+                / DataClassification.RESTRICTED.value
+                / quarantine_date
+                / quarantine_pair_id,
+            )
+        if quarantine_pair_id is not None:
+            raise ProductionBoundaryError(
+                BoundaryErrorCode.INVALID_ARGUMENT,
+                "non-quarantine recovery cannot carry a quarantine pair ID",
+            )
         return (
             Path("tmp")
             / "jobs"
@@ -1920,6 +2000,7 @@ class _BoundaryCore:
         self,
         source_path: str | os.PathLike[str],
         *,
+        quarantine_date: str,
         evidence: PairEvidence,
         context: OperationContext,
         context_pin: _JobContextPin,
@@ -1944,6 +2025,7 @@ class _BoundaryCore:
             evidence=evidence,
             context=context,
             runtime_mutex_lease=runtime_mutex_lease,
+            quarantine_date=quarantine_date,
         )
         if type(result) is not QuarantinePairCandidate:
             raise ProductionBoundaryError(
@@ -2108,6 +2190,7 @@ class _BoundaryCore:
         evidence: PairEvidence,
         context: OperationContext,
         runtime_mutex_lease: RuntimeMutexLease | None = None,
+        quarantine_date: str | None = None,
     ) -> MovePairCandidate | QuarantinePairCandidate:
         pair_id = secrets.token_hex(16).upper()
         source_relative: Path | None = None
@@ -2140,6 +2223,11 @@ class _BoundaryCore:
             source_preview = self.__policy.classify(source_core.relative_path)
 
             if kind is PairKind.PUBLISH:
+                if quarantine_date is not None:
+                    raise ProductionBoundaryError(
+                        BoundaryErrorCode.INVALID_ARGUMENT,
+                        "publish cannot carry a quarantine date",
+                    )
                 if target_path is None:
                     raise ProductionBoundaryError(
                         BoundaryErrorCode.INVALID_ARGUMENT,
@@ -2163,11 +2251,20 @@ class _BoundaryCore:
                     if source_restricted
                     else context.classification
                 )
+                canonical_quarantine_date = (
+                    datetime.now(UTC).date().isoformat()
+                    if quarantine_date is None
+                    else _validate_quarantine_date(quarantine_date)
+                )
+                pair_id = (
+                    canonical_quarantine_date.replace("-", "")
+                    + secrets.token_hex(12).upper()
+                )
                 target_relative = Path(
                     "data",
                     "quarantine",
                     target_classification.value,
-                    datetime.now(UTC).date().isoformat(),
+                    canonical_quarantine_date,
                     pair_id,
                 )
                 target_intent = PathIntent.QUARANTINE_TARGET
@@ -3837,10 +3934,13 @@ class _TestWorkspaceBoundary:
         self,
         context: OperationContext,
         transaction_id: str,
+        *,
+        quarantine_pair_id: str | None = None,
     ) -> _RestrictedRecoveryLocatorCapability:
         return self.__core.issue_restricted_recovery_locator(
             context,
             transaction_id,
+            _quarantine_pair_id=quarantine_pair_id,
         )
 
     def _consume_restricted_recovery_locator(
@@ -3947,6 +4047,7 @@ class _TestWorkspaceBoundary:
         self,
         source_path: str | os.PathLike[str],
         *,
+        quarantine_date: str,
         manifest_id: str,
         manifest_sha256: str,
         source_tree_sha256: str,
@@ -3961,6 +4062,7 @@ class _TestWorkspaceBoundary:
     ) -> QuarantinePairCandidate:
         return self.__core.issue_quarantine_pair_for_job(
             source_path,
+            quarantine_date=quarantine_date,
             evidence=PairEvidence(
                 manifest_id=manifest_id,
                 manifest_sha256=manifest_sha256,

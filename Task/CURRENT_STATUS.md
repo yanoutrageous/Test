@@ -1,21 +1,31 @@
 # 当前状态
 
-更新时间：2026-07-24 13:21 +08:00
+更新时间：2026-07-24 21:06 +08:00
 
-## 目标暂停（2026-07-24）
+## 目标已恢复（2026-07-24）
 
-- 用户已要求在最小可恢复点暂停；当前长期目标状态为`PAUSED`，收到用户新的明确回复前不继续实现、测试或进入下一切片。
-- 当前停在`M0-S3-G quarantine / retained restore / conflict-safe recovery`的未验收候选阶段。候选代码已固化为 WIP 检查点`aec3d7413a06251e4865b601fd680090b466892e`（tree`868ebdfc0c996cead017741e0c73ae8d08b46d8d`），仅通过`py_compile`与`git diff --check`，不得视为 S3-G 完成或可交付实现。
+- 用户已明确回复“现在继续”；当前长期目标已从暂停检查点恢复，规范状态为`RUNNING`、实现状态为`IN_PROGRESS`。
+- 恢复审计通过：本地/origin HEAD 均为`0ac5c033a44d83ecd4d466a84e954a82d55926ed`，工作区恢复前干净，WIP tree 与六个候选文件哈希全部匹配；portable root、NTFS、全链无 Reparse、依赖导入、活动 SQLite 完整性/哈希、无活动 launcher/mutation 均通过，单写者锁已由当前 Codex 进程重新取得。
+- 暂停时的未验收候选曾固化为 WIP 检查点`aec3d7413a06251e4865b601fd680090b466892e`。恢复后已完成修复、核心/组合/静态门和证据整理；当前 S3-G 为“本地验收通过、等待精确 Git 检查点”，尚未进入 S3-H。
 - 暂停前已确认没有活动的仓库 Python、pytest 或 Git 进程，没有业务 mutation，production writer 仍断开；活动 SQLite SHA-256 仍为`1505BF05BD8E385EADA30642110596363C561C330DA02A40A497072064AD1C94`。
 - `RUN-20260724-M0-S3G-S3E-039`因调用方 stdout 管道关闭而以 120 退出，但保护树、数据库、watcher、句柄围栏、run tree 与 source witness 均保持安全；`RUN-20260724-M0-S3G-CORE-040`因重定向日志句柄位于受保护`tmp`而在 pytest 前安全停止。两个编号均不得复用。
-- 恢复后的第一步不是推进 S3-H，而是修复 safe launcher 的子进程输出捕获，使日志句柄只位于排除的 run root；随后以新唯一 run ID 运行`s3g_core`，再完成失败修复、quarantine 日期分区、静态 inventory 和 S3-G 验收。
-- 完整恢复清单与候选文件哈希见`Task/reports/M0/M0-S3-G-pause-20260724.md`。下方其他章节保留为此前基线；如与本节冲突，以本节和`Task/RUN_STATE.json`的最新暂停记录为准。
+- safe launcher 输出捕获、gzip 证据、quarantine 日期分区、原生移动、RESTRICTED 恢复、retained restore、静态 inventory 和 S3-G 验收均已完成；在精确提交和远端核验前不进入 S3-H 实现。
+- 完整暂停恢复清单与候选文件哈希见`Task/reports/M0/M0-S3-G-pause-20260724.md`。下方其他章节保留为此前基线；如与本节冲突，以本节和`Task/RUN_STATE.json`的最新恢复记录为准。
+
+## S3-G 本地验收与门禁存储整理（2026-07-24）
+
+- safe launcher 子进程输出已改为只写当前排除的 run root；保护树快照候选格式已改为`gzip-canonical-json-v1`、结果 schema `1.2`。`RUN-20260724-M0-S3G-LAUNCHER-046`通过 88/88 项测试，保护树 135,048 项前后一致，活动数据库哈希不变。
+- S3-G 已实现自动创建/复用`data/quarantine/{INTERNAL|RESTRICTED}/YYYY-MM-DD`、边界 UTC 日期钉住、live target-parent lease、source-handle no-replace move、RESTRICTED opaque recovery capability 和保留式 restore。Win32 87 证明相对`RootDirectory`假设不成立，最终实现改用同卷固定根内 absolute target 并在调用前复核 parent lease。
+- `RUN-20260724-M0-S3G-CORE-053`为 16/16；`RUN-20260724-M0-S3G-GATE-058`与清理后的`RUN-20260724-M0-S3G-POSTCLEAN-059`均为 543/543。两轮的活动数据库、runtime watcher、句柄围栏、run tree、不可变证据、源码见证和进程树全部通过。
+- `RUN-20260724-M0-S3G-INVENTORY-057`冻结 53 个生产源、468 个入口、19 个分片、`UNKNOWN=0`；全部入口仍为`UNMIGRATED_BLOCKED`，production writer 与`m0_exit_allowed`均为 false。
+- 141 个旧运行已由两个便携 tar.gz 完整覆盖并迁出热目录，只保留最新 POSTCLEAN-059。跨盘迁移阶段 E 盘净增加约 2.24 GiB 可用空间；同一 S3-G 门禁的保护对象由 140,985 降到 8,394，整轮由约 19 分钟降到 4 分 10 秒。归档不进入 Git，迁移时须单独携带并复核 SHA-256。
+- 完整实现与存储证据见`Task/reports/M0/M0-S3-G-quarantine-retained-restore.md`、`Task/reports/M0/M0-evidence-storage-20260724.md`和`Task/TEST_GATE_RETENTION.md`。
 
 ## 长期执行状态
 
 - 计划版本：1.1.0
 - 当前阶段：M0 入场审计完成，M0 尚未验收
-- 当前切片：portable root 与`M0-S3-F synthetic Copy + dual ledgers`已作为`f9756df79d979ef10f54fc4634f15849857019da`完成显式提交、普通 push 和远端核验；S3-G 候选现按用户要求暂停，S3-G、S3 与 M0 总门均未通过
+- 当前切片：S3-G 已本地验收通过，等待精确 Git 检查点与远端核验；S3-H、S3 总门和 M0 总门均未通过
 - M0—M5 实现：M0 已开始；M1—M5 未开始
 - 本任务有效终点：按用户后续明确要求，连续完成修订后的 M0—M5，直到真实用户流程、恢复演练和客户交付包全部通过；不得把 M0 或代码完成误报为终局
 - 当前禁止：活动数据库迁移、题库导入、OCR、正式排版、批量资产、备份切换和业务文件清理
@@ -27,9 +37,9 @@
 - Python 3.12.13、Flask 3.1.3、PyMuPDF 1.28.0、pytest 9.1.1、SQLite 3.50.4 均已导入；现有`.venv`可继续验证，但`pyvenv.cfg`保留旧机创建命令，因此不作为未来迁移产物，后续电脑默认按`requirements.txt`重建。
 - 活动数据库 SHA-256 仍为`1505bf05bd8e385eada30642110596363c561c330da02a40a497072064ad1c94`，`integrity_check=ok`、外键违规 0，核心业务表仍为空；迁移重定根当前没有业务数据改写风险。
 - Git 分支`agent/m0-m5-local-v1`、本地 HEAD、origin 分支、远端 refs 与 Draft PR #2 head 均为`f9756df79d979ef10f54fc4634f15849857019da`；S3-F 恢复前脏候选与 portable-root 增量已完整固化，checkpoint 后工作区干净。
-- 旧主机 writer lock（`DESKTOP-GU0STBA`/PID 283856）已确认失效；本机以`RUN-20260724-M0-PORTABLE-ROOT-024`取得 Git 忽略的单写者锁，没有业务 mutation。
+- 旧主机 writer lock（`DESKTOP-GU0STBA`/PID 283856）已确认失效；当前由本机 Codex 进程以`RUN-20260724-M0-S3G-RESUME-041`持有 Git 忽略的单写者锁，没有业务 mutation。
 - `RUN-20260724-M0-PORTABLE-FULL-037`最终退出码 0：JUnit 961 passed，failure/error/skip 均为 0；保护树前后均 126,030 项且 digest 相同，活动数据库、运行树、immutable evidence、watcher、句柄围栏、进程树和 80 个登记合成来源均通过。RUN-025/031/034/036 作为失败收敛证据保留，不再代表当前功能状态。
-- 现有`tmp`约 7.65 GiB，E 卷剩余空间约 29.91 GiB，全量保护树门成本较高。未获用户明确授权前不得删除或压缩历史运行；完整保护树门保留为低频验收，后续高频回归策略必须另行受审计且不能降低外部零写入保证。
+- `tmp/test_lab`现只保留最新 POSTCLEAN-059，约 2.1 MB；两个便携归档约 624.7 MB。141 个归档覆盖的旧运行已迁出热目录，保留规则与新电脑迁移规则见`Task/TEST_GATE_RETENTION.md`；完整保护树门仍保留，不降低外部零写入保证。
 - 旧 D 路径上的 S1—S3-E 实现、提交和语义测试结果仍是历史证据，但其卷、路径链、保护树和外部零写入结论不能直接授权 E 路径。`RUN-20260713-...-021/022/023`不再作为恢复运行计划使用；新基线只使用 2026-07-24 的新唯一 run ID。
 - Git 忽略的`Task/local/REFERENCE_PATHS.local.md`已按本机 E 路径重绑定；外部资料仍只读，任何处理仍需先进入当前`PROJECT_ROOT\Copy`并核对哈希。
 - 本机映射中的 16 个逻辑参考集、共 25 个明确文件或目录均已只读确认存在；该存在性只对当前电脑成立，下一次迁移必须重新核对，不进入 Git 合同。
@@ -50,11 +60,11 @@
 - 目标 NEW9 PDF 已在 Test 内，但其正文无可提取文字层；视觉回归必须包含整页像素/锚点检查
 - 活动 SQLite SHA-256 为`1505bf05...ad1c94`，`integrity_check=ok`、外键违规 0、`user_version=0`，19 个业务表均为 0 行
 - 历史“1123 题/阶段 14”报告不是当前可复现事实
-- 生产静态 inventory V16 覆盖`app/`和`scripts/`的 53 个源文件、464 个副作用入口和 19 个分片；`UNKNOWN=0`、未授权安全内核构造 0，但 464 项仍全部`UNMIGRATED_BLOCKED`
+- 生产静态 inventory V16 覆盖`app/`和`scripts/`的 53 个源文件、468 个副作用入口和 19 个分片；`UNKNOWN=0`、未授权安全内核构造 0，但 468 项仍全部`UNMIGRATED_BLOCKED`
 - Policy V7 digest 为`8df50ded...e4d88`；生产 boundary 固定根且`writer_available=false`，`m0_exit_allowed=false`
 - S3-E 最终核心回归`RUN-20260712-M0-S3E-016`为`30 passed`，launcher 门`RUN-20260712-M0-S3E-LAUNCHER-018`为`72 passed`，组合门`RUN-20260712-M0-S3E-COMBINED-019`为`399 passed`；JUnit failure/error/skip 均为 0
 - RUN-009 保护树前后均 93,762 条、运行时变更 0、句柄围栏 93,762 个；活动 SQLite 前后 SHA-256 相同。旧结果字段`source inputs unchanged`只是该次已监测保护集的起止/运行时证据，不声称监控整机或未登记外部源
-- Scanner V16 使用`UTF8_LF_V1`规范化并加入 portable-root authority、external-source、Copy 双账本、operation ledger、pair reservation、最终 revalidation、跨账本 ancestor 和目录 publish/recovery 私有调用 exact canary；inventory payload 为`e31de8130346d87eb1b92109f88580cbb5ea33502d0b316a48a27fe7c172659c`，生产 writer 与`m0_exit_allowed`均为 false
+- Scanner V16 使用`UTF8_LF_V1`规范化并加入 portable-root authority、external-source、Copy 双账本、operation ledger、pair reservation、最终 revalidation、跨账本 ancestor、目录 publish/recovery 和 quarantine/retained-restore exact canary；inventory digest 为`89536763bcb33d8624354fccf4539a6489fa6eb1688ba7fd345202d4b5d5d42e`，生产 writer 与`m0_exit_allowed`均为 false
 
 ## 工具与发布状态
 
@@ -78,8 +88,9 @@
 
 1. M0-S3-D operation context pin、固定 job staging、不可变 contract、多维预算和 live double-pass tree observation 已作为`1b5b9bd`完成显式提交、普通 push 与远端核验；
 2. M0-S3-E exact reservation、独立 operation chain、source-root no-replace publish、target rescan 与只追加恢复真值表已通过本地组合门和独立暂存审计，并作为`39586568a405124417d105d8e876d25ec94e06e6`完成普通 push；
-3. portable root 与 S3-F 合成 Copy/双 ledger 已由`RUN-20260724-M0-PORTABLE-FULL-037`验收，并作为`f9756df79d979ef10f54fc4634f15849857019da`完成精确暂存审计、checkpoint commit、普通 push 与远端核验；当前进入 S3-G；
-4. 按长期终点继续完成 M0—M5；只有 M5 客户交付包、真实用户流程和恢复演练全部通过后才可结束，不得把 M0 checkpoint 当作终局。
+3. portable root 与 S3-F 合成 Copy/双 ledger 已由`RUN-20260724-M0-PORTABLE-FULL-037`验收，并作为`f9756df79d979ef10f54fc4634f15849857019da`完成精确暂存审计、checkpoint commit、普通 push 与远端核验；
+4. S3-G quarantine/retained restore 已由 CORE-053、INVENTORY-057、GATE-058 与清理后 POSTCLEAN-059 本地验收，当前先完成精确提交和远端核验，再进入 S3-H；
+5. 按长期终点继续完成 M0—M5；只有 M5 客户交付包、真实用户流程和恢复演练全部通过后才可结束，不得把 M0 checkpoint 当作终局。
 
 ## 历史暂停检查点（已于 2026-07-24恢复）
 
@@ -95,10 +106,10 @@
 
 - 精确字体许可尚未审计：不阻塞金标测量，但阻塞“字体完全一比一”的正式声明。
 - 当前备份只能位于`PROJECT_ROOT`内：不具备异卷灾备能力，不能对客户宣称可抵御整个产品根所在卷故障。
-- 固定权限但物理路径可迁移的生产 boundary、Policy V7、Test-only 句柄 writer、audit/operation/Copy 双账本和 S3-E/S3-F publish/recovery 已通过当前新机组合门，但生产 writer 仍断开；464 个入口尚未迁移，在 quarantine/数据库等后续门禁完成前不得处理真实资料。
+- 固定权限但物理路径可迁移的 production boundary、Policy V7、Test-only 句柄 writer、audit/operation/Copy 双账本和 S3-E—G publish/copy/quarantine/recovery 已通过当前新机组合门，但 production writer 仍断开；468 个入口尚未迁移，在 S3-H、数据库和后续门禁完成前不得处理真实资料。
 - S2 `PairEvidence`仍只是候选声明；S3-E 实际 mutation 只在 exact `_ReservedPairLease`和 live observed lease 内执行，声明或 detached 摘要都不能授权 rename。
 - audit key revision 位于 Test 内、Git 忽略的本地明文存储；不能抵御已取得 Test 读取权的恶意本机用户；没有外部 witness 时也不能证明完整账本尾部未被一致回滚。
 - Test-only writer 的 spent-ticket 记忆和诊断缓存已固定上限；ReFS/128-bit File ID 高位非零兼容、硬件断电语义和业务 operation recovery 仍未声明通过。
 - 安全测试实验室针对受信任、已审阅的仓库测试代码，不是 hostile native-code 或 hostile same-process Python 反射/monkeypatch 的 OS/语言沙箱；S3-F 异常 vault 只收窄经密封公开 boundary 的正常调用泄漏面，不能隔离能够绕过 boundary 的恶意同进程代码。
 - 普通用户态 Windows 目录 handle/oplock 不能冻结 child namespace；S3-E 已使用最后检查、内核 no-replace、target full rescan 与`IN_DOUBT`/seal，但仍不声明 hostile-writer 原子快照。
-- 本机普通账户不能创建实际目录 symlink；独立安全运行`RUN-20260724-M0-SYMLINK-CAPABILITY-038`仅因 WinError 1314 失败，其余保护证据清洁。不自动启用开发者模式或提升权限，该能力门保持 IN_PROGRESS，但不阻塞不依赖 symlink 创建权限的 S3-G 工作。
+- 本机普通账户不能创建实际目录 symlink；独立安全运行`RUN-20260724-M0-SYMLINK-CAPABILITY-038`仅因 WinError 1314 失败，其余保护证据清洁。不自动启用开发者模式或提升权限，该能力门保持 IN_PROGRESS，但不阻塞不依赖 symlink 创建权限的 S3-H 工作。
