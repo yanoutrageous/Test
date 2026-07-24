@@ -12,6 +12,17 @@ from datetime import datetime
 from pathlib import Path, PureWindowsPath
 from typing import Any, Sequence
 
+_IMPORT_PROJECT_ROOT = Path(
+    ntpath.normpath(ntpath.abspath(os.fspath(Path(__file__).parents[2])))
+)
+if not any(
+    ntpath.normcase(entry) == ntpath.normcase(str(_IMPORT_PROJECT_ROOT))
+    for entry in sys.path
+    if type(entry) is str
+):
+    sys.path.insert(0, str(_IMPORT_PROJECT_ROOT))
+
+from app.project_root import PROJECT_ROOT as VERIFIED_PROJECT_ROOT
 from app.safety.static_audit import (
     _pretty_json_bytes,
     build_inventory_bundle,
@@ -19,7 +30,10 @@ from app.safety.static_audit import (
 )
 
 
-EXPECTED_PROJECT_ROOT = Path(r"D:\AAA命题\Test")
+def _verified_inventory_root(_root: Path = VERIFIED_PROJECT_ROOT) -> Path:
+    return _root
+
+
 RUN_ID_PATTERN = re.compile(r"RUN-[A-Z0-9][A-Z0-9-]{5,80}")
 REPARSE_ATTRIBUTE = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
 
@@ -152,7 +166,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     generated_at = _validate_timestamp(args.generated_at)
     source_head = _validate_head(args.source_head)
     project_root = _absolute_lexical(Path(__file__).parents[2])
-    expected_root = _absolute_lexical(EXPECTED_PROJECT_ROOT)
+    expected_root = _absolute_lexical(_verified_inventory_root())
     if not _same_path(project_root, expected_root):
         raise InventoryPreviewStop("inventory tool is outside the contracted project root")
     if not _same_path(_absolute_lexical(Path.cwd()), project_root):

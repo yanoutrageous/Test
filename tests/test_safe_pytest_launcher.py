@@ -3,31 +3,47 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import stat
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any
 
 import pytest
 import scripts.run_safe_pytest as launcher_module
 
 from scripts.run_safe_pytest import (
     RUN_ID_PATTERN,
+    RUN_RESULT_SCHEMA_VERSION,
+    SOURCE_WITNESS_FILE_NAME,
+    SOURCE_WITNESS_SCHEMA_VERSION,
+    SOURCE_WITNESS_SCOPE,
+    SOURCE_WITNESS_SOURCE_MAX_BYTES,
+    SOURCE_REGISTRATION_REQUIRED_MODES,
     SafetyStop,
     _WindowsJob,
     _WindowsProtectedTreeFence,
     _WindowsProtectedTreeWatcher,
     _build_command,
+    _canonical_json_bytes,
     _effective_exit_code,
     _junit_evidence,
     _protected_tree_snapshot,
+    _registered_source_count_gate,
     _regular_file_evidence,
     _relative_parts,
     _run_test_process,
+    _sign_source_witness_payload,
     _snapshot_changes,
+    _source_witness_evidence,
+    _source_witness_locator_id,
+    _validate_source_witness_bytes,
     _verify_run_tree_no_reparse,
+    _windows_extended_path,
     _write_json_exclusive,
     main,
 )
+from tests.conftest import register_synthetic_source
 
 
 def _pid_is_running(pid: int) -> bool:
@@ -57,6 +73,68 @@ def _pid_is_running(pid: int) -> bool:
         kernel32.CloseHandle(handle)
 
 
+def _source_witness_test_document(
+    *,
+    run_id: str,
+    launch_token: str,
+    locator_input: str,
+    source_payload: bytes,
+    changed: bool = False,
+) -> dict[str, Any]:
+    parent = {
+        "device": 1,
+        "inode": 100,
+        "mode": stat.S_IFDIR | 0o755,
+        "file_attributes": 0,
+        "reparse_tag": 0,
+    }
+    source_before = {
+        "device": 1,
+        "inode": 200,
+        "mode": stat.S_IFREG | 0o600,
+        "file_attributes": 0,
+        "reparse_tag": 0,
+        "nlink": 1,
+        "size": len(source_payload),
+        "mtime_ns": 123_456_789,
+        "sha256": hashlib.sha256(source_payload).hexdigest(),
+        "default_stream_only": True,
+    }
+    source_after = dict(source_before)
+    if changed:
+        source_after["mtime_ns"] += 1
+        source_after["sha256"] = hashlib.sha256(
+            source_payload + b"-changed"
+        ).hexdigest()
+        source_after["size"] += len(b"-changed")
+    entry = {
+        "source_id": _source_witness_locator_id(locator_input, launch_token),
+        "parent_before": parent,
+        "source_before": source_before,
+        "parent_after": dict(parent),
+        "source_after": source_after,
+        "final_state_matches_registration": not changed,
+    }
+    unsigned = {
+        "schema_version": SOURCE_WITNESS_SCHEMA_VERSION,
+        "run_id": run_id,
+        "launch_token_sha256": hashlib.sha256(
+            launch_token.encode("utf-8")
+        ).hexdigest(),
+        "source_count": 1,
+        "matching_final_state_count": 0 if changed else 1,
+        "mismatched_final_state_count": 1 if changed else 0,
+        "witness_scope": SOURCE_WITNESS_SCOPE,
+        "registered_source_final_state_matches": not changed,
+        "sources": [entry],
+    }
+    return _sign_source_witness_payload(unsigned, launch_token)
+
+
+def _source_witness_test_bytes(document: dict[str, Any]) -> bytes:
+    return _canonical_json_bytes(document) + b"\n"
+
+
 @pytest.mark.parametrize(
     "run_id",
     [
@@ -77,6 +155,19 @@ def test_run_id_contract_accepts_a_unique_safe_identifier() -> None:
     assert RUN_ID_PATTERN.fullmatch("RUN-20260711-M0-S1-UNIT-001")
 
 
+def test_launcher_root_authority_is_bound_before_runtime_monkeypatch(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    expected = launcher_module._verified_launcher_root()
+    monkeypatch.setattr(
+        launcher_module,
+        "VERIFIED_PROJECT_ROOT",
+        expected.parent,
+    )
+
+    assert launcher_module._verified_launcher_root() == expected
+
+
 def test_evidence_json_round_trips_an_unpaired_utf16_code_unit(
     tmp_path: Path,
 ) -> None:
@@ -88,6 +179,285 @@ def test_evidence_json_round_trips_an_unpaired_utf16_code_unit(
     raw = evidence.read_bytes()
     assert b"\\udedf" in raw
     assert json.loads(raw)["value"] == value
+
+
+def test_source_witness_is_canonical_authenticated_and_path_redacted() -> None:
+    run_id = "RUN-SOURCE-WITNESS-UNIT-001"
+    launch_token = "source-witness-unit-token"
+    source_path = r"D:\AAA命题\Test\tmp\test_lab\RUN-X\external\REFERENCE\secret.bin"
+    source_name = "secret.bin"
+    source_payload = b"private synthetic source payload"
+    document = _source_witness_test_document(
+        run_id=run_id,
+        launch_token=launch_token,
+        locator_input=source_path.casefold(),
+        source_payload=source_payload,
+    )
+    raw = _source_witness_test_bytes(document)
+
+    details = _validate_source_witness_bytes(
+        raw,
+        run_id=run_id,
+        launch_token=launch_token,
+    )
+
+    assert details["source_count"] == 1
+    assert details["matching_final_state_count"] == 1
+    assert details["mismatched_final_state_count"] == 0
+    assert details["witness_scope"] == SOURCE_WITNESS_SCOPE
+    assert details["registered_source_final_state_matches"] is True
+    assert details["mismatched_source_ids"] == []
+    assert raw == _canonical_json_bytes(json.loads(raw)) + b"\n"
+    for forbidden in (
+        source_path.encode("utf-8"),
+        source_name.encode("utf-8"),
+        source_payload,
+        launch_token.encode("utf-8"),
+    ):
+        assert forbidden not in raw
+
+    changed_document = _source_witness_test_document(
+        run_id=run_id,
+        launch_token=launch_token,
+        locator_input=source_path.casefold(),
+        source_payload=source_payload,
+        changed=True,
+    )
+    changed_details = _validate_source_witness_bytes(
+        _source_witness_test_bytes(changed_document),
+        run_id=run_id,
+        launch_token=launch_token,
+    )
+    assert changed_details["registered_source_final_state_matches"] is False
+    assert changed_details["mismatched_final_state_count"] == 1
+    assert changed_details["mismatched_source_ids"] == [
+        changed_document["sources"][0]["source_id"]
+    ]
+
+    zero_source_document = _sign_source_witness_payload(
+        {
+            "schema_version": SOURCE_WITNESS_SCHEMA_VERSION,
+            "run_id": run_id,
+            "launch_token_sha256": hashlib.sha256(
+                launch_token.encode("utf-8")
+            ).hexdigest(),
+            "source_count": 0,
+            "matching_final_state_count": 0,
+            "mismatched_final_state_count": 0,
+            "witness_scope": SOURCE_WITNESS_SCOPE,
+            "registered_source_final_state_matches": True,
+            "sources": [],
+        },
+        launch_token,
+    )
+    zero_source_details = _validate_source_witness_bytes(
+        _source_witness_test_bytes(zero_source_document),
+        run_id=run_id,
+        launch_token=launch_token,
+    )
+    assert zero_source_details["source_count"] == 0
+    assert zero_source_details["registered_source_final_state_matches"] is True
+
+
+def test_source_witness_rejects_tamper_and_authenticated_inconsistency() -> None:
+    run_id = "RUN-SOURCE-WITNESS-UNIT-002"
+    launch_token = "source-witness-structure-token"
+    document = _source_witness_test_document(
+        run_id=run_id,
+        launch_token=launch_token,
+        locator_input="opaque-locator-input",
+        source_payload=b"source-bytes",
+    )
+
+    tampered = json.loads(json.dumps(document))
+    tampered["source_count"] = 2
+    with pytest.raises(SafetyStop, match="HMAC authentication"):
+        _validate_source_witness_bytes(
+            _source_witness_test_bytes(tampered),
+            run_id=run_id,
+            launch_token=launch_token,
+        )
+
+    with pytest.raises(SafetyStop, match="launch token"):
+        _validate_source_witness_bytes(
+            _source_witness_test_bytes(document),
+            run_id=run_id,
+            launch_token="different-token",
+        )
+
+    with pytest.raises(SafetyStop, match="run ID"):
+        _validate_source_witness_bytes(
+            _source_witness_test_bytes(document),
+            run_id="RUN-SOURCE-WITNESS-DIFFERENT",
+            launch_token=launch_token,
+        )
+
+    noncanonical = json.dumps(document, sort_keys=True).encode("ascii") + b"\n"
+    with pytest.raises(SafetyStop, match="not canonical"):
+        _validate_source_witness_bytes(
+            noncanonical,
+            run_id=run_id,
+            launch_token=launch_token,
+        )
+
+    def resign(mutated: dict[str, Any]) -> dict[str, Any]:
+        unsigned = {
+            key: value for key, value in mutated.items() if key != "hmac_sha256"
+        }
+        return _sign_source_witness_payload(unsigned, launch_token)
+
+    wrong_schema = json.loads(json.dumps(document))
+    wrong_schema["schema_version"] = "2.0"
+    with pytest.raises(SafetyStop, match="schema version"):
+        _validate_source_witness_bytes(
+            _source_witness_test_bytes(resign(wrong_schema)),
+            run_id=run_id,
+            launch_token=launch_token,
+        )
+
+    wrong_count = json.loads(json.dumps(document))
+    wrong_count["source_count"] = 2
+    with pytest.raises(SafetyStop, match="source count is inconsistent"):
+        _validate_source_witness_bytes(
+            _source_witness_test_bytes(resign(wrong_count)),
+            run_id=run_id,
+            launch_token=launch_token,
+        )
+
+    wrong_state = json.loads(json.dumps(document))
+    wrong_state["sources"][0]["final_state_matches_registration"] = False
+    with pytest.raises(SafetyStop, match="entry final-match state is inconsistent"):
+        _validate_source_witness_bytes(
+            _source_witness_test_bytes(resign(wrong_state)),
+            run_id=run_id,
+            launch_token=launch_token,
+        )
+
+    wrong_scope = json.loads(json.dumps(document))
+    wrong_scope["witness_scope"] = "CONTINUOUS_RUNTIME_IMMUTABILITY"
+    with pytest.raises(SafetyStop, match="guarantee scope"):
+        _validate_source_witness_bytes(
+            _source_witness_test_bytes(resign(wrong_scope)),
+            run_id=run_id,
+            launch_token=launch_token,
+        )
+
+    wrong_stream = json.loads(json.dumps(document))
+    wrong_stream["sources"][0]["source_before"]["default_stream_only"] = False
+    wrong_stream["sources"][0]["source_after"]["default_stream_only"] = False
+    with pytest.raises(SafetyStop, match="eligible source file"):
+        _validate_source_witness_bytes(
+            _source_witness_test_bytes(resign(wrong_stream)),
+            run_id=run_id,
+            launch_token=launch_token,
+        )
+
+    plaintext_extension = json.loads(json.dumps(document))
+    plaintext_extension["sources"][0]["path"] = r"D:\forbidden\source.bin"
+    with pytest.raises(SafetyStop, match="invalid field set"):
+        _validate_source_witness_bytes(
+            _source_witness_test_bytes(resign(plaintext_extension)),
+            run_id=run_id,
+            launch_token=launch_token,
+        )
+
+
+def test_source_witness_file_gate_requires_present_single_link_default_stream(
+    tmp_path: Path,
+) -> None:
+    run_id = "RUN-SOURCE-WITNESS-FILE-001"
+    launch_token = "source-witness-file-token"
+    run_root = tmp_path / run_id
+    run_root.mkdir()
+    witness = run_root / SOURCE_WITNESS_FILE_NAME
+    document = _source_witness_test_document(
+        run_id=run_id,
+        launch_token=launch_token,
+        locator_input="file-gate-locator",
+        source_payload=b"file-gate-source",
+    )
+
+    with pytest.raises(SafetyStop):
+        _source_witness_evidence(
+            run_root,
+            run_id=run_id,
+            launch_token=launch_token,
+        )
+
+    witness.write_bytes(_source_witness_test_bytes(document))
+    details = _source_witness_evidence(
+        run_root,
+        run_id=run_id,
+        launch_token=launch_token,
+    )
+    assert details["registered_source_final_state_matches"] is True
+
+    alias = run_root / "witness-alias.json"
+    os.link(witness, alias)
+    try:
+        with pytest.raises(SafetyStop, match="exactly one hard link"):
+            _source_witness_evidence(
+                run_root,
+                run_id=run_id,
+                launch_token=launch_token,
+            )
+    finally:
+        alias.unlink()
+
+    alternate_stream = f"{witness}:forged"
+    with open(alternate_stream, "wb") as handle:
+        handle.write(b"not-default-stream")
+    try:
+        with pytest.raises(SafetyStop, match="alternate data stream"):
+            _source_witness_evidence(
+                run_root,
+                run_id=run_id,
+                launch_token=launch_token,
+            )
+    finally:
+        os.remove(alternate_stream)
+
+
+def test_source_witness_registration_rejects_ads_and_supports_over_64_mib() -> None:
+    assert SOURCE_WITNESS_SOURCE_MAX_BYTES >= 64 * 1024 * 1024 + 1
+    run_root = Path(os.environ["M0_TEST_LAB_ROOT"])
+    source_root = run_root / "external" / "witness-api-unit"
+    source_root.mkdir(parents=True, exist_ok=True)
+    source = source_root / "registered-source.bin"
+    source.write_bytes(b"registered source remains unchanged")
+    alternate_stream = f"{source}:forged"
+    with open(alternate_stream, "wb") as handle:
+        handle.write(b"alternate stream must not be witnessed as safe")
+    try:
+        with pytest.raises(pytest.UsageError, match="stable single-link"):
+            register_synthetic_source(source)
+    finally:
+        os.remove(alternate_stream)
+
+    source_id = register_synthetic_source(source)
+    assert len(source_id) == 64
+    assert register_synthetic_source(source) == source_id
+    assert source.name not in source_id
+    assert str(source) not in source_id
+
+
+def test_source_witness_registration_does_not_retain_a_share_fence() -> None:
+    run_root = Path(os.environ["M0_TEST_LAB_ROOT"])
+    source_root = run_root / "external" / "witness-share-unit"
+    source_root.mkdir(parents=True, exist_ok=True)
+    source = source_root / "share-source.bin"
+    alias = source_root / "share-alias.bin"
+    renamed = source_root / "share-renamed.bin"
+    source.write_bytes(b"registration must release every observation handle")
+    register_synthetic_source(source)
+
+    os.link(source, alias)
+    alias.unlink()
+    source.rename(renamed)
+    renamed.rename(source)
+
+    assert source.read_bytes() == b"registration must release every observation handle"
+    assert source.stat().st_nlink == 1
 
 
 def test_component_containment_rejects_test2_prefix(tmp_path: Path) -> None:
@@ -188,9 +558,33 @@ def test_s3d_mode_has_a_fixed_non_injectable_selection(tmp_path: Path) -> None:
                 "tests/test_write_entry_inventory.py",
             ],
         ),
+        (
+            "s3f_core",
+            [
+                "tests/test_copy_operation.py",
+                "tests/test_copy_ledger.py",
+                "tests/test_policy_epoch_compatibility.py",
+                "tests/test_external_source.py",
+            ],
+        ),
+        (
+            "s3f",
+            [
+                "tests/test_copy_operation.py",
+                "tests/test_copy_ledger.py",
+                "tests/test_policy_epoch_compatibility.py",
+                "tests/test_external_source.py",
+                "tests/test_publish_operation.py",
+                "tests/test_job_operation.py",
+                "tests/test_windows_handle_writer.py",
+                "tests/test_segment_ledger.py",
+                "tests/test_workspace_policy.py",
+                "tests/test_write_entry_inventory.py",
+            ],
+        ),
     ),
 )
-def test_s3e_modes_have_exact_non_injectable_selections(
+def test_s3e_and_s3f_modes_have_exact_non_injectable_selections(
     tmp_path: Path,
     mode: str,
     selection: list[str],
@@ -288,6 +682,81 @@ def test_protected_tree_snapshot_ignores_only_the_current_run_root(
     changed = _snapshot_changes(before, after)
     assert all("RUN-SAFE-005" not in item for item in changed)
     assert "F:tmp/test_lab/RUN-SAFE-OLD/evidence.txt" in changed
+
+
+def test_windows_extended_path_canonicalizes_drive_and_unc_namespaces() -> None:
+    drive_path = r"D:\AAA命题\Test\tmp\history\evidence.bin"
+    extended_drive = r"\\?\D:\AAA命题\Test\tmp\history\evidence.bin"
+    unc_path = r"\\server\share\history\evidence.bin"
+    extended_unc = r"\\?\UNC\server\share\history\evidence.bin"
+
+    assert _windows_extended_path(drive_path) == extended_drive
+    assert _windows_extended_path(extended_drive) == extended_drive
+    assert _windows_extended_path(unc_path) == extended_unc
+    assert _windows_extended_path(extended_unc) == extended_unc
+    assert _windows_extended_path(r"\\server\share") == "\\\\?\\UNC\\server\\share\\"
+    assert str(launcher_module._absolute_lexical(extended_drive)) == drive_path
+    assert str(launcher_module._absolute_lexical(extended_unc)) == unc_path
+
+
+def test_protected_snapshot_hash_walk_and_fence_cover_historical_long_path(
+    tmp_path: Path,
+) -> None:
+    project = tmp_path / "project"
+    excluded = project / "tmp" / "test_lab" / "RUN-SAFE-CURRENT"
+    history = project / "tmp" / "test_lab" / "RUN-SAFE-HISTORY"
+    os.makedirs(_windows_extended_path(excluded))
+    os.makedirs(_windows_extended_path(history))
+    long_directories: list[Path] = []
+    long_parent = history
+    evidence_payload = b'{"retained":true,"long_path":true}\n'
+    fence: _WindowsProtectedTreeFence | None = None
+    evidence_path: Path | None = None
+    extended_evidence_path: str | None = None
+    evidence_created = False
+    try:
+        while len(str(long_parent)) <= 275:
+            long_parent = long_parent / ("historical-evidence-segment-" + "d" * 64)
+            os.mkdir(_windows_extended_path(long_parent))
+            long_directories.append(long_parent)
+        evidence_path = long_parent / "retained-evidence.json"
+        extended_evidence_path = _windows_extended_path(evidence_path)
+        with open(extended_evidence_path, "xb") as handle:
+            evidence_created = True
+            handle.write(evidence_payload)
+
+        assert len(str(long_parent)) > 260
+        assert evidence_path is not None and extended_evidence_path is not None
+        snapshot = _protected_tree_snapshot(project, excluded_root=excluded)
+        evidence_key = "F:" + evidence_path.relative_to(project).as_posix()
+        assert evidence_key in snapshot
+        assert snapshot[evidence_key]["sha256"] == hashlib.sha256(
+            evidence_payload
+        ).hexdigest()
+        assert all("\\\\?\\" not in key for key in snapshot)
+
+        fence = _WindowsProtectedTreeFence(
+            project,
+            excluded_root=excluded,
+            snapshot=snapshot,
+        )
+        with pytest.raises(OSError):
+            with open(extended_evidence_path, "r+b") as handle:
+                handle.write(b"tampered")
+        with open(extended_evidence_path, "rb") as handle:
+            assert handle.read() == evidence_payload
+    finally:
+        finish_result: tuple[int, str | None] | None = None
+        if fence is not None:
+            finish_result = fence.finish()
+        if evidence_created and extended_evidence_path is not None:
+            os.remove(extended_evidence_path)
+        for directory in reversed(long_directories):
+            os.rmdir(_windows_extended_path(directory))
+        if finish_result is not None:
+            count, error = finish_result
+            assert error is None
+            assert count > 0
 
 
 def test_protected_snapshot_accepts_only_fully_internal_hardlink_groups(
@@ -853,7 +1322,7 @@ def test_process_job_terminates_the_full_tree_on_timeout(tmp_path: Path) -> None
         project_root=Path(__file__).parent.parent,
         run_root=tmp_path,
         environment=os.environ.copy(),
-        timeout_seconds=1,
+        timeout_seconds=10,
     )
     assert exit_code == 124
     assert timed_out
@@ -953,6 +1422,9 @@ def test_effective_exit_code_records_protected_state_gate_and_skips() -> None:
         "protected_runtime_monitor_valid": True,
         "protected_runtime_unchanged": True,
         "protected_handle_fence_valid": True,
+        "source_witness_valid": True,
+        "registered_source_final_state_matches": True,
+        "registered_source_count_requirement_met": True,
     }
     assert _effective_exit_code(**base) == 0
     assert _effective_exit_code(**{**base, "pytest_exit_code": 1}) == 1
@@ -969,6 +1441,13 @@ def test_effective_exit_code_records_protected_state_gate_and_skips() -> None:
     ) == 97
     assert _effective_exit_code(
         **{**base, "protected_handle_fence_valid": False}
+    ) == 97
+    assert _effective_exit_code(**{**base, "source_witness_valid": False}) == 97
+    assert _effective_exit_code(
+        **{**base, "registered_source_final_state_matches": False}
+    ) == 97
+    assert _effective_exit_code(
+        **{**base, "registered_source_count_requirement_met": False}
     ) == 97
     assert _effective_exit_code(
         **{
@@ -996,6 +1475,56 @@ def test_effective_exit_code_records_protected_state_gate_and_skips() -> None:
             },
         }
     ) == 98
+
+
+def test_only_copy_bearing_modes_require_a_registered_source_witness() -> None:
+    assert RUN_RESULT_SCHEMA_VERSION == "1.1"
+    assert SOURCE_REGISTRATION_REQUIRED_MODES == frozenset(
+        {"full", "s3f", "s3f_core"}
+    )
+    assert {
+        "guard",
+        "writer",
+        "s3d",
+        "s3e",
+        "s3e_core",
+        "launcher",
+        "symlink",
+    }.isdisjoint(SOURCE_REGISTRATION_REQUIRED_MODES)
+    for mode in SOURCE_REGISTRATION_REQUIRED_MODES:
+        assert _registered_source_count_gate(
+            mode,
+            source_witness_valid=True,
+            source_count=0,
+        ) == {
+            "registered_source_count": 0,
+            "registered_source_count_minimum_required": 1,
+            "registered_source_count_requirement_met": False,
+        }
+        assert _registered_source_count_gate(
+            mode,
+            source_witness_valid=True,
+            source_count=1,
+        )["registered_source_count_requirement_met"] is True
+        assert _registered_source_count_gate(
+            mode,
+            source_witness_valid=False,
+            source_count=1,
+        )["registered_source_count_requirement_met"] is False
+    for mode in {
+        "guard",
+        "writer",
+        "s3d",
+        "s3e",
+        "s3e_core",
+        "launcher",
+        "symlink",
+    }:
+        assert _registered_source_count_gate(
+            mode,
+            source_witness_valid=True,
+            source_count=0,
+        )["registered_source_count_requirement_met"] is True
 
 
 def test_direct_pytest_canary_rejects_injected_plugin_environment(

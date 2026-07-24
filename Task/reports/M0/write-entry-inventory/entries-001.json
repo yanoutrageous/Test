@@ -1,5 +1,5 @@
 {
-  "chunk_digest_sha256": "78c1cf928f5479763d93ac19a8b91ab6e231de9e89a8e764931509aae10c1f40",
+  "chunk_digest_sha256": "f01c1669ba771335a3f651a2b5b65bfda3b3762e11f322bb781bef452b098be2",
   "chunk_index": 1,
   "entries": [
     {
@@ -160,13 +160,13 @@
       "column": 8,
       "detail": "directory creation",
       "end_column": 52,
-      "end_line": 133,
+      "end_line": 134,
       "entry_id": "WE-F60ECFABA1731677757433C4",
       "file": "app/config.py",
       "function": "app.config.ensure_storage_directories",
       "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
       "kind": "FILESYSTEM_DIRECTORY_CREATE",
-      "line": 133,
+      "line": 134,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "APPLICATION_SERVICE",
       "required_control": "S3_HANDLE_LEVEL_WORKSPACE_WRITER",
@@ -187,7 +187,7 @@
         "WEB:POST /questions/<int:question_id>/ai-suggestions/<int:suggestion_id>/reject",
         "WEB:POST /structured-review/<int:question_id>/status"
       ],
-      "source_sha256": "2d83a3eed7464a544a4f254ee0fa75b30f715203c4e01fe61df6a584c207ef4f",
+      "source_sha256": "495cc2e6ef5d0375df0ded9fe456300e252c81c211724b30571f638a211d7f8a",
       "statement_fingerprint": "d69a190f4f2a35bfc163ab9389f1daa7a592304076f2332cc3fbfb95a7c374bb",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_FILESYSTEM"
     },

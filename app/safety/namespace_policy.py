@@ -21,9 +21,9 @@ from .context import (
 
 
 POLICY_ID = "LOCAL-EXAM-BANK-WORKSPACE"
-POLICY_VERSION = "M0-S3-V7"
+POLICY_VERSION = "M0-S3-V8"
 EXPECTED_POLICY_DIGEST = (
-    "8df50ded63443c3310603614fd6d317234ce026c351870d0488a84dd1cfe4d88"
+    "1d50da20075216ea7d3b20f68807ffe2cd108e9425a2c1c5ccc33292efe4d6cc"
 )
 POLICY_DIGEST = EXPECTED_POLICY_DIGEST
 
@@ -38,6 +38,8 @@ class NamespaceId(StrEnum):
     COPY_WORK_RESTRICTED = "COPY_WORK_RESTRICTED"
     COPY_WORK = "COPY_WORK"
     COPY_LEDGER = "COPY_LEDGER"
+    COPY_SOURCE_LEDGER = "COPY_SOURCE_LEDGER"
+    COPY_OPERATION_LEDGER = "COPY_OPERATION_LEDGER"
     ACTIVE_DATABASE = "ACTIVE_DATABASE"
     DATABASE_SIDECAR = "DATABASE_SIDECAR"
     DATABASE_DIRECTORY = "DATABASE_DIRECTORY"
@@ -61,6 +63,35 @@ class NamespaceId(StrEnum):
     LEGACY_ASSET = "LEGACY_ASSET"
     LEGACY_DB_BACKUP = "LEGACY_DB_BACKUP"
     UNCLASSIFIED = "UNCLASSIFIED"
+
+
+PUBLISH_TOPOLOGY: frozenset[tuple[NamespaceId, NamespaceId]] = frozenset(
+    {
+        (NamespaceId.JOB_WORKSPACE_INTERNAL, NamespaceId.COPY_SOURCE),
+        (NamespaceId.JOB_WORKSPACE_INTERNAL, NamespaceId.ORIGINAL_OBJECT),
+        (NamespaceId.COPY_WORK_INTERNAL, NamespaceId.ORIGINAL_OBJECT),
+        (NamespaceId.JOB_WORKSPACE_INTERNAL, NamespaceId.DATABASE_VERSION),
+        (NamespaceId.JOB_WORKSPACE_INTERNAL, NamespaceId.DERIVED_REVISION),
+        (NamespaceId.JOB_WORKSPACE_INTERNAL, NamespaceId.INDEX_VERSION),
+        (NamespaceId.JOB_WORKSPACE_INTERNAL, NamespaceId.TEMPLATE_REVISION),
+        (NamespaceId.JOB_WORKSPACE_INTERNAL, NamespaceId.EXPORT_BUNDLE),
+        (NamespaceId.JOB_WORKSPACE_INTERNAL, NamespaceId.SNAPSHOT),
+        (NamespaceId.JOB_WORKSPACE_INTERNAL, NamespaceId.BACKUP_SET),
+        (NamespaceId.JOB_WORKSPACE_RESTRICTED, NamespaceId.COPY_RESTRICTED),
+    }
+)
+QUARANTINE_SOURCE_NAMESPACES: frozenset[NamespaceId] = frozenset(
+    {
+        NamespaceId.JOB_WORKSPACE_INTERNAL,
+        NamespaceId.JOB_WORKSPACE_RESTRICTED,
+        NamespaceId.COPY_WORK_INTERNAL,
+        NamespaceId.COPY_WORK_RESTRICTED,
+        NamespaceId.COPY_RESTRICTED,
+    }
+)
+QUARANTINE_TARGET_NAMESPACES: frozenset[NamespaceId] = frozenset(
+    {NamespaceId.QUARANTINE_INTERNAL, NamespaceId.QUARANTINE_RESTRICTED}
+)
 
 
 class NamespaceMode(StrEnum):
@@ -316,7 +347,6 @@ _INTERNAL_COPY_MOVE_ACTORS = (
 )
 _RESTRICTED_JOB_ACTORS = (
     (Caller.IMPORT_SERVICE, Purpose.COPY_SOURCE),
-    (Caller.IMPORT_SERVICE, Purpose.BUILD_DERIVED),
 )
 _QUARANTINE_ACTORS = (
     (Caller.DATABASE_SERVICE, Purpose.QUARANTINE),
@@ -367,7 +397,13 @@ _FIXED_NAMESPACE_PREFIXES: dict[NamespaceId, frozenset[tuple[str, ...]]] = {
         {("Copy", "work", "RESTRICTED")}
     ),
     NamespaceId.COPY_WORK: frozenset({("Copy", "work")}),
-    NamespaceId.COPY_LEDGER: frozenset({("Copy", "ledger", "segments")}),
+    NamespaceId.COPY_LEDGER: frozenset({("Copy", "ledger")}),
+    NamespaceId.COPY_SOURCE_LEDGER: frozenset(
+        {("Copy", "ledger", "source", "segments")}
+    ),
+    NamespaceId.COPY_OPERATION_LEDGER: frozenset(
+        {("Copy", "ledger", "copy", "segments")}
+    ),
     NamespaceId.ACTIVE_DATABASE: frozenset(
         {("data", "db", "question_bank.sqlite3")}
     ),
@@ -411,7 +447,12 @@ _FIXED_NAMESPACE_PREFIXES: dict[NamespaceId, frozenset[tuple[str, ...]]] = {
 }
 _FIXED_SCOPE_BINDINGS: dict[NamespaceId, tuple[ScopeBinding, ...]] = {
     NamespaceId.COPY_SOURCE: (ScopeBinding(0, ScopeKind.COPY_ID),),
-    NamespaceId.COPY_LEDGER: (ScopeBinding(0, ScopeKind.COPY_ID),),
+    NamespaceId.COPY_SOURCE_LEDGER: (
+        ScopeBinding(0, ScopeKind.COPY_LEDGER_EPOCH_ID),
+    ),
+    NamespaceId.COPY_OPERATION_LEDGER: (
+        ScopeBinding(0, ScopeKind.COPY_LEDGER_EPOCH_ID),
+    ),
     NamespaceId.COPY_RESTRICTED: (ScopeBinding(0, ScopeKind.COPY_ID),),
     NamespaceId.COPY_WORK_INTERNAL: (
         ScopeBinding(0, ScopeKind.COPY_ID),
@@ -754,11 +795,17 @@ DEFAULT_RULES: tuple[NamespaceRule, ...] = (
     ),
     NamespaceRule(
         NamespaceId.COPY_LEDGER,
-        ("Copy", "ledger", "segments"),
+        ("Copy", "ledger"),
+        NamespaceMode.FORBIDDEN,
+        audit_path_mode=AuditPathMode.HMAC_ONLY,
+    ),
+    NamespaceRule(
+        NamespaceId.COPY_SOURCE_LEDGER,
+        ("Copy", "ledger", "source", "segments"),
         NamespaceMode.READ_ONLY,
         minimum_tail_depth=2,
         maximum_tail_depth=2,
-        scope_bindings=(ScopeBinding(0, ScopeKind.COPY_ID),),
+        scope_bindings=(ScopeBinding(0, ScopeKind.COPY_LEDGER_EPOCH_ID),),
         normal_intents=_READ,
         read_callers=frozenset(
             {Caller.IMPORT_SERVICE, Caller.AUDIT_SERVICE, Caller.BACKUP_SERVICE}
@@ -766,6 +813,23 @@ DEFAULT_RULES: tuple[NamespaceRule, ...] = (
         read_purposes=frozenset(
             {Purpose.COPY_SOURCE, Purpose.READ_CONTROL, Purpose.BACKUP}
         ),
+        audit_path_mode=AuditPathMode.HMAC_ONLY,
+    ),
+    NamespaceRule(
+        NamespaceId.COPY_OPERATION_LEDGER,
+        ("Copy", "ledger", "copy", "segments"),
+        NamespaceMode.READ_ONLY,
+        minimum_tail_depth=2,
+        maximum_tail_depth=2,
+        scope_bindings=(ScopeBinding(0, ScopeKind.COPY_LEDGER_EPOCH_ID),),
+        normal_intents=_READ,
+        read_callers=frozenset(
+            {Caller.IMPORT_SERVICE, Caller.AUDIT_SERVICE, Caller.BACKUP_SERVICE}
+        ),
+        read_purposes=frozenset(
+            {Purpose.COPY_SOURCE, Purpose.READ_CONTROL, Purpose.BACKUP}
+        ),
+        audit_path_mode=AuditPathMode.HMAC_ONLY,
     ),
     NamespaceRule(
         NamespaceId.ACTIVE_STATE_POINTER,
@@ -1406,13 +1470,24 @@ EXACT_GRANTS: tuple[CapabilityGrant, ...] = (
         paired=True,
     ),
     *_grants(
-        NamespaceId.COPY_LEDGER,
+        NamespaceId.COPY_SOURCE_LEDGER,
         (
             (Caller.IMPORT_SERVICE, Purpose.COPY_SOURCE),
             (Caller.AUDIT_SERVICE, Purpose.READ_CONTROL),
             (Caller.BACKUP_SERVICE, Purpose.BACKUP),
         ),
         _READ_ANY,
+        required_scopes=frozenset({ScopeKind.RUN_ID}),
+    ),
+    *_grants(
+        NamespaceId.COPY_OPERATION_LEDGER,
+        (
+            (Caller.IMPORT_SERVICE, Purpose.COPY_SOURCE),
+            (Caller.AUDIT_SERVICE, Purpose.READ_CONTROL),
+            (Caller.BACKUP_SERVICE, Purpose.BACKUP),
+        ),
+        _READ_ANY,
+        required_scopes=frozenset({ScopeKind.RUN_ID}),
     ),
     *_grants(
         NamespaceId.ACTIVE_STATE_POINTER,
@@ -1650,7 +1725,19 @@ EXACT_GRANTS: tuple[CapabilityGrant, ...] = (
 _FIXED_REQUIRED_SCOPES: dict[
     tuple[NamespaceId, bool, PathIntent, ExpectedKind, Caller, Purpose],
     frozenset[ScopeKind],
-] = {}
+] = {
+    (
+        grant.namespace,
+        grant.paired,
+        grant.intent,
+        grant.expected_kind,
+        grant.caller,
+        grant.purpose,
+    ): frozenset({ScopeKind.RUN_ID})
+    for grant in EXACT_GRANTS
+    if grant.namespace
+    in {NamespaceId.COPY_SOURCE_LEDGER, NamespaceId.COPY_OPERATION_LEDGER}
+}
 
 
 @dataclass(frozen=True, slots=True)
@@ -1804,11 +1891,29 @@ def _clone_capability_grant(grant: CapabilityGrant) -> CapabilityGrant:
 def _policy_digest(
     rules: tuple[NamespaceRule, ...],
     grants: tuple[CapabilityGrant, ...],
+    publish_topology: frozenset[tuple[NamespaceId, NamespaceId]],
+    quarantine_sources: frozenset[NamespaceId],
+    quarantine_targets: frozenset[NamespaceId],
 ) -> str:
     canonical = json.dumps(
         {
             "rules": [rule.to_canonical_dict() for rule in rules],
             "grants": [grant.to_canonical_dict() for grant in grants],
+            "pair_topology": {
+                "publish": [
+                    [source.value, target.value]
+                    for source, target in sorted(
+                        publish_topology,
+                        key=lambda pair: (pair[0].value, pair[1].value),
+                    )
+                ],
+                "quarantine_sources": sorted(
+                    namespace.value for namespace in quarantine_sources
+                ),
+                "quarantine_targets": sorted(
+                    namespace.value for namespace in quarantine_targets
+                ),
+            },
         },
         ensure_ascii=True,
         sort_keys=True,
@@ -2026,6 +2131,9 @@ class NamespacePolicy:
                 ),
             )
         )
+        self._publish_topology = frozenset(PUBLISH_TOPOLOGY)
+        self._quarantine_sources = frozenset(QUARANTINE_SOURCE_NAMESPACES)
+        self._quarantine_targets = frozenset(QUARANTINE_TARGET_NAMESPACES)
         self.__paired_seal: object | None = None
         rule_by_namespace: dict[NamespaceId, list[NamespaceRule]] = {}
         for rule in self._rules:
@@ -2153,7 +2261,13 @@ class NamespacePolicy:
                 )
         if frozenset(self._grants) != frozenset(EXACT_GRANTS):
             raise ValueError("namespace capability grant set is fixed by policy")
-        self._digest = _policy_digest(self._rules, self._grants)
+        self._digest = _policy_digest(
+            self._rules,
+            self._grants,
+            self._publish_topology,
+            self._quarantine_sources,
+            self._quarantine_targets,
+        )
         if self._digest != EXPECTED_POLICY_DIGEST:
             raise ValueError("namespace policy digest differs from the reviewed policy")
 
@@ -2165,7 +2279,31 @@ class NamespacePolicy:
                 _validate_namespace_rule_types(rule)
             for grant in self._grants:
                 _validate_capability_grant_types(grant)
-            current = _policy_digest(self._rules, self._grants)
+            if (
+                type(self._publish_topology) is not frozenset
+                or type(self._quarantine_sources) is not frozenset
+                or type(self._quarantine_targets) is not frozenset
+                or any(
+                    type(pair) is not tuple
+                    or len(pair) != 2
+                    or type(pair[0]) is not NamespaceId
+                    or type(pair[1]) is not NamespaceId
+                    for pair in self._publish_topology
+                )
+                or any(
+                    type(item) is not NamespaceId
+                    for item in self._quarantine_sources
+                    | self._quarantine_targets
+                )
+            ):
+                raise ValueError("policy pair topology changed type")
+            current = _policy_digest(
+                self._rules,
+                self._grants,
+                self._publish_topology,
+                self._quarantine_sources,
+                self._quarantine_targets,
+            )
         except Exception as exc:
             raise PolicyIntegrityError(
                 "namespace policy integrity cannot be recomputed"
@@ -2187,6 +2325,35 @@ class NamespacePolicy:
     def grants(self) -> tuple[CapabilityGrant, ...]:
         self._assert_integrity()
         return tuple(_clone_capability_grant(grant) for grant in self._grants)
+
+    @property
+    def publish_topology(self) -> frozenset[tuple[NamespaceId, NamespaceId]]:
+        self._assert_integrity()
+        return frozenset(self._publish_topology)
+
+    def allows_pair_topology(
+        self,
+        pair_kind: str,
+        source: NamespaceId,
+        target: NamespaceId,
+    ) -> bool:
+        """Evaluate the exact topology that is authenticated by ``digest``."""
+
+        self._assert_integrity()
+        if (
+            type(pair_kind) is not str
+            or type(source) is not NamespaceId
+            or type(target) is not NamespaceId
+        ):
+            raise PolicyIntegrityError("pair topology query is not exact")
+        if pair_kind == "PUBLISH":
+            return (source, target) in self._publish_topology
+        if pair_kind == "QUARANTINE":
+            return (
+                source in self._quarantine_sources
+                and target in self._quarantine_targets
+            )
+        return False
 
     def classify(self, relative_path: Path) -> NamespaceDecision:
         self._assert_integrity()

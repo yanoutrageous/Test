@@ -1,23 +1,131 @@
 {
-  "chunk_digest_sha256": "1a83f783bf5131d8750684dc5a4f875581ad78376ba6e24d263d04123cebf504",
+  "chunk_digest_sha256": "cfbd6fd1533d275afbc50ebd6a5ce9f893c5ef3ef08617d4cd1e70ccb9fbd428",
   "chunk_index": 18,
   "entries": [
+    {
+      "call_chain": [
+        "scripts.run_safe_pytest._WindowsProtectedTreeFence.__init__"
+      ],
+      "callee": "ctypes.WinDLL",
+      "column": 19,
+      "detail": "native library binding requires an audited symbol allowlist",
+      "end_column": 65,
+      "end_line": 618,
+      "entry_id": "WE-52B54C62ADBA165D8C8D57FB",
+      "file": "scripts/run_safe_pytest.py",
+      "function": "scripts.run_safe_pytest._WindowsProtectedTreeFence.__init__",
+      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
+      "kind": "NATIVE_API_BINDING",
+      "line": 618,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "TEST_INFRASTRUCTURE",
+      "required_control": "S3_NATIVE_API_FIXED_LIBRARY_AND_SYMBOL_ALLOWLIST",
+      "resolution": "CONSERVATIVE",
+      "risk": "P0",
+      "root_ids": [
+        "INTERNAL-DIRECT"
+      ],
+      "source_sha256": "2c20da2fdccb4088950a3031c8e3dcc96260eba7a9430f86a7126c8b28038d8d",
+      "statement_fingerprint": "3474f55c4f2c4ff899bf534b507dc606ac6ca48c4335543ec7104e00d9f58fff",
+      "target_namespace": "TEST_LAB_RUNTIME"
+    },
+    {
+      "call_chain": [
+        "scripts.run_safe_pytest._WindowsProtectedTreeFence.__init__"
+      ],
+      "callee": "ctypes.WinDLL().CreateFileW",
+      "column": 25,
+      "detail": "Win32 file mutation or durability primitive",
+      "end_column": 17,
+      "end_line": 669,
+      "entry_id": "WE-6C18267CA0D405495C174551",
+      "file": "scripts/run_safe_pytest.py",
+      "function": "scripts.run_safe_pytest._WindowsProtectedTreeFence.__init__",
+      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
+      "kind": "FILESYSTEM_FILE_WRITE",
+      "line": 661,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "TEST_INFRASTRUCTURE",
+      "required_control": "S3_HANDLE_LEVEL_WORKSPACE_WRITER",
+      "resolution": "CONSERVATIVE",
+      "risk": "P1",
+      "root_ids": [
+        "INTERNAL-DIRECT"
+      ],
+      "source_sha256": "2c20da2fdccb4088950a3031c8e3dcc96260eba7a9430f86a7126c8b28038d8d",
+      "statement_fingerprint": "54e7aba638d2603cb3e93eee4f0f9111afa705bf7ae1b3d32efef877299836b7",
+      "target_namespace": "TEST_LAB_RUNTIME"
+    },
+    {
+      "call_chain": [
+        "scripts.run_safe_pytest._WindowsStreamInspector.__init__"
+      ],
+      "callee": "ctypes.WinDLL",
+      "column": 19,
+      "detail": "native library binding requires an audited symbol allowlist",
+      "end_column": 65,
+      "end_line": 835,
+      "entry_id": "WE-F8A0C38891C6E10F0ACCFAD8",
+      "file": "scripts/run_safe_pytest.py",
+      "function": "scripts.run_safe_pytest._WindowsStreamInspector.__init__",
+      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
+      "kind": "NATIVE_API_BINDING",
+      "line": 835,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "TEST_INFRASTRUCTURE",
+      "required_control": "S3_NATIVE_API_FIXED_LIBRARY_AND_SYMBOL_ALLOWLIST",
+      "resolution": "CONSERVATIVE",
+      "risk": "P0",
+      "root_ids": [
+        "INTERNAL-DIRECT"
+      ],
+      "source_sha256": "2c20da2fdccb4088950a3031c8e3dcc96260eba7a9430f86a7126c8b28038d8d",
+      "statement_fingerprint": "3474f55c4f2c4ff899bf534b507dc606ac6ca48c4335543ec7104e00d9f58fff",
+      "target_namespace": "TEST_LAB_RUNTIME"
+    },
+    {
+      "call_chain": [
+        "scripts.run_safe_pytest._WindowsStreamInspector.require_default_stream_only"
+      ],
+      "callee": "self._kernel32.CreateFileW",
+      "column": 17,
+      "detail": "Win32 file mutation or durability primitive",
+      "end_column": 9,
+      "end_line": 874,
+      "entry_id": "WE-151F5C0A0782D0382349FDCD",
+      "file": "scripts/run_safe_pytest.py",
+      "function": "scripts.run_safe_pytest._WindowsStreamInspector.require_default_stream_only",
+      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
+      "kind": "FILESYSTEM_FILE_WRITE",
+      "line": 865,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "TEST_INFRASTRUCTURE",
+      "required_control": "S3_HANDLE_LEVEL_WORKSPACE_WRITER",
+      "resolution": "CONSERVATIVE",
+      "risk": "P1",
+      "root_ids": [
+        "INTERNAL-DIRECT"
+      ],
+      "source_sha256": "2c20da2fdccb4088950a3031c8e3dcc96260eba7a9430f86a7126c8b28038d8d",
+      "statement_fingerprint": "dd167905a49b370b62e99e3239bfc60d15f3c481c309a45adeab51b077931f1a",
+      "target_namespace": "TEST_LAB_RUNTIME"
+    },
     {
       "call_chain": [
         "scripts.run_safe_pytest.main",
         "scripts.run_safe_pytest._write_json_exclusive"
       ],
-      "callee": "path.open",
+      "callee": "open",
       "column": 9,
       "detail": "file open in write-capable mode",
-      "end_column": 55,
-      "end_line": 1134,
-      "entry_id": "WE-680C971CD114550914B22DC0",
+      "end_column": 5,
+      "end_line": 1620,
+      "entry_id": "WE-FAEA5393A1DF4713DC2AFF53",
       "file": "scripts/run_safe_pytest.py",
       "function": "scripts.run_safe_pytest._write_json_exclusive",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "FILESYSTEM_FILE_WRITE",
-      "line": 1134,
+      "line": 1615,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "TEST_INFRASTRUCTURE",
       "required_control": "S3_HANDLE_LEVEL_WORKSPACE_WRITER",
@@ -26,8 +134,8 @@
       "root_ids": [
         "SCRIPT:scripts/run_safe_pytest.py"
       ],
-      "source_sha256": "6c72b1816a0e98e91880f72c68fedfb7a19fe82ef00b4d168ac7aa04a62cdf17",
-      "statement_fingerprint": "eaad0385c9491cef1c1af69461a24e870a5f40901ab3ab2c2f31f76b60f6f81f",
+      "source_sha256": "2c20da2fdccb4088950a3031c8e3dcc96260eba7a9430f86a7126c8b28038d8d",
+      "statement_fingerprint": "e44de1e95baf974631b5a28ab7851f3a9256a2b5159eba26d5e1efa1bb764c00",
       "target_namespace": "TEST_LAB_RUNTIME"
     },
     {
@@ -35,17 +143,17 @@
         "scripts.run_safe_pytest.main",
         "scripts.run_safe_pytest._write_json_exclusive"
       ],
-      "callee": "path.open().write",
+      "callee": "open().write",
       "column": 8,
       "detail": "stream or file descriptor write",
       "end_column": 26,
-      "end_line": 1139,
-      "entry_id": "WE-9AA55D9D78C17B0049DD8D01",
+      "end_line": 1625,
+      "entry_id": "WE-2769A3712D30A76BC9472659",
       "file": "scripts/run_safe_pytest.py",
       "function": "scripts.run_safe_pytest._write_json_exclusive",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "FILESYSTEM_FILE_WRITE",
-      "line": 1139,
+      "line": 1625,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "TEST_INFRASTRUCTURE",
       "required_control": "S3_HANDLE_LEVEL_WORKSPACE_WRITER",
@@ -54,7 +162,7 @@
       "root_ids": [
         "SCRIPT:scripts/run_safe_pytest.py"
       ],
-      "source_sha256": "6c72b1816a0e98e91880f72c68fedfb7a19fe82ef00b4d168ac7aa04a62cdf17",
+      "source_sha256": "2c20da2fdccb4088950a3031c8e3dcc96260eba7a9430f86a7126c8b28038d8d",
       "statement_fingerprint": "c08e0eaaa509384f20cdefa40e74244fd4ff647f5d7a398a28a5099a8f9fc9ab",
       "target_namespace": "TEST_LAB_RUNTIME"
     },
@@ -67,13 +175,13 @@
       "column": 18,
       "detail": "external process invocation",
       "end_column": 9,
-      "end_line": 1266,
+      "end_line": 1774,
       "entry_id": "WE-657C4C40CC9694A5B69C4E22",
       "file": "scripts/run_safe_pytest.py",
       "function": "scripts.run_safe_pytest._run_test_process",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "EXTERNAL_PROCESS",
-      "line": 1259,
+      "line": 1767,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "TEST_INFRASTRUCTURE",
       "required_control": "S3_CONTROLLED_PROCESS_WRAPPER",
@@ -82,7 +190,7 @@
       "root_ids": [
         "SCRIPT:scripts/run_safe_pytest.py"
       ],
-      "source_sha256": "6c72b1816a0e98e91880f72c68fedfb7a19fe82ef00b4d168ac7aa04a62cdf17",
+      "source_sha256": "2c20da2fdccb4088950a3031c8e3dcc96260eba7a9430f86a7126c8b28038d8d",
       "statement_fingerprint": "6dff8917d3215468bb9ebe631565d93c0228ab40e9416832993f8cd31926bf9c",
       "target_namespace": "TEST_LAB_RUNTIME"
     },
@@ -94,13 +202,13 @@
       "column": 4,
       "detail": "directory creation",
       "end_column": 22,
-      "end_line": 1441,
+      "end_line": 1955,
       "entry_id": "WE-0E26352566B49FCD77331B78",
       "file": "scripts/run_safe_pytest.py",
       "function": "scripts.run_safe_pytest.main",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "FILESYSTEM_DIRECTORY_CREATE",
-      "line": 1441,
+      "line": 1955,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "TEST_INFRASTRUCTURE",
       "required_control": "S3_HANDLE_LEVEL_WORKSPACE_WRITER",
@@ -109,7 +217,7 @@
       "root_ids": [
         "SCRIPT:scripts/run_safe_pytest.py"
       ],
-      "source_sha256": "6c72b1816a0e98e91880f72c68fedfb7a19fe82ef00b4d168ac7aa04a62cdf17",
+      "source_sha256": "2c20da2fdccb4088950a3031c8e3dcc96260eba7a9430f86a7126c8b28038d8d",
       "statement_fingerprint": "4258319616e9c4b20dbb6e8f951ca7c29563ab46b47f42380aed4b6228cd75d3",
       "target_namespace": "TEST_LAB_RUNTIME"
     },
@@ -121,13 +229,13 @@
       "column": 4,
       "detail": "directory creation",
       "end_column": 23,
-      "end_line": 1450,
+      "end_line": 1964,
       "entry_id": "WE-8B49BC5FBA78F558CE9D8885",
       "file": "scripts/run_safe_pytest.py",
       "function": "scripts.run_safe_pytest.main",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "FILESYSTEM_DIRECTORY_CREATE",
-      "line": 1450,
+      "line": 1964,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "TEST_INFRASTRUCTURE",
       "required_control": "S3_HANDLE_LEVEL_WORKSPACE_WRITER",
@@ -136,7 +244,7 @@
       "root_ids": [
         "SCRIPT:scripts/run_safe_pytest.py"
       ],
-      "source_sha256": "6c72b1816a0e98e91880f72c68fedfb7a19fe82ef00b4d168ac7aa04a62cdf17",
+      "source_sha256": "2c20da2fdccb4088950a3031c8e3dcc96260eba7a9430f86a7126c8b28038d8d",
       "statement_fingerprint": "d76fa67834f025e8ba1ea34a5a15038c09007f8bd789097f763c139a5ac87f20",
       "target_namespace": "TEST_LAB_RUNTIME"
     },
@@ -148,13 +256,13 @@
       "column": 4,
       "detail": "directory creation",
       "end_column": 26,
-      "end_line": 1451,
+      "end_line": 1965,
       "entry_id": "WE-6B9FC39012EAFF8B5168D7BC",
       "file": "scripts/run_safe_pytest.py",
       "function": "scripts.run_safe_pytest.main",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "FILESYSTEM_DIRECTORY_CREATE",
-      "line": 1451,
+      "line": 1965,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "TEST_INFRASTRUCTURE",
       "required_control": "S3_HANDLE_LEVEL_WORKSPACE_WRITER",
@@ -163,7 +271,7 @@
       "root_ids": [
         "SCRIPT:scripts/run_safe_pytest.py"
       ],
-      "source_sha256": "6c72b1816a0e98e91880f72c68fedfb7a19fe82ef00b4d168ac7aa04a62cdf17",
+      "source_sha256": "2c20da2fdccb4088950a3031c8e3dcc96260eba7a9430f86a7126c8b28038d8d",
       "statement_fingerprint": "3102f577fe457871c6e93b649467cd741570c6e5695ab61120e0be7a8b36c316",
       "target_namespace": "TEST_LAB_RUNTIME"
     },
@@ -175,13 +283,13 @@
       "column": 4,
       "detail": "directory creation",
       "end_column": 24,
-      "end_line": 1452,
+      "end_line": 1966,
       "entry_id": "WE-847F9745C4C75ABDE6E5D1AC",
       "file": "scripts/run_safe_pytest.py",
       "function": "scripts.run_safe_pytest.main",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "FILESYSTEM_DIRECTORY_CREATE",
-      "line": 1452,
+      "line": 1966,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "TEST_INFRASTRUCTURE",
       "required_control": "S3_HANDLE_LEVEL_WORKSPACE_WRITER",
@@ -190,7 +298,7 @@
       "root_ids": [
         "SCRIPT:scripts/run_safe_pytest.py"
       ],
-      "source_sha256": "6c72b1816a0e98e91880f72c68fedfb7a19fe82ef00b4d168ac7aa04a62cdf17",
+      "source_sha256": "2c20da2fdccb4088950a3031c8e3dcc96260eba7a9430f86a7126c8b28038d8d",
       "statement_fingerprint": "2936544fb8e87590fc4c946250f06759d40a5fa3ca655748ed4a2f5bb15b3a08",
       "target_namespace": "TEST_LAB_RUNTIME"
     },
@@ -202,13 +310,13 @@
       "column": 4,
       "detail": "directory creation",
       "end_column": 23,
-      "end_line": 1453,
+      "end_line": 1967,
       "entry_id": "WE-FFB1C43A3B1AB9AE24320701",
       "file": "scripts/run_safe_pytest.py",
       "function": "scripts.run_safe_pytest.main",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "FILESYSTEM_DIRECTORY_CREATE",
-      "line": 1453,
+      "line": 1967,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "TEST_INFRASTRUCTURE",
       "required_control": "S3_HANDLE_LEVEL_WORKSPACE_WRITER",
@@ -217,7 +325,7 @@
       "root_ids": [
         "SCRIPT:scripts/run_safe_pytest.py"
       ],
-      "source_sha256": "6c72b1816a0e98e91880f72c68fedfb7a19fe82ef00b4d168ac7aa04a62cdf17",
+      "source_sha256": "2c20da2fdccb4088950a3031c8e3dcc96260eba7a9430f86a7126c8b28038d8d",
       "statement_fingerprint": "ebfc35da1fcba9b218e25759adeb31427b05fcb1b535c559884234c0dd3c9e7c",
       "target_namespace": "TEST_LAB_RUNTIME"
     },
@@ -229,13 +337,13 @@
       "column": 4,
       "detail": "directory creation",
       "end_column": 26,
-      "end_line": 1454,
+      "end_line": 1968,
       "entry_id": "WE-845F0EB1830FA3C43218199A",
       "file": "scripts/run_safe_pytest.py",
       "function": "scripts.run_safe_pytest.main",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "FILESYSTEM_DIRECTORY_CREATE",
-      "line": 1454,
+      "line": 1968,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "TEST_INFRASTRUCTURE",
       "required_control": "S3_HANDLE_LEVEL_WORKSPACE_WRITER",
@@ -244,7 +352,7 @@
       "root_ids": [
         "SCRIPT:scripts/run_safe_pytest.py"
       ],
-      "source_sha256": "6c72b1816a0e98e91880f72c68fedfb7a19fe82ef00b4d168ac7aa04a62cdf17",
+      "source_sha256": "2c20da2fdccb4088950a3031c8e3dcc96260eba7a9430f86a7126c8b28038d8d",
       "statement_fingerprint": "983185b355c549db0471769390c377bf2f8c85375cab5de31e860d2a3f2c7ccf",
       "target_namespace": "TEST_LAB_RUNTIME"
     },
@@ -256,13 +364,13 @@
       "column": 4,
       "detail": "directory creation",
       "end_column": 32,
-      "end_line": 1455,
+      "end_line": 1969,
       "entry_id": "WE-D18D9785C520F017F91C230E",
       "file": "scripts/run_safe_pytest.py",
       "function": "scripts.run_safe_pytest.main",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "FILESYSTEM_DIRECTORY_CREATE",
-      "line": 1455,
+      "line": 1969,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "TEST_INFRASTRUCTURE",
       "required_control": "S3_HANDLE_LEVEL_WORKSPACE_WRITER",
@@ -271,11 +379,11 @@
       "root_ids": [
         "SCRIPT:scripts/run_safe_pytest.py"
       ],
-      "source_sha256": "6c72b1816a0e98e91880f72c68fedfb7a19fe82ef00b4d168ac7aa04a62cdf17",
+      "source_sha256": "2c20da2fdccb4088950a3031c8e3dcc96260eba7a9430f86a7126c8b28038d8d",
       "statement_fingerprint": "63e777f1078a305b568ea180d1004bd9d2712391705c7d94f8e952fdce697c62",
       "target_namespace": "TEST_LAB_RUNTIME"
     }
   ],
-  "entry_count": 10,
+  "entry_count": 14,
   "schema_version": "2.0"
 }

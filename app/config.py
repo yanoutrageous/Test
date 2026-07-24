@@ -4,12 +4,13 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
+from .project_root import PROJECT_ROOT
+
 
 class ConfigurationError(RuntimeError):
     """Raised when required local project paths cannot be resolved."""
 
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
 BASE_DIR = PROJECT_ROOT / "Base"
 DATA_DIR = PROJECT_ROOT / "data"
 TARGET_PDF_ENV = "EXAM_BANK_TARGET_PDF"

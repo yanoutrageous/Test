@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import hmac
 import json
 import ntpath
 import os
@@ -13,13 +14,30 @@ import sys
 import time
 import xml.etree.ElementTree as ET
 from collections import defaultdict
+from collections.abc import Iterator
 from datetime import datetime
 from pathlib import Path, PureWindowsPath
 from threading import Event, Lock, Thread
 from typing import Any, Sequence
 
 
-EXPECTED_PROJECT_ROOT = Path(r"D:\AAA命题\Test")
+_IMPORT_PROJECT_ROOT = Path(
+    ntpath.normpath(ntpath.abspath(os.fspath(Path(__file__).parent.parent)))
+)
+if not any(
+    ntpath.normcase(entry) == ntpath.normcase(str(_IMPORT_PROJECT_ROOT))
+    for entry in sys.path
+    if type(entry) is str
+):
+    sys.path.insert(0, str(_IMPORT_PROJECT_ROOT))
+
+from app.project_root import PROJECT_ROOT as VERIFIED_PROJECT_ROOT
+
+
+def _verified_launcher_root(_root: Path = VERIFIED_PROJECT_ROOT) -> Path:
+    return _root
+
+
 RUN_ID_PATTERN = re.compile(r"RUN-[A-Z0-9][A-Z0-9-]{5,80}")
 REPARSE_ATTRIBUTE = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
 SYMLINK_TEST = "test_real_directory_symlink_is_rejected"
@@ -31,10 +49,45 @@ RUN_TREE_MAX_FILE_BYTES = 128 * 1024 * 1024
 RUN_TREE_MAX_DEPTH = 32
 RUN_TREE_MAX_PATH_UTF8_BYTES = 4096
 RUN_TREE_MAX_COMPONENT_UTF8_BYTES = 512
+SOURCE_WITNESS_FILE_NAME = "source-witness-result.json"
+SOURCE_WITNESS_SCHEMA_VERSION = "1.0"
+SOURCE_WITNESS_SCOPE = "REGISTERED_SNAPSHOT_TO_SESSION_FINAL_EQUIVALENCE"
+SOURCE_WITNESS_MAX_BYTES = RUN_TREE_MAX_FILE_BYTES
+SOURCE_WITNESS_MAX_SOURCES = 20_000
+SOURCE_WITNESS_SOURCE_MAX_BYTES = RUN_TREE_MAX_FILE_BYTES
+SOURCE_WITNESS_KEY_DOMAIN = b"SAFE-PYTEST-SOURCE-WITNESS-KEY-V1\0"
+SOURCE_WITNESS_LOCATOR_DOMAIN = b"SAFE-PYTEST-SOURCE-WITNESS-LOCATOR-V1\0"
+SOURCE_WITNESS_AUTH_DOMAIN = b"SAFE-PYTEST-SOURCE-WITNESS-AUTH-V1\0"
+SOURCE_REGISTRATION_REQUIRED_MODES = frozenset({"full", "s3f", "s3f_core"})
+RUN_RESULT_SCHEMA_VERSION = "1.1"
+SHA256_PATTERN = re.compile(r"[0-9a-f]{64}")
+WINDOWS_EXTENDED_PATH_PREFIX = "\\\\?\\"
+WINDOWS_EXTENDED_UNC_PREFIX = "\\\\?\\UNC\\"
 
 
 class SafetyStop(RuntimeError):
     pass
+
+
+def _registered_source_count_gate(
+    mode: str,
+    *,
+    source_witness_valid: bool,
+    source_count: object,
+) -> dict[str, int | bool | None]:
+    minimum_required = 1 if mode in SOURCE_REGISTRATION_REQUIRED_MODES else 0
+    trusted_count = (
+        source_count
+        if source_witness_valid and type(source_count) is int and source_count >= 0
+        else None
+    )
+    return {
+        "registered_source_count": trusted_count,
+        "registered_source_count_minimum_required": minimum_required,
+        "registered_source_count_requirement_met": (
+            trusted_count is not None and trusted_count >= minimum_required
+        ),
+    }
 
 
 class _WindowsJob:
@@ -327,7 +380,7 @@ class _WindowsProtectedTreeWatcher:
         kernel32.CloseHandle.restype = wintypes.BOOL
 
         handle = kernel32.CreateFileW(
-            str(self._root),
+            _windows_extended_path(self._root),
             self._FILE_LIST_DIRECTORY,
             self._FILE_SHARE_READ | self._FILE_SHARE_WRITE | self._FILE_SHARE_DELETE,
             None,
@@ -376,7 +429,7 @@ class _WindowsProtectedTreeWatcher:
 
     def _write_marker(self, path: Path) -> None:
         descriptor = os.open(
-            path,
+            _filesystem_path(path),
             os.O_WRONLY | os.O_CREAT | os.O_EXCL,
             0o600,
         )
@@ -606,7 +659,7 @@ class _WindowsProtectedTreeFence:
                 if is_directory:
                     flags |= self._FILE_FLAG_BACKUP_SEMANTICS
                 handle = kernel32.CreateFileW(
-                    str(candidate),
+                    _windows_extended_path(candidate),
                     self._GENERIC_READ,
                     share_mode,
                     None,
@@ -655,7 +708,58 @@ class _WindowsProtectedTreeFence:
 
 
 def _absolute_lexical(path: str | os.PathLike[str]) -> Path:
-    return Path(ntpath.normpath(ntpath.abspath(os.fspath(path))))
+    raw = os.fspath(path)
+    if not isinstance(raw, str):
+        raise SafetyStop("safety-critical paths must be text")
+    folded = raw.casefold()
+    if folded.startswith(WINDOWS_EXTENDED_UNC_PREFIX.casefold()):
+        raw = "\\\\" + raw[len(WINDOWS_EXTENDED_UNC_PREFIX) :]
+    elif folded.startswith(WINDOWS_EXTENDED_PATH_PREFIX.casefold()):
+        raw = raw[len(WINDOWS_EXTENDED_PATH_PREFIX) :]
+        drive, tail = ntpath.splitdrive(raw)
+        if not drive or not tail.startswith(("\\", "/")):
+            raise SafetyStop("unsupported extended Windows path namespace")
+    return Path(ntpath.normpath(ntpath.abspath(raw)))
+
+
+def _windows_extended_path(path: str | os.PathLike[str]) -> str:
+    """Return an absolute Win32 extended path without changing evidence names."""
+
+    ordinary = str(_absolute_lexical(path))
+    drive, tail = ntpath.splitdrive(ordinary)
+    if ordinary.startswith("\\\\"):
+        if not drive or (tail and not tail.startswith(("\\", "/"))):
+            raise SafetyStop("Windows UNC filesystem path is not absolute")
+        return WINDOWS_EXTENDED_UNC_PREFIX + ordinary[2:]
+    if not drive or not tail.startswith(("\\", "/")):
+        raise SafetyStop("Windows filesystem path is not absolute")
+    return WINDOWS_EXTENDED_PATH_PREFIX + ordinary
+
+
+def _filesystem_path(path: str | os.PathLike[str]) -> str:
+    if os.name == "nt":
+        return _windows_extended_path(path)
+    return os.fspath(path)
+
+
+def _walk_safety_tree(
+    root: Path,
+    *,
+    onerror: Any,
+) -> Iterator[tuple[Path, list[str], list[str]]]:
+    """Walk through an extended API root while yielding ordinary canonical paths."""
+
+    canonical_root = _absolute_lexical(root)
+    for current_text, directory_names, file_names in os.walk(
+        _filesystem_path(canonical_root),
+        topdown=True,
+        followlinks=False,
+        onerror=onerror,
+    ):
+        current = _absolute_lexical(current_text)
+        if _relative_parts(current, canonical_root) is None:
+            raise SafetyStop("safety-critical tree walk escaped its canonical root")
+        yield current, directory_names, file_names
 
 
 def _same_path(left: Path, right: Path) -> bool:
@@ -675,7 +779,7 @@ def _relative_parts(candidate: Path, root: Path) -> tuple[str, ...] | None:
 
 def _lstat_no_reparse(path: Path) -> os.stat_result:
     try:
-        identity = os.lstat(path)
+        identity = os.lstat(_filesystem_path(path))
     except OSError as exc:
         raise SafetyStop(f"cannot inspect required path {path}: {exc}") from exc
     attributes = int(getattr(identity, "st_file_attributes", 0))
@@ -692,7 +796,7 @@ def _verify_existing_chain(path: Path) -> None:
 
 def _sha256(path: Path) -> str:
     digest = hashlib.sha256()
-    with path.open("rb") as handle:
+    with open(_filesystem_path(path), "rb") as handle:
         for block in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(block)
     return digest.hexdigest()
@@ -759,7 +863,7 @@ class _WindowsStreamInspector:
         directory: bool = False,
     ) -> None:
         handle = self._kernel32.CreateFileW(
-            str(path),
+            _windows_extended_path(path),
             self._GENERIC_READ,
             self._FILE_SHARE_READ | self._FILE_SHARE_WRITE | self._FILE_SHARE_DELETE,
             None,
@@ -819,6 +923,42 @@ class _WindowsStreamInspector:
                 )
 
 
+def _source_witness_evidence(
+    run_root: Path,
+    *,
+    run_id: str,
+    launch_token: str,
+) -> dict[str, Any]:
+    canonical_run_root = _absolute_lexical(run_root)
+    witness_path = canonical_run_root / SOURCE_WITNESS_FILE_NAME
+    if _relative_parts(witness_path, canonical_run_root) != (
+        SOURCE_WITNESS_FILE_NAME,
+    ):
+        raise SafetyStop("source witness escaped the current run root")
+    _verify_existing_chain(witness_path)
+    before = _regular_file_evidence(witness_path)
+    if before["size"] <= 0 or before["size"] > SOURCE_WITNESS_MAX_BYTES:
+        raise SafetyStop("source witness file length is invalid")
+    _WindowsStreamInspector().require_default_stream_only(witness_path)
+    try:
+        with open(_filesystem_path(witness_path), "rb") as handle:
+            raw = handle.read()
+    except OSError as exc:
+        raise SafetyStop("cannot read the source witness result") from exc
+    after = _regular_file_evidence(witness_path)
+    if before != after or len(raw) != before["size"]:
+        raise SafetyStop("source witness changed while it was validated")
+    validated = _validate_source_witness_bytes(
+        raw,
+        run_id=run_id,
+        launch_token=launch_token,
+    )
+    return {
+        **before,
+        **validated,
+    }
+
+
 def _measure_run_tree_budget(
     run_root: Path,
     *,
@@ -830,15 +970,12 @@ def _measure_run_tree_budget(
     total_bytes = 0
     maximum_depth = 0
     stream_inspector = _WindowsStreamInspector() if strict else None
-    for current_text, directory_names, file_names in os.walk(
+    for current, directory_names, file_names in _walk_safety_tree(
         run_root,
-        topdown=True,
-        followlinks=False,
         onerror=_raise_walk_error if strict else None,
     ):
-        current = Path(current_text)
         try:
-            current_identity = os.lstat(current)
+            current_identity = os.lstat(_filesystem_path(current))
         except FileNotFoundError:
             if strict:
                 raise SafetyStop("run tree changed during final verification") from None
@@ -880,7 +1017,7 @@ def _measure_run_tree_budget(
         for name in tuple(directory_names):
             candidate = current / name
             try:
-                identity = os.lstat(candidate)
+                identity = os.lstat(_filesystem_path(candidate))
             except FileNotFoundError:
                 if strict:
                     raise SafetyStop("run tree changed during final verification") from None
@@ -902,7 +1039,7 @@ def _measure_run_tree_budget(
             if file_depth > RUN_TREE_MAX_DEPTH:
                 raise SafetyStop("run tree file depth exceeds its fixed limit")
             try:
-                identity = os.lstat(candidate)
+                identity = os.lstat(_filesystem_path(candidate))
             except FileNotFoundError:
                 if strict:
                     raise SafetyStop("run tree changed during final verification") from None
@@ -949,7 +1086,7 @@ def _verify_run_tree_no_reparse(run_root: Path) -> dict[str, int]:
 def _junit_evidence(path: Path) -> dict[str, Any]:
     file_evidence = _regular_file_evidence(path)
     try:
-        root = ET.parse(path).getroot()
+        root = ET.parse(_filesystem_path(path)).getroot()
     except (ET.ParseError, OSError) as exc:
         raise SafetyStop(f"JUnit XML is invalid: {exc}") from exc
     if root.tag not in {"testsuite", "testsuites"}:
@@ -1042,13 +1179,10 @@ def _protected_tree_snapshot(
     hardlink_groups: dict[tuple[int, int], list[tuple[Path, os.stat_result]]] = (
         defaultdict(list)
     )
-    for current_text, directory_names, file_names in os.walk(
+    for current, directory_names, file_names in _walk_safety_tree(
         project_root,
-        topdown=True,
-        followlinks=False,
         onerror=_raise_walk_error,
     ):
-        current = Path(current_text)
         directory_names.sort(key=str.casefold)
         file_names.sort(key=str.casefold)
         kept_directories: list[str] = []
@@ -1130,8 +1264,360 @@ def _snapshot_changes(
     )
 
 
+def _canonical_json_bytes(payload: Any) -> bytes:
+    try:
+        return json.dumps(
+            payload,
+            ensure_ascii=True,
+            sort_keys=True,
+            separators=(",", ":"),
+            allow_nan=False,
+        ).encode("ascii")
+    except (TypeError, ValueError, UnicodeError) as exc:
+        raise SafetyStop("source witness is not canonical-JSON serializable") from exc
+
+
+def _source_witness_key(launch_token: str) -> bytes:
+    if type(launch_token) is not str or not launch_token:
+        raise SafetyStop("source witness launch token is unavailable")
+    return hmac.new(
+        launch_token.encode("utf-8", "strict"),
+        SOURCE_WITNESS_KEY_DOMAIN,
+        hashlib.sha256,
+    ).digest()
+
+
+def _source_witness_locator_id(path_key: str, launch_token: str) -> str:
+    if type(path_key) is not str or not path_key:
+        raise SafetyStop("source witness locator input is invalid")
+    return hmac.new(
+        _source_witness_key(launch_token),
+        SOURCE_WITNESS_LOCATOR_DOMAIN + path_key.encode("utf-8", "surrogatepass"),
+        hashlib.sha256,
+    ).hexdigest()
+
+
+def _source_witness_hmac(
+    unsigned_payload: dict[str, Any],
+    launch_token: str,
+) -> str:
+    return hmac.new(
+        _source_witness_key(launch_token),
+        SOURCE_WITNESS_AUTH_DOMAIN + _canonical_json_bytes(unsigned_payload),
+        hashlib.sha256,
+    ).hexdigest()
+
+
+def _sign_source_witness_payload(
+    unsigned_payload: dict[str, Any],
+    launch_token: str,
+) -> dict[str, Any]:
+    if type(unsigned_payload) is not dict or "hmac_sha256" in unsigned_payload:
+        raise SafetyStop("source witness unsigned payload is invalid")
+    signed = dict(unsigned_payload)
+    signed["hmac_sha256"] = _source_witness_hmac(
+        unsigned_payload,
+        launch_token,
+    )
+    return signed
+
+
+def _require_source_witness_keys(
+    value: Any,
+    expected: frozenset[str],
+    label: str,
+) -> dict[str, Any]:
+    if type(value) is not dict or frozenset(value) != expected:
+        raise SafetyStop(f"source witness {label} has an invalid field set")
+    return value
+
+
+def _source_witness_integer(
+    value: Any,
+    *,
+    label: str,
+    positive: bool = False,
+) -> int:
+    if type(value) is not int or value < (1 if positive else 0):
+        raise SafetyStop(f"source witness {label} is not a valid integer")
+    return value
+
+
+_SOURCE_WITNESS_PARENT_FIELDS = frozenset(
+    {"device", "inode", "mode", "file_attributes", "reparse_tag"}
+)
+_SOURCE_WITNESS_SOURCE_FIELDS = frozenset(
+    {
+        "device",
+        "inode",
+        "mode",
+        "file_attributes",
+        "reparse_tag",
+        "nlink",
+        "size",
+        "mtime_ns",
+        "sha256",
+        "default_stream_only",
+    }
+)
+_SOURCE_WITNESS_ENTRY_FIELDS = frozenset(
+    {
+        "source_id",
+        "parent_before",
+        "source_before",
+        "parent_after",
+        "source_after",
+        "final_state_matches_registration",
+    }
+)
+_SOURCE_WITNESS_UNSIGNED_FIELDS = frozenset(
+    {
+        "schema_version",
+        "run_id",
+        "launch_token_sha256",
+        "source_count",
+        "matching_final_state_count",
+        "mismatched_final_state_count",
+        "witness_scope",
+        "registered_source_final_state_matches",
+        "sources",
+    }
+)
+_SOURCE_WITNESS_SIGNED_FIELDS = _SOURCE_WITNESS_UNSIGNED_FIELDS | {
+    "hmac_sha256"
+}
+
+
+def _validate_source_witness_parent(value: Any, label: str) -> dict[str, Any]:
+    parent = _require_source_witness_keys(
+        value,
+        _SOURCE_WITNESS_PARENT_FIELDS,
+        label,
+    )
+    _source_witness_integer(parent["device"], label=f"{label} device")
+    _source_witness_integer(
+        parent["inode"],
+        label=f"{label} inode",
+        positive=True,
+    )
+    mode = _source_witness_integer(
+        parent["mode"],
+        label=f"{label} mode",
+        positive=True,
+    )
+    attributes = _source_witness_integer(
+        parent["file_attributes"],
+        label=f"{label} attributes",
+    )
+    reparse_tag = _source_witness_integer(
+        parent["reparse_tag"],
+        label=f"{label} reparse tag",
+    )
+    if not stat.S_ISDIR(mode) or attributes & REPARSE_ATTRIBUTE or reparse_tag:
+        raise SafetyStop(f"source witness {label} is not a plain directory")
+    return parent
+
+
+def _validate_source_witness_source(
+    value: Any,
+    label: str,
+    *,
+    require_single_link: bool,
+) -> dict[str, Any]:
+    source = _require_source_witness_keys(
+        value,
+        _SOURCE_WITNESS_SOURCE_FIELDS,
+        label,
+    )
+    _source_witness_integer(source["device"], label=f"{label} device")
+    _source_witness_integer(
+        source["inode"],
+        label=f"{label} inode",
+        positive=True,
+    )
+    mode = _source_witness_integer(
+        source["mode"],
+        label=f"{label} mode",
+        positive=True,
+    )
+    attributes = _source_witness_integer(
+        source["file_attributes"],
+        label=f"{label} attributes",
+    )
+    reparse_tag = _source_witness_integer(
+        source["reparse_tag"],
+        label=f"{label} reparse tag",
+    )
+    nlink = _source_witness_integer(
+        source["nlink"],
+        label=f"{label} link count",
+        positive=True,
+    )
+    size = _source_witness_integer(source["size"], label=f"{label} size")
+    _source_witness_integer(source["mtime_ns"], label=f"{label} mtime")
+    source_sha256 = source["sha256"]
+    if type(source_sha256) is not str or not SHA256_PATTERN.fullmatch(source_sha256):
+        raise SafetyStop(f"source witness {label} SHA-256 is invalid")
+    if (
+        not stat.S_ISREG(mode)
+        or attributes & REPARSE_ATTRIBUTE
+        or reparse_tag
+        or size > SOURCE_WITNESS_SOURCE_MAX_BYTES
+        or (require_single_link and nlink != 1)
+        or source["default_stream_only"] is not True
+    ):
+        raise SafetyStop(f"source witness {label} is not an eligible source file")
+    return source
+
+
+def _validate_source_witness_bytes(
+    raw: bytes,
+    *,
+    run_id: str,
+    launch_token: str,
+) -> dict[str, Any]:
+    if type(raw) is not bytes or not raw or len(raw) > SOURCE_WITNESS_MAX_BYTES:
+        raise SafetyStop("source witness byte length is invalid")
+    try:
+        document = json.loads(raw.decode("ascii", "strict"))
+    except (UnicodeDecodeError, ValueError) as exc:
+        raise SafetyStop("source witness is not valid canonical ASCII JSON") from exc
+    signed = _require_source_witness_keys(
+        document,
+        _SOURCE_WITNESS_SIGNED_FIELDS,
+        "document",
+    )
+    if raw != _canonical_json_bytes(signed) + b"\n":
+        raise SafetyStop("source witness bytes are not canonical ASCII JSON with LF")
+
+    if signed["schema_version"] != SOURCE_WITNESS_SCHEMA_VERSION:
+        raise SafetyStop("source witness schema version is not supported")
+    if signed["run_id"] != run_id:
+        raise SafetyStop("source witness run ID does not match the selected run")
+    token_sha256 = hashlib.sha256(launch_token.encode("utf-8", "strict")).hexdigest()
+    recorded_token_sha256 = signed["launch_token_sha256"]
+    if (
+        type(recorded_token_sha256) is not str
+        or not SHA256_PATTERN.fullmatch(recorded_token_sha256)
+        or not hmac.compare_digest(recorded_token_sha256, token_sha256)
+    ):
+        raise SafetyStop("source witness launch token does not match this process")
+    recorded_hmac = signed["hmac_sha256"]
+    if type(recorded_hmac) is not str or not SHA256_PATTERN.fullmatch(recorded_hmac):
+        raise SafetyStop("source witness HMAC is invalid")
+    unsigned = {key: signed[key] for key in _SOURCE_WITNESS_UNSIGNED_FIELDS}
+    expected_hmac = _source_witness_hmac(unsigned, launch_token)
+    if not hmac.compare_digest(recorded_hmac, expected_hmac):
+        raise SafetyStop("source witness HMAC authentication failed")
+
+    source_count = _source_witness_integer(
+        signed["source_count"],
+        label="source count",
+    )
+    matching_final_state_count = _source_witness_integer(
+        signed["matching_final_state_count"],
+        label="matching final-state count",
+    )
+    mismatched_final_state_count = _source_witness_integer(
+        signed["mismatched_final_state_count"],
+        label="mismatched final-state count",
+    )
+    if source_count > SOURCE_WITNESS_MAX_SOURCES:
+        raise SafetyStop("source witness count exceeds its fixed limit")
+    sources = signed["sources"]
+    if type(sources) is not list or len(sources) != source_count:
+        raise SafetyStop("source witness source count is inconsistent")
+    if signed["witness_scope"] != SOURCE_WITNESS_SCOPE:
+        raise SafetyStop("source witness guarantee scope is not supported")
+    declared_final_match = signed["registered_source_final_state_matches"]
+    if type(declared_final_match) is not bool:
+        raise SafetyStop("source witness final-match state is not Boolean")
+
+    mismatched_source_ids: list[str] = []
+    previous_source_id: str | None = None
+    actual_matching_count = 0
+    for index, value in enumerate(sources):
+        entry = _require_source_witness_keys(
+            value,
+            _SOURCE_WITNESS_ENTRY_FIELDS,
+            f"source entry {index}",
+        )
+        source_id = entry["source_id"]
+        if type(source_id) is not str or not SHA256_PATTERN.fullmatch(source_id):
+            raise SafetyStop("source witness contains an invalid opaque source ID")
+        if previous_source_id is not None and source_id <= previous_source_id:
+            raise SafetyStop("source witness opaque source IDs are not unique and sorted")
+        previous_source_id = source_id
+
+        parent_before = _validate_source_witness_parent(
+            entry["parent_before"],
+            f"source entry {index} parent before",
+        )
+        source_before = _validate_source_witness_source(
+            entry["source_before"],
+            f"source entry {index} source before",
+            require_single_link=True,
+        )
+        parent_after_value = entry["parent_after"]
+        source_after_value = entry["source_after"]
+        parent_after = (
+            None
+            if parent_after_value is None
+            else _validate_source_witness_parent(
+                parent_after_value,
+                f"source entry {index} parent after",
+            )
+        )
+        source_after = (
+            None
+            if source_after_value is None
+            else _validate_source_witness_source(
+                source_after_value,
+                f"source entry {index} source after",
+                require_single_link=False,
+            )
+        )
+        if parent_after is None and source_after is not None:
+            raise SafetyStop("source witness final source has no verified parent")
+        final_match = entry["final_state_matches_registration"]
+        if type(final_match) is not bool:
+            raise SafetyStop("source witness entry final-match state is not Boolean")
+        observed_final_match = (
+            parent_after == parent_before and source_after == source_before
+        )
+        if final_match is not observed_final_match:
+            raise SafetyStop("source witness entry final-match state is inconsistent")
+        if final_match:
+            actual_matching_count += 1
+        else:
+            mismatched_source_ids.append(source_id)
+
+    actual_mismatched_count = source_count - actual_matching_count
+    if (
+        matching_final_state_count != actual_matching_count
+        or mismatched_final_state_count != actual_mismatched_count
+        or matching_final_state_count + mismatched_final_state_count != source_count
+        or declared_final_match is not (actual_mismatched_count == 0)
+    ):
+        raise SafetyStop("source witness aggregate counts are inconsistent")
+    return {
+        "source_count": source_count,
+        "matching_final_state_count": actual_matching_count,
+        "mismatched_final_state_count": actual_mismatched_count,
+        "witness_scope": SOURCE_WITNESS_SCOPE,
+        "registered_source_final_state_matches": declared_final_match,
+        "mismatched_source_ids": mismatched_source_ids,
+        "hmac_sha256": recorded_hmac,
+    }
+
+
 def _write_json_exclusive(path: Path, payload: dict[str, Any]) -> None:
-    with path.open("x", encoding="utf-8", newline="\n") as handle:
+    with open(
+        _filesystem_path(path),
+        "x",
+        encoding="utf-8",
+        newline="\n",
+    ) as handle:
         # ASCII escaping keeps evidence serializable even when a protected NTFS
         # entry contains an unpaired UTF-16 code unit.  The escaped value remains
         # deterministic and round-trips through json.load without data loss.
@@ -1183,6 +1669,26 @@ def _build_command(
         ]
     elif mode == "s3e_core":
         selection = ["tests/test_publish_operation.py"]
+    elif mode == "s3f":
+        selection = [
+            "tests/test_copy_operation.py",
+            "tests/test_copy_ledger.py",
+            "tests/test_policy_epoch_compatibility.py",
+            "tests/test_external_source.py",
+            "tests/test_publish_operation.py",
+            "tests/test_job_operation.py",
+            "tests/test_windows_handle_writer.py",
+            "tests/test_segment_ledger.py",
+            "tests/test_workspace_policy.py",
+            "tests/test_write_entry_inventory.py",
+        ]
+    elif mode == "s3f_core":
+        selection = [
+            "tests/test_copy_operation.py",
+            "tests/test_copy_ledger.py",
+            "tests/test_policy_epoch_compatibility.py",
+            "tests/test_external_source.py",
+        ]
     elif mode == "launcher":
         selection = ["tests/test_safe_pytest_launcher.py"]
     elif mode == "symlink":
@@ -1228,6 +1734,8 @@ def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
             "s3d",
             "s3e",
             "s3e_core",
+            "s3f",
+            "s3f_core",
             "launcher",
             "symlink",
         ),
@@ -1386,6 +1894,9 @@ def _effective_exit_code(
     protected_runtime_monitor_valid: bool,
     protected_runtime_unchanged: bool,
     protected_handle_fence_valid: bool,
+    source_witness_valid: bool,
+    registered_source_final_state_matches: bool,
+    registered_source_count_requirement_met: bool,
 ) -> int:
     if (
         not database_unchanged
@@ -1393,6 +1904,9 @@ def _effective_exit_code(
         or not protected_runtime_monitor_valid
         or not protected_runtime_unchanged
         or not protected_handle_fence_valid
+        or not source_witness_valid
+        or not registered_source_final_state_matches
+        or not registered_source_count_requirement_met
     ):
         return 97
     if not run_tree_safe or not immutable_evidence_unchanged:
@@ -1418,7 +1932,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         raise SafetyStop("timeout must be between 1 and 3600 seconds")
 
     project_root = _absolute_lexical(Path(__file__).parent.parent)
-    expected_root = _absolute_lexical(EXPECTED_PROJECT_ROOT)
+    expected_root = _absolute_lexical(_verified_launcher_root())
     if not _same_path(project_root, expected_root):
         raise SafetyStop(
             f"launcher is outside the contracted project root: {project_root}"
@@ -1654,6 +2168,43 @@ def main(argv: Sequence[str] | None = None) -> int:
         run_tree_safe = False
         run_tree_error = str(exc)
 
+    source_witness_path = run_root / SOURCE_WITNESS_FILE_NAME
+    source_witness_exists = os.path.lexists(source_witness_path)
+    source_witness_valid = False
+    source_witness_error: str | None = None
+    source_witness_details: dict[str, Any] = {}
+    if run_tree_safe:
+        try:
+            source_witness_details = _source_witness_evidence(
+                run_root,
+                run_id=args.run_id,
+                launch_token=launch_token,
+            )
+            source_witness_valid = True
+        except SafetyStop as exc:
+            source_witness_error = str(exc)
+    else:
+        source_witness_error = (
+            "run tree was unsafe before source witness validation"
+        )
+    registered_source_final_state_matches = (
+        source_witness_valid
+        and source_witness_details.get("registered_source_final_state_matches")
+        is True
+    )
+    source_count_gate = _registered_source_count_gate(
+        args.mode,
+        source_witness_valid=source_witness_valid,
+        source_count=source_witness_details.get("source_count"),
+    )
+    registered_source_count = source_count_gate["registered_source_count"]
+    registered_source_count_minimum_required = source_count_gate[
+        "registered_source_count_minimum_required"
+    ]
+    registered_source_count_requirement_met = source_count_gate[
+        "registered_source_count_requirement_met"
+    ]
+
     immutable_evidence_unchanged = False
     immutable_evidence_after: dict[str, dict[str, Any]] = {}
     immutable_evidence_error: str | None = None
@@ -1691,10 +2242,36 @@ def main(argv: Sequence[str] | None = None) -> int:
         protected_runtime_monitor_valid=protected_runtime_monitor_valid,
         protected_runtime_unchanged=protected_runtime_unchanged,
         protected_handle_fence_valid=protected_handle_fence_valid,
+        source_witness_valid=source_witness_valid,
+        registered_source_final_state_matches=(
+            registered_source_final_state_matches
+        ),
+        registered_source_count_requirement_met=(
+            registered_source_count_requirement_met is True
+        ),
+    )
+    source_state_mismatches = list(protected_changes)
+    if source_witness_valid:
+        source_state_mismatches.extend(
+            f"SYNTHETIC_SOURCE_HMAC:{source_id}"
+            for source_id in source_witness_details["mismatched_source_ids"]
+        )
+    else:
+        source_state_mismatches.append("SYNTHETIC_SOURCE_WITNESS_INVALID")
+    if registered_source_count_requirement_met is not True:
+        source_state_mismatches.append(
+            "REGISTERED_SYNTHETIC_SOURCE_COUNT_REQUIREMENT_NOT_MET"
+        )
+    source_state_gates_passed = (
+        protected_tree_unchanged
+        and protected_runtime_unchanged
+        and registered_source_final_state_matches
+        and registered_source_count_requirement_met is True
     )
     result = {
-        "schema_version": "1.0",
+        "schema_version": RUN_RESULT_SCHEMA_VERSION,
         "run_id": args.run_id,
+        "mode": args.mode,
         "finished_at": datetime.now().astimezone().isoformat(timespec="seconds"),
         "pytest_exit_code": pytest_exit_code,
         "effective_exit_code": effective_exit_code,
@@ -1732,10 +2309,30 @@ def main(argv: Sequence[str] | None = None) -> int:
         "protected_handle_count": protected_handle_count,
         "protected_handle_fence_valid": protected_handle_fence_valid,
         "protected_handle_fence_error": protected_handle_fence_error,
-        "source_inputs_unchanged": (
-            protected_tree_unchanged and protected_runtime_unchanged
+        "source_witness_exists": source_witness_exists,
+        "source_witness_valid": source_witness_valid,
+        "source_witness_error": source_witness_error,
+        "source_witness_sha256": source_witness_details.get("sha256"),
+        "source_witness_hmac_sha256": source_witness_details.get("hmac_sha256"),
+        "source_witness_scope": source_witness_details.get("witness_scope"),
+        "registered_source_count": registered_source_count,
+        "registered_source_count_minimum_required": (
+            registered_source_count_minimum_required
         ),
-        "changed_source_inputs": protected_changes,
+        "registered_source_count_requirement_met": (
+            registered_source_count_requirement_met
+        ),
+        "matching_source_final_state_count": source_witness_details.get(
+            "matching_final_state_count"
+        ),
+        "mismatched_source_final_state_count": source_witness_details.get(
+            "mismatched_final_state_count"
+        ),
+        "registered_source_final_state_matches": (
+            registered_source_final_state_matches
+        ),
+        "source_state_gates_passed": source_state_gates_passed,
+        "source_state_mismatches": source_state_mismatches,
     }
     _write_json_exclusive(run_root / "run-result.json", result)
     print(json.dumps(result, ensure_ascii=True, sort_keys=True))

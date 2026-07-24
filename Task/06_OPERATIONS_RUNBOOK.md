@@ -83,12 +83,15 @@ BLOCKED
 
 ### 工作区
 
-- 解析根路径并检查祖先 Reparse Point；
+- 从受信任`app/project_root.py`位置和`.exam-bank-root.json`解析唯一项目根，验证本地 NTFS、非盘符根、marker 单链接及全链无 Reparse Point；不得从 cwd、环境变量或调用者参数取得生产根；
+- 若物理路径、主机或卷与最近一次执行证据不同，先按`01_SAFETY_BOUNDARY.md`完成迁移复核；旧路径上的文件系统/保护树证据只作历史记录，不能直接授权新位置 mutation；
 - 记录 Git 分支、HEAD、remote、未提交/未跟踪文件；
 - 检查没有 merge/rebase/cherry-pick 中间状态；
 - 用户修改与切片重叠时停止，不 stash/reset/覆盖；
 - 获取写锁和 job ID；
 - 核对活动数据库和上次检查点。
+
+迁移后的`.venv`只可在解释器 home、项目内可执行文件位置、锁定依赖导入和版本全部通过时临时复用；正式恢复点应记录可重建命令。Git 忽略的`Task/local/`路径映射必须在每台电脑单独维护，禁止把外部绝对路径写回受跟踪合同、业务表或客户包。
 
 ### 工具
 

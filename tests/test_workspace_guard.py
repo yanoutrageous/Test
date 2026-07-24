@@ -5,6 +5,7 @@ import json
 import ntpath
 import os
 import pickle
+import re
 import stat
 import subprocess
 from dataclasses import dataclass, replace
@@ -162,6 +163,22 @@ def _windows_relative_parts(candidate: Path, root: Path) -> tuple[str, ...] | No
     return tuple(candidate_parts[len(root_parts) :])
 
 
+def _extended_test_local_path(path: Path) -> str:
+    """Return an OS-only extended path for a path already confined to test_lab."""
+
+    normalized = ntpath.normpath(str(path))
+    project_root = Path(ntpath.normpath(ntpath.abspath(str(PROJECT_ROOT))))
+    test_lab_root = project_root / "tmp" / "test_lab"
+    candidate = Path(normalized)
+    assert candidate != test_lab_root
+    assert _is_windows_descendant(candidate, test_lab_root)
+    drive, tail = ntpath.splitdrive(normalized)
+    assert re.fullmatch(r"[A-Za-z]:", drive)
+    assert tail.startswith("\\") and not tail.startswith("\\\\")
+    assert not normalized.casefold().startswith(("\\\\?\\", "\\\\.\\", "\\??\\"))
+    return "\\\\?\\" + normalized
+
+
 def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
@@ -193,7 +210,10 @@ def _controlled_mklink_junction(link: Path, target: Path, lab_root: Path) -> Non
     assert stat.S_ISREG(cmd_identity.st_mode)
     assert not int(getattr(cmd_identity, "st_file_attributes", 0)) & _REPARSE_ATTRIBUTE
 
-    process_temp = lab_root / "external-process-temp"
+    process_temp = lab_root / (
+        "external-process-temp-"
+        + hashlib.sha256(str(link).encode("utf-8", "strict")).hexdigest()[:12]
+    )
     process_temp.mkdir(exist_ok=False)
     child_environment = {
         "ComSpec": str(cmd),
@@ -721,6 +741,73 @@ def test_long_chinese_new_path_and_case_variant_root_are_safe(guard_lab: _Lab) -
     )
     assert case_ticket.path == guard_lab.project / "大小写.txt"
     assert not case_ticket.path.exists()
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows extended-path behavior")
+def test_existing_long_local_path_is_probed_but_extended_user_path_is_rejected(
+    guard_lab: _Lab,
+) -> None:
+    current = guard_lab.project
+    index = 0
+    while len(str(current / "payload.bin")) < 280:
+        current /= f"长路径-{index:02d}-" + "数" * 48
+        os.mkdir(_extended_test_local_path(current))
+        index += 1
+
+    target = current / "payload.bin"
+    with open(_extended_test_local_path(target), "xb") as stream:
+        stream.write(b"workspace-guard-long-path")
+    assert len(str(target)) >= 280
+
+    guard_lab.probe.calls.clear()
+    ticket = guard_lab.guard.authorize(
+        target,
+        intent=PathIntent.EXISTING_READ,
+        expected_kind=ExpectedKind.FILE,
+    )
+
+    assert ticket.path == target
+    assert ticket.exists is True
+    assert guard_lab.probe.calls
+    assert all(
+        not str(observed).casefold().startswith("\\\\?\\")
+        for observed in guard_lab.probe.calls
+    )
+
+    guard_lab.probe.calls.clear()
+    with pytest.raises(WorkspacePathRejectedError) as error:
+        guard_lab.guard.authorize(
+            _extended_test_local_path(target),
+            intent=PathIntent.EXISTING_READ,
+            expected_kind=ExpectedKind.FILE,
+        )
+    assert error.value.code is GuardErrorCode.DEVICE_PATH
+    assert guard_lab.probe.calls == []
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows local-drive path contract")
+@pytest.mark.parametrize(
+    "requested",
+    [
+        r"relative\file.txt",
+        r"\root-relative\file.txt",
+        r"D:drive-relative.txt",
+        r"\\server\share\file.txt",
+        r"\\?\D:\file.txt",
+        r"\\.\PhysicalDrive0",
+        r"\??\D:\file.txt",
+    ],
+)
+def test_native_probe_does_not_expand_non_local_or_non_absolute_paths(
+    requested: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def unexpected_lstat(path: object) -> os.stat_result:
+        pytest.fail(f"unsafe path reached os.lstat: {path!r}")
+
+    monkeypatch.setattr(os, "lstat", unexpected_lstat)
+    with pytest.raises(OSError):
+        NativePathProbe().lstat(Path(requested))
 
 
 def test_nonzero_reparse_tag_is_rejected_even_without_attribute(

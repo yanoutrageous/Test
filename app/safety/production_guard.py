@@ -16,6 +16,7 @@ from pathlib import Path, PureWindowsPath
 from typing import Any, Callable, Generic, TypeVar
 
 from app import config as app_config
+from app.project_root import PROJECT_ROOT as _VERIFIED_PROJECT_ROOT
 from app.workspace_guard import (
     ExpectedKind,
     GuardedPath,
@@ -46,6 +47,8 @@ from app.safety.operation_ledger import (
     DurableOperationLedger,
     OperationCompletionKind,
     OperationLedgerError,
+    OperationLocatorMode,
+    OperationLocatorRole,
     OperationSegmentReceipt,
     OperationState,
     OperationTransition,
@@ -54,7 +57,20 @@ from app.safety.operation_ledger import (
     RECOVERY_GUARANTEE_SCOPE,
     _build_recovery_observation_receipt_sha256,
 )
+from app.safety.copy_ledger import (
+    CopyLedgerCode,
+    CopyLedgerError,
+    DurableCopyLedgers,
+    _COPY_LEDGERS_CONSTRUCTOR,
+    _derive_copy_ledger_epoch_id,
+)
+from app.safety.external_source import _create_synthetic_reference_read_policy
+from app.safety.copy_operation import (
+    _TestLocalCopyOperation,
+    _COPY_OPERATION_CONSTRUCTOR,
+)
 from app.safety.job_operation import (
+    DeclaredTreeManifest,
     JobResourceBudget,
     _JOB_RUNTIME_CONSTRUCTOR,
     _TestJobRuntime,
@@ -74,6 +90,7 @@ from .audit_events import (
     create_audit_event,
 )
 from .context import (
+    Caller,
     ContextError,
     DataClassification,
     OperationContext,
@@ -90,11 +107,12 @@ from .namespace_policy import (
     NamespacePolicy,
     NamespacePolicyError,
     PolicyErrorCode,
+    ScopeBinding,
 )
 
 
-def _contract_root(_literal: str = r"D:\AAA命题\Test") -> Path:
-    return Path(_literal)
+def _contract_root(_root: Path = _VERIFIED_PROJECT_ROOT) -> Path:
+    return _root
 
 
 CONTRACT_PROJECT_ROOT = _contract_root()
@@ -102,6 +120,26 @@ _SHA256 = re.compile(r"^[0-9a-f]{64}$")
 _TOKEN_CONSTRUCTOR = object()
 _JOB_CONTEXT_PIN_CONSTRUCTOR = object()
 _PAIR_RESERVATION_CONSTRUCTOR = object()
+_RECOVERY_LOCATOR_CONSTRUCTOR = object()
+_RESTRICTED_RECOVERY_PURPOSE_PUBLISH = "PUBLISH_RECOVERY"
+_RESTRICTED_RECOVERY_PURPOSE_COPY = "COPY_RECONCILE"
+_RESTRICTED_RECOVERY_PURPOSES = frozenset(
+    {
+        _RESTRICTED_RECOVERY_PURPOSE_PUBLISH,
+        _RESTRICTED_RECOVERY_PURPOSE_COPY,
+    }
+)
+_RESTRICTED_COPY_RECOVERY_SCOPE_KINDS = frozenset(
+    {
+        ScopeKind.RUN_ID,
+        ScopeKind.COPY_LEDGER_EPOCH_ID,
+        ScopeKind.JOB_ID,
+        ScopeKind.OPERATION_ID,
+        ScopeKind.MANIFEST_ID,
+        ScopeKind.COPY_ID,
+        ScopeKind.CHECKPOINT_ID,
+    }
+)
 _PRODUCTION_BOUNDARY_CONSTRUCTOR = object()
 _AUDIT_AUTHORITY_CONSTRUCTOR = object()
 _MAX_REGISTRY_ITEMS = 4096
@@ -114,12 +152,22 @@ _production_boundary_singleton: ProductionWorkspaceBoundary | None = None
 @dataclass(frozen=True, slots=True)
 class _AuditAuthority:
     sink: DurableAuditSink = field(repr=False)
+    ledger: DurableAuditLedger = field(repr=False, compare=False)
+    key_store: AuditKeyRevisionStore = field(repr=False, compare=False)
+    writer: _WindowsHandleWriter = field(repr=False, compare=False)
     _constructor: object = field(repr=False, compare=False)
 
     def __post_init__(self) -> None:
         if (
             self._constructor is not _AUDIT_AUTHORITY_CONSTRUCTOR
             or type(self.sink) is not DurableAuditSink
+            or type(self.ledger) is not DurableAuditLedger
+            or type(self.key_store) is not AuditKeyRevisionStore
+            or type(self.writer) is not _WindowsHandleWriter
+            or self.sink._ledger is not self.ledger
+            or self.ledger._key_store is not self.key_store
+            or self.ledger._storage is not self.writer
+            or self.key_store._storage is not self.writer
         ):
             raise TypeError("audit authority is restricted to the fixed boundary factory")
 
@@ -578,33 +626,71 @@ class _ReservedPairView:
         raise TypeError("reserved pair views cannot be serialized")
 
 
-_PUBLISH_TOPOLOGY: frozenset[tuple[NamespaceId, NamespaceId]] = frozenset(
-    {
-        (NamespaceId.JOB_WORKSPACE_INTERNAL, NamespaceId.COPY_SOURCE),
-        (NamespaceId.JOB_WORKSPACE_INTERNAL, NamespaceId.ORIGINAL_OBJECT),
-        (NamespaceId.COPY_WORK_INTERNAL, NamespaceId.ORIGINAL_OBJECT),
-        (NamespaceId.JOB_WORKSPACE_INTERNAL, NamespaceId.DATABASE_VERSION),
-        (NamespaceId.JOB_WORKSPACE_INTERNAL, NamespaceId.DERIVED_REVISION),
-        (NamespaceId.JOB_WORKSPACE_INTERNAL, NamespaceId.INDEX_VERSION),
-        (NamespaceId.JOB_WORKSPACE_INTERNAL, NamespaceId.TEMPLATE_REVISION),
-        (NamespaceId.JOB_WORKSPACE_INTERNAL, NamespaceId.EXPORT_BUNDLE),
-        (NamespaceId.JOB_WORKSPACE_INTERNAL, NamespaceId.SNAPSHOT),
-        (NamespaceId.JOB_WORKSPACE_INTERNAL, NamespaceId.BACKUP_SET),
-        (NamespaceId.JOB_WORKSPACE_RESTRICTED, NamespaceId.COPY_RESTRICTED),
-    }
-)
-_QUARANTINE_SOURCE_NAMESPACES = frozenset(
-    {
-        NamespaceId.JOB_WORKSPACE_INTERNAL,
-        NamespaceId.JOB_WORKSPACE_RESTRICTED,
-        NamespaceId.COPY_WORK_INTERNAL,
-        NamespaceId.COPY_WORK_RESTRICTED,
-        NamespaceId.COPY_RESTRICTED,
-    }
-)
-_QUARANTINE_TARGET_NAMESPACES = frozenset(
-    {NamespaceId.QUARANTINE_INTERNAL, NamespaceId.QUARANTINE_RESTRICTED}
-)
+@dataclass(frozen=True, slots=True, repr=False)
+class _RestrictedRecoveryLocatorRecord:
+    """Boundary-owned authority truth for one opaque recovery locator."""
+
+    locator_id: str = field(repr=False)
+    core_instance_id: str = field(repr=False)
+    purpose: str = field(repr=False)
+    context: OperationContext = field(repr=False, compare=False)
+    context_digest: str = field(repr=False)
+    context_ticket_id: str = field(repr=False)
+    transaction_id: str = field(repr=False)
+    owner_thread: int = field(repr=False)
+    owner_thread_object: threading.Thread = field(repr=False, compare=False)
+    owner_thread_object_binding_sha256: str = field(repr=False)
+    source_relative_path: Path = field(repr=False)
+    target_relative_path: Path = field(repr=False)
+    policy_version: str = field(repr=False)
+    policy_digest: str = field(repr=False)
+    binding_sha256: str = field(repr=False)
+    capability_authenticator: bytes = field(repr=False)
+    lifecycle: CapabilityLifecycle = CapabilityLifecycle.ISSUED
+
+    def __repr__(self) -> str:
+        return (
+            "_RestrictedRecoveryLocatorRecord("
+            f"lifecycle='{self.lifecycle.value}', locator='<redacted>')"
+        )
+
+    def __reduce__(self) -> Any:
+        raise TypeError("restricted recovery locator records cannot be serialized")
+
+
+class _RestrictedRecoveryLocatorCapability:
+    """Opaque handle to boundary-owned, single-use recovery authority."""
+
+    __slots__ = ("__locator_id", "__authenticator")
+
+    def __init__(
+        self,
+        locator_id: str,
+        authenticator: bytes,
+        *,
+        _constructor: object,
+    ) -> None:
+        if (
+            _constructor is not _RECOVERY_LOCATOR_CONSTRUCTOR
+            or type(locator_id) is not str
+            or not _SHA256.fullmatch(locator_id)
+            or type(authenticator) is not bytes
+            or len(authenticator) != hashlib.sha256().digest_size
+        ):
+            raise TypeError("restricted recovery locators require boundary authority")
+        self.__locator_id = locator_id
+        self.__authenticator = bytes(authenticator)
+
+    def _read(self, constructor: object) -> tuple[str, bytes]:
+        if constructor is not _RECOVERY_LOCATOR_CONSTRUCTOR:
+            raise TypeError("restricted recovery locator capabilities are opaque")
+        return self.__locator_id, self.__authenticator
+
+    def __repr__(self) -> str:
+        return "_RestrictedRecoveryLocatorCapability(opaque=True)"
+
+    def __reduce__(self) -> Any:
+        raise TypeError("restricted recovery locator capabilities cannot be serialized")
 
 
 class _BoundaryPairClaim:
@@ -784,6 +870,7 @@ class _BoundaryCore:
         self.__context_authority_id = secrets.token_hex(16).upper()
         self.__context_key = secrets.token_bytes(32)
         self.__audit_hmac_key = secrets.token_bytes(32)
+        self.__audit_authority = audit_authority
         self.__durable_audit_sink = (
             None if audit_authority is None else audit_authority.sink
         )
@@ -797,6 +884,10 @@ class _BoundaryCore:
         self.__context_records: dict[str, _ContextRecord] = {}
         self.__job_context_pins: dict[str, _JobContextPin] = {}
         self.__pair_reservations: dict[str, _ReservedPairLease] = {}
+        self.__restricted_recovery_records: dict[
+            str,
+            _RestrictedRecoveryLocatorRecord,
+        ] = {}
         self.__candidate_tombstones: dict[str, CapabilityLifecycle] = {}
         self.__pair_tombstones: dict[str, CapabilityLifecycle] = {}
         self.__lock = threading.RLock()
@@ -826,6 +917,9 @@ class _BoundaryCore:
                 "context_live": len(self.__context_records),
                 "job_context_pins": len(self.__job_context_pins),
                 "pair_reservations": len(self.__pair_reservations),
+                "restricted_recovery_live": len(
+                    self.__restricted_recovery_records
+                ),
                 "candidate_tombstones": len(self.__candidate_tombstones),
                 "pair_tombstones": len(self.__pair_tombstones),
                 "pair_consumed_tombstones": sum(
@@ -867,7 +961,9 @@ class _BoundaryCore:
                 expected_kind=expected_kind,
             )
             decision = self.__policy.authorize(core, context)
+            self._attest_copy_ledger_read(decision, context)
             record, token = self._build_single_candidate(core, decision, context)
+            effective = _boundary_effective_classification(context, decision)
             with self.__lock:
                 self._ensure_registry_capacity(candidate_items=1, pair_items=0)
                 self._validate_context_authority(context)
@@ -883,7 +979,11 @@ class _BoundaryCore:
                                 audit_hmac_key=audit_hmac_key,
                             ),
                         ),
-                        _public_operation_reference(context),
+                        (
+                            None
+                            if effective is DataClassification.RESTRICTED
+                            else _public_operation_reference(context)
+                        ),
                     )
                 except Exception:
                     self.__candidate_records.pop(record.ticket_id, None)
@@ -904,6 +1004,78 @@ class _BoundaryCore:
                 capability_kind=CapabilityKind.SINGLE,
             )
         raise failure from None
+
+    def _attest_copy_ledger_read(
+        self,
+        decision: NamespaceDecision,
+        context: OperationContext,
+    ) -> None:
+        """Bind public Copy-ledger reads to an authenticated run/epoch map.
+
+        NamespacePolicy validates the path shape and scope equality.  It is not
+        itself storage authority, so the fixed boundary additionally derives
+        the opaque epoch from the in-memory RUN_ID and every audit-activated
+        revision under the durable writer mutex.  No raw RUN_ID or attestation
+        registry is persisted.  The resulting read ticket authenticates this
+        path mapping only; a consumer must still parse and HMAC-verify the
+        segment through DurableCopyLedgers before treating its bytes as fact.
+        """
+
+        if decision.namespace not in {
+            NamespaceId.COPY_SOURCE_LEDGER,
+            NamespaceId.COPY_OPERATION_LEDGER,
+        }:
+            return
+        authority = self.__audit_authority
+        try:
+            scoped_run = context.scope_value(ScopeKind.RUN_ID)
+            scoped_epoch = context.scope_value(
+                ScopeKind.COPY_LEDGER_EPOCH_ID
+            )
+            if (
+                type(authority) is not _AuditAuthority
+                or decision.rule.scope_bindings
+                != (ScopeBinding(0, ScopeKind.COPY_LEDGER_EPOCH_ID),)
+                or len(decision.tail) != 2
+                or scoped_run != context.run_id
+                or scoped_epoch is None
+                or decision.tail[0] != scoped_epoch
+            ):
+                raise ValueError("copy ledger read attestation is unavailable")
+            with authority.writer.acquire_runtime_mutex() as lease:
+                authority.ledger._rescan_under_existing_mutex(lease)
+                activated_revision_ids = set(
+                    authority.ledger._activated_revision_ids_under_existing_mutex(
+                        lease
+                    )
+                )
+                inventory = authority.key_store._load_all_under_mutex()
+                if activated_revision_ids - set(inventory):
+                    raise ValueError(
+                        "copy ledger read revision inventory is incomplete"
+                    )
+                matching = tuple(
+                    revision
+                    for revision_id, revision in sorted(inventory.items())
+                    if revision_id in activated_revision_ids
+                    and hmac.compare_digest(
+                        scoped_epoch,
+                        _derive_copy_ledger_epoch_id(
+                            revision,
+                            context.run_id,
+                        ),
+                    )
+                )
+            if len(matching) != 1:
+                raise ValueError(
+                    "copy ledger read run/epoch mapping is not unique"
+                )
+        except Exception:
+            raise ProductionBoundaryError(
+                BoundaryErrorCode.POLICY_DENIED,
+                "copy ledger read requires authenticated run/epoch ancestry",
+                operation_reference=None,
+            ) from None
 
     def issue_test_context(
         self,
@@ -952,6 +1124,7 @@ class _BoundaryCore:
     def release_test_context(self, context: OperationContext) -> bool:
         """Revoke a Test-local operation context after its operation closes."""
 
+        self._assert_invariants()
         ticket_id = self._validate_context_claim(context)
         cores: list[GuardedPath] = []
         with self.__lock:
@@ -1002,10 +1175,479 @@ class _BoundaryCore:
                     candidate.ticket_id,
                 )
                 cores.append(candidate.core)
+            self._revoke_restricted_recovery_records(ticket_id)
             del self.__context_records[ticket_id]
         if cores:
             self._release_core_tickets(*cores)
         return True
+
+    def issue_restricted_recovery_locator(
+        self,
+        context: OperationContext,
+        transaction_id: str,
+        *,
+        _purpose: str = _RESTRICTED_RECOVERY_PURPOSE_PUBLISH,
+    ) -> _RestrictedRecoveryLocatorCapability:
+        """Issue an opaque handle to boundary-owned RESTRICTED recovery authority."""
+
+        self._assert_invariants()
+        if type(_purpose) is not str or _purpose not in _RESTRICTED_RECOVERY_PURPOSES:
+            raise ProductionBoundaryError(
+                BoundaryErrorCode.INVALID_ARGUMENT,
+                "restricted recovery purpose is invalid",
+            )
+        try:
+            canonical_transaction = validate_safe_id(
+                transaction_id,
+                field_name="transaction_id",
+            )
+        except Exception:
+            raise ProductionBoundaryError(
+                BoundaryErrorCode.INVALID_ARGUMENT,
+                "restricted recovery transaction is invalid",
+            ) from None
+        self._validate_context_authority(context)
+        source, target = self._derive_restricted_recovery_paths(context, _purpose)
+        ticket_id = context.authority_ticket_id
+        if ticket_id is None:
+            raise AssertionError("validated recovery context lost its authority")
+        owner_thread = threading.get_ident()
+        owner_thread_object = threading.current_thread()
+        if owner_thread_object.ident != owner_thread:
+            raise ProductionBoundaryError(
+                BoundaryErrorCode.BOUNDARY_STATE_CHANGED,
+                "restricted recovery thread identity changed during issue",
+            )
+        owner_thread_object_binding = (
+            self._restricted_recovery_owner_thread_object_binding(
+                owner_thread_object
+            )
+        )
+        with self.__lock:
+            self._validate_context_authority(context)
+            if len(self.__restricted_recovery_records) >= _MAX_REGISTRY_ITEMS:
+                raise ProductionBoundaryError(
+                    BoundaryErrorCode.REGISTRY_CAPACITY_EXCEEDED,
+                    "restricted recovery registry capacity was reached",
+                )
+            locator_id = secrets.token_hex(32)
+            if locator_id in self.__restricted_recovery_records:
+                raise ProductionBoundaryError(
+                    BoundaryErrorCode.BOUNDARY_STATE_CHANGED,
+                    "restricted recovery locator collision was rejected",
+                )
+            binding = self._restricted_recovery_locator_binding(
+                locator_id,
+                context,
+                canonical_transaction,
+                source,
+                target,
+                _purpose,
+                owner_thread,
+                owner_thread_object_binding,
+            )
+            authenticator = self._restricted_recovery_capability_authenticator(
+                locator_id,
+                binding,
+            )
+            capability = _RestrictedRecoveryLocatorCapability(
+                locator_id,
+                authenticator,
+                _constructor=_RECOVERY_LOCATOR_CONSTRUCTOR,
+            )
+            self.__restricted_recovery_records[locator_id] = (
+                _RestrictedRecoveryLocatorRecord(
+                    locator_id=locator_id,
+                    core_instance_id=self.__instance_id,
+                    purpose=_purpose,
+                    context=context,
+                    context_digest=context.digest,
+                    context_ticket_id=ticket_id,
+                    transaction_id=canonical_transaction,
+                    owner_thread=owner_thread,
+                    owner_thread_object=owner_thread_object,
+                    owner_thread_object_binding_sha256=(
+                        owner_thread_object_binding
+                    ),
+                    source_relative_path=Path(source),
+                    target_relative_path=Path(target),
+                    policy_version=POLICY_VERSION,
+                    policy_digest=self.__policy.digest,
+                    binding_sha256=binding,
+                    capability_authenticator=authenticator,
+                )
+            )
+            return capability
+
+    def issue_restricted_copy_recovery_locator(
+        self,
+        context: OperationContext,
+    ) -> _RestrictedRecoveryLocatorCapability:
+        """Issue one Copy-reconcile locator for this exact live context."""
+
+        binding_id = self._restricted_copy_recovery_binding_id(context)
+        return self.issue_restricted_recovery_locator(
+            context,
+            binding_id,
+            _purpose=_RESTRICTED_RECOVERY_PURPOSE_COPY,
+        )
+
+    def consume_restricted_recovery_locator(
+        self,
+        capability: _RestrictedRecoveryLocatorCapability,
+        transaction_id: str,
+        *,
+        _purpose: str = _RESTRICTED_RECOVERY_PURPOSE_PUBLISH,
+        _expected_context: OperationContext | None = None,
+    ) -> tuple[Path, Path]:
+        """Validate and consume an opaque locator before any recovery observe."""
+
+        self._assert_invariants()
+        if type(_purpose) is not str or _purpose not in _RESTRICTED_RECOVERY_PURPOSES:
+            raise ProductionBoundaryError(
+                BoundaryErrorCode.INVALID_ARGUMENT,
+                "restricted recovery purpose is invalid",
+            )
+        try:
+            canonical_transaction = validate_safe_id(
+                transaction_id,
+                field_name="transaction_id",
+            )
+        except Exception:
+            raise ProductionBoundaryError(
+                BoundaryErrorCode.INVALID_ARGUMENT,
+                "restricted recovery transaction is invalid",
+            ) from None
+        if type(capability) is not _RestrictedRecoveryLocatorCapability:
+            raise ProductionBoundaryError(
+                BoundaryErrorCode.INVALID_ARGUMENT,
+                "restricted recovery requires its exact locator capability",
+            )
+        try:
+            locator_id, supplied_authenticator = capability._read(
+                _RECOVERY_LOCATOR_CONSTRUCTOR
+            )
+        except Exception:
+            raise ProductionBoundaryError(
+                BoundaryErrorCode.INVALID_CONTEXT,
+                "restricted recovery locator is consumed, foreign, or changed",
+            ) from None
+        if (
+            type(locator_id) is not str
+            or not _SHA256.fullmatch(locator_id)
+            or type(supplied_authenticator) is not bytes
+            or len(supplied_authenticator) != hashlib.sha256().digest_size
+        ):
+            raise ProductionBoundaryError(
+                BoundaryErrorCode.INVALID_CONTEXT,
+                "restricted recovery locator is consumed, foreign, or changed",
+            )
+        with self.__lock:
+            record = self.__restricted_recovery_records.get(locator_id)
+            valid = type(record) is _RestrictedRecoveryLocatorRecord
+            if valid:
+                assert record is not None
+                try:
+                    current_owner_thread = threading.get_ident()
+                    current_owner_thread_object = threading.current_thread()
+                    current_owner_thread_object_binding = (
+                        self._restricted_recovery_owner_thread_object_binding(
+                            current_owner_thread_object
+                        )
+                    )
+                    expected_source, expected_target = (
+                        self._derive_restricted_recovery_paths(
+                            record.context,
+                            record.purpose,
+                        )
+                    )
+                    self._validate_context_authority(record.context)
+                    expected_binding = self._restricted_recovery_locator_binding(
+                        record.locator_id,
+                        record.context,
+                        record.transaction_id,
+                        expected_source,
+                        expected_target,
+                        record.purpose,
+                        current_owner_thread,
+                        current_owner_thread_object_binding,
+                    )
+                    expected_authenticator = (
+                        self._restricted_recovery_capability_authenticator(
+                            record.locator_id,
+                            expected_binding,
+                        )
+                    )
+                    valid = (
+                        type(record.locator_id) is str
+                        and record.locator_id == locator_id
+                        and type(record.core_instance_id) is str
+                        and record.core_instance_id == self.__instance_id
+                        and type(record.purpose) is str
+                        and record.purpose == _purpose
+                        and type(record.context_digest) is str
+                        and record.context_digest == record.context.digest
+                        and type(record.context_ticket_id) is str
+                        and record.context_ticket_id
+                        == record.context.authority_ticket_id
+                        and type(record.transaction_id) is str
+                        and record.transaction_id == canonical_transaction
+                        and type(record.owner_thread) is int
+                        and record.owner_thread == current_owner_thread
+                        and isinstance(record.owner_thread_object, threading.Thread)
+                        and record.owner_thread_object
+                        is current_owner_thread_object
+                        and record.owner_thread_object.ident == record.owner_thread
+                        and type(record.owner_thread_object_binding_sha256) is str
+                        and _SHA256.fullmatch(
+                            record.owner_thread_object_binding_sha256
+                        )
+                        is not None
+                        and hmac.compare_digest(
+                            record.owner_thread_object_binding_sha256,
+                            current_owner_thread_object_binding,
+                        )
+                        and type(record.source_relative_path) is type(expected_source)
+                        and type(record.target_relative_path) is type(expected_target)
+                        and record.source_relative_path.as_posix()
+                        == expected_source.as_posix()
+                        and record.target_relative_path.as_posix()
+                        == expected_target.as_posix()
+                        and type(record.policy_version) is str
+                        and record.policy_version == POLICY_VERSION
+                        and type(record.policy_digest) is str
+                        and record.policy_digest == self.__policy.digest
+                        and record.lifecycle is CapabilityLifecycle.ISSUED
+                        and type(record.binding_sha256) is str
+                        and _SHA256.fullmatch(record.binding_sha256) is not None
+                        and type(record.capability_authenticator) is bytes
+                        and len(record.capability_authenticator)
+                        == hashlib.sha256().digest_size
+                        and (
+                            _expected_context is None
+                            or record.context is _expected_context
+                        )
+                        and hmac.compare_digest(
+                            record.binding_sha256,
+                            expected_binding,
+                        )
+                        and hmac.compare_digest(
+                            record.capability_authenticator,
+                            expected_authenticator,
+                        )
+                        and hmac.compare_digest(
+                            supplied_authenticator,
+                            expected_authenticator,
+                        )
+                    )
+                    if valid and record.purpose == _RESTRICTED_RECOVERY_PURPOSE_COPY:
+                        valid = (
+                            record.transaction_id
+                            == self._restricted_copy_recovery_binding_id(
+                                record.context
+                            )
+                        )
+                except Exception:
+                    valid = False
+            if not valid or record is None:
+                raise ProductionBoundaryError(
+                    BoundaryErrorCode.INVALID_CONTEXT,
+                    "restricted recovery locator is consumed, foreign, or changed",
+                )
+            removed = self.__restricted_recovery_records.pop(locator_id, None)
+            if removed is not record:
+                if removed is not None:
+                    self.__restricted_recovery_records[locator_id] = removed
+                raise ProductionBoundaryError(
+                    BoundaryErrorCode.BOUNDARY_STATE_CHANGED,
+                    "restricted recovery registry changed during consume",
+                )
+            return (
+                expected_source,
+                expected_target,
+            )
+
+    def consume_restricted_copy_recovery_locator(
+        self,
+        capability: _RestrictedRecoveryLocatorCapability,
+        context: OperationContext,
+    ) -> tuple[Path, Path]:
+        """Consume a Copy-reconcile locator only for its exact issuing context."""
+
+        binding_id = self._restricted_copy_recovery_binding_id(context)
+        return self.consume_restricted_recovery_locator(
+            capability,
+            binding_id,
+            _purpose=_RESTRICTED_RECOVERY_PURPOSE_COPY,
+            _expected_context=context,
+        )
+
+    def _restricted_copy_recovery_binding_id(
+        self,
+        context: OperationContext,
+    ) -> str:
+        self._validate_context_authority(context)
+        scope_kinds = frozenset(scope.kind for scope in context.scopes)
+        if (
+            scope_kinds != _RESTRICTED_COPY_RECOVERY_SCOPE_KINDS
+            or context.classification is not DataClassification.RESTRICTED
+            or context.caller is not Caller.IMPORT_SERVICE
+            or context.purpose is not Purpose.COPY_SOURCE
+            or context.scope_value(ScopeKind.RUN_ID) != context.run_id
+            or context.scope_value(ScopeKind.JOB_ID) != context.job_id
+            or context.scope_value(ScopeKind.OPERATION_ID) != context.operation_id
+            or context.scope_value(ScopeKind.MANIFEST_ID) != context.manifest_id
+        ):
+            raise ProductionBoundaryError(
+                BoundaryErrorCode.INVALID_CONTEXT,
+                "restricted Copy recovery context is not exact",
+                operation_reference=_public_operation_reference(context),
+            )
+        ticket_id = context.authority_ticket_id
+        if ticket_id is None:
+            raise AssertionError("validated Copy recovery context lost its authority")
+        return f"COPYREC-{ticket_id}"
+
+    def _derive_restricted_recovery_paths(
+        self,
+        context: OperationContext,
+        purpose: str,
+    ) -> tuple[Path, Path]:
+        scope_values = {scope.kind: scope.value for scope in context.scopes}
+        publish_scope_kinds = frozenset(
+            {
+                ScopeKind.RUN_ID,
+                ScopeKind.JOB_ID,
+                ScopeKind.OPERATION_ID,
+                ScopeKind.MANIFEST_ID,
+                ScopeKind.COPY_ID,
+                ScopeKind.CHECKPOINT_ID,
+            }
+        )
+        scope_kinds = frozenset(scope_values)
+        scopes_are_exact = (
+            scope_kinds == _RESTRICTED_COPY_RECOVERY_SCOPE_KINDS
+            if purpose == _RESTRICTED_RECOVERY_PURPOSE_COPY
+            else scope_kinds
+            in (publish_scope_kinds, _RESTRICTED_COPY_RECOVERY_SCOPE_KINDS)
+        )
+        if (
+            type(context) is not OperationContext
+            or type(purpose) is not str
+            or purpose not in _RESTRICTED_RECOVERY_PURPOSES
+            or not scopes_are_exact
+            or context.classification is not DataClassification.RESTRICTED
+            or context.caller is not Caller.IMPORT_SERVICE
+            or context.purpose is not Purpose.COPY_SOURCE
+            or scope_values.get(ScopeKind.RUN_ID) != context.run_id
+            or scope_values.get(ScopeKind.JOB_ID) != context.job_id
+            or scope_values.get(ScopeKind.OPERATION_ID) != context.operation_id
+            or scope_values.get(ScopeKind.MANIFEST_ID) != context.manifest_id
+        ):
+            raise ProductionBoundaryError(
+                BoundaryErrorCode.INVALID_CONTEXT,
+                "restricted recovery context is not exact",
+                operation_reference=_public_operation_reference(
+                    context if type(context) is OperationContext else None
+                ),
+            )
+        copy_id = scope_values.get(ScopeKind.COPY_ID)
+        if copy_id is None or context.manifest_id is None:
+            raise AssertionError("validated recovery scopes became unavailable")
+        return (
+            Path("tmp")
+            / "jobs"
+            / DataClassification.RESTRICTED.value
+            / context.job_id
+            / "publish"
+            / context.manifest_id,
+            Path("Copy") / "restricted" / copy_id,
+        )
+
+    def _restricted_recovery_locator_binding(
+        self,
+        locator_id: str,
+        context: OperationContext,
+        transaction_id: str,
+        source: Path,
+        target: Path,
+        purpose: str,
+        owner_thread: int,
+        owner_thread_object_binding_sha256: str,
+    ) -> str:
+        payload = _canonical_json_bytes(
+            {
+                "locator_id": locator_id,
+                "core_instance_id": self.__instance_id,
+                "purpose": purpose,
+                "context_digest": context.digest,
+                "context_ticket_id": context.authority_ticket_id,
+                "transaction_id": transaction_id,
+                "owner_thread": owner_thread,
+                "owner_thread_object_binding_sha256": (
+                    owner_thread_object_binding_sha256
+                ),
+                "source_relative_path": source.as_posix(),
+                "target_relative_path": target.as_posix(),
+                "policy_version": POLICY_VERSION,
+                "policy_digest": self.__policy.digest,
+            }
+        )
+        return hmac.new(
+            self.__context_key,
+            b"M0-RESTRICTED-RECOVERY-LOCATOR-V4\0" + payload,
+            hashlib.sha256,
+        ).hexdigest()
+
+    def _restricted_recovery_owner_thread_object_binding(
+        self,
+        owner_thread_object: threading.Thread,
+    ) -> str:
+        """Bind one live Thread object while its strong registry reference exists."""
+
+        if (
+            not isinstance(owner_thread_object, threading.Thread)
+            or owner_thread_object.ident is None
+        ):
+            raise ProductionBoundaryError(
+                BoundaryErrorCode.BOUNDARY_STATE_CHANGED,
+                "restricted recovery thread object is invalid",
+            )
+        return hmac.new(
+            self.__context_key,
+            (
+                b"M0-RESTRICTED-RECOVERY-OWNER-THREAD-OBJECT-V1\0"
+                + self.__instance_id.encode("ascii")
+                + b"\0"
+                + str(id(owner_thread_object)).encode("ascii")
+            ),
+            hashlib.sha256,
+        ).hexdigest()
+
+    def _restricted_recovery_capability_authenticator(
+        self,
+        locator_id: str,
+        binding_sha256: str,
+    ) -> bytes:
+        return hmac.new(
+            self.__context_key,
+            b"M0-RESTRICTED-RECOVERY-CAPABILITY-V1\0"
+            + locator_id.encode("ascii")
+            + b"\0"
+            + binding_sha256.encode("ascii"),
+            hashlib.sha256,
+        ).digest()
+
+    def _revoke_restricted_recovery_records(self, context_ticket_id: str) -> None:
+        """Remove every live locator for a context while ``__lock`` is held."""
+
+        locator_ids = tuple(
+            locator_id
+            for locator_id, record in self.__restricted_recovery_records.items()
+            if record.context_ticket_id == context_ticket_id
+        )
+        for locator_id in locator_ids:
+            self.__restricted_recovery_records.pop(locator_id, None)
 
     def pin_test_job_context(
         self,
@@ -1106,6 +1748,7 @@ class _BoundaryCore:
     ) -> None:
         """Atomically consume the job pin and revoke its operation context."""
 
+        self._assert_invariants()
         ticket_id = self._validate_context_claim(context)
         cores: list[GuardedPath] = []
         with self.__lock:
@@ -1155,6 +1798,7 @@ class _BoundaryCore:
                 self.__candidate_records.pop(candidate.ticket_id, None)
                 self._remember_tombstone(self.__candidate_tombstones, candidate.ticket_id)
                 cores.append(candidate.core)
+            self._revoke_restricted_recovery_records(ticket_id)
             del self.__job_context_pins[ticket_id]
             del self.__context_records[ticket_id]
             pin._closed = True
@@ -1181,10 +1825,11 @@ class _BoundaryCore:
             record = self._reserve_candidate(ticket, context)
             current_core = self.__guard.revalidate(record.core)
             decision = self.__policy.authorize(current_core, context)
+            self._attest_copy_ledger_read(decision, context)
             self._verify_candidate_decision(record, current_core, decision)
-            effective = _max_classification(
-                context.classification,
-                decision.effective_classification,
+            effective = _boundary_effective_classification(
+                context,
+                decision,
             )
             self._record_audit_factory(
                 lambda audit_hmac_key: (
@@ -2524,8 +3169,8 @@ class _BoundaryCore:
                 operation_reference=_public_operation_reference(context),
             )
 
-    @staticmethod
     def _validate_pair_topology(
+        self,
         kind: PairKind,
         source_core: GuardedPath,
         source_decision: NamespaceDecision,
@@ -2544,19 +3189,14 @@ class _BoundaryCore:
                 BoundaryErrorCode.PAIR_TOPOLOGY_DENIED,
                 "pair members cannot be equal or ancestor-related",
             )
-        if kind is PairKind.PUBLISH:
-            if (source_decision.namespace, target_decision.namespace) not in _PUBLISH_TOPOLOGY:
-                raise ProductionBoundaryError(
-                    BoundaryErrorCode.PAIR_TOPOLOGY_DENIED,
-                    "source-to-target namespace transition is not allowed",
-                )
-        elif (
-            source_decision.namespace not in _QUARANTINE_SOURCE_NAMESPACES
-            or target_decision.namespace not in _QUARANTINE_TARGET_NAMESPACES
+        if not self.__policy.allows_pair_topology(
+            kind.value,
+            source_decision.namespace,
+            target_decision.namespace,
         ):
             raise ProductionBoundaryError(
                 BoundaryErrorCode.PAIR_TOPOLOGY_DENIED,
-                "quarantine topology is not allowed",
+                "source-to-target namespace transition is not allowed",
             )
 
     @staticmethod
@@ -2600,9 +3240,9 @@ class _BoundaryCore:
             capability_kind=CapabilityKind.SINGLE,
             error_code=None,
             context=context,
-            effective_classification=_max_classification(
-                context.classification,
-                decision.effective_classification,
+            effective_classification=_boundary_effective_classification(
+                context,
+                decision,
             ),
             path_mode=decision.rule.audit_path_mode,
             policy_digest=self.__policy.digest,
@@ -2673,9 +3313,9 @@ class _BoundaryCore:
         )
         try:
             decision = self.__policy.classify(relative_path or Path("REJECTED"))
-            effective = _max_classification(
-                context.classification if context else DataClassification.INTERNAL,
-                decision.effective_classification,
+            effective = _boundary_effective_classification(
+                context,
+                decision,
             )
             detail_code = _exception_detail_code(error)
             self._record_audit_factory(
@@ -2741,10 +3381,7 @@ class _BoundaryCore:
     ) -> ProductionBoundaryError:
         decision = self.__policy.classify(relative_path or Path("REJECTED"))
         redact = (
-            _max_classification(
-                context.classification if context else DataClassification.INTERNAL,
-                decision.effective_classification,
-            )
+            _boundary_effective_classification(context, decision)
             is DataClassification.RESTRICTED
         )
         if not (
@@ -2834,6 +3471,60 @@ class _BoundaryCore:
                 "namespace policy changed after boundary creation",
             )
         with self.__lock:
+            try:
+                restricted_registry_valid = (
+                    type(self.__restricted_recovery_records) is dict
+                    and len(self.__restricted_recovery_records)
+                    <= _MAX_REGISTRY_ITEMS
+                    and all(
+                        type(locator_id) is str
+                        and _SHA256.fullmatch(locator_id) is not None
+                        and type(record) is _RestrictedRecoveryLocatorRecord
+                        and record.locator_id == locator_id
+                        and record.lifecycle is CapabilityLifecycle.ISSUED
+                        and type(record.context) is OperationContext
+                        and type(record.context_ticket_id) is str
+                        and record.context.authority_ticket_id
+                        == record.context_ticket_id
+                        and record.context_ticket_id in self.__context_records
+                        and type(record.owner_thread) is int
+                        and isinstance(record.owner_thread_object, threading.Thread)
+                        and record.owner_thread_object.ident == record.owner_thread
+                        and type(record.owner_thread_object_binding_sha256) is str
+                        and _SHA256.fullmatch(
+                            record.owner_thread_object_binding_sha256
+                        )
+                        is not None
+                        and hmac.compare_digest(
+                            record.owner_thread_object_binding_sha256,
+                            self._restricted_recovery_owner_thread_object_binding(
+                                record.owner_thread_object
+                            ),
+                        )
+                        and type(record.source_relative_path) is type(Path())
+                        and type(record.target_relative_path) is type(Path())
+                        and not record.source_relative_path.is_absolute()
+                        and not record.target_relative_path.is_absolute()
+                        and record.source_relative_path != Path()
+                        and record.target_relative_path != Path()
+                        and all(
+                            part not in {"", ".", ".."}
+                            for part in record.source_relative_path.parts
+                        )
+                        and all(
+                            part not in {"", ".", ".."}
+                            for part in record.target_relative_path.parts
+                        )
+                        for locator_id, record in self.__restricted_recovery_records.items()
+                    )
+                )
+            except Exception:
+                restricted_registry_valid = False
+            if not restricted_registry_valid:
+                raise ProductionBoundaryError(
+                    BoundaryErrorCode.BOUNDARY_STATE_CHANGED,
+                    "restricted recovery registry invariant changed",
+                )
             for pair_id, lease in self.__pair_reservations.items():
                 pair = self.__pair_records.get(pair_id)
                 if (
@@ -3070,6 +3761,42 @@ class _TestWorkspaceBoundary:
     def _validate_job_operation_context(self, context: OperationContext) -> str:
         self.__core._validate_context_authority(context)
         return context.digest
+
+    def _issue_restricted_recovery_locator(
+        self,
+        context: OperationContext,
+        transaction_id: str,
+    ) -> _RestrictedRecoveryLocatorCapability:
+        return self.__core.issue_restricted_recovery_locator(
+            context,
+            transaction_id,
+        )
+
+    def _consume_restricted_recovery_locator(
+        self,
+        capability: _RestrictedRecoveryLocatorCapability,
+        transaction_id: str,
+    ) -> tuple[Path, Path]:
+        return self.__core.consume_restricted_recovery_locator(
+            capability,
+            transaction_id,
+        )
+
+    def _issue_restricted_copy_recovery_locator(
+        self,
+        context: OperationContext,
+    ) -> _RestrictedRecoveryLocatorCapability:
+        return self.__core.issue_restricted_copy_recovery_locator(context)
+
+    def _consume_restricted_copy_recovery_locator(
+        self,
+        capability: _RestrictedRecoveryLocatorCapability,
+        context: OperationContext,
+    ) -> tuple[Path, Path]:
+        return self.__core.consume_restricted_copy_recovery_locator(
+            capability,
+            context,
+        )
 
     def _pin_job_operation_context(
         self,
@@ -3716,6 +4443,9 @@ def _create_test_durable_boundary(
             ledger,
             _constructor=_LEDGER_CONSTRUCTOR,
         ),
+        ledger=ledger,
+        key_store=key_store,
+        writer=writer,
         _constructor=_AUDIT_AUTHORITY_CONSTRUCTOR,
     )
     boundary = _TestWorkspaceBoundary(
@@ -3775,6 +4505,15 @@ def _create_test_operation_ledger(
     try:
         with bundle.writer.acquire_runtime_mutex() as lease:
             bundle.ledger._rescan_under_existing_mutex(lease)
+            audit_policy_digest = bundle.ledger.policy_digest
+            if (
+                initialize
+                and audit_policy_digest != bundle.boundary.policy_digest
+            ):
+                raise ProductionBoundaryError(
+                    BoundaryErrorCode.INVALID_ARGUMENT,
+                    "new operation epochs require the current authenticated audit policy",
+                )
             revision = bundle.ledger._active_revision()
             activated_revision_ids = set(
                 bundle.ledger._activated_revision_ids_under_existing_mutex(lease)
@@ -3797,6 +4536,8 @@ def _create_test_operation_ledger(
                 _runtime_mutex_lease=lease,
                 _constructor=_OPERATION_LEDGER_CONSTRUCTOR,
             )
+            if operation_ledger.policy_digest != audit_policy_digest:
+                operation_ledger._seal_cross_ledger_contradiction()
             bound_heads = operation_ledger.bound_audit_heads_under_existing_mutex(
                 lease
             )
@@ -3810,11 +4551,205 @@ def _create_test_operation_ledger(
         raise
 
 
+def _create_test_copy_ledgers(
+    bundle: _TestDurableBoundaryBundle,
+    operation_ledger: DurableOperationLedger,
+    *,
+    epoch_id: str,
+    run_scope_id: str,
+    initialize: bool = False,
+    initialized_at_utc: str | None = None,
+) -> DurableCopyLedgers:
+    """Construct both S3-F chains under the co-owned Test-local mutex."""
+
+    if (
+        type(bundle) is not _TestDurableBoundaryBundle
+        or type(operation_ledger) is not DurableOperationLedger
+        or type(initialize) is not bool
+    ):
+        raise ProductionBoundaryError(
+            BoundaryErrorCode.INVALID_ARGUMENT,
+            "copy ledgers require exact Test-local durable authorities",
+        )
+    try:
+        canonical_epoch = validate_safe_id(epoch_id, field_name="epoch_id")
+        canonical_run_scope = validate_safe_id(
+            run_scope_id,
+            field_name="run_scope_id",
+        )
+    except Exception:
+        raise ProductionBoundaryError(
+            BoundaryErrorCode.INVALID_ARGUMENT,
+            "copy ledger epoch or run scope is invalid",
+        ) from None
+    try:
+        with bundle.writer.acquire_runtime_mutex() as lease:
+            audit_head = bundle.ledger._rescan_under_existing_mutex(lease)
+            operation_ledger._rescan_under_existing_mutex(lease)
+            audit_policy_digest = bundle.ledger.policy_digest
+            activated_revision_ids = set(
+                bundle.ledger._activated_revision_ids_under_existing_mutex(lease)
+            )
+            if (
+                audit_policy_digest != bundle.boundary.policy_digest
+                or operation_ledger.policy_digest != audit_policy_digest
+                or operation_ledger.signing_revision_id not in activated_revision_ids
+                or (
+                    initialize
+                    and operation_ledger.signing_revision_id
+                    != audit_head.active_revision_id
+                )
+            ):
+                raise ProductionBoundaryError(
+                    BoundaryErrorCode.INVALID_ARGUMENT,
+                    "copy ledgers require one authenticated current-policy ancestry",
+                )
+            revision = bundle.ledger._active_revision()
+            revision_inventory = bundle.key_store._load_all_under_mutex()
+            if (
+                revision.revision_id not in activated_revision_ids
+                or activated_revision_ids - set(revision_inventory)
+            ):
+                raise ProductionBoundaryError(
+                    BoundaryErrorCode.INVALID_ARGUMENT,
+                    "copy ledgers require every activated audit revision",
+                )
+            known_revisions = tuple(
+                item
+                for revision_id, item in sorted(
+                    revision_inventory.items()
+                )
+                if revision_id in activated_revision_ids
+            )
+            if initialize:
+                DurableCopyLedgers._preflight_new_epoch_under_existing_mutex(
+                    bundle.writer,
+                    revision,
+                    epoch_id=canonical_epoch,
+                    run_scope_id=canonical_run_scope,
+                    policy_digest=bundle.boundary.policy_digest,
+                    activated_revisions=known_revisions,
+                    lease=lease,
+                )
+            ledgers = DurableCopyLedgers(
+                bundle.writer,
+                revision,
+                epoch_id=canonical_epoch,
+                run_scope_id=canonical_run_scope,
+                policy_digest=bundle.boundary.policy_digest,
+                known_revisions=known_revisions,
+                audit_ledger=bundle.ledger,
+                initialize=initialize,
+                initialized_at_utc=initialized_at_utc,
+                _runtime_mutex_lease=lease,
+                _constructor=_COPY_LEDGERS_CONSTRUCTOR,
+            )
+            if (
+                ledgers.signing_revision_id
+                != operation_ledger.signing_revision_id
+                or (
+                    initialize
+                    and ledgers.signing_revision_id != audit_head.active_revision_id
+                )
+            ):
+                ledgers._seal(CopyLedgerCode.CROSS_REFERENCE_INVALID)
+                raise ProductionBoundaryError(
+                    BoundaryErrorCode.INVALID_ARGUMENT,
+                    "copy and publish ledgers do not share one activated revision",
+                )
+            ancestor_capability = (
+                ledgers._issue_authenticated_ancestors_under_existing_mutex(
+                    lease,
+                    bundle.ledger,
+                    operation_ledger,
+                )
+            )
+            ledgers._verify_external_ancestors_under_existing_mutex(
+                lease,
+                ancestor_capability,
+            )
+            return ledgers
+    except (CopyLedgerError, OperationLedgerError):
+        raise
+
+
+def _create_test_copy_operation(
+    bundle: _TestDurableBoundaryBundle,
+    operation_ledger: DurableOperationLedger,
+    copy_ledgers: DurableCopyLedgers,
+    context: OperationContext,
+    manifest: DeclaredTreeManifest,
+    budget: JobResourceBudget,
+) -> _TestLocalCopyOperation:
+    """Issue the only S3-F orchestrator from co-owned exact authorities."""
+
+    if (
+        type(bundle) is not _TestDurableBoundaryBundle
+        or type(operation_ledger) is not DurableOperationLedger
+        or type(copy_ledgers) is not DurableCopyLedgers
+        or type(context) is not OperationContext
+        or type(manifest) is not DeclaredTreeManifest
+        or type(budget) is not JobResourceBudget
+        or copy_ledgers._storage is not bundle.writer
+    ):
+        raise ProductionBoundaryError(
+            BoundaryErrorCode.INVALID_ARGUMENT,
+            "copy operation requires exact co-owned Test-local authorities",
+        )
+    copy_id = context.scope_value(ScopeKind.COPY_ID)
+    copy_epoch_id = context.scope_value(ScopeKind.COPY_LEDGER_EPOCH_ID)
+    if (
+        copy_id is None
+        or copy_epoch_id is None
+        or copy_epoch_id != copy_ledgers.storage_epoch_id
+        or not copy_ledgers.matches_run_scope(context.run_id)
+    ):
+        raise ProductionBoundaryError(
+            BoundaryErrorCode.INVALID_CONTEXT,
+            "copy operation context has no exact Copy and ledger scopes",
+            operation_reference=_public_operation_reference(context),
+        )
+    runtime = _create_test_job_runtime(
+        bundle,
+        operation_ledger=operation_ledger,
+    )
+    _TestLocalCopyOperation._validate_source_independent_preconditions(
+        runtime,
+        copy_ledgers,
+        context,
+        manifest,
+        budget,
+    )
+    source_policy = None
+    operation = None
+    try:
+        source_policy = _create_synthetic_reference_read_policy(
+            bundle.writer._workspace_root,
+            copy_id=copy_id,
+            classification=context.classification,
+        )
+        operation = _TestLocalCopyOperation(
+            runtime,
+            copy_ledgers,
+            source_policy,
+            context,
+            manifest,
+            budget,
+            _constructor=_COPY_OPERATION_CONSTRUCTOR,
+        )
+        return operation
+    finally:
+        if source_policy is not None and operation is None:
+            source_policy.close()
+
+
 def _reconcile_test_publish_operation(
     bundle: _TestDurableBoundaryBundle,
     operation_ledger: DurableOperationLedger,
     transaction_id: str,
     budget: JobResourceBudget,
+    *,
+    restricted_locator_capability: _RestrictedRecoveryLocatorCapability | None = None,
 ) -> OperationSegmentReceipt:
     """Append a recovery fact only when source/target truth is unambiguous.
 
@@ -3840,6 +4775,9 @@ def _reconcile_test_publish_operation(
             "publish reconciliation transaction ID is invalid",
         ) from None
 
+    source_locator_for_scan = ""
+    target_locator_for_scan = ""
+
     def observe_once(locator: str) -> OperationTreeEvidence | None:
         absolute = bundle.writer._workspace_root.joinpath(*locator.split("/"))
         if not os.path.lexists(absolute):
@@ -3855,9 +4793,12 @@ def _reconcile_test_publish_operation(
             manifest_sha256=snapshot.manifest_sha256,
             source_tree_sha256=snapshot.source_tree_sha256,
             topology_sha256=snapshot.topology_sha256,
-            durable_identity_sha256=operation_ledger.durable_identity_digest(
-                root.volume_serial,
-                root.file_id,
+            durable_identity_sha256=(
+                operation_ledger.durable_tree_evidence_identity_digest(
+                    root.volume_serial,
+                    root.file_id,
+                    snapshot.tree_identity_material,
+                )
             ),
             entry_count=snapshot.entry_count,
             total_bytes=snapshot.total_bytes,
@@ -3865,12 +4806,12 @@ def _reconcile_test_publish_operation(
 
     def observe_pair() -> tuple[OperationTreeEvidence | None, OperationTreeEvidence | None]:
         first = (
-            observe_once(previous.source_locator),
-            observe_once(previous.target_locator),
+            observe_once(source_locator_for_scan),
+            observe_once(target_locator_for_scan),
         )
         second = (
-            observe_once(previous.source_locator),
-            observe_once(previous.target_locator),
+            observe_once(source_locator_for_scan),
+            observe_once(target_locator_for_scan),
         )
         if first != second:
             operation_ledger._seal_recovery_contradiction()
@@ -3884,6 +4825,44 @@ def _reconcile_test_publish_operation(
         if result is None:
             operation_ledger._seal_recovery_contradiction()
         previous, existing_receipt = result
+        if previous.locator_mode is OperationLocatorMode.HMAC_ONLY:
+            try:
+                restricted_source_relative_path, restricted_target_relative_path = (
+                    bundle.boundary._consume_restricted_recovery_locator(
+                        restricted_locator_capability,
+                        transaction_id,
+                    )
+                )
+            except ProductionBoundaryError:
+                operation_ledger._seal_recovery_contradiction()
+            source_locator_for_scan = restricted_source_relative_path.as_posix()
+            target_locator_for_scan = restricted_target_relative_path.as_posix()
+            try:
+                source_match = (
+                    operation_ledger.locator_hmac(
+                        source_locator_for_scan,
+                        transaction_id=previous.transaction_id,
+                        role=OperationLocatorRole.SOURCE,
+                    )
+                    == previous.source_locator
+                )
+                target_match = (
+                    operation_ledger.locator_hmac(
+                        target_locator_for_scan,
+                        transaction_id=previous.transaction_id,
+                        role=OperationLocatorRole.TARGET,
+                    )
+                    == previous.target_locator
+                )
+            except OperationLedgerError:
+                operation_ledger._seal_recovery_contradiction()
+            if not source_match or not target_match:
+                operation_ledger._seal_recovery_contradiction()
+        else:
+            if restricted_locator_capability is not None:
+                operation_ledger._seal_recovery_contradiction()
+            source_locator_for_scan = previous.source_locator
+            target_locator_for_scan = previous.target_locator
         current_audit_head = bundle.ledger._rescan_under_existing_mutex(lease)
         if (
             budget.digest != previous.budget_sha256
@@ -3980,6 +4959,7 @@ def _reconcile_test_publish_operation(
             recovery_authority_head_sha256=(
                 current_audit_head.last_segment_sha256 or "0" * 64
             ),
+            locator_mode=previous.locator_mode,
             classification=previous.classification,
         )
         recovery_receipt = operation_ledger._append_transition_under_existing_mutex(
@@ -4019,6 +4999,25 @@ def _max_classification(
         DataClassification.RESTRICTED
         if DataClassification.RESTRICTED in values
         else DataClassification.INTERNAL
+    )
+
+
+def _boundary_effective_classification(
+    context: OperationContext | None,
+    decision: NamespaceDecision,
+) -> DataClassification:
+    if decision.namespace in {
+        NamespaceId.COPY_SOURCE_LEDGER,
+        NamespaceId.COPY_OPERATION_LEDGER,
+    }:
+        return DataClassification.RESTRICTED
+    return _max_classification(
+        (
+            context.classification
+            if context is not None
+            else DataClassification.INTERNAL
+        ),
+        decision.effective_classification,
     )
 
 

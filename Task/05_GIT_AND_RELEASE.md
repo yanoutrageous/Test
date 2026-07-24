@@ -187,7 +187,7 @@ Draft PR 规则：
 M5 发布候选先生成到：
 
 ```text
-D:\AAA命题\Test\output\releases\<version>.staging
+<PROJECT_ROOT>\output\releases\<version>.staging
 ```
 
 在该 staging 中完成哈希、启动、离线用户旅程、视觉和恢复验证后，才发布为新的正式版本目录。正式版本不可原地覆盖。

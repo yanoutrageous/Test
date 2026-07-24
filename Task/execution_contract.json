@@ -1,12 +1,23 @@
 {
-  "contract_version": "1.0.1",
+  "contract_version": "1.1.0",
   "status": "normative",
   "project": "local-exam-bank-m0-m5",
-  "project_root": "D:\\AAA命题\\Test",
-  "reference_root": "D:\\AAA命题",
-  "copy_root": "D:\\AAA命题\\Test\\Copy",
-  "task_root": "D:\\AAA命题\\Test\\Task",
-  "project_data_write_root": "D:\\AAA命题\\Test",
+  "project_root": "ROOT_MARKER:.exam-bank-root.json",
+  "project_root_contract": {
+    "authority": "trusted app/project_root.py module location plus exact tracked root marker",
+    "project_id": "YANOUTRAGEOUS-LOCAL-EXAM-BANK",
+    "root_policy": "PORTABLE_LOCAL_NTFS_V1",
+    "path_storage": "PROJECT_RELATIVE_V1",
+    "required_filesystem": "NTFS",
+    "physical_path_is_per_machine": true,
+    "caller_override_allowed": false,
+    "environment_override_allowed": false,
+    "cwd_is_authority": false
+  },
+  "reference_root": "PER_MACHINE_READ_ONLY_MAPPING:Task/local/REFERENCE_PATHS.local.md",
+  "copy_root": "Copy",
+  "task_root": "Task",
+  "project_data_write_root": "PROJECT_ROOT",
   "remote_repository": "https://github.com/yanoutrageous/Test.git",
   "final_objective": "Deliver a fully local, recoverable, traceable, customer-ready high-school mathematics question-bank and paper-generation product with all M0-M5 gates passed through real user workflows.",
   "required_capabilities": [
@@ -61,7 +72,9 @@
     "implementation_status_field": "records NOT_STARTED, IN_PROGRESS, or COMPLETE independently from the operational status"
   },
   "immutable_rules": [
-    "D:\\AAA命题 is read-only for project data and reference assets except that D:\\AAA命题\\Test is the sole project-data and runtime write root",
+    "the physical drive letter and parent directory are not authority; the sole project-data and runtime write root is the local NTFS directory proven by app/project_root.py and .exam-bank-root.json",
+    "external reference locations are per-machine read-only mappings keyed by logical IDs; their absolute paths are Git-ignored and never become project write roots",
+    "moving to another computer or directory requires a quiescent whole-root copy, marker and filesystem validation, local reference remapping, dependency recreation or validation, database integrity checks, and a fresh safety baseline before mutation resumes",
     "the only non-project-root write exception is a separately audited dependency package-manager transaction; it never permits project data or scripts to write outside project_root",
     "external references requiring processing must be copied into Copy with source and destination SHA-256 before processing",
     "originals and published versions are never overwritten",

@@ -1,5 +1,5 @@
 {
-  "chunk_digest_sha256": "eee08aa7d1b4eadee60836358308e783e3dc473b97d8ac558215276411857c9b",
+  "chunk_digest_sha256": "be6d5b87c09927aefb17f142a8ef459c5813e862b79569a8797c61774e0c1fda",
   "chunk_index": 4,
   "entries": [
     {
@@ -657,60 +657,57 @@
     },
     {
       "call_chain": [
-        "app.cli.main",
-        "app.question_assets.crop_question_assets",
-        "app.question_assets._load_crop_rows"
+        "app.project_root._read_verified_marker"
       ],
-      "callee": "conn.execute",
-      "column": 11,
-      "detail": "dynamic SQL is fail-closed because its effect cannot be proven",
-      "end_column": 5,
-      "end_line": 57,
-      "entry_id": "WE-1F68F983EA4318F0E815B6B0",
-      "file": "app/question_assets.py",
-      "function": "app.question_assets._load_crop_rows",
-      "input_source": "CLI_ARGUMENT_OR_CONFIG",
-      "kind": "SQLITE_DYNAMIC_SQL",
-      "line": 36,
+      "callee": "os.open",
+      "column": 21,
+      "detail": "low-level open may write",
+      "end_column": 48,
+      "end_line": 117,
+      "entry_id": "WE-5364E97F357793E5992C2421",
+      "file": "app/project_root.py",
+      "function": "app.project_root._read_verified_marker",
+      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
+      "kind": "FILESYSTEM_FILE_WRITE",
+      "line": 117,
       "migration_status": "UNMIGRATED_BLOCKED",
-      "owner": "IMPORT_SERVICE",
-      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
-      "resolution": "DYNAMIC",
-      "risk": "P0",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "S3_HANDLE_LEVEL_WORKSPACE_WRITER",
+      "resolution": "EXACT",
+      "risk": "P1",
       "root_ids": [
-        "CLI:MAIN"
+        "INTERNAL-DIRECT"
       ],
-      "source_sha256": "117afd7f9e203751c90ce470541a6670f47e7275f8207d1ea6e02b12528bad68",
-      "statement_fingerprint": "cbaf3a0a2164c7a7214338af652b8623d14dd6d66acf9c8d09cd0cd2272e2259",
-      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+      "source_sha256": "a325093d7d5b64116f469b0ce36645e6708e9cf10c4394c2a58d548decb30ed3",
+      "statement_fingerprint": "432720ced31c71b9417f1c1d24d203a4fad11744eddffacd55213ad71d3c568b",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_FILESYSTEM"
     },
     {
       "call_chain": [
-        "app.cli.main",
-        "app.question_assets.crop_question_assets"
+        "app.project_root._filesystem_name"
       ],
-      "callee": "app.database.initialize_database",
-      "column": 4,
-      "detail": "implicit schema/directory initialization",
-      "end_column": 32,
-      "end_line": 69,
-      "entry_id": "WE-9D173DB79C69835CC921F678",
-      "file": "app/question_assets.py",
-      "function": "app.question_assets.crop_question_assets",
-      "input_source": "CLI_ARGUMENT_OR_CONFIG",
-      "kind": "DATABASE_IMPLICIT_INITIALIZER",
-      "line": 69,
+      "callee": "ctypes.WinDLL",
+      "column": 15,
+      "detail": "native library binding requires an audited symbol allowlist",
+      "end_column": 61,
+      "end_line": 161,
+      "entry_id": "WE-4D8C7D2E91414F53A406A388",
+      "file": "app/project_root.py",
+      "function": "app.project_root._filesystem_name",
+      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
+      "kind": "NATIVE_API_BINDING",
+      "line": 161,
       "migration_status": "UNMIGRATED_BLOCKED",
-      "owner": "IMPORT_SERVICE",
-      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
-      "resolution": "ALIAS_RESOLVED",
-      "risk": "P1",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "S3_NATIVE_API_FIXED_LIBRARY_AND_SYMBOL_ALLOWLIST",
+      "resolution": "CONSERVATIVE",
+      "risk": "P0",
       "root_ids": [
-        "CLI:MAIN"
+        "INTERNAL-DIRECT"
       ],
-      "source_sha256": "117afd7f9e203751c90ce470541a6670f47e7275f8207d1ea6e02b12528bad68",
-      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db",
-      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+      "source_sha256": "a325093d7d5b64116f469b0ce36645e6708e9cf10c4394c2a58d548decb30ed3",
+      "statement_fingerprint": "3474f55c4f2c4ff899bf534b507dc606ac6ca48c4335543ec7104e00d9f58fff",
+      "target_namespace": "NATIVE_API_FIXED_LIBRARY_AND_SYMBOL_ALLOWLIST"
     }
   ],
   "entry_count": 25,

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import ctypes
 import hashlib
+import hmac
 import json
 import ntpath
 import os
@@ -18,6 +19,7 @@ from typing import Any, Iterator, NoReturn, Protocol
 
 from app.workspace_guard import (
     ExpectedKind,
+    GuardErrorCode,
     GuardedPath,
     PathIdentity,
     PathIntent,
@@ -27,6 +29,9 @@ from app.workspace_guard import (
 
 _REPARSE_ATTRIBUTE = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
 _SHA256_LENGTH = 64
+_WIN32_MAX_PATH = 260
+_MAX_FLAT_DIRECTORY_FILE_BYTES = 64 * 1024 * 1024
+_MAX_FLAT_DIRECTORY_TOTAL_BYTES = _MAX_FLAT_DIRECTORY_FILE_BYTES + 16 * 1024
 _SAFE_FLAT_ENTRY = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9._-]{0,178}[A-Za-z0-9])?$")
 
 
@@ -35,6 +40,7 @@ _DIRECTORY_LEASE_CONSTRUCTOR = object()
 _IMMUTABLE_FILE_LEASE_CONSTRUCTOR = object()
 _TREE_LEASE_CONSTRUCTOR = object()
 _DIRECTORY_PUBLISH_PERMIT_CONSTRUCTOR = object()
+_IDENTITY_MATERIAL_CONSTRUCTOR = object()
 _MUTEX_REGISTRY_LOCK = threading.Lock()
 _ACTIVE_MUTEX_NAMES: set[str] = set()
 _MAX_SPENT_TICKETS = 8192
@@ -171,6 +177,126 @@ class HandleReadResult:
         raise TypeError("verified handle read results cannot be serialized")
 
 
+class HandleObjectIdentityMaterial:
+    """Opaque, detached kernel identity used only for keyed projections.
+
+    Raw volume and file identifiers are not exposed through the supported API,
+    repr, pickle, or persisted formats.  The only supported projection is a
+    domain-separated HMAC under a caller-held key.
+    """
+
+    __slots__ = ("__frame",)
+
+    def __init__(
+        self,
+        volume_serial: int,
+        file_id: bytes,
+        file_attributes: int,
+        link_count: int,
+        is_directory: bool,
+        *,
+        _constructor: object,
+    ) -> None:
+        if (
+            _constructor is not _IDENTITY_MATERIAL_CONSTRUCTOR
+            or type(volume_serial) is not int
+            or volume_serial < 0
+            or volume_serial > (1 << 64) - 1
+            or type(file_id) is not bytes
+            or len(file_id) != 16
+            or type(file_attributes) is not int
+            or file_attributes < 0
+            or file_attributes > (1 << 32) - 1
+            or type(link_count) is not int
+            or link_count < 0
+            or link_count > (1 << 32) - 1
+            or type(is_directory) is not bool
+        ):
+            raise TypeError("handle identity material requires exact writer authority")
+        self.__frame = (
+            (b"D" if is_directory else b"F")
+            + file_attributes.to_bytes(4, "little", signed=False)
+            + link_count.to_bytes(4, "little", signed=False)
+            + volume_serial.to_bytes(8, "little", signed=False)
+            + file_id
+        )
+
+    def _operation_hmac_sha256(self, key: bytes) -> str:
+        if type(key) is not bytes or len(key) != 32:
+            raise TypeError("durable identity projection requires an exact key")
+        return hmac.new(
+            key,
+            b"OPERATION-OBJECT-IDENTITY-V1\0" + self.__frame,
+            hashlib.sha256,
+        ).hexdigest()
+
+    def __repr__(self) -> str:
+        return "HandleObjectIdentityMaterial(identity='<redacted>')"
+
+    def __reduce__(self) -> Any:
+        raise TypeError("handle identity material cannot be serialized")
+
+
+class HandleTreeIdentityMaterial:
+    """Opaque canonical relative-tree identity, detached from live handles."""
+
+    __slots__ = ("__rows",)
+
+    def __init__(
+        self,
+        rows: tuple[tuple[str, HandleObjectIdentityMaterial], ...],
+        *,
+        _constructor: object,
+    ) -> None:
+        if (
+            _constructor is not _IDENTITY_MATERIAL_CONSTRUCTOR
+            or type(rows) is not tuple
+            or not rows
+            or any(
+                type(row) is not tuple
+                or len(row) != 2
+                or type(row[0]) is not str
+                or type(row[1]) is not HandleObjectIdentityMaterial
+                for row in rows
+            )
+            or rows[0][0] != "."
+        ):
+            raise TypeError("tree identity material requires exact writer authority")
+        paths = tuple(row[0] for row in rows)
+        if (
+            len(set(paths)) != len(paths)
+            or any("\0" in path for path in paths)
+            or paths[1:]
+            != tuple(
+                sorted(paths[1:], key=lambda value: value.encode("utf-8"))
+            )
+        ):
+            raise TypeError("tree identity material is not canonical")
+        self.__rows = rows
+
+    def _operation_hmac_sha256(self, key: bytes) -> str:
+        if type(key) is not bytes or len(key) != 32:
+            raise TypeError("durable tree identity projection requires an exact key")
+        digest = hmac.new(
+            key,
+            b"OPERATION-WHOLE-TREE-IDENTITY-V1\0",
+            hashlib.sha256,
+        )
+        digest.update(len(self.__rows).to_bytes(4, "big"))
+        for relative_path, identity in self.__rows:
+            encoded_path = relative_path.encode("utf-8", "strict")
+            digest.update(len(encoded_path).to_bytes(4, "big"))
+            digest.update(encoded_path)
+            digest.update(identity._HandleObjectIdentityMaterial__frame)
+        return digest.hexdigest()
+
+    def __repr__(self) -> str:
+        return "HandleTreeIdentityMaterial(identity='<redacted>')"
+
+    def __reduce__(self) -> Any:
+        raise TypeError("tree identity material cannot be serialized")
+
+
 @dataclass(frozen=True, slots=True)
 class HandleDirectoryEntry:
     name: str
@@ -178,6 +304,10 @@ class HandleDirectoryEntry:
     size_bytes: int
     sha256: str
     object_reference: str
+    identity_material: HandleObjectIdentityMaterial = field(
+        repr=False,
+        compare=False,
+    )
 
     def __repr__(self) -> str:
         return (
@@ -193,7 +323,23 @@ class HandleDirectoryEntry:
 class HandleDirectorySnapshot:
     entries: tuple[HandleDirectoryEntry, ...]
     directory_reference: str
+    root_identity_material: HandleObjectIdentityMaterial = field(
+        repr=False,
+        compare=False,
+    )
+    tree_identity_material: HandleTreeIdentityMaterial = field(
+        repr=False,
+        compare=False,
+    )
     capability_state: str = "TEST_LOCAL_FLAT_DIRECTORY_VERIFIED"
+
+    @property
+    def entry_count(self) -> int:
+        return len(self.entries)
+
+    @property
+    def total_bytes(self) -> int:
+        return sum(entry.size_bytes for entry in self.entries)
 
     def __repr__(self) -> str:
         return (
@@ -423,6 +569,10 @@ class _TreeLogicalRow:
 @dataclass(frozen=True, slots=True)
 class _TreeSnapshot:
     rows: tuple[_TreeLogicalRow, ...] = field(repr=False)
+    tree_identity_material: HandleTreeIdentityMaterial = field(
+        repr=False,
+        compare=False,
+    )
     manifest_sha256: str
     source_tree_sha256: str
     topology_sha256: str
@@ -1250,7 +1400,7 @@ class _WindowsApi:
         conflict_code: HandleWriterCode = HandleWriterCode.HANDLE_OPEN_FAILED,
     ) -> int:
         handle = self.kernel32.CreateFileW(
-            str(path),
+            self._win32_path_text(path),
             access,
             share,
             None,
@@ -1268,6 +1418,32 @@ class _WindowsApi:
             raise HandleWriterError(code, "Windows refused the handle request", winerror=error)
         return int(handle)
 
+    @staticmethod
+    def _win32_path_text(path: Path) -> str:
+        """Use an explicit extended local path without requiring host policy changes."""
+
+        path_text = str(path)
+        if "\0" in path_text:
+            raise HandleWriterError(
+                HandleWriterCode.INVALID_REQUEST,
+                "Windows path contains an invalid name character",
+            )
+        if len(path_text) < _WIN32_MAX_PATH:
+            return path_text
+        normalized = ntpath.normpath(path_text)
+        drive, tail = ntpath.splitdrive(normalized)
+        if (
+            len(drive) != 2
+            or drive[1] != ":"
+            or not tail.startswith("\\")
+            or tail.startswith("\\\\")
+        ):
+            raise HandleWriterError(
+                HandleWriterCode.INVALID_REQUEST,
+                "extended Windows paths require an absolute local drive path",
+            )
+        return "\\\\?\\" + normalized
+
     def close(self, handle: int) -> None:
         if not self.kernel32.CloseHandle(handle):
             raise HandleWriterError(
@@ -1277,12 +1453,7 @@ class _WindowsApi:
             )
 
     def rename_by_handle_no_replace(self, handle: int, target: Path) -> None:
-        target_text = str(target)
-        if "\0" in target_text:
-            raise HandleWriterError(
-                HandleWriterCode.INVALID_REQUEST,
-                "rename target contains an invalid Windows name character",
-            )
+        target_text = self._win32_path_text(target)
         encoded = target_text.encode("utf-16-le", "strict")
         if not encoded or len(encoded) > 64 * 1024 or len(encoded) % 2:
             raise HandleWriterError(
@@ -1654,7 +1825,9 @@ class _WindowsHandleWriter:
                     self._close_all(fences)
                 except HandleWriterError as exc:
                     close_error = close_error or exc
-                if not verified and os.path.lexists(ticket.path):
+                if not verified and os.path.lexists(
+                    self._api._win32_path_text(ticket.path)
+                ):
                     self._seal(HandleWriterCode.MUTATION_IN_DOUBT)
                 if close_error is not None:
                     self._seal(HandleWriterCode.HANDLE_CLOSE_FAILED)
@@ -1926,6 +2099,110 @@ class _WindowsHandleWriter:
             abandoned=abandoned,
         )
 
+    def _require_directory_target_absent_under_existing_mutex(
+        self,
+        mutex: RuntimeMutexLease,
+        relative_path: str | os.PathLike[str],
+    ) -> None:
+        """Prove a missing directory name through one verified parent handle.
+
+        This narrow S3-F recovery primitive performs no mutation.  It consumes
+        one Guard capability, holds the writer's operation reservation while
+        the exact parent handle is open, and enumerates that same handle twice
+        with an identity/path revalidation between the observations.  The
+        result is deliberately ephemeral: callers must repeat the observation
+        immediately before persisting an absence-dependent recovery fact.
+        """
+
+        self._require_unsealed()
+        if type(mutex) is not RuntimeMutexLease:
+            raise HandleWriterError(
+                HandleWriterCode.MUTEX_FAILED,
+                "directory absence observation requires the exact runtime mutex",
+            )
+        mutex._assert_live_owner(self)
+        target = self._authorize(
+            relative_path,
+            intent=PathIntent.MOVE_TARGET,
+            expected_kind=ExpectedKind.DIRECTORY,
+            target_conflict_on_existing=True,
+        )
+        reservation_entered = False
+        try:
+            with self._reserved(
+                target,
+                PathIntent.MOVE_TARGET,
+                ExpectedKind.DIRECTORY,
+            ):
+                reservation_entered = True
+                fences: list[int] = []
+                try:
+                    mutex._assert_live_owner(self)
+                    self._revalidate(target, target_conflict_on_existing=True)
+                    self._require_existing_direct_parent(target)
+                    fences = self._fence_snapshot(target)
+                    if not fences:
+                        raise HandleWriterError(
+                            HandleWriterCode.PRECONDITION_FAILED,
+                            "directory absence observation lacks a verified parent fence",
+                        )
+                    parent_handle = fences[-1]
+                    parent_before = self._observe_identity(parent_handle)
+                    if not parent_before.is_directory:
+                        raise HandleWriterError(
+                            HandleWriterCode.TYPE_MISMATCH,
+                            "directory absence parent is not a directory",
+                        )
+                    self._require_default_stream_only(parent_handle, directory=True)
+                    self._verify_final_path(parent_handle, target.path.parent)
+                    self._verify_path_matches_handle(target.path.parent, parent_before)
+                    self._require_directory_name_absent(parent_handle, target.path.name)
+                    self._after_directory_target_absence_first_observation(target)
+                    mutex._assert_live_owner(self)
+                    try:
+                        self._revalidate(
+                            target,
+                            target_conflict_on_existing=True,
+                        )
+                    except HandleWriterError as error:
+                        if error.code is HandleWriterCode.GUARD_REJECTED:
+                            self._require_directory_name_absent(
+                                parent_handle,
+                                target.path.name,
+                            )
+                        raise
+                    parent_after = self._observe_identity(parent_handle)
+                    self._require_default_stream_only(parent_handle, directory=True)
+                    self._verify_final_path(parent_handle, target.path.parent)
+                    self._verify_path_matches_handle(target.path.parent, parent_after)
+                    if (
+                        not parent_after.is_directory
+                        or not self._same_object(parent_before, parent_after)
+                    ):
+                        raise HandleWriterError(
+                            HandleWriterCode.HANDLE_IDENTITY_MISMATCH,
+                            "directory absence parent identity changed between observations",
+                        )
+                    self._require_directory_name_absent(parent_handle, target.path.name)
+                finally:
+                    try:
+                        self._close_all(fences)
+                    except HandleWriterError:
+                        self._seal(HandleWriterCode.HANDLE_CLOSE_FAILED)
+                        raise
+        except BaseException as error:
+            if not reservation_entered:
+                with self._lock:
+                    still_issued = self._issued.get(target.ticket_id) is target
+                if still_issued:
+                    self._discard_issued_ticket(target)
+            if (
+                isinstance(error, HandleWriterError)
+                and error.code is HandleWriterCode.HANDLE_CLOSE_FAILED
+            ):
+                self._seal(HandleWriterCode.HANDLE_CLOSE_FAILED)
+            raise
+
     def seal_after_indeterminate_mutation(self) -> None:
         self._seal(HandleWriterCode.MUTATION_IN_DOUBT)
 
@@ -1935,8 +2212,10 @@ class _WindowsHandleWriter:
         *,
         intent: PathIntent,
         expected_kind: ExpectedKind,
+        target_conflict_on_existing: bool = False,
     ) -> GuardedPath:
         failure_code: str | None = None
+        target_conflict = False
         with self._lock:
             if self._poisoned is not None:
                 raise HandleWriterError(
@@ -1951,12 +2230,20 @@ class _WindowsHandleWriter:
                 )
             except WorkspaceGuardError as exc:
                 failure_code = exc.code.value
+                target_conflict = (
+                    target_conflict_on_existing
+                    and exc.code is GuardErrorCode.TARGET_ALREADY_EXISTS
+                )
                 authorized = None
             if authorized is not None:
                 self._issued[authorized.ticket_id] = authorized
         if authorized is None:
             raise HandleWriterError(
-                HandleWriterCode.GUARD_REJECTED,
+                (
+                    HandleWriterCode.TARGET_CONFLICT
+                    if target_conflict
+                    else HandleWriterCode.GUARD_REJECTED
+                ),
                 f"Guard authorization failed ({failure_code})",
             ) from None
         return authorized
@@ -2327,6 +2614,9 @@ class _WindowsHandleWriter:
                 )
                 total_bytes = 0
                 rows: list[HandleDirectoryEntry] = []
+                identity_rows: list[tuple[str, HandleObjectIdentityMaterial]] = [
+                    (".", self._identity_material(directory_before))
+                ]
                 for name, enumerated_file_id, enumerated_attributes in first_entries:
                     child_path = ticket.path / name
                     child_handle = self._api.open_handle(
@@ -2386,8 +2676,10 @@ class _WindowsHandleWriter:
                             size_bytes=len(payload),
                             sha256=digest,
                             object_reference=receipt.object_reference,
+                            identity_material=self._identity_material(observed),
                         )
                     )
+                    identity_rows.append((name, self._identity_material(observed)))
                 second_entries = self._flat_entries(
                     directory_handle,
                     maximum_entries,
@@ -2416,9 +2708,30 @@ class _WindowsHandleWriter:
                     total_bytes,
                     listing_digest,
                 )
+                canonical_identity_rows = (
+                    identity_rows[0],
+                    *sorted(
+                        identity_rows[1:],
+                        key=lambda row: bytes(row[0], "utf-8", "strict"),
+                    ),
+                )
+                try:
+                    tree_identity_material = HandleTreeIdentityMaterial(
+                        canonical_identity_rows,
+                        _constructor=_IDENTITY_MATERIAL_CONSTRUCTOR,
+                    )
+                except TypeError:
+                    _raise_handle_error_without_context(
+                        HandleWriterError(
+                            HandleWriterCode.DIRECTORY_SCAN_FAILED,
+                            "flat directory identity could not be canonicalized",
+                        )
+                    )
                 return HandleDirectorySnapshot(
                     entries=tuple(rows),
                     directory_reference=directory_receipt.object_reference,
+                    root_identity_material=identity_rows[0][1],
+                    tree_identity_material=tree_identity_material,
                 )
             finally:
                 self._close_all(handles)
@@ -2435,10 +2748,10 @@ class _WindowsHandleWriter:
             or maximum_entries > 4096
             or type(maximum_file_bytes) is not int
             or maximum_file_bytes < 1
-            or maximum_file_bytes > 16 * 1024 * 1024
+            or maximum_file_bytes > _MAX_FLAT_DIRECTORY_FILE_BYTES
             or type(maximum_total_bytes) is not int
             or maximum_total_bytes < maximum_file_bytes
-            or maximum_total_bytes > 64 * 1024 * 1024
+            or maximum_total_bytes > _MAX_FLAT_DIRECTORY_TOTAL_BYTES
         ):
             raise HandleWriterError(
                 HandleWriterCode.INVALID_REQUEST,
@@ -3076,6 +3389,9 @@ class _WindowsHandleWriter:
                 + child_payload
             ).hexdigest()
         observed_by_path = {path: observed for path, _handle, observed, _kind in nodes}
+        durable_identity_rows = [
+            (".", self._identity_material(root._observed))
+        ]
         identity_rows = [
             {
                 "attributes": root._observed.file_attributes,
@@ -3087,6 +3403,9 @@ class _WindowsHandleWriter:
         ]
         for row in canonical_rows:
             observed = observed_by_path[row.relative_path]
+            durable_identity_rows.append(
+                (row.relative_path, self._identity_material(observed))
+            )
             identity_rows.append(
                 {
                     "attributes": observed.file_attributes,
@@ -3112,6 +3431,10 @@ class _WindowsHandleWriter:
         directory_count = len(canonical_rows) - file_count
         return _TreeSnapshot(
             rows=canonical_rows,
+            tree_identity_material=HandleTreeIdentityMaterial(
+                tuple(durable_identity_rows),
+                _constructor=_IDENTITY_MATERIAL_CONSTRUCTOR,
+            ),
             manifest_sha256=manifest_sha256,
             source_tree_sha256=node_hashes[""],
             topology_sha256=topology_sha256,
@@ -3121,6 +3444,17 @@ class _WindowsHandleWriter:
             directory_count=directory_count,
             total_bytes=total_bytes,
             maximum_depth_observed=maximum_depth_observed,
+        )
+
+    @staticmethod
+    def _identity_material(observed: _ObservedHandle) -> HandleObjectIdentityMaterial:
+        return HandleObjectIdentityMaterial(
+            observed.volume_serial,
+            observed.file_id,
+            observed.file_attributes,
+            observed.link_count,
+            observed.is_directory,
+            _constructor=_IDENTITY_MATERIAL_CONSTRUCTOR,
         )
 
     def _identity_reference(self, observed: _ObservedHandle) -> str:
@@ -3419,7 +3753,7 @@ class _WindowsHandleWriter:
                 self._verify_path_matches_handle(target.path, source_root_before)
                 if (
                     not self._same_object(source_root_before, source_root_after)
-                    or os.path.lexists(source.path)
+                    or os.path.lexists(self._api._win32_path_text(source.path))
                 ):
                     raise HandleWriterError(
                         HandleWriterCode.POSTCONDITION_FAILED,
@@ -3664,7 +3998,7 @@ class _WindowsHandleWriter:
                     not self._same_object(source_observed, renamed_observed)
                     or renamed_size != source_size
                     or renamed_digest != source_digest
-                    or os.path.lexists(staging.path)
+                    or os.path.lexists(self._api._win32_path_text(staging.path))
                 ):
                     raise HandleWriterError(
                         HandleWriterCode.POSTCONDITION_FAILED,
@@ -3951,15 +4285,29 @@ class _WindowsHandleWriter:
             self._close_all(handles)
             raise
 
-    def _revalidate(self, ticket: GuardedPath) -> None:
+    def _revalidate(
+        self,
+        ticket: GuardedPath,
+        *,
+        target_conflict_on_existing: bool = False,
+    ) -> None:
         failure_code: str | None = None
+        target_conflict = False
         try:
             self._path_authority.revalidate(ticket)
         except WorkspaceGuardError as exc:
             failure_code = exc.code.value
+            target_conflict = (
+                target_conflict_on_existing
+                and exc.code is GuardErrorCode.TARGET_ALREADY_EXISTS
+            )
         if failure_code is not None:
             raise HandleWriterError(
-                HandleWriterCode.GUARD_REJECTED,
+                (
+                    HandleWriterCode.TARGET_CONFLICT
+                    if target_conflict
+                    else HandleWriterCode.GUARD_REJECTED
+                ),
                 f"Guard revalidation failed ({failure_code})",
             ) from None
 
@@ -4193,7 +4541,7 @@ class _WindowsHandleWriter:
         observed: _ObservedHandle,
     ) -> None:
         try:
-            current = os.lstat(path)
+            current = os.lstat(self._api._win32_path_text(path))
         except OSError:
             current = None
         if current is None:
@@ -4504,6 +4852,12 @@ class _WindowsHandleWriter:
         target: GuardedPath,
     ) -> None:
         """Trusted-test injection point after PREPARED and before root rename."""
+
+    def _after_directory_target_absence_first_observation(
+        self,
+        target: GuardedPath,
+    ) -> None:
+        """Trusted-test injection point between same-parent absence scans."""
 
     def _after_directory_publish_renamed(
         self,

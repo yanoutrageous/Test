@@ -14,25 +14,20 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path, PureWindowsPath
+from types import MappingProxyType
 from typing import Any, Callable, NoReturn, Protocol
 
 from .audit_events import (
-    AuditAction,
-    AuditDecision,
     AuditEvent,
     AuditReceipt,
-    CapabilityKind,
-    PairRole,
-    RedactionMode,
     audit_hmac_key_id,
     audit_receipt,
 )
-from .context import DataClassification, validate_safe_id
+from .context import validate_safe_id
 from .namespace_policy import (
     POLICY_DIGEST,
     POLICY_ID,
     POLICY_VERSION,
-    NamespaceId,
 )
 from .windows_handle_writer import (
     HandleDirectorySnapshot,
@@ -41,9 +36,6 @@ from .windows_handle_writer import (
     HandleWriterError,
     RuntimeMutexLease,
 )
-from app.workspace_guard import ExpectedKind, PathIntent
-
-
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
 _KEY_FILE = re.compile(
     r"^(?P<sequence>[0-9]{8})-(?P<revision>[A-Z0-9][A-Z0-9_-]{0,63})-"
@@ -192,6 +184,243 @@ _MAX_STRING_LENGTH = 16 * 1024
 _MAX_DIAGNOSTIC_EVENTS = 4096
 _LEDGER_CONSTRUCTOR = object()
 
+_AUDIT_SEGMENT_PARSER_V1 = "AUDIT_SEGMENT_V1_EVENT_V2_1"
+
+_AUDIT_DECISION_VALUES = frozenset({"CANDIDATE_ALLOW", "DENY"})
+_AUDIT_ACTION_VALUES = frozenset({"ISSUE", "REVALIDATE", "DENY"})
+_AUDIT_CAPABILITY_KIND_VALUES = frozenset(
+    {"SINGLE", "PUBLISH_PAIR", "QUARANTINE_PAIR"}
+)
+_AUDIT_CLASSIFICATION_VALUES = frozenset({"INTERNAL", "RESTRICTED"})
+_AUDIT_REDACTION_MODE_VALUES = frozenset({"SAFE_RELATIVE", "HMAC_ONLY"})
+_AUDIT_CALLER_VALUES = frozenset(
+    {
+        "CONTROL_SERVICE",
+        "WEB",
+        "CLI",
+        "DATABASE_SERVICE",
+        "IMPORT_SERVICE",
+        "ASSET_SERVICE",
+        "EXPORT_SERVICE",
+        "REPORT_SERVICE",
+        "BACKUP_SERVICE",
+        "AUDIT_SERVICE",
+        "TEST_LAB",
+    }
+)
+_AUDIT_PURPOSE_VALUES = frozenset(
+    {
+        "READ_REFERENCE",
+        "READ_CONTROL",
+        "READ_DATABASE",
+        "INITIALIZE_STATE",
+        "MUTATE_DATABASE",
+        "COPY_SOURCE",
+        "BUILD_DERIVED",
+        "BUILD_EXPORT",
+        "APPEND_AUDIT",
+        "BACKUP",
+        "RESTORE",
+        "QUARANTINE",
+        "TEST",
+    }
+)
+_AUDIT_V7_NAMESPACE_VALUES = frozenset(
+    {
+        "GIT_INTERNAL",
+        "BASE_REFERENCE",
+        "TASK_CONTROL",
+        "COPY_SOURCE",
+        "COPY_RESTRICTED",
+        "COPY_WORK_INTERNAL",
+        "COPY_WORK_RESTRICTED",
+        "COPY_WORK",
+        "COPY_LEDGER",
+        "ACTIVE_DATABASE",
+        "DATABASE_SIDECAR",
+        "DATABASE_DIRECTORY",
+        "DATABASE_VERSION",
+        "ACTIVE_STATE_POINTER",
+        "ORIGINAL_OBJECT",
+        "DERIVED_REVISION",
+        "INDEX_VERSION",
+        "TEMPLATE_REVISION",
+        "EXPORT_BUNDLE",
+        "SNAPSHOT",
+        "BACKUP_SET",
+        "AUDIT_LOG",
+        "AUDIT_KEY_REVISION",
+        "JOB_WORKSPACE_INTERNAL",
+        "JOB_WORKSPACE_RESTRICTED",
+        "JOB_WORKSPACE",
+        "QUARANTINE_INTERNAL",
+        "QUARANTINE_RESTRICTED",
+        "QUARANTINE",
+        "LEGACY_ASSET",
+        "LEGACY_DB_BACKUP",
+        "UNCLASSIFIED",
+    }
+)
+_AUDIT_V8_NAMESPACE_VALUES = frozenset(
+    {
+        *_AUDIT_V7_NAMESPACE_VALUES,
+        "COPY_SOURCE_LEDGER",
+        "COPY_OPERATION_LEDGER",
+    }
+)
+_AUDIT_INTENT_VALUES = frozenset(
+    {
+        "EXISTING_READ",
+        "NEW_WRITE",
+        "EXISTING_WRITE",
+        "APPEND_EXISTING",
+        "CREATE_DIRECTORY",
+        "MOVE_SOURCE",
+        "MOVE_TARGET",
+        "QUARANTINE_SOURCE",
+        "QUARANTINE_TARGET",
+    }
+)
+_AUDIT_EXPECTED_KIND_VALUES = frozenset({"ANY", "FILE", "DIRECTORY"})
+_AUDIT_PAIR_ROLE_VALUES = frozenset({"SOURCE", "TARGET"})
+_AUDIT_SEGMENT_KIND_VALUES = frozenset(
+    {"GENESIS", "AUDIT_BATCH", "KEY_ROTATION"}
+)
+
+
+@dataclass(frozen=True, slots=True)
+class _ReviewedAuditEpochBinding:
+    policy_id: str
+    policy_version: str
+    policy_digest: str
+    schema_version: str
+    parser_id: str
+    writable: bool
+    decision_values: frozenset[str]
+    action_values: frozenset[str]
+    capability_kind_values: frozenset[str]
+    classification_values: frozenset[str]
+    redaction_mode_values: frozenset[str]
+    caller_values: frozenset[str]
+    purpose_values: frozenset[str]
+    namespace_values: frozenset[str]
+    intent_values: frozenset[str]
+    expected_kind_values: frozenset[str]
+    pair_role_values: frozenset[str]
+    segment_kind_values: frozenset[str]
+
+
+_AUDIT_V7_BINDING = _ReviewedAuditEpochBinding(
+    policy_id="LOCAL-EXAM-BANK-WORKSPACE",
+    policy_version="M0-S3-V7",
+    policy_digest="8df50ded63443c3310603614fd6d317234ce026c351870d0488a84dd1cfe4d88",
+    schema_version="1.0",
+    parser_id=_AUDIT_SEGMENT_PARSER_V1,
+    writable=False,
+    decision_values=_AUDIT_DECISION_VALUES,
+    action_values=_AUDIT_ACTION_VALUES,
+    capability_kind_values=_AUDIT_CAPABILITY_KIND_VALUES,
+    classification_values=_AUDIT_CLASSIFICATION_VALUES,
+    redaction_mode_values=_AUDIT_REDACTION_MODE_VALUES,
+    caller_values=_AUDIT_CALLER_VALUES,
+    purpose_values=_AUDIT_PURPOSE_VALUES,
+    namespace_values=_AUDIT_V7_NAMESPACE_VALUES,
+    intent_values=_AUDIT_INTENT_VALUES,
+    expected_kind_values=_AUDIT_EXPECTED_KIND_VALUES,
+    pair_role_values=_AUDIT_PAIR_ROLE_VALUES,
+    segment_kind_values=_AUDIT_SEGMENT_KIND_VALUES,
+)
+_AUDIT_V8_BINDING = _ReviewedAuditEpochBinding(
+    policy_id="LOCAL-EXAM-BANK-WORKSPACE",
+    policy_version="M0-S3-V8",
+    policy_digest="1d50da20075216ea7d3b20f68807ffe2cd108e9425a2c1c5ccc33292efe4d6cc",
+    schema_version="1.0",
+    parser_id=_AUDIT_SEGMENT_PARSER_V1,
+    writable=True,
+    decision_values=_AUDIT_DECISION_VALUES,
+    action_values=_AUDIT_ACTION_VALUES,
+    capability_kind_values=_AUDIT_CAPABILITY_KIND_VALUES,
+    classification_values=_AUDIT_CLASSIFICATION_VALUES,
+    redaction_mode_values=_AUDIT_REDACTION_MODE_VALUES,
+    caller_values=_AUDIT_CALLER_VALUES,
+    purpose_values=_AUDIT_PURPOSE_VALUES,
+    namespace_values=_AUDIT_V8_NAMESPACE_VALUES,
+    intent_values=_AUDIT_INTENT_VALUES,
+    expected_kind_values=_AUDIT_EXPECTED_KIND_VALUES,
+    pair_role_values=_AUDIT_PAIR_ROLE_VALUES,
+    segment_kind_values=_AUDIT_SEGMENT_KIND_VALUES,
+)
+_REVIEWED_AUDIT_EPOCH_BINDINGS = MappingProxyType(
+    {
+        (
+            binding.policy_id,
+            binding.policy_version,
+            binding.policy_digest,
+            binding.schema_version,
+        ): binding
+        for binding in (_AUDIT_V7_BINDING, _AUDIT_V8_BINDING)
+    }
+)
+
+
+def _reviewed_audit_epoch_binding(
+    *,
+    policy_id: Any,
+    policy_version: Any,
+    policy_digest: Any,
+    schema_version: Any,
+) -> _ReviewedAuditEpochBinding:
+    if any(
+        type(value) is not str
+        for value in (policy_id, policy_version, policy_digest, schema_version)
+    ):
+        raise LedgerError(
+            LedgerCode.POLICY_MISMATCH,
+            "audit epoch policy and schema binding is not canonical",
+        )
+    binding = _REVIEWED_AUDIT_EPOCH_BINDINGS.get(
+        (policy_id, policy_version, policy_digest, schema_version)
+    )
+    if binding is None:
+        raise LedgerError(
+            LedgerCode.POLICY_MISMATCH,
+            "audit epoch policy and schema binding is not reviewed",
+        )
+    return binding
+
+
+def _current_audit_epoch_binding() -> _ReviewedAuditEpochBinding:
+    return _reviewed_audit_epoch_binding(
+        policy_id=POLICY_ID,
+        policy_version=POLICY_VERSION,
+        policy_digest=POLICY_DIGEST,
+        schema_version="1.0",
+    )
+
+
+def _require_reviewed_audit_epoch_binding(
+    binding: _ReviewedAuditEpochBinding | None,
+) -> _ReviewedAuditEpochBinding:
+    if binding is None:
+        return _current_audit_epoch_binding()
+    if type(binding) is not _ReviewedAuditEpochBinding:
+        raise LedgerError(
+            LedgerCode.POLICY_MISMATCH,
+            "audit epoch parser binding is not exact",
+        )
+    reviewed = _reviewed_audit_epoch_binding(
+        policy_id=binding.policy_id,
+        policy_version=binding.policy_version,
+        policy_digest=binding.policy_digest,
+        schema_version=binding.schema_version,
+    )
+    if reviewed is not binding:
+        raise LedgerError(
+            LedgerCode.POLICY_MISMATCH,
+            "audit epoch parser binding was not selected from the reviewed registry",
+        )
+    return binding
+
 
 class _LedgerStorage(Protocol):
     def acquire_runtime_mutex(self) -> RuntimeMutexLease: ...
@@ -232,6 +461,7 @@ class LedgerCode(StrEnum):
     ROTATION_INVALID = "ROTATION_INVALID"
     MUTEX_BUSY = "MUTEX_BUSY"
     LEDGER_SEALED = "LEDGER_SEALED"
+    READ_ONLY_EPOCH = "READ_ONLY_EPOCH"
     CAPACITY_EXCEEDED = "CAPACITY_EXCEEDED"
 
 
@@ -837,7 +1067,9 @@ def _build_genesis_segment_bytes(
     epoch_id: str,
     created_at_utc: str,
     revision: AuditKeyRevision,
+    _policy_binding: _ReviewedAuditEpochBinding | None = None,
 ) -> tuple[bytes, str, str, tuple[str, ...]]:
+    policy_binding = _require_reviewed_audit_epoch_binding(_policy_binding)
     try:
         canonical_epoch = validate_safe_id(epoch_id, field_name="epoch_id")
     except Exception:
@@ -852,21 +1084,21 @@ def _build_genesis_segment_bytes(
         "epoch_id": canonical_epoch,
         "initial_revision_id": revision.revision_id,
         "initial_revision_sha256": revision.revision_sha256,
-        "policy_digest": POLICY_DIGEST,
+        "policy_digest": policy_binding.policy_digest,
     }
     records = [record]
     batch_sha = _genesis_batch_sha256(records)
     body = {
         "schema_id": "LOCAL_EXAM_BANK_IMMUTABLE_SEGMENT",
-        "schema_version": "1.0",
+        "schema_version": policy_binding.schema_version,
         "ledger_id": "AUDIT",
         "epoch_id": canonical_epoch,
         "sequence": 0,
         "previous_segment_sha256": None,
         "created_at_utc": created,
-        "policy_id": POLICY_ID,
-        "policy_version": POLICY_VERSION,
-        "policy_digest": POLICY_DIGEST,
+        "policy_id": policy_binding.policy_id,
+        "policy_version": policy_binding.policy_version,
+        "policy_digest": policy_binding.policy_digest,
         "key_revision_sequence": revision.revision_sequence,
         "key_revision_id": revision.revision_id,
         "key_revision_sha256": revision.revision_sha256,
@@ -879,7 +1111,7 @@ def _build_genesis_segment_bytes(
             "record_count": 1,
             "batch_sha256": batch_sha,
         },
-        "classification_set": [DataClassification.INTERNAL.value],
+        "classification_set": ["INTERNAL"],
         "redaction_mode_set": ["HMAC_ONLY"],
         "transition": None,
         "records": records,
@@ -901,7 +1133,12 @@ class _ParsedSegment:
     transition_to: AuditKeyRevision | None
 
 
-def _validate_audit_record(record: Any, revision: AuditKeyRevision) -> dict[str, Any]:
+def _validate_audit_record(
+    record: Any,
+    revision: AuditKeyRevision,
+    policy_binding: _ReviewedAuditEpochBinding | None = None,
+) -> dict[str, Any]:
+    reviewed_binding = _require_reviewed_audit_epoch_binding(policy_binding)
     row = _require_exact_fields(
         record,
         _AUDIT_EVENT_V21_FIELDS,
@@ -918,26 +1155,26 @@ def _validate_audit_record(record: Any, revision: AuditKeyRevision) -> dict[str,
             "audit event identity or timestamp is invalid",
         ) from None
     exact_enum_fields = {
-        "decision": {item.value for item in AuditDecision},
-        "action": {item.value for item in AuditAction},
-        "capability_kind": {item.value for item in CapabilityKind},
-        "classification": {item.value for item in DataClassification},
-        "redaction_mode": {item.value for item in RedactionMode},
-        "namespace": {item.value for item in NamespaceId},
-        "intent": {item.value for item in PathIntent},
-        "expected_kind": {item.value for item in ExpectedKind},
+        "decision": reviewed_binding.decision_values,
+        "action": reviewed_binding.action_values,
+        "capability_kind": reviewed_binding.capability_kind_values,
+        "classification": reviewed_binding.classification_values,
+        "redaction_mode": reviewed_binding.redaction_mode_values,
+        "namespace": reviewed_binding.namespace_values,
+        "intent": reviewed_binding.intent_values,
+        "expected_kind": reviewed_binding.expected_kind_values,
     }
     if any(
         type(row[field]) is not str or row[field] not in allowed
         for field, allowed in exact_enum_fields.items()
     ):
         raise LedgerError(LedgerCode.CHAIN_CORRUPT, "audit event enum field is invalid")
-    is_denial = row["decision"] == AuditDecision.DENY.value
+    is_denial = row["decision"] == "DENY"
     if (
         (
             is_denial
             and (
-                row["action"] != AuditAction.DENY.value
+                row["action"] != "DENY"
                 or type(row["error_code"]) is not str
                 or not row["error_code"]
             )
@@ -946,7 +1183,7 @@ def _validate_audit_record(record: Any, revision: AuditKeyRevision) -> dict[str,
             not is_denial
             and (
                 row["action"]
-                not in {AuditAction.ISSUE.value, AuditAction.REVALIDATE.value}
+                not in {"ISSUE", "REVALIDATE"}
                 or row["error_code"] is not None
             )
         )
@@ -984,6 +1221,14 @@ def _validate_audit_record(record: Any, revision: AuditKeyRevision) -> dict[str,
         for value in (row[field] for field in optional_strings)
     ):
         raise LedgerError(LedgerCode.CHAIN_CORRUPT, "audit optional string field is invalid")
+    if any(
+        row[field] is not None and row[field] not in allowed
+        for field, allowed in (
+            ("caller", reviewed_binding.caller_values),
+            ("purpose", reviewed_binding.purpose_values),
+        )
+    ):
+        raise LedgerError(LedgerCode.CHAIN_CORRUPT, "audit context enum field is invalid")
     if (
         type(row["boundary_instance_id"]) is not str
         or not row["boundary_instance_id"]
@@ -992,16 +1237,20 @@ def _validate_audit_record(record: Any, revision: AuditKeyRevision) -> dict[str,
         or not re.fullmatch(r"[0-9A-F]{16}", row["hmac_key_id"])
     ):
         raise LedgerError(LedgerCode.CHAIN_CORRUPT, "audit boundary or key identity is invalid")
-    if row["policy_id"] != POLICY_ID or row["policy_version"] != POLICY_VERSION or row["policy_digest"] != POLICY_DIGEST:
+    if (
+        row["policy_id"] != reviewed_binding.policy_id
+        or row["policy_version"] != reviewed_binding.policy_version
+        or row["policy_digest"] != reviewed_binding.policy_digest
+    ):
         raise LedgerError(LedgerCode.POLICY_MISMATCH, "audit event policy binding differs")
     if row["hmac_key_id"] != revision.audit_hmac_key_id:
         raise LedgerError(LedgerCode.REDACTION_FAILURE, "audit event HMAC key binding differs")
     classification = row["classification"]
     redaction = row["redaction_mode"]
     pair_role = row["pair_role"]
-    if pair_role is not None and pair_role not in {item.value for item in PairRole}:
+    if pair_role is not None and pair_role not in reviewed_binding.pair_role_values:
         raise LedgerError(LedgerCode.CHAIN_CORRUPT, "audit pair role is invalid")
-    is_single = row["capability_kind"] == CapabilityKind.SINGLE.value
+    is_single = row["capability_kind"] == "SINGLE"
     if (
         (is_denial and pair_role is not None)
         or (
@@ -1049,7 +1298,7 @@ def _validate_audit_record(record: Any, revision: AuditKeyRevision) -> dict[str,
     safe_path = row["safe_relative_path"]
     path_hmac = row["path_hmac_sha256"]
     path_depth = row["path_depth"]
-    if redaction == RedactionMode.SAFE_RELATIVE.value:
+    if redaction == "SAFE_RELATIVE":
         if (
             type(safe_path) is not str
             or path_hmac is not None
@@ -1076,7 +1325,7 @@ def _validate_audit_record(record: Any, revision: AuditKeyRevision) -> dict[str,
         or (path_depth is not None and (type(path_depth) is not int or path_depth < 1))
     ):
         raise LedgerError(LedgerCode.REDACTION_FAILURE, "audit HMAC path mode is invalid")
-    if classification == DataClassification.RESTRICTED.value:
+    if classification == "RESTRICTED":
         forbidden_visible = (
             "context_digest",
             "run_id",
@@ -1113,7 +1362,9 @@ def build_audit_segment_bytes(
     created_at_utc: str,
     revision: AuditKeyRevision,
     events: tuple[AuditEvent, ...],
+    _policy_binding: _ReviewedAuditEpochBinding | None = None,
 ) -> tuple[bytes, str, str, tuple[str, ...]]:
+    policy_binding = _require_reviewed_audit_epoch_binding(_policy_binding)
     try:
         canonical_epoch = validate_safe_id(epoch_id, field_name="epoch_id")
     except Exception:
@@ -1133,7 +1384,7 @@ def build_audit_segment_bytes(
         raise LedgerError(LedgerCode.INVALID_REQUEST, "audit batch requires exact AuditEvent records")
     records = [event.to_dict() for event in events]
     for record in records:
-        _validate_audit_record(record, revision)
+        _validate_audit_record(record, revision, policy_binding)
     receipt = audit_receipt(events)
     if receipt.batch_sha256 != _audit_batch_sha256(records):
         raise LedgerError(LedgerCode.CHAIN_CORRUPT, "audit receipt algorithm drifted")
@@ -1145,15 +1396,15 @@ def build_audit_segment_bytes(
     redactions = sorted({record["redaction_mode"] for record in records})
     body = {
         "schema_id": "LOCAL_EXAM_BANK_IMMUTABLE_SEGMENT",
-        "schema_version": "1.0",
+        "schema_version": policy_binding.schema_version,
         "ledger_id": "AUDIT",
         "epoch_id": canonical_epoch,
         "sequence": sequence,
         "previous_segment_sha256": previous_segment_sha256,
         "created_at_utc": created,
-        "policy_id": POLICY_ID,
-        "policy_version": POLICY_VERSION,
-        "policy_digest": POLICY_DIGEST,
+        "policy_id": policy_binding.policy_id,
+        "policy_version": policy_binding.policy_version,
+        "policy_digest": policy_binding.policy_digest,
         "key_revision_sequence": revision.revision_sequence,
         "key_revision_id": revision.revision_id,
         "key_revision_sha256": revision.revision_sha256,
@@ -1184,7 +1435,9 @@ def _build_rotation_segment_bytes(
     current_revision: AuditKeyRevision,
     next_revision: AuditKeyRevision,
     rotation_id: str,
+    _policy_binding: _ReviewedAuditEpochBinding | None = None,
 ) -> tuple[bytes, str, str, tuple[str, ...]]:
+    policy_binding = _require_reviewed_audit_epoch_binding(_policy_binding)
     try:
         canonical_rotation_id = validate_safe_id(rotation_id, field_name="rotation_id")
     except Exception:
@@ -1215,15 +1468,15 @@ def _build_rotation_segment_bytes(
     }
     body = {
         "schema_id": "LOCAL_EXAM_BANK_IMMUTABLE_SEGMENT",
-        "schema_version": "1.0",
+        "schema_version": policy_binding.schema_version,
         "ledger_id": "AUDIT",
         "epoch_id": epoch_id,
         "sequence": sequence,
         "previous_segment_sha256": previous_segment_sha256,
         "created_at_utc": _validate_utc_seconds(created_at_utc, field_name="created_at_utc"),
-        "policy_id": POLICY_ID,
-        "policy_version": POLICY_VERSION,
-        "policy_digest": POLICY_DIGEST,
+        "policy_id": policy_binding.policy_id,
+        "policy_version": policy_binding.policy_version,
+        "policy_digest": policy_binding.policy_digest,
         "key_revision_sequence": current_revision.revision_sequence,
         "key_revision_id": current_revision.revision_id,
         "key_revision_sha256": current_revision.revision_sha256,
@@ -1236,7 +1489,7 @@ def _build_rotation_segment_bytes(
             "record_count": 1,
             "batch_sha256": batch_sha,
         },
-        "classification_set": [DataClassification.INTERNAL.value],
+        "classification_set": ["INTERNAL"],
         "redaction_mode_set": ["HMAC_ONLY"],
         "transition": transition,
         "records": records,
@@ -1245,7 +1498,7 @@ def _build_rotation_segment_bytes(
     return payload, segment_sha, batch_sha, (canonical_rotation_id,)
 
 
-def _parse_segment(
+def _parse_audit_segment_v1(
     *,
     name: str,
     payload: bytes,
@@ -1254,7 +1507,9 @@ def _parse_segment(
     expected_previous: str | None,
     current_revision: AuditKeyRevision,
     revisions: dict[str, AuditKeyRevision],
+    policy_binding: _ReviewedAuditEpochBinding,
 ) -> _ParsedSegment:
+    policy_binding = _require_reviewed_audit_epoch_binding(policy_binding)
     match = _SEGMENT_FILE.fullmatch(name)
     if match is None:
         raise LedgerError(LedgerCode.UNKNOWN_ENTRY, "segment store contains an unknown or pending entry")
@@ -1276,7 +1531,10 @@ def _parse_segment(
     previous = body["previous_segment_sha256"]
     if previous != expected_previous:
         raise LedgerError(LedgerCode.CHAIN_CORRUPT, "segment previous-hash link differs")
-    if body["schema_id"] != "LOCAL_EXAM_BANK_IMMUTABLE_SEGMENT" or body["schema_version"] != "1.0":
+    if (
+        body["schema_id"] != "LOCAL_EXAM_BANK_IMMUTABLE_SEGMENT"
+        or body["schema_version"] != policy_binding.schema_version
+    ):
         raise LedgerError(LedgerCode.CHAIN_CORRUPT, "segment schema is unsupported")
     if body["ledger_id"] != "AUDIT" or body["epoch_id"] != epoch_id:
         raise LedgerError(LedgerCode.CHAIN_CORRUPT, "segment ledger or epoch binding differs")
@@ -1284,7 +1542,11 @@ def _parse_segment(
         _validate_utc_seconds(body["created_at_utc"], field_name="created_at_utc")
     except LedgerError:
         raise LedgerError(LedgerCode.CHAIN_CORRUPT, "segment timestamp is invalid") from None
-    if body["policy_id"] != POLICY_ID or body["policy_version"] != POLICY_VERSION or body["policy_digest"] != POLICY_DIGEST:
+    if (
+        body["policy_id"] != policy_binding.policy_id
+        or body["policy_version"] != policy_binding.policy_version
+        or body["policy_digest"] != policy_binding.policy_digest
+    ):
         raise LedgerError(LedgerCode.POLICY_MISMATCH, "segment policy binding differs")
     if (
         body["key_revision_sequence"] != current_revision.revision_sequence
@@ -1326,10 +1588,17 @@ def _parse_segment(
         raise LedgerError(LedgerCode.CHAIN_CORRUPT, "segment record count differs")
     if type(body["classification_set"]) is not list or type(body["redaction_mode_set"]) is not list:
         raise LedgerError(LedgerCode.CHAIN_CORRUPT, "segment classification metadata is invalid")
-    try:
-        kind = SegmentKind(body["segment_kind"])
-    except (TypeError, ValueError):
+    serialized_kind = body["segment_kind"]
+    if (
+        type(serialized_kind) is not str
+        or serialized_kind not in policy_binding.segment_kind_values
+    ):
         raise LedgerError(LedgerCode.CHAIN_CORRUPT, "segment kind is unsupported") from None
+    kind = {
+        "GENESIS": SegmentKind.GENESIS,
+        "AUDIT_BATCH": SegmentKind.AUDIT_BATCH,
+        "KEY_ROTATION": SegmentKind.KEY_ROTATION,
+    }[serialized_kind]
     transition_to: AuditKeyRevision | None = None
     if kind is SegmentKind.GENESIS:
         if sequence != 0 or body["transition"] is not None or len(records) != 1:
@@ -1343,14 +1612,14 @@ def _parse_segment(
         batch_sha = _genesis_batch_sha256([record])
         if (
             record["record_id"] != f"GENESIS-{epoch_id}"
-            or record["record_type"] != SegmentKind.GENESIS.value
+            or record["record_type"] != "GENESIS"
             or record["epoch_id"] != epoch_id
             or record["initial_revision_id"] != current_revision.revision_id
             or record["initial_revision_sha256"] != current_revision.revision_sha256
-            or record["policy_digest"] != POLICY_DIGEST
+            or record["policy_digest"] != policy_binding.policy_digest
             or batch["batch_id"] != _prefixed_digest_id("GENESIS-", batch_sha)
             or batch["transaction_references"] != [record["record_id"]]
-            or body["classification_set"] != [DataClassification.INTERNAL.value]
+            or body["classification_set"] != ["INTERNAL"]
             or body["redaction_mode_set"] != ["HMAC_ONLY"]
         ):
             raise LedgerError(LedgerCode.CHAIN_CORRUPT, "genesis binding differs")
@@ -1359,7 +1628,10 @@ def _parse_segment(
             raise LedgerError(LedgerCode.CHAIN_CORRUPT, "audit batch cannot replace genesis")
         if body["transition"] is not None:
             raise LedgerError(LedgerCode.CHAIN_CORRUPT, "audit batch unexpectedly contains a key transition")
-        validated = [_validate_audit_record(record, current_revision) for record in records]
+        validated = [
+            _validate_audit_record(record, current_revision, policy_binding)
+            for record in records
+        ]
         record_ids = tuple(record["event_id"] for record in validated)
         batch_sha = _audit_batch_sha256(validated)
         if batch["batch_id"] != _prefixed_digest_id("AUDIT-", batch_sha):
@@ -1380,10 +1652,10 @@ def _parse_segment(
         record_ids = (record["record_id"],)
         batch_sha = _rotation_batch_sha256([record])
         if (
-            record["record_type"] != SegmentKind.KEY_ROTATION.value
+            record["record_type"] != "KEY_ROTATION"
             or batch["batch_id"] != _prefixed_digest_id("ROTATION-", batch_sha)
             or batch["transaction_references"] != [record["record_id"]]
-            or body["classification_set"] != [DataClassification.INTERNAL.value]
+            or body["classification_set"] != ["INTERNAL"]
             or body["redaction_mode_set"] != ["HMAC_ONLY"]
             or transition["from_revision_sequence"] != current_revision.revision_sequence
             or transition["from_revision_id"] != current_revision.revision_id
@@ -1419,6 +1691,41 @@ def _parse_segment(
         record_ids=record_ids,
         revision=current_revision,
         transition_to=transition_to,
+    )
+
+
+_REVIEWED_AUDIT_SEGMENT_PARSERS = MappingProxyType(
+    {_AUDIT_SEGMENT_PARSER_V1: _parse_audit_segment_v1}
+)
+
+
+def _parse_segment(
+    *,
+    name: str,
+    payload: bytes,
+    epoch_id: str,
+    expected_sequence: int,
+    expected_previous: str | None,
+    current_revision: AuditKeyRevision,
+    revisions: dict[str, AuditKeyRevision],
+    policy_binding: _ReviewedAuditEpochBinding,
+) -> _ParsedSegment:
+    reviewed_binding = _require_reviewed_audit_epoch_binding(policy_binding)
+    parser = _REVIEWED_AUDIT_SEGMENT_PARSERS.get(reviewed_binding.parser_id)
+    if parser is None:
+        raise LedgerError(
+            LedgerCode.POLICY_MISMATCH,
+            "audit epoch selected an unreviewed segment parser",
+        )
+    return parser(
+        name=name,
+        payload=payload,
+        epoch_id=epoch_id,
+        expected_sequence=expected_sequence,
+        expected_previous=expected_previous,
+        current_revision=current_revision,
+        revisions=revisions,
+        policy_binding=reviewed_binding,
     )
 
 
@@ -1462,6 +1769,9 @@ class DurableAuditLedger:
             )
         except Exception:
             raise LedgerError(LedgerCode.INVALID_REQUEST, "ledger identity is not canonical") from None
+        current_policy_binding = (
+            _current_audit_epoch_binding() if initialize else _AUDIT_V8_BINDING
+        )
         if key_store._storage is not storage:
             raise LedgerError(LedgerCode.INVALID_REQUEST, "ledger and key store authorities differ")
         if initialize and not key_store._consume_fresh_initial_revision(
@@ -1473,6 +1783,7 @@ class DurableAuditLedger:
             )
         self._storage = storage
         self._key_store = key_store
+        self._policy_binding = current_policy_binding
         self._lock = threading.RLock()
         self._sealed_code: LedgerCode | None = None
         self._segments: tuple[_ParsedSegment, ...] = ()
@@ -1514,6 +1825,109 @@ class DurableAuditLedger:
         if startup_error is not None:
             _raise_ledger_error(startup_error)
 
+    def _select_persisted_policy_binding_under_mutex(self) -> None:
+        """Select only a reviewed parser candidate; the following scan authenticates it."""
+
+        try:
+            snapshot = self._storage.read_flat_directory(
+                _SEGMENT_ROOT / self._epoch_id,
+                maximum_entries=_MAX_SEGMENTS,
+                maximum_file_bytes=_MAX_SEGMENT_BYTES,
+                maximum_total_bytes=_MAX_LEDGER_BYTES,
+            )
+        except HandleWriterError as exc:
+            raise LedgerError(
+                LedgerCode.STORAGE_FAILURE,
+                "audit genesis cannot be read for policy parser selection",
+            ) from exc
+        candidates: list[tuple[str, bytes]] = []
+        for entry in snapshot.entries:
+            match = _SEGMENT_FILE.fullmatch(entry.name)
+            if match is None:
+                raise LedgerError(
+                    LedgerCode.UNKNOWN_ENTRY,
+                    "segment store contains an unknown or pending entry",
+            )
+            if int(match.group("sequence")) == 0:
+                candidates.append((entry.name, entry.payload))
+        if len(candidates) != 1:
+            raise LedgerError(
+                LedgerCode.CHAIN_CORRUPT,
+                "audit ledger requires exactly one genesis segment",
+            )
+        genesis_name, genesis_payload = candidates[0]
+        envelope = parse_canonical_json_bytes(
+            genesis_payload,
+            maximum_bytes=_MAX_SEGMENT_BYTES,
+        )
+        _require_exact_fields(envelope, _SEGMENT_FIELDS, label="segment envelope")
+        body = _require_exact_fields(
+            envelope["body"],
+            _SEGMENT_BODY_FIELDS,
+            label="segment body",
+        )
+        integrity = _require_exact_fields(
+            envelope["integrity"],
+            _SEGMENT_INTEGRITY_FIELDS,
+            label="segment integrity",
+        )
+        if (
+            body["schema_id"] != "LOCAL_EXAM_BANK_IMMUTABLE_SEGMENT"
+            or body["ledger_id"] != "AUDIT"
+            or body["epoch_id"] != self._epoch_id
+            or type(body["sequence"]) is not int
+            or body["sequence"] != 0
+            or body["previous_segment_sha256"] is not None
+            or body["segment_kind"] != "GENESIS"
+        ):
+            raise LedgerError(
+                LedgerCode.CHAIN_CORRUPT,
+                "audit genesis cannot select a canonical reviewed parser",
+            )
+        revisions = self._key_store._load_all_under_mutex()
+        initial = revisions.get(self._initial_revision_id)
+        if initial is None:
+            raise LedgerError(
+                LedgerCode.KEY_NOT_FOUND,
+                "audit genesis initial key revision is unavailable",
+            )
+        body_bytes = canonical_json_bytes(body)[:-1]
+        segment_sha = _domain_sha256(b"LEDGER-SEGMENT-V1\0", body_bytes)
+        segment_hmac = _domain_hmac(
+            initial.segment_hmac_key,
+            b"LEDGER-SEGMENT-AUTH-V1\0",
+            bytes.fromhex(segment_sha),
+        )
+        genesis_match = _SEGMENT_FILE.fullmatch(genesis_name)
+        if (
+            genesis_match is None
+            or genesis_match.group("digest") != segment_sha
+            or _require_sha256(
+                integrity["segment_sha256"],
+                label="segment SHA-256",
+            )
+            != segment_sha
+            or _require_sha256(
+                integrity["segment_hmac_sha256"],
+                label="segment HMAC",
+            )
+            != segment_hmac
+            or body["key_revision_sequence"] != initial.revision_sequence
+            or body["key_revision_id"] != initial.revision_id
+            or body["key_revision_sha256"] != initial.revision_sha256
+            or body["key_id"] != initial.segment_key_id
+        ):
+            raise LedgerError(
+                LedgerCode.CHAIN_CORRUPT,
+                "audit genesis authenticator or initial key binding differs",
+            )
+        self._policy_binding = _reviewed_audit_epoch_binding(
+            policy_id=body["policy_id"],
+            policy_version=body["policy_version"],
+            policy_digest=body["policy_digest"],
+            schema_version=body["schema_version"],
+        )
+
     def _startup_under_mutex(
         self,
         lease: RuntimeMutexLease,
@@ -1521,6 +1935,8 @@ class DurableAuditLedger:
         initialize: bool,
         initialized_at_utc: str | None,
     ) -> None:
+        if not initialize:
+            self._select_persisted_policy_binding_under_mutex()
         self._scan_under_mutex(
             startup_abandoned=lease.abandoned,
             allow_empty=initialize,
@@ -1542,6 +1958,7 @@ class DurableAuditLedger:
                 epoch_id=self._epoch_id,
                 created_at_utc=initialized_at_utc or _now_utc_seconds(),
                 revision=active,
+                _policy_binding=self._policy_binding,
             )
         )
         self._publish_segment(
@@ -1567,6 +1984,24 @@ class DurableAuditLedger:
         with self._lock:
             self._require_open()
             return self._active_revision().audit_hmac_key_id
+
+    @property
+    def policy_version(self) -> str:
+        with self._lock:
+            self._require_open()
+            return self._policy_binding.policy_version
+
+    @property
+    def policy_digest(self) -> str:
+        with self._lock:
+            self._require_open()
+            return self._policy_binding.policy_digest
+
+    @property
+    def is_read_only_epoch(self) -> bool:
+        with self._lock:
+            self._require_open()
+            return not self._policy_binding.writable
 
     def _rescan_under_existing_mutex(
         self,
@@ -1620,6 +2055,15 @@ class DurableAuditLedger:
             lease,
             (segment_sha256,),
         )
+
+    def authenticated_segment_sha256s_under_existing_mutex(
+        self,
+        lease: RuntimeMutexLease,
+    ) -> tuple[str, ...]:
+        """Return the ordered, fully authenticated segment inventory under one mutex."""
+
+        self._rescan_under_existing_mutex(lease)
+        return tuple(segment.segment_sha256 for segment in self._segments)
 
     def _contains_all_segment_sha256_under_existing_mutex(
         self,
@@ -1737,7 +2181,10 @@ class DurableAuditLedger:
                 )
                 return events, committed
             except LedgerError as exc:
-                if exc.code is not LedgerCode.INVALID_REQUEST:
+                if exc.code not in {
+                    LedgerCode.INVALID_REQUEST,
+                    LedgerCode.READ_ONLY_EPOCH,
+                }:
                     self._seal(exc.code)
                 raise LedgerError(
                     exc.code,
@@ -1855,6 +2302,11 @@ class DurableAuditLedger:
                 LedgerCode.BATCH_CONFLICT,
                 "batch ID replay differs from committed content",
             )
+        if not self._policy_binding.writable:
+            raise LedgerError(
+                LedgerCode.READ_ONLY_EPOCH,
+                "reviewed legacy audit epochs reject new audit batches",
+            )
         if any(record_id in self._record_ids for record_id in expected.event_ids):
             self._seal(LedgerCode.RECORD_CONFLICT)
             raise LedgerError(
@@ -1870,6 +2322,7 @@ class DurableAuditLedger:
                 created_at_utc=created_at_utc,
                 revision=active,
                 events=events,
+                _policy_binding=self._policy_binding,
             )
         except LedgerError:
             raise
@@ -1974,6 +2427,11 @@ class DurableAuditLedger:
                             record_ids=replay.record_ids,
                             replayed=True,
                         )
+                    if not self._policy_binding.writable:
+                        raise LedgerError(
+                            LedgerCode.READ_ONLY_EPOCH,
+                            "reviewed legacy audit epochs reject new key rotations",
+                        )
                     current = self._active_revision()
                     next_revision = self._revisions.get(canonical_next_revision_id)
                     if next_revision is None:
@@ -1987,6 +2445,7 @@ class DurableAuditLedger:
                         current_revision=current,
                         next_revision=next_revision,
                         rotation_id=rotation_id,
+                        _policy_binding=self._policy_binding,
                     )
                     batch_id = _prefixed_digest_id("ROTATION-", batch_sha)
                     replay = self._batches.get(batch_id)
@@ -2109,6 +2568,7 @@ class DurableAuditLedger:
                 expected_previous=previous,
                 current_revision=current,
                 revisions=revisions,
+                policy_binding=self._policy_binding,
             )
             if segment.batch_id in batches:
                 raise LedgerError(LedgerCode.BATCH_CONFLICT, "ledger chain repeats a batch ID")

@@ -32,6 +32,7 @@ from app.safety.operation_ledger import (
     OperationCompletionKind,
     OperationLedgerCode,
     OperationLedgerError,
+    OperationLocatorMode,
     OperationState,
 )
 from app.safety.segment_ledger import canonical_json_bytes
@@ -85,6 +86,8 @@ def publish_lab(tmp_path: Path) -> Iterator[_PublishLab]:
     (project / "tmp" / "jobs" / "INTERNAL").mkdir(parents=True)
     (project / "tmp" / "jobs" / "RESTRICTED").mkdir(parents=True)
     (project / "data" / "exports").mkdir(parents=True)
+    (project / "Copy" / "source").mkdir(parents=True)
+    (project / "Copy" / "restricted").mkdir(parents=True)
     bundle = _create_test_durable_boundary(
         project,
         initialize=True,
@@ -119,10 +122,11 @@ def publish_lab(tmp_path: Path) -> Iterator[_PublishLab]:
 def _manifest(
     manifest_id: str = "MANIFEST-S3E-ONE",
     payload: bytes = b"published-content",
+    classification: DataClassification = DataClassification.INTERNAL,
 ) -> DeclaredTreeManifest:
     return DeclaredTreeManifest(
         manifest_id=manifest_id,
-        classification=DataClassification.INTERNAL,
+        classification=classification,
         entries=(
             DeclaredTreeEntry(
                 "document.txt",
@@ -189,6 +193,32 @@ def _prepare_publish(
         checkpoint_manifest_sha256=_sha(b"checkpoint-manifest"),
     )
     return operation, observed, token, payload
+
+
+def _restricted_copy_context(lab: _PublishLab):
+    run_id = "RUN-S3F-RESTRICTED"
+    job_id = "JOB-S3F-OPAQUE"
+    operation_id = "OP-S3F-OPAQUE"
+    manifest_id = "MANIFEST-S3F-OPAQUE"
+    copy_id = "COPY-S3F-OPAQUE"
+    checkpoint_id = "CHECKPOINT-S3F-OPAQUE"
+    return lab.bundle.boundary.issue_context(
+        run_id=run_id,
+        job_id=job_id,
+        operation_id=operation_id,
+        caller=Caller.IMPORT_SERVICE,
+        purpose=Purpose.COPY_SOURCE,
+        manifest_id=manifest_id,
+        classification=DataClassification.RESTRICTED,
+        scopes=(
+            ScopeId(ScopeKind.RUN_ID, run_id),
+            ScopeId(ScopeKind.JOB_ID, job_id),
+            ScopeId(ScopeKind.OPERATION_ID, operation_id),
+            ScopeId(ScopeKind.MANIFEST_ID, manifest_id),
+            ScopeId(ScopeKind.COPY_ID, copy_id),
+            ScopeId(ScopeKind.CHECKPOINT_ID, checkpoint_id),
+        ),
+    )
 
 
 def _reopen_publish_lab(lab: _PublishLab) -> _PublishLab:
@@ -328,6 +358,20 @@ def test_handle_bound_directory_publish_commits_exact_target(
         assert not source.exists()
         assert target.is_dir()
         assert (target / "document.txt").read_bytes() == payload
+        independent = publish_lab.bundle.writer.read_flat_directory(
+            Path("data") / "exports" / "EXPORT-S3E-ONE",
+            maximum_entries=4,
+            maximum_file_bytes=1024,
+            maximum_total_bytes=1024,
+        )
+        assert len(independent.entries) == 1
+        assert independent.entries[0].payload == payload
+        assert (
+            publish_lab.operation_ledger.durable_tree_identity_digest(
+                independent.tree_identity_material
+            )
+            == receipt.target_identity_hmac_sha256
+        )
         assert publish_lab.operation_ledger.head.unresolved_transaction_ids == ()
         assert operation._state == "PUBLISH_COMMITTED"
         history = next(iter(publish_lab.operation_ledger._transaction_history.values()))
@@ -342,6 +386,60 @@ def test_handle_bound_directory_publish_commits_exact_target(
         ]
         == 1
     )
+
+
+def test_restricted_copy_publish_uses_hmac_only_operation_locators(
+    publish_lab: _PublishLab,
+) -> None:
+    payload = b"restricted-copy-payload"
+    context = _restricted_copy_context(publish_lab)
+    manifest = _manifest(
+        "MANIFEST-S3F-OPAQUE",
+        payload,
+        DataClassification.RESTRICTED,
+    )
+    budget = JobResourceBudget.conservative_test_default()
+    operation = publish_lab.runtime.begin_operation(context, manifest, budget)
+    staging = operation.create_fixed_staging()
+    staging.create_declared_file("document.txt", payload)
+    observed = staging.seal_and_observe()
+    token = operation.authorize_publish(
+        observed,
+        Path("Copy") / "restricted" / "COPY-S3F-OPAQUE",
+        checkpoint_manifest_sha256=_sha(b"restricted-copy-checkpoint"),
+    )
+    with operation:
+        receipt = operation.execute_publish_pair(token, observed)
+    assert (
+        publish_lab.project
+        / "Copy"
+        / "restricted"
+        / "COPY-S3F-OPAQUE"
+        / "document.txt"
+    ).read_bytes() == payload
+    transition = next(
+        history[-1]
+        for history in publish_lab.operation_ledger._transaction_history.values()
+        if history[-1].classification is DataClassification.RESTRICTED
+    )
+    assert transition.locator_mode is OperationLocatorMode.HMAC_ONLY
+    assert len(transition.source_locator) == 64
+    assert len(transition.target_locator) == 64
+    assert "COPY-S3F-OPAQUE" not in transition.source_locator
+    assert "COPY-S3F-OPAQUE" not in transition.target_locator
+    assert transition.operation_id != context.operation_id
+    assert receipt.locator_mode is OperationLocatorMode.HMAC_ONLY
+    assert receipt.classification is DataClassification.RESTRICTED
+    assert receipt.target_locator == transition.target_locator
+    assert "COPY-S3F-OPAQUE" not in receipt.target_locator
+    assert "COPY-S3F-OPAQUE" not in repr(receipt)
+    replay_context = _restricted_copy_context(publish_lab)
+    replay = publish_lab.runtime.replay_committed_publish(
+        replay_context,
+        manifest,
+        budget,
+    )
+    assert replay == receipt
 
 
 def test_target_race_after_prepared_aborts_without_overwrite(
@@ -469,6 +567,86 @@ def test_directory_publish_receipt_and_pair_reservation_are_not_serializable(
         assert "redacted" in repr(receipt).casefold()
 
 
+def test_context_exit_preserves_publish_failure_when_writer_is_already_sealed(
+    publish_lab: _PublishLab,
+) -> None:
+    operation, observed, token, _payload = _prepare_publish(
+        publish_lab,
+        export_id="EXPORT-S3E-PRIMARY-ERROR",
+        operation_id="OP-S3E-PRIMARY-ERROR",
+    )
+    original = _WindowsHandleWriter._after_directory_publish_prepared
+
+    def fail_after_prepared(
+        _writer: _WindowsHandleWriter,
+        _source: object,
+        _target: object,
+    ) -> None:
+        raise HandleWriterError(
+            HandleWriterCode.RENAME_FAILED,
+            "synthetic pre-rename failure",
+        )
+
+    _WindowsHandleWriter._after_directory_publish_prepared = fail_after_prepared
+    try:
+        with pytest.raises(JobOperationError) as captured:
+            with operation:
+                operation.execute_publish_pair(token, observed)
+    finally:
+        _WindowsHandleWriter._after_directory_publish_prepared = original
+
+    assert captured.value.code is JobOperationCode.PUBLISH_FAILED
+    assert operation._closed is True
+
+
+def test_context_exit_never_suppresses_secondary_cleanup_failure(
+    publish_lab: _PublishLab,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    operation, observed, token, _payload = _prepare_publish(
+        publish_lab,
+        export_id="EXPORT-S3E-CLEANUP-ERROR",
+        operation_id="OP-S3E-CLEANUP-ERROR",
+    )
+    writer_type = _WindowsHandleWriter
+    boundary_type = type(publish_lab.bundle.boundary)
+
+    def fail_after_prepared(
+        _writer: _WindowsHandleWriter,
+        _source: object,
+        _target: object,
+    ) -> None:
+        raise HandleWriterError(
+            HandleWriterCode.RENAME_FAILED,
+            "synthetic pre-rename failure",
+        )
+
+    def fail_context_cleanup(
+        _boundary: object,
+        _context: object,
+        _pin: object,
+        _binding_sha256: str,
+    ) -> None:
+        raise RuntimeError("synthetic context cleanup failure")
+
+    monkeypatch.setattr(
+        writer_type,
+        "_after_directory_publish_prepared",
+        fail_after_prepared,
+    )
+    monkeypatch.setattr(
+        boundary_type,
+        "_finish_job_operation_context",
+        fail_context_cleanup,
+    )
+
+    with pytest.raises(RuntimeError, match="synthetic context cleanup failure"):
+        with operation:
+            operation.execute_publish_pair(token, observed)
+
+    assert operation._closed is True
+
+
 def test_unresolved_operation_blocks_then_recovers_abort_without_mutation(
     publish_lab: _PublishLab,
 ) -> None:
@@ -501,7 +679,7 @@ def test_unresolved_operation_blocks_then_recovers_abort_without_mutation(
         _WindowsHandleWriter._after_directory_publish_prepared = original
         with pytest.raises(HandleWriterError) as close_failure:
             operation.close()
-        assert close_failure.value.code is HandleWriterCode.WRITER_SEALED
+    assert close_failure.value.code is HandleWriterCode.WRITER_SEALED
     # The implementation conservatively records IN_DOUBT once the native
     # boundary is entered.  Reopen from immutable disk segments: the original
     # in-memory writer is deliberately sealed and cannot be trusted further.
@@ -731,6 +909,80 @@ def test_rename_before_mutated_crash_recovers_commit_from_exact_target(
             initialize=False,
         )
     assert tampered.value.code is OperationLedgerCode.TRANSITION_CONFLICT
+
+
+def test_restricted_publish_recovery_requires_exact_hmac_bound_storage_locators(
+    publish_lab: _PublishLab,
+) -> None:
+    payload = b"restricted-copy-payload"
+    context = _restricted_copy_context(publish_lab)
+    manifest = _manifest(
+        "MANIFEST-S3F-OPAQUE",
+        payload,
+        DataClassification.RESTRICTED,
+    )
+    budget = JobResourceBudget.conservative_test_default()
+    operation = publish_lab.runtime.begin_operation(context, manifest, budget)
+    staging = operation.create_fixed_staging()
+    staging.create_declared_file("document.txt", payload)
+    observed = staging.seal_and_observe()
+    token = operation.authorize_publish(
+        observed,
+        Path("Copy") / "restricted" / "COPY-S3F-OPAQUE",
+        checkpoint_manifest_sha256=_sha(b"restricted-copy-checkpoint"),
+    )
+    original = _WindowsHandleWriter._after_directory_publish_renamed
+
+    def fail_after_restricted_rename(
+        _writer: _WindowsHandleWriter,
+        _source: object,
+        _target: object,
+    ) -> None:
+        raise HandleWriterError(
+            HandleWriterCode.RENAME_FAILED,
+            "synthetic restricted post-rename crash boundary",
+        )
+
+    _WindowsHandleWriter._after_directory_publish_renamed = (
+        fail_after_restricted_rename
+    )
+    try:
+        with pytest.raises(JobOperationError):
+            operation.execute_publish_pair(token, observed)
+    finally:
+        _WindowsHandleWriter._after_directory_publish_renamed = original
+        with pytest.raises(HandleWriterError):
+            operation.close()
+
+    reopened = _reopen_publish_lab(publish_lab)
+    transaction_id = reopened.operation_ledger.head.unresolved_transaction_ids[0]
+    recovery_context = _restricted_copy_context(reopened)
+    recovery_locator = (
+        reopened.bundle.boundary._issue_restricted_recovery_locator(
+            recovery_context,
+            transaction_id,
+        )
+    )
+    recovered = _reconcile_test_publish_operation(
+        reopened.bundle,
+        reopened.operation_ledger,
+        transaction_id,
+        budget,
+        restricted_locator_capability=recovery_locator,
+    )
+    assert reopened.bundle.boundary.release_context(recovery_context)
+    assert recovered.state is OperationState.RECOVERED_COMMIT
+    terminal = reopened.operation_ledger._transaction_history[transaction_id][-1]
+    assert terminal.locator_mode is OperationLocatorMode.HMAC_ONLY
+    assert terminal.classification is DataClassification.RESTRICTED
+    assert reopened.operation_ledger.head.unresolved_transaction_ids == ()
+    assert (
+        publish_lab.project
+        / "Copy"
+        / "restricted"
+        / "COPY-S3F-OPAQUE"
+        / "document.txt"
+    ).read_bytes() == payload
 
 
 def test_committed_publish_replay_is_idempotent_and_begin_rejects_reuse(

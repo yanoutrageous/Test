@@ -24,6 +24,8 @@ from app.safety.segment_ledger import DurableAuditLedger, LedgerHead
 from app.safety.operation_ledger import (
     DurableOperationLedger,
     OperationCompletionKind,
+    OperationLocatorMode,
+    OperationLocatorRole,
     OperationSegmentReceipt,
     OperationState,
     OperationTransition,
@@ -347,7 +349,34 @@ class PublishOperationReceipt:
     recovery_guarantee_scope: str | None
     committed_segment_sha256: str
     committed_sequence: int
+    target_identity_hmac_sha256: str
+    locator_mode: OperationLocatorMode
+    classification: DataClassification
     capability_state: str = "TEST_LOCAL_DURABLE_PAIR_PUBLISH"
+
+    def __post_init__(self) -> None:
+        if (
+            type(self.locator_mode) is not OperationLocatorMode
+            or type(self.classification) is not DataClassification
+            or len(self.target_identity_hmac_sha256) != 64
+            or any(
+                character not in "0123456789abcdef"
+                for character in self.target_identity_hmac_sha256
+            )
+            or (
+                self.classification is DataClassification.RESTRICTED
+                and (
+                    self.locator_mode is not OperationLocatorMode.HMAC_ONLY
+                    or len(self.target_locator) != 64
+                    or any(character not in "0123456789abcdef" for character in self.target_locator)
+                )
+            )
+            or (
+                self.classification is DataClassification.INTERNAL
+                and self.locator_mode is not OperationLocatorMode.SAFE_RELATIVE
+            )
+        ):
+            raise TypeError("publish receipt locator classification is invalid")
 
     def __repr__(self) -> str:
         return (
@@ -357,6 +386,54 @@ class PublishOperationReceipt:
 
     def __reduce__(self) -> Any:
         raise TypeError("publish operation receipts cannot be serialized")
+
+
+def _receipt_from_authenticated_terminal(
+    transition: OperationTransition,
+    receipt: OperationSegmentReceipt,
+) -> PublishOperationReceipt:
+    """Build native and replay receipts from the same authenticated terminal."""
+
+    if (
+        type(transition) is not OperationTransition
+        or type(receipt) is not OperationSegmentReceipt
+        or receipt.transition_id != transition.transition_id
+        or receipt.transaction_id != transition.transaction_id
+        or receipt.state is not transition.next_state
+        or transition.next_state
+        not in {OperationState.COMMITTED, OperationState.RECOVERED_COMMIT}
+        or transition.completion_kind
+        not in {
+            OperationCompletionKind.NATIVE_COMMIT,
+            OperationCompletionKind.RECOVERED_COMMIT_WITH_NATIVE_MUTATION,
+            OperationCompletionKind.RECOVERED_COMMIT_OBSERVATION_ONLY,
+        }
+        or transition.target_evidence is None
+    ):
+        raise JobOperationError(
+            JobOperationCode.OPERATION_LEDGER_FAILED,
+            "publish receipt requires an exact authenticated terminal",
+        )
+    return PublishOperationReceipt(
+        transaction_id=transition.transaction_id,
+        pair_id=transition.pair_id,
+        target_locator=transition.target_locator,
+        completion_kind=transition.completion_kind,
+        native_directory_receipt_sha256=(
+            transition.native_mutation_receipt_sha256
+        ),
+        recovery_observation_receipt_sha256=(
+            transition.recovery_observation_receipt_sha256
+        ),
+        recovery_guarantee_scope=transition.recovery_guarantee_scope,
+        committed_segment_sha256=receipt.segment_sha256,
+        committed_sequence=receipt.sequence,
+        target_identity_hmac_sha256=(
+            transition.target_evidence.durable_identity_sha256
+        ),
+        locator_mode=transition.locator_mode,
+        classification=transition.classification,
+    )
 
 
 class _TestJobRuntime:
@@ -424,7 +501,10 @@ class _TestJobRuntime:
                 self._validate_operation_audit_bindings(lease)
                 result = self._operation_ledger.operation_result_under_existing_mutex(
                     lease,
-                    context.operation_id,
+                    self._operation_ledger.operation_reference(
+                        context.operation_id,
+                        context.classification,
+                    ),
                 )
                 if result is None:
                     raise JobOperationError(
@@ -449,21 +529,7 @@ class _TestJobRuntime:
                         JobOperationCode.PUBLISH_UNAVAILABLE,
                         "operation is not an exact committed publish replay",
                     )
-                return PublishOperationReceipt(
-                    transaction_id=transition.transaction_id,
-                    pair_id=transition.pair_id,
-                    target_locator=transition.target_locator,
-                    completion_kind=transition.completion_kind,
-                    native_directory_receipt_sha256=(
-                        transition.native_mutation_receipt_sha256
-                    ),
-                    recovery_observation_receipt_sha256=(
-                        transition.recovery_observation_receipt_sha256
-                    ),
-                    recovery_guarantee_scope=transition.recovery_guarantee_scope,
-                    committed_segment_sha256=receipt.segment_sha256,
-                    committed_sequence=receipt.sequence,
-                )
+                return _receipt_from_authenticated_terminal(transition, receipt)
         except JobOperationError:
             raise
         except Exception:
@@ -524,7 +590,10 @@ class _TestJobRuntime:
                     )
                 if self._operation_ledger.operation_result_under_existing_mutex(
                     mutex,
-                    context.operation_id,
+                    self._operation_ledger.operation_reference(
+                        context.operation_id,
+                        context.classification,
+                    ),
                 ) is not None:
                     raise JobOperationError(
                         JobOperationCode.OPERATION_BUSY,
@@ -700,6 +769,7 @@ class _OperationLease:
         "_publish_receipt",
         "_state",
         "_closed",
+        "_close_had_secondary_error",
     )
 
     def __init__(
@@ -735,6 +805,7 @@ class _OperationLease:
         self._publish_receipt: PublishOperationReceipt | None = None
         self._state = "ACTIVE"
         self._closed = False
+        self._close_had_secondary_error = False
 
     def create_fixed_staging(self) -> _JobStagingLease:
         self._assert_live()
@@ -1011,16 +1082,30 @@ class _OperationLease:
                     JobOperationCode.OPERATION_LEDGER_FAILED,
                     "directory publish returned without an exact committed ledger receipt",
                 )
-            receipt = PublishOperationReceipt(
-                transaction_id=self._transaction_id,
-                pair_id=self._pair_view.pair_id,
-                target_locator=self._pair_view.target_relative_path.as_posix(),
-                completion_kind=OperationCompletionKind.NATIVE_COMMIT,
-                native_directory_receipt_sha256=directory_receipt.receipt_sha256,
-                recovery_observation_receipt_sha256=None,
-                recovery_guarantee_scope=None,
-                committed_segment_sha256=committed.segment_sha256,
-                committed_sequence=committed.sequence,
+            terminal_result = (
+                self._runtime._operation_ledger.transaction_result_under_existing_mutex(
+                    self._mutex,
+                    self._transaction_id,
+                )
+            )
+            if terminal_result is None:
+                raise JobOperationError(
+                    JobOperationCode.OPERATION_LEDGER_FAILED,
+                    "committed publish terminal is absent after authenticated rescan",
+                )
+            terminal, rescanned_receipt = terminal_result
+            if (
+                rescanned_receipt != committed
+                or terminal.native_mutation_receipt_sha256
+                != directory_receipt.receipt_sha256
+            ):
+                raise JobOperationError(
+                    JobOperationCode.OPERATION_LEDGER_FAILED,
+                    "committed publish terminal differs after authenticated rescan",
+                )
+            receipt = _receipt_from_authenticated_terminal(
+                terminal,
+                rescanned_receipt,
             )
             self._runtime._boundary._finish_reserved_pair_for_job(
                 self._reserved_pair,
@@ -1029,6 +1114,14 @@ class _OperationLease:
                 binding_sha256=self._context_binding,
                 lifecycle="CONSUMED",
             )
+            # The source root has become the committed target.  Release the
+            # staging/observed handles before returning so a caller can perform
+            # an independent target reopen while this operation lease and its
+            # mutex are still live.  Keeping the original write/delete-capable
+            # root handle here would make an ordinary read-only reopen fail
+            # Windows share checks and would turn valid post-publish evidence
+            # into a false indeterminate result.
+            self._staging._close_handles()
             self._publish_receipt = receipt
             self._state = "PUBLISH_COMMITTED"
             return receipt
@@ -1170,6 +1263,7 @@ class _OperationLease:
                 "operation lease must be closed by its owning thread",
             )
         close_error: BaseException | None = None
+        self._close_had_secondary_error = False
         try:
             self._assert_live()
         except BaseException as exc:
@@ -1179,6 +1273,7 @@ class _OperationLease:
             try:
                 self._staging._close_handles()
             except BaseException as exc:
+                self._close_had_secondary_error = True
                 close_error = exc
         if (
             self._reserved_pair is not None
@@ -1193,7 +1288,14 @@ class _OperationLease:
                     lifecycle="FAILED",
                 )
             except BaseException as exc:
-                close_error = close_error or exc
+                self._close_had_secondary_error = True
+                if (
+                    isinstance(close_error, HandleWriterError)
+                    and close_error.code is HandleWriterCode.WRITER_SEALED
+                ):
+                    close_error = exc
+                else:
+                    close_error = close_error or exc
                 self._runtime._writer.seal_after_indeterminate_mutation()
         try:
             self._runtime._boundary._finish_job_operation_context(
@@ -1202,16 +1304,37 @@ class _OperationLease:
                 self._context_binding,
             )
         except BaseException as exc:
-            close_error = close_error or exc
+            self._close_had_secondary_error = True
+            if (
+                isinstance(close_error, HandleWriterError)
+                and close_error.code is HandleWriterCode.WRITER_SEALED
+            ):
+                close_error = exc
+            else:
+                close_error = close_error or exc
             self._runtime._writer.seal_after_indeterminate_mutation()
         try:
             self._runtime._finish(self._context.operation_id)
         except BaseException as exc:
-            close_error = close_error or exc
+            self._close_had_secondary_error = True
+            if (
+                isinstance(close_error, HandleWriterError)
+                and close_error.code is HandleWriterCode.WRITER_SEALED
+            ):
+                close_error = exc
+            else:
+                close_error = close_error or exc
         try:
             self._mutex.close()
         except BaseException as exc:
-            close_error = close_error or exc
+            self._close_had_secondary_error = True
+            if (
+                isinstance(close_error, HandleWriterError)
+                and close_error.code is HandleWriterCode.WRITER_SEALED
+            ):
+                close_error = exc
+            else:
+                close_error = close_error or exc
         self._closed = True
         self._state = (
             "CLOSED_PUBLISH_COMMITTED"
@@ -1225,8 +1348,23 @@ class _OperationLease:
         self._assert_live()
         return self
 
-    def __exit__(self, _type: Any, _value: Any, _traceback: Any) -> None:
-        self.close()
+    def __exit__(self, _type: Any, value: Any, _traceback: Any) -> None:
+        try:
+            self.close()
+        except HandleWriterError as close_error:
+            # A publish failure can deliberately seal the writer before the
+            # context manager performs its cleanup.  Keep the original
+            # business exception in that one exact case; an explicit close()
+            # still reports WRITER_SEALED, and every other cleanup failure
+            # remains visible.
+            if (
+                value is not None
+                and close_error.code is HandleWriterCode.WRITER_SEALED
+                and not self._close_had_secondary_error
+            ):
+                return None
+            raise
+        return None
 
     def __repr__(self) -> str:
         return f"_OperationLease(state='{self._state}', context='<redacted>')"
@@ -1774,18 +1912,37 @@ class _PublishOperationJournal:
         transition_id = "TRN-" + hashlib.sha256(
             b"M0-OPERATION-TRANSITION-ID-V1\0" + transition_key
         ).hexdigest().upper()[:32]
+        if operation._context.classification is DataClassification.RESTRICTED:
+            locator_mode = OperationLocatorMode.HMAC_ONLY
+            source_locator = self._ledger.locator_hmac(
+                view.source_relative_path.as_posix(),
+                transaction_id=operation._transaction_id,
+                role=OperationLocatorRole.SOURCE,
+            )
+            target_locator = self._ledger.locator_hmac(
+                view.target_relative_path.as_posix(),
+                transaction_id=operation._transaction_id,
+                role=OperationLocatorRole.TARGET,
+            )
+        else:
+            locator_mode = OperationLocatorMode.SAFE_RELATIVE
+            source_locator = view.source_relative_path.as_posix()
+            target_locator = view.target_relative_path.as_posix()
         transition = OperationTransition(
             transition_id=transition_id,
             transaction_id=operation._transaction_id,
-            operation_id=operation._context.operation_id,
+            operation_id=self._ledger.operation_reference(
+                operation._context.operation_id,
+                operation._context.classification,
+            ),
             pair_id=view.pair_id,
             previous_state=self._state,
             next_state=next_state,
             context_binding_sha256=operation._context_binding,
             manifest_sha256=operation._manifest.manifest_sha256,
             budget_sha256=operation._budget.digest,
-            source_locator=view.source_relative_path.as_posix(),
-            target_locator=view.target_relative_path.as_posix(),
+            source_locator=source_locator,
+            target_locator=target_locator,
             source_evidence=source_evidence,
             target_evidence=self._target_evidence,
             audit_ledger_head_sha256=operation._ledger_head.last_segment_sha256 or "",
@@ -1798,6 +1955,7 @@ class _PublishOperationJournal:
                 else None
             ),
             error_code=error_code,
+            locator_mode=locator_mode,
             classification=operation._context.classification,
         )
         receipt = self._ledger._append_transition_under_existing_mutex(
@@ -1816,9 +1974,12 @@ class _PublishOperationJournal:
             manifest_sha256=snapshot.manifest_sha256,
             source_tree_sha256=snapshot.source_tree_sha256,
             topology_sha256=snapshot.topology_sha256,
-            durable_identity_sha256=self._ledger.durable_identity_digest(
-                root.volume_serial,
-                root.file_id,
+            durable_identity_sha256=(
+                self._ledger.durable_tree_evidence_identity_digest(
+                    root.volume_serial,
+                    root.file_id,
+                    snapshot.tree_identity_material,
+                )
             ),
             entry_count=snapshot.entry_count,
             total_bytes=snapshot.total_bytes,

@@ -12,6 +12,7 @@ import pytest
 from app.config import PROJECT_ROOT
 from app.safety.static_audit import (
     _AUDITED_CAPABILITY_STORES,
+    _AUDITED_DYNAMIC_CALLS,
     _AUDITED_INDEXED_CALLS,
     _AUDITED_PARAMETER_CALLS,
     _assert_audited_indexed_hits,
@@ -460,6 +461,7 @@ def test_indexed_callsite_suppressions_must_each_match_exactly_once() -> None:
             for callsite in (
                 _AUDITED_INDEXED_CALLS
                 | _AUDITED_CAPABILITY_STORES
+                | _AUDITED_DYNAMIC_CALLS
                 | _AUDITED_PARAMETER_CALLS
             )
         }
@@ -480,6 +482,11 @@ def test_indexed_callsite_suppressions_must_each_match_exactly_once() -> None:
     stale_store[next(iter(_AUDITED_CAPABILITY_STORES))] = 0
     with pytest.raises(RuntimeError, match="capability-store suppression drifted"):
         _assert_audited_indexed_hits(stale_store)
+
+    stale_dynamic = Counter(exact)
+    stale_dynamic[next(iter(_AUDITED_DYNAMIC_CALLS))] = 0
+    with pytest.raises(RuntimeError, match="dynamic callsite suppression drifted"):
+        _assert_audited_indexed_hits(stale_dynamic)
 
     stale_parameter = Counter(exact)
     stale_parameter[next(iter(_AUDITED_PARAMETER_CALLS))] = 0
@@ -503,6 +510,36 @@ def test_capability_store_suppression_hash_binds_the_assignment_target() -> None
         "scripts.run_safe_pytest._WindowsJob.__init__",
         fingerprint,
     ) not in _AUDITED_CAPABILITY_STORES
+
+
+def test_reference_read_capability_stores_are_exact_and_remain_fail_closed() -> None:
+    reviewed_stores = {
+        callsite
+        for callsite in _AUDITED_CAPABILITY_STORES
+        if callsite[:2]
+        == (
+            "app/safety/external_source.py",
+            "app.safety.external_source._ReferenceReadApi.__init__",
+        )
+    }
+    assert len(reviewed_stores) == 14
+
+    entries = scan_python_source(
+        '''
+import ctypes
+
+class _ReferenceReadApi:
+    def __init__(self):
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        create_file = kernel32.CreateFileW
+        self.public_create_file = create_file
+''',
+        file="app/synthetic.py",
+    )
+    assert sum(
+        entry.kind is WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY
+        for entry in entries
+    ) >= 2
 
 
 def test_archive_link_low_level_and_negative_canaries() -> None:
@@ -656,6 +693,32 @@ def exercise(handle):
     counts = Counter(entry.kind for entry in entries)
     assert counts[WritePrimitiveKind.NATIVE_API_BINDING] == 1
     assert counts[WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY] == 1
+
+
+def test_portable_root_volume_queries_are_read_only_native_symbols() -> None:
+    entries = scan_python_source(
+        '''
+import ctypes
+
+def inspect_volume(path, path_buffer, filesystem_buffer):
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel32.GetVolumePathNameW(path, path_buffer, len(path_buffer))
+    kernel32.GetVolumeInformationW(
+        path_buffer,
+        None,
+        0,
+        None,
+        None,
+        None,
+        filesystem_buffer,
+        len(filesystem_buffer),
+    )
+''',
+        file="app/synthetic.py",
+    )
+    counts = Counter(entry.kind for entry in entries)
+    assert counts[WritePrimitiveKind.NATIVE_API_BINDING] == 1
+    assert counts[WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY] == 0
 
 
 def test_file_mapping_and_native_function_pointer_paths_fail_closed() -> None:
@@ -870,6 +933,38 @@ type_private = type(pg).__getattribute__(pg, private_name)
     ) == 3
     assert "subclass" in rendered
     assert "private state assignment" in rendered
+
+
+def test_guard_alias_resolution_is_local_to_each_function_scope() -> None:
+    findings = scan_unauthorized_guard_source(
+        '''
+def authority_reader(self):
+    revisions = self._key_store._load_all_under_mutex()
+    return revisions
+
+def plain_parser(revisions):
+    return revisions.get("KEYREV")
+''',
+        file="app/safety/segment_ledger.py",
+    )
+    rendered = "\n".join(detail for _file, _line, detail in findings)
+    assert len(findings) == 1
+    assert "self._key_store" in rendered
+    assert "revisions.get" not in rendered
+
+    local_alias_findings = scan_unauthorized_guard_source(
+        '''
+from app.safety.copy_ledger import DurableCopyLedgers
+
+def bypass():
+    constructor = DurableCopyLedgers
+    return constructor(object())
+'''
+    )
+    assert any(
+        "DurableCopyLedgers" in detail
+        for _file, _line, detail in local_alias_findings
+    )
 
 
 def test_pair_policy_base_authorize_is_allowlisted_only_in_claim_verifier() -> None:
@@ -1322,3 +1417,1428 @@ class _OperationLease:
         )
         == ()
     )
+
+
+def test_s3_f_copy_authority_bypasses_and_plain_attribute_chains_are_visible() -> None:
+    findings = scan_unauthorized_guard_source(
+        '''
+from app.safety.copy_ledger import (
+    COPY_PROVENANCE_FILE_NAME,
+    CopyProvenanceMaterial,
+    DurableCopyLedgers,
+    _AuthenticatedCopyAncestors,
+    _AUTHENTICATED_COPY_ANCESTORS_CONSTRUCTOR,
+    _COPY_LEDGERS_CONSTRUCTOR,
+    build_copy_provenance_material,
+)
+from app.safety.copy_operation import _TestLocalCopyOperation, _COPY_OPERATION_CONSTRUCTOR
+from app.safety.external_source import (
+    SyntheticReferenceReadPolicy,
+    _CopyExecutionPermit,
+    _SyntheticReferenceLease,
+    _create_synthetic_reference_read_policy,
+    _issue_copy_execution_permit,
+    _validate_copy_execution_permit,
+    _consume_copy_execution_permit,
+)
+from app.safety.production_guard import (
+    _RECOVERY_LOCATOR_CONSTRUCTOR,
+    _RestrictedRecoveryLocatorCapability,
+    _RestrictedRecoveryLocatorRecord,
+    _create_test_copy_ledgers,
+    _create_test_copy_operation,
+)
+
+copy_ledgers = DurableCopyLedgers(object(), _constructor=_COPY_LEDGERS_CONSTRUCTOR)
+provenance = CopyProvenanceMaterial(object())
+derived = build_copy_provenance_material(object(), object(), manifest_id="M")
+provenance_name = COPY_PROVENANCE_FILE_NAME
+publish_binding = copy_ledgers.publish_operation_binding(
+    operation_reference="O",
+    transaction_binding_sha256="0" * 64,
+    copy_binding_sha256="0" * 64,
+    target_locator=object(),
+    classification=object(),
+)
+copy_ledgers._authenticated_publish_terminal_bindings_under_existing_mutex(
+    object(), object()
+)
+ancestor_capability = _AuthenticatedCopyAncestors(
+    object(), object(), object(), object(), object(), (), (), "0" * 64, "0" * 64,
+    _constructor=_AUTHENTICATED_COPY_ANCESTORS_CONSTRUCTOR,
+)
+copy_operation = _TestLocalCopyOperation(object(), _constructor=_COPY_OPERATION_CONSTRUCTOR)
+policy = SyntheticReferenceReadPolicy()
+lease = _SyntheticReferenceLease()
+permit = _CopyExecutionPermit()
+source_policy = _create_synthetic_reference_read_policy(object())
+issued = _issue_copy_execution_permit(policy, lease, object())
+_validate_copy_execution_permit(permit, policy, lease, object())
+_consume_copy_execution_permit(permit, policy, lease, object())
+_create_test_copy_ledgers(object(), object())
+_create_test_copy_operation(object(), object(), copy_ledgers, object(), object(), object())
+recovery = _RestrictedRecoveryLocatorCapability(
+    "0" * 64, b"x" * 32,
+    _constructor=_RECOVERY_LOCATOR_CONSTRUCTOR,
+)
+recovery_record = _RestrictedRecoveryLocatorRecord()
+boundary._issue_restricted_recovery_locator(object(), "T")
+boundary._consume_restricted_recovery_locator(recovery, "T")
+boundary._issue_restricted_copy_recovery_locator(object())
+boundary._consume_restricted_copy_recovery_locator(recovery, object())
+runtime_writer = copy_operation._runtime._writer
+storage = copy_ledgers._storage
+native_api = policy._api
+copy_key = copy_ledgers._copy_chain.auth_key
+ancestor_audit = ancestor_capability._audit_ledger._storage
+ancestor_audit_segments = ancestor_capability._audit_segment_sha256s
+ancestor_publish_segments = ancestor_capability._publish_segment_sha256s
+ancestor_publish_terminals = ancestor_capability._publish_terminal_binding_sha256s
+ancestor_cross_reference = ancestor_capability._copy_cross_reference_sha256
+copy_ledgers._seal(object())
+copy_ledgers._issue_authenticated_ancestors_under_existing_mutex(
+    object(), object(), object()
+)
+copy_ledgers._verify_external_ancestors_under_existing_mutex(
+    object(), ancestor_capability
+)
+'''
+    )
+    rendered = "\n".join(detail for _file, _line, detail in findings)
+    for symbol in (
+        "DurableCopyLedgers",
+        "_COPY_LEDGERS_CONSTRUCTOR",
+        "_AuthenticatedCopyAncestors",
+        "_AUTHENTICATED_COPY_ANCESTORS_CONSTRUCTOR",
+        "_TestLocalCopyOperation",
+        "_COPY_OPERATION_CONSTRUCTOR",
+        "SyntheticReferenceReadPolicy",
+        "_SyntheticReferenceLease",
+        "_CopyExecutionPermit",
+        "_create_synthetic_reference_read_policy",
+        "_create_test_copy_ledgers",
+        "_create_test_copy_operation",
+        "_RestrictedRecoveryLocatorRecord",
+        "_RestrictedRecoveryLocatorCapability",
+        "_RECOVERY_LOCATOR_CONSTRUCTOR",
+        "CopyProvenanceMaterial",
+        "build_copy_provenance_material",
+        "COPY_PROVENANCE_FILE_NAME",
+    ):
+        assert symbol in rendered
+    for helper in (
+        "_issue_copy_execution_permit",
+        "_validate_copy_execution_permit",
+        "_consume_copy_execution_permit",
+        "_issue_restricted_recovery_locator",
+        "_consume_restricted_recovery_locator",
+        "_issue_restricted_copy_recovery_locator",
+        "_consume_restricted_copy_recovery_locator",
+        "_seal",
+        "_issue_authenticated_ancestors_under_existing_mutex",
+        "_verify_external_ancestors_under_existing_mutex",
+        "publish_operation_binding",
+        "_authenticated_publish_terminal_bindings_under_existing_mutex",
+    ):
+        assert f"restricted private call {helper}" in rendered
+    for chain in (
+        "_runtime._writer",
+        "_storage",
+        "_api",
+        "_copy_chain.auth_key",
+        "_audit_ledger._storage",
+        "_audit_segment_sha256s",
+        "_publish_segment_sha256s",
+        "_publish_terminal_binding_sha256s",
+        "_copy_cross_reference_sha256",
+    ):
+        assert chain in rendered
+    assert "sensitive authority attribute access" in rendered
+
+
+def test_exact_s3_f_production_factories_and_recovery_scopes_remain_clean() -> None:
+    source = '''
+def _create_test_copy_ledgers():
+    ledgers = DurableCopyLedgers(_constructor=_COPY_LEDGERS_CONSTRUCTOR)
+    if mismatch:
+        ledgers._seal(code)
+    capability = ledgers._issue_authenticated_ancestors_under_existing_mutex(
+        mutex, bundle.ledger, operation_ledger
+    )
+    ledgers._verify_external_ancestors_under_existing_mutex(mutex, capability)
+    return ledgers
+
+def _create_test_copy_operation():
+    if copy_ledgers._storage is not bundle.writer:
+        raise TypeError
+    if copy_epoch != copy_ledgers.storage_epoch_id:
+        raise TypeError
+    if not copy_ledgers.matches_run_scope(context.run_id):
+        raise TypeError
+    policy = _create_synthetic_reference_read_policy(bundle.writer._workspace_root)
+    return _TestLocalCopyOperation(
+        runtime, copy_ledgers, policy, _constructor=_COPY_OPERATION_CONSTRUCTOR
+    )
+
+class _RestrictedRecoveryLocatorRecord:
+    def __repr__(self):
+        return self.lifecycle
+
+class _RestrictedRecoveryLocatorCapability:
+    def __init__(self, locator_id, authenticator, *, _constructor):
+        if _constructor is not _RECOVERY_LOCATOR_CONSTRUCTOR:
+            raise TypeError
+        self.__locator_id = locator_id
+        self.__authenticator = authenticator
+
+    def _read(self, constructor):
+        if constructor is not _RECOVERY_LOCATOR_CONSTRUCTOR:
+            raise TypeError
+        return self.__locator_id, self.__authenticator
+
+class _BoundaryCore:
+    def __init__(self):
+        self.__restricted_recovery_records = {}
+
+    @property
+    def diagnostic_registry_counts(self):
+        return len(self.__restricted_recovery_records)
+
+    def issue_restricted_recovery_locator(self, context, transaction_id):
+        source, target = self._derive_restricted_recovery_paths(context, purpose)
+        owner_thread_object_binding = (
+            self._restricted_recovery_owner_thread_object_binding(owner_thread_object)
+        )
+        binding = self._restricted_recovery_locator_binding(
+            locator_id,
+            context,
+            transaction_id,
+            source,
+            target,
+            purpose,
+            owner_thread,
+            owner_thread_object_binding,
+        )
+        authenticator = self._restricted_recovery_capability_authenticator(
+            locator_id, binding
+        )
+        capability = _RestrictedRecoveryLocatorCapability(
+            locator_id,
+            authenticator,
+            _constructor=_RECOVERY_LOCATOR_CONSTRUCTOR,
+        )
+        self.__restricted_recovery_records[locator_id] = (
+            _RestrictedRecoveryLocatorRecord()
+        )
+        return capability
+
+    def consume_restricted_recovery_locator(self, capability, transaction_id):
+        locator_id, supplied_authenticator = capability._read(
+            _RECOVERY_LOCATOR_CONSTRUCTOR
+        )
+        record = self.__restricted_recovery_records.get(locator_id)
+        expected_source, expected_target = self._derive_restricted_recovery_paths(
+            record.context, record.purpose
+        )
+        owner_thread_object_binding = (
+            self._restricted_recovery_owner_thread_object_binding(owner_thread_object)
+        )
+        binding = self._restricted_recovery_locator_binding(
+            record.locator_id,
+            record.context,
+            record.transaction_id,
+            expected_source,
+            expected_target,
+            record.purpose,
+            owner_thread,
+            owner_thread_object_binding,
+        )
+        authenticator = self._restricted_recovery_capability_authenticator(
+            record.locator_id, binding
+        )
+        valid = (
+            record.core_instance_id == core_id
+            and record.context_digest == record.context.digest
+            and record.context_ticket_id == record.context.authority_ticket_id
+            and record.owner_thread_object.ident == record.owner_thread
+            and record.owner_thread_object_binding_sha256
+            == owner_thread_object_binding
+            and type(record.source_relative_path) is type(expected_source)
+            and type(record.target_relative_path) is type(expected_target)
+            and record.source_relative_path.as_posix()
+            == expected_source.as_posix()
+            and record.target_relative_path.as_posix()
+            == expected_target.as_posix()
+            and record.policy_version == policy_version
+            and record.policy_digest == policy_digest
+            and record.binding_sha256 == binding
+            and record.capability_authenticator == authenticator
+            and record.lifecycle is issued
+            and supplied_authenticator == authenticator
+        )
+        if valid and record.purpose == copy_purpose:
+            valid = record.transaction_id == self._restricted_copy_recovery_binding_id(
+                record.context
+            )
+        removed = self.__restricted_recovery_records.pop(locator_id, None)
+        if removed is not record:
+            self.__restricted_recovery_records[locator_id] = removed
+        return expected_source, expected_target
+
+    def issue_restricted_copy_recovery_locator(self, context):
+        binding = self._restricted_copy_recovery_binding_id(context)
+        return self.issue_restricted_recovery_locator(context, binding)
+
+    def consume_restricted_copy_recovery_locator(self, capability, context):
+        binding = self._restricted_copy_recovery_binding_id(context)
+        return self.consume_restricted_recovery_locator(capability, binding)
+
+    def _revoke_restricted_recovery_records(self, ticket_id):
+        locator_ids = tuple(
+            locator_id
+            for locator_id, record in self.__restricted_recovery_records.items()
+            if record.context_ticket_id == ticket_id
+        )
+        for locator_id in locator_ids:
+            self.__restricted_recovery_records.pop(locator_id, None)
+
+    def release_test_context(self, context):
+        self._revoke_restricted_recovery_records(context.authority_ticket_id)
+
+    def finish_test_job_context(self, context):
+        self._revoke_restricted_recovery_records(context.authority_ticket_id)
+
+    def _assert_invariants(self):
+        return all(
+            record.locator_id == locator_id
+            and record.lifecycle is issued
+            and record.context_ticket_id == record.context.authority_ticket_id
+            and record.owner_thread_object.ident == record.owner_thread
+            and record.owner_thread_object_binding_sha256
+            == self._restricted_recovery_owner_thread_object_binding(
+                record.owner_thread_object
+            )
+            and type(record.source_relative_path) is Path
+            and type(record.target_relative_path) is Path
+            for locator_id, record in self.__restricted_recovery_records.items()
+        )
+
+class _TestWorkspaceBoundary:
+    def _issue_restricted_recovery_locator(self):
+        return self.__core.issue_restricted_recovery_locator()
+
+    def _consume_restricted_recovery_locator(self, capability):
+        return self.__core.consume_restricted_recovery_locator(capability)
+
+    def _issue_restricted_copy_recovery_locator(self, context):
+        return self.__core.issue_restricted_copy_recovery_locator(context)
+
+    def _consume_restricted_copy_recovery_locator(self, capability, context):
+        return self.__core.consume_restricted_copy_recovery_locator(capability, context)
+
+def _reconcile_test_publish_operation():
+    return boundary._consume_restricted_recovery_locator(capability)
+'''
+    assert (
+        scan_unauthorized_guard_source(
+            source,
+            file="app/safety/production_guard.py",
+        )
+        == ()
+    )
+
+
+def test_restricted_recovery_capability_is_opaque_and_absent_from_production_surface() -> None:
+    tree = ast.parse(
+        (PROJECT_ROOT / "app" / "safety" / "production_guard.py").read_text(
+            encoding="utf-8"
+        )
+    )
+    classes = {
+        node.name: node
+        for node in tree.body
+        if isinstance(node, ast.ClassDef)
+    }
+    capability = classes["_RestrictedRecoveryLocatorCapability"]
+    slots_assignment = next(
+        node
+        for node in capability.body
+        if isinstance(node, ast.Assign)
+        and any(
+            isinstance(target, ast.Name) and target.id == "__slots__"
+            for target in node.targets
+        )
+    )
+    assert ast.literal_eval(slots_assignment.value) == (
+        "__locator_id",
+        "__authenticator",
+    )
+
+    production_methods = {
+        node.name
+        for node in classes["ProductionWorkspaceBoundary"].body
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+    }
+    assert not any("restricted_recovery" in name for name in production_methods)
+
+    test_facade_methods = {
+        node.name
+        for node in classes["_TestWorkspaceBoundary"].body
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+    }
+    assert {
+        "_issue_restricted_recovery_locator",
+        "_consume_restricted_recovery_locator",
+        "_issue_restricted_copy_recovery_locator",
+        "_consume_restricted_copy_recovery_locator",
+    } <= test_facade_methods
+
+
+def test_exact_s3_f_directory_absence_observation_scopes_remain_clean() -> None:
+    writer_source = '''
+class _WindowsHandleWriter:
+    def _require_directory_target_absent_under_existing_mutex(self, mutex, target):
+        self._after_directory_target_absence_first_observation(target)
+'''
+    assert (
+        scan_unauthorized_guard_source(
+            writer_source,
+            file="app/safety/windows_handle_writer.py",
+        )
+        == ()
+    )
+
+    copy_source = '''
+class _TestLocalCopyOperation:
+    def _require_target_absent_twice(self, mutex, target):
+        self._runtime._writer._require_directory_target_absent_under_existing_mutex(
+            mutex,
+            target,
+        )
+'''
+    assert (
+        scan_unauthorized_guard_source(
+            copy_source,
+            file="app/safety/copy_operation.py",
+        )
+        == ()
+    )
+
+
+def test_exact_s3_f_copy_runtime_internal_scopes_remain_clean() -> None:
+    source = '''
+class _TestLocalCopyOperation:
+    def __init__(self, runtime, ledgers, source_policy, _constructor):
+        if _constructor is not _COPY_OPERATION_CONSTRUCTOR:
+            raise TypeError
+        if ledgers._storage is not runtime._writer:
+            raise TypeError
+        if copy_epoch != ledgers.storage_epoch_id:
+            raise TypeError
+        if not ledgers.matches_run_scope(context.run_id):
+            raise TypeError
+        self._runtime = runtime
+        self._ledgers = ledgers
+        self._source_policy = source_policy
+
+    def _execute_new(self):
+        self._ledgers._append_source_under_existing_mutex(mutex, source)
+        self._ledgers._append_transition_under_existing_mutex(mutex, transition)
+
+    def _try_replay(self):
+        self._ledgers._rescan_under_existing_mutex(mutex)
+        self._ledgers.transaction_result_under_existing_mutex(mutex, transaction)
+        self._ledgers.source_result_under_existing_mutex(mutex, source)
+
+    def _validate_ledgers_for_new_operation(self):
+        self._ledgers._rescan_under_existing_mutex(mutex)
+
+    def _verify_all_ancestors(self):
+        capability = self._ledgers._issue_authenticated_ancestors_under_existing_mutex(
+            mutex, self._runtime._ledger, operation_ledger
+        )
+        self._ledgers._verify_external_ancestors_under_existing_mutex(
+            mutex, capability
+        )
+
+    def _append_failure_fact(self):
+        operation_ledger.operation_result_under_existing_mutex(mutex, operation)
+        self._ledgers._append_transition_under_existing_mutex(mutex, transition)
+
+    def _issue_execution_permit(self):
+        return _issue_copy_execution_permit(self._source_policy, lease, evidence)
+
+    def _validate_execution_permit(self):
+        _validate_copy_execution_permit(permit, self._source_policy, lease, evidence)
+
+    def _consume_execution_permit(self):
+        _consume_copy_execution_permit(permit, self._source_policy, lease, evidence)
+
+    def reconcile(self, capability):
+        return self._boundary._consume_restricted_copy_recovery_locator(
+            capability, self._context
+        )
+
+    def _seal_cross_reference_failure(self):
+        self._ledgers._seal(code)
+
+    def _copy_provenance_material(self):
+        return build_copy_provenance_material(
+            source, receipt, manifest_id=self._manifest.manifest_id
+        )
+
+    def _publish_operation_binding(self):
+        return self._ledgers.publish_operation_binding(
+            operation_reference=reference,
+            transaction_binding_sha256=transaction,
+            copy_binding_sha256=copy,
+            target_locator=target,
+            classification=classification,
+        )
+'''
+    assert (
+        scan_unauthorized_guard_source(
+            source,
+            file="app/safety/copy_operation.py",
+        )
+        == ()
+    )
+
+
+def test_exact_s3_f_copy_ancestor_capability_scope_remains_clean() -> None:
+    source = '''
+from app.safety.operation_ledger import DurableOperationLedger
+from app.safety.segment_ledger import DurableAuditLedger
+
+class _AuthenticatedCopyAncestors:
+    def __init__(self, storage, audit_ledger, operation_ledger, _constructor):
+        if _constructor is not _AUTHENTICATED_COPY_ANCESTORS_CONSTRUCTOR:
+            raise TypeError
+        self._storage = storage
+        self._audit_ledger = audit_ledger
+        self._operation_ledger = operation_ledger
+        self._publish_terminal_binding_sha256s = ()
+        self._copy_cross_reference_sha256 = "0" * 64
+
+def build_copy_provenance_material(source, receipt, manifest_id):
+    return CopyProvenanceMaterial(source, receipt, manifest_id)
+
+class DurableCopyLedgers:
+    def _authenticated_publish_terminal_bindings_under_existing_mutex(
+        self, mutex, operation_ledger
+    ):
+        operation_ledger.transaction_result_under_existing_mutex(
+            mutex, transaction_id
+        )
+        material = build_copy_provenance_material(
+            source, receipt, manifest_id="M"
+        )
+        self.publish_operation_binding(
+            operation_reference=reference,
+            transaction_binding_sha256=transaction,
+            copy_binding_sha256=copy,
+            target_locator=target,
+            classification=classification,
+        )
+        return (material.provenance_sha256,)
+
+    def _issue_authenticated_ancestors_under_existing_mutex(
+        self, mutex, audit_ledger, operation_ledger
+    ):
+        if audit_ledger._storage is not self._storage:
+            raise TypeError
+        audit = audit_ledger.authenticated_segment_sha256s_under_existing_mutex(mutex)
+        publish = operation_ledger.authenticated_segment_sha256s_under_existing_mutex(mutex)
+        terminals = self._authenticated_publish_terminal_bindings_under_existing_mutex(
+            mutex, operation_ledger
+        )
+        return _AuthenticatedCopyAncestors(
+            self._storage,
+            audit_ledger,
+            operation_ledger,
+            _constructor=_AUTHENTICATED_COPY_ANCESTORS_CONSTRUCTOR,
+        )
+
+    def _verify_external_ancestors_under_existing_mutex(self, mutex, capability):
+        capability._audit_ledger.authenticated_segment_sha256s_under_existing_mutex(mutex)
+        capability._operation_ledger.authenticated_segment_sha256s_under_existing_mutex(mutex)
+        self._authenticated_publish_terminal_bindings_under_existing_mutex(
+            mutex, capability._operation_ledger
+        )
+        tuple(capability._publish_terminal_binding_sha256s)
+        str(capability._copy_cross_reference_sha256)
+        self.bound_audit_ancestors_under_existing_mutex(mutex)
+        self.bound_publish_terminals_under_existing_mutex(mutex)
+'''
+    assert (
+        scan_unauthorized_guard_source(
+            source,
+            file="app/safety/copy_ledger.py",
+        )
+        == ()
+    )
+
+
+def test_exact_s3_f_source_factory_and_permit_scopes_remain_clean() -> None:
+    source = '''
+class _ReferenceReadApi:
+    def __init__(self, _constructor):
+        if _constructor is not _READ_API_CONSTRUCTOR:
+            raise TypeError
+
+class SyntheticReferenceReadPolicy:
+    def __init__(self, api, _constructor):
+        if _constructor is not _POLICY_CONSTRUCTOR:
+            raise TypeError
+        self._api = api
+
+    def open_reference(self):
+        return _SyntheticReferenceLease(
+            api=self._api, _constructor=_LEASE_CONSTRUCTOR
+        )
+
+class _SyntheticReferenceLease:
+    def __init__(self, api, digest_key, _constructor):
+        if _constructor is not _LEASE_CONSTRUCTOR:
+            raise TypeError
+        self._api = api
+        self._digest_key = digest_key
+
+class _CopyExecutionPermit:
+    def __init__(self, policy, _constructor):
+        if _constructor is not _COPY_EXECUTION_PERMIT_CONSTRUCTOR:
+            raise TypeError
+        self._policy = policy
+
+def _copy_execution_scope_sha256(lease):
+    return lease._digest_key
+
+def _copy_execution_binding_sha256(lease):
+    return lease._digest_key
+
+def _require_copy_execution_authorities(lease):
+    return _copy_execution_scope_sha256(lease)
+
+def _issue_copy_execution_permit(policy, lease):
+    _require_copy_execution_authorities(lease)
+    _copy_execution_binding_sha256(lease)
+    return _CopyExecutionPermit(
+        policy=policy, _constructor=_COPY_EXECUTION_PERMIT_CONSTRUCTOR
+    )
+
+def _check_copy_execution_permit(permit, lease):
+    _require_copy_execution_authorities(lease)
+    _copy_execution_binding_sha256(lease)
+    return permit._policy
+
+def _validate_copy_execution_permit(permit, lease):
+    return _check_copy_execution_permit(permit, lease)
+
+def _consume_copy_execution_permit(permit, lease):
+    return _check_copy_execution_permit(permit, lease)
+
+def _create_synthetic_reference_read_policy():
+    api = _ReferenceReadApi(_constructor=_READ_API_CONSTRUCTOR)
+    return SyntheticReferenceReadPolicy(api=api, _constructor=_POLICY_CONSTRUCTOR)
+'''
+    assert (
+        scan_unauthorized_guard_source(
+            source,
+            file="app/safety/external_source.py",
+        )
+        == ()
+    )
+
+
+def test_exact_s3_f_copy_reconcile_scopes_remain_clean() -> None:
+    source = '''
+class _TestLocalCopyOperation:
+    def execute(self):
+        with self._source_policy.open_reference(source_name) as source_lease:
+            material = source_lease.read_once()
+            return self._issue_execution_permit(source_lease, evidence, target)
+
+    def reconcile(self):
+        with self._source_policy.open_reference(source_name) as source_lease:
+            material = source_lease.read_once()
+            permit = self._issue_execution_permit(source_lease, evidence, target)
+            self._consume_execution_permit(
+                permit, source_lease, material, transaction, copy, target
+            )
+            try:
+                return self._reconcile_consumed_source(
+                    material, source_lease, transaction, copy, target
+                )
+            except Exception:
+                self._raise_recovery_contradiction()
+
+    def _reconcile_consumed_source(self):
+        self._runtime._ledger._rescan_under_existing_mutex(mutex)
+        self._ledgers._rescan_under_existing_mutex(mutex)
+        current = self._copy_recovery_result(target_locator)
+        source_by_transaction = (
+            self._ledgers.transaction_source_result_under_existing_mutex(
+                mutex, transaction
+            )
+        )
+        source = self._ledgers.source_result_under_existing_mutex(mutex, source_id)
+        operation = operation_ledger.operation_result_under_existing_mutex(
+            mutex, operation_ledger.operation_reference(operation_id, classification)
+        )
+        self._validate_recovery_binding(source, current)
+        self._validate_source_only_recovery_binding(source_by_transaction, current)
+        self._validate_recovery_publish_binding(operation, binding, target)
+        self._reconcile_source_only_abort(material, source_lease, current, target)
+        self._reconcile_committed_publish(material, source_lease, current, target)
+        self._reconcile_absent_publish(material, source_lease, current, target)
+        self._verify_all_ancestors(mutex)
+        self._raise_recovery_contradiction()
+
+    def _copy_recovery_result(self):
+        self._raise_recovery_contradiction()
+
+    def _reconcile_source_only_abort(self):
+        self._require_target_absent_twice(target)
+        source_lease.verify_unchanged(evidence)
+        recovered = self._source_only_recovered_abort_transition(source)
+        receipt = self._ledgers._append_transition_under_existing_mutex(mutex, recovered)
+        self._ledgers.transaction_result_under_existing_mutex(mutex, transaction)
+        self._raise_recovery_contradiction()
+
+    def _reconcile_committed_publish(self):
+        target_evidence = self._target_evidence(target, material)
+        source_lease.verify_unchanged(evidence)
+        recovered = self._recovered_transition(previous, state)
+        receipt = self._ledgers._append_transition_under_existing_mutex(mutex, recovered)
+        self._ledgers.transaction_result_under_existing_mutex(mutex, transaction)
+        self._verify_all_ancestors(mutex)
+        self._raise_recovery_contradiction()
+
+    def _reconcile_absent_publish(self):
+        self._require_target_absent_twice(target)
+        source_lease.verify_unchanged(evidence)
+        recovered = self._recovered_transition(previous, state)
+        receipt = self._ledgers._append_transition_under_existing_mutex(mutex, recovered)
+        self._ledgers.transaction_result_under_existing_mutex(mutex, transaction)
+        self._verify_all_ancestors(mutex)
+        self._raise_recovery_contradiction()
+
+    def _validate_recovery_binding(self):
+        self._raise_recovery_contradiction()
+
+    def _validate_recovery_publish_binding(self):
+        operation_ledger.operation_reference(operation_id, classification)
+        self._raise_recovery_contradiction()
+
+    def _validate_source_only_recovery_binding(self):
+        self._raise_recovery_contradiction()
+
+    def _recovered_transition(self):
+        self._raise_recovery_contradiction()
+
+    def _source_only_recovered_abort_transition(self):
+        return None
+
+    def _require_target_absent_twice(self):
+        self._raise_recovery_contradiction()
+
+    def _execute_new(self):
+        self._consume_execution_permit(permit, lease, material, transaction, copy, target)
+        self._ledgers._append_source_under_existing_mutex(mutex, source)
+        self._ledgers._append_transition_under_existing_mutex(mutex, transition)
+        self._target_evidence(target, material)
+        source_lease.verify_unchanged(evidence)
+
+    def _try_replay(self):
+        self._validate_execution_permit(permit, lease, material, transaction, copy, target)
+        self._consume_execution_permit(permit, lease, material, transaction, copy, target)
+        self._ledgers._rescan_under_existing_mutex(mutex)
+        self._ledgers.transaction_result_under_existing_mutex(mutex, transaction)
+        self._ledgers.source_result_under_existing_mutex(mutex, source)
+        self._target_evidence(target, material)
+        source_lease.verify_unchanged(evidence)
+
+    def _append_failure_fact(self):
+        operation_ledger.operation_result_under_existing_mutex(
+            mutex, operation_ledger.operation_reference(operation_id, classification)
+        )
+        self._ledgers._append_transition_under_existing_mutex(mutex, transition)
+
+    def _verify_all_ancestors(self):
+        capability = self._ledgers._issue_authenticated_ancestors_under_existing_mutex(
+            mutex, self._runtime._ledger, operation_ledger
+        )
+        self._ledgers._verify_external_ancestors_under_existing_mutex(
+            mutex, capability
+        )
+
+    def _raise_recovery_contradiction(self):
+        self._ledgers._seal(code)
+        self._runtime._writer.seal_after_indeterminate_mutation()
+
+    def _target_evidence(self):
+        return None
+
+    def _stable_bindings(self):
+        transaction = self._ledgers.transaction_binding(context, evidence)
+        copy = self._ledgers.copy_object_binding(context, evidence)
+        return transaction, copy
+
+    def _copy_target_locator(self):
+        return self._ledgers.target_locator(target, classification)
+'''
+    assert (
+        scan_unauthorized_guard_source(
+            source,
+            file="app/safety/copy_operation.py",
+        )
+        == ()
+    )
+
+
+def test_exact_s3_f_opaque_epoch_and_revision_gate_scopes_remain_clean() -> None:
+    source = '''
+def _derive_copy_ledger_epoch_id(revision, run_scope_id):
+    return revision.segment_hmac_key
+
+class DurableCopyLedgers:
+    def __init__(self, revision, run_scope_id):
+        self._run_scope_id = run_scope_id
+        self._run_scope_hmac_sha256 = self._derive_run_scope_hmac(revision)
+        self._known_revisions = {revision.revision_id: revision}
+        self._requested_revision_id = revision.revision_id
+        self._append_enabled = True
+        self._epoch_id = _derive_copy_ledger_epoch_id(revision, run_scope_id)
+
+    @property
+    def storage_epoch_id(self):
+        return self._epoch_id
+
+    def matches_run_scope(self, run_scope_id):
+        return self._epoch_id == _derive_copy_ledger_epoch_id(
+            self._revision, run_scope_id
+        )
+
+    def _derive_run_scope_hmac(self, revision):
+        return revision.segment_hmac_key
+
+    def _select_persisted_revision_under_mutex(self):
+        self._run_scope_hmac_sha256 = self._derive_run_scope_hmac(self._revision)
+
+    def _append_source_under_existing_mutex(self):
+        self._require_append_revision_current()
+
+    def _append_transition_under_existing_mutex(self):
+        self._require_transition_append_allowed(transition)
+'''
+    assert (
+        scan_unauthorized_guard_source(
+            source,
+            file="app/safety/copy_ledger.py",
+        )
+        == ()
+    )
+
+
+def test_exact_s3_g_rotation_and_attestation_scopes_remain_clean() -> None:
+    copy_ledger_source = '''
+def _copy_epoch_pair_presence(storage):
+    def present(relative):
+        return storage._workspace_root / relative
+    return present
+
+class DurableCopyLedgers:
+    @staticmethod
+    def _preflight_new_epoch_under_existing_mutex(storage, revision, scope):
+        current = _derive_copy_ledger_epoch_id(revision, scope)
+        historical = _derive_copy_ledger_epoch_id(revision, scope)
+        candidate = _derive_copy_ledger_epoch_id(revision, scope)
+        return DurableCopyLedgers(storage, current, historical, candidate)
+
+    def _append_revision_is_current_under_existing_mutex(self, lease):
+        self._audit_ledger._rescan_under_existing_mutex(lease)
+        return self._audit_ledger._activated_revision_ids_under_existing_mutex(lease)
+'''
+    assert (
+        scan_unauthorized_guard_source(
+            copy_ledger_source,
+            file="app/safety/copy_ledger.py",
+        )
+        == ()
+    )
+
+    production_guard_source = '''
+class _AuditAuthority:
+    def __post_init__(self):
+        return (
+            self.sink._ledger,
+            self.ledger._key_store,
+            self.ledger._storage,
+            self.key_store._storage,
+        )
+
+class _BoundaryCore:
+    def _attest_copy_ledger_read(self, lease, revision, scope):
+        self.audit.ledger._rescan_under_existing_mutex(lease)
+        self.audit.ledger._activated_revision_ids_under_existing_mutex(lease)
+        return _derive_copy_ledger_epoch_id(revision, scope)
+'''
+    assert (
+        scan_unauthorized_guard_source(
+            production_guard_source,
+            file="app/safety/production_guard.py",
+        )
+        == ()
+    )
+
+
+@pytest.mark.parametrize(
+    ("file", "source", "expected"),
+    [
+        (
+            "app/safety/copy_ledger.py",
+            "def unrelated(storage):\n    return storage._workspace_root\n",
+            "sensitive authority attribute access storage._workspace_root",
+        ),
+        (
+            "app/safety/copy_ledger.py",
+            "def unrelated(revision, scope):\n"
+            "    return _derive_copy_ledger_epoch_id(revision, scope)\n",
+            "restricted private call _derive_copy_ledger_epoch_id",
+        ),
+        (
+            "app/safety/copy_ledger.py",
+            "def unrelated(storage):\n    return DurableCopyLedgers(storage)\n",
+            "restricted private call DurableCopyLedgers",
+        ),
+        (
+            "app/safety/copy_ledger.py",
+            "def unrelated(audit, lease):\n"
+            "    audit._rescan_under_existing_mutex(lease)\n"
+            "    return audit._activated_revision_ids_under_existing_mutex(lease)\n",
+            "restricted private call _rescan_under_existing_mutex",
+        ),
+        (
+            "app/safety/production_guard.py",
+            "def unrelated(authority):\n    return authority.sink._ledger\n",
+            "sensitive authority attribute access authority.sink._ledger",
+        ),
+        (
+            "app/safety/production_guard.py",
+            "def unrelated(audit, lease):\n"
+            "    audit._rescan_under_existing_mutex(lease)\n"
+            "    return audit._activated_revision_ids_under_existing_mutex(lease)\n",
+            "restricted private call _rescan_under_existing_mutex",
+        ),
+    ],
+)
+def test_s3_g_rotation_and_attestation_routes_fail_closed_outside_exact_scope(
+    file: str,
+    source: str,
+    expected: str,
+) -> None:
+    details = {
+        detail
+        for _finding_file, _line, detail in scan_unauthorized_guard_source(
+            source,
+            file=file,
+        )
+    }
+    assert expected in details
+
+
+def test_exact_s3_f_identity_material_scopes_remain_clean() -> None:
+    writer_source = '''
+_IDENTITY_MATERIAL_CONSTRUCTOR = object()
+
+class HandleObjectIdentityMaterial:
+    def __init__(self, *, _constructor):
+        if _constructor is not _IDENTITY_MATERIAL_CONSTRUCTOR:
+            raise TypeError
+        self.__frame = b"frame"
+
+class HandleTreeIdentityMaterial:
+    def __init__(self, *, _constructor):
+        if _constructor is not _IDENTITY_MATERIAL_CONSTRUCTOR:
+            raise TypeError
+        self.__rows = ()
+
+class _WindowsHandleWriter:
+    def _read_flat_directory_impl(self):
+        return HandleTreeIdentityMaterial(
+            _constructor=_IDENTITY_MATERIAL_CONSTRUCTOR
+        )
+
+    def _build_tree_snapshot(self):
+        return HandleTreeIdentityMaterial(
+            _constructor=_IDENTITY_MATERIAL_CONSTRUCTOR
+        )
+
+    def _identity_material(self):
+        return HandleObjectIdentityMaterial(
+            _constructor=_IDENTITY_MATERIAL_CONSTRUCTOR
+        )
+'''
+    assert (
+        scan_unauthorized_guard_source(
+            writer_source,
+            file="app/safety/windows_handle_writer.py",
+        )
+        == ()
+    )
+
+    ledger_source = '''
+class DurableOperationLedger:
+    def durable_object_identity_digest(self, material):
+        return material._operation_hmac_sha256(key)
+
+    def durable_tree_identity_digest(self, material):
+        return material._operation_hmac_sha256(key)
+
+    def durable_tree_evidence_identity_digest(self, material):
+        return material._operation_hmac_sha256(key)
+'''
+    assert (
+        scan_unauthorized_guard_source(
+            ledger_source,
+            file="app/safety/operation_ledger.py",
+        )
+        == ()
+    )
+
+
+@pytest.mark.parametrize(
+    ("file", "source", "expected"),
+    [
+        (
+            "app/synthetic.py",
+            "ledger.source_result_under_existing_mutex(mutex, source_id)\n",
+            "restricted private call source_result_under_existing_mutex",
+        ),
+        (
+            "app/synthetic.py",
+            "source_policy.open_reference(source_name)\n",
+            "restricted private call open_reference",
+        ),
+        (
+            "app/synthetic.py",
+            "source_lease.read_once()\n",
+            "restricted private call read_once",
+        ),
+        (
+            "app/synthetic.py",
+            "operation_ledger.operation_result_under_existing_mutex(mutex, operation)\n",
+            "restricted private call operation_result_under_existing_mutex",
+        ),
+        (
+            "app/synthetic.py",
+            "copy_ledgers.transaction_result_under_existing_mutex(mutex, transaction)\n",
+            "restricted private call transaction_result_under_existing_mutex",
+        ),
+        (
+            "app/synthetic.py",
+            "copy_ledgers.transaction_source_result_under_existing_mutex(mutex, transaction)\n",
+            "restricted private call transaction_source_result_under_existing_mutex",
+        ),
+        (
+            "app/safety/copy_operation.py",
+            "class _TestLocalCopyOperation:\n"
+            "    def unrelated(self):\n"
+            "        return build_copy_provenance_material(source, receipt, manifest_id='M')\n",
+            "restricted private call build_copy_provenance_material",
+        ),
+        (
+            "app/safety/copy_ledger.py",
+            "def unrelated():\n"
+            "    return CopyProvenanceMaterial(object())\n",
+            "restricted private call CopyProvenanceMaterial",
+        ),
+        (
+            "app/safety/copy_operation.py",
+            "class _TestLocalCopyOperation:\n"
+            "    def unrelated(self):\n"
+            "        return self._ledgers.publish_operation_binding()\n",
+            "restricted private call publish_operation_binding",
+        ),
+        (
+            "app/safety/copy_ledger.py",
+            "class DurableCopyLedgers:\n"
+            "    def unrelated(self):\n"
+            "        return self._authenticated_publish_terminal_bindings_under_existing_mutex(mutex, ledger)\n",
+            "restricted private call _authenticated_publish_terminal_bindings_under_existing_mutex",
+        ),
+        (
+            "app/synthetic.py",
+            "terminals = capability._publish_terminal_binding_sha256s\n"
+            "binding = capability._copy_cross_reference_sha256\n",
+            "sensitive authority attribute access",
+        ),
+        (
+            "app/safety/copy_operation.py",
+            "class _TestLocalCopyOperation:\n"
+            "    def reconcile(self):\n"
+            "        return self._boundary._consume_restricted_recovery_locator(capability, transaction)\n",
+            "restricted private call _consume_restricted_recovery_locator",
+        ),
+        (
+            "app/safety/production_guard.py",
+            "def _reconcile_test_publish_operation():\n"
+            "    return boundary._consume_restricted_copy_recovery_locator(capability, context)\n",
+            "restricted private call _consume_restricted_copy_recovery_locator",
+        ),
+        (
+            "app/synthetic.py",
+            "def leak_paths(recovery_record):\n"
+            "    return (recovery_record.source_relative_path, "
+            "recovery_record.target_relative_path)\n",
+            "restricted recovery attribute access recovery_record.source_relative_path",
+        ),
+        (
+            "app/safety/production_guard.py",
+            "class _BoundaryCore:\n"
+            "    def consume_restricted_recovery_locator(self, capability, transaction_id):\n"
+                "        record = self.__restricted_recovery_records.get(locator_id)\n"
+                "        return (Path(record.source_relative_path), "
+                "Path(record.target_relative_path))\n",
+                "restricted recovery attribute access "
+                "self.__restricted_recovery_records.get().source_relative_path",
+        ),
+        (
+            "app/safety/production_guard.py",
+            "class _BoundaryCore:\n"
+                "    def consume_restricted_recovery_locator(self, capability, transaction_id):\n"
+                "        record = self.__restricted_recovery_records.get(locator_id)\n"
+                "        return record.source_relative_path.as_posix()\n",
+                "restricted recovery attribute access "
+                "self.__restricted_recovery_records.get().source_relative_path",
+        ),
+        (
+            "app/synthetic.py",
+            "def reset_owner(recovery_record):\n"
+            "    recovery_record.owner_thread = 0\n",
+            "restricted recovery authority assignment recovery_record.owner_thread",
+        ),
+        (
+            "app/synthetic.py",
+            "def reset_owner_object(recovery_record, replacement):\n"
+            "    recovery_record.owner_thread_object = replacement\n",
+            "restricted recovery authority assignment recovery_record.owner_thread_object",
+        ),
+        (
+            "app/synthetic.py",
+            "def reset_owner_object_binding(recovery_record):\n"
+            "    recovery_record.owner_thread_object_binding_sha256 = '0' * 64\n",
+            "restricted recovery authority assignment "
+            "recovery_record.owner_thread_object_binding_sha256",
+        ),
+        (
+            "app/synthetic.py",
+            "def reset_lifecycle(recovery_record):\n"
+            "    recovery_record.lifecycle = 'ISSUED'\n",
+            "restricted recovery authority assignment recovery_record.lifecycle",
+        ),
+        (
+            "app/synthetic.py",
+            "def reset_consumed(recovery_record):\n"
+            "    recovery_record.consumed = False\n",
+            "restricted recovery authority assignment recovery_record.consumed",
+        ),
+        (
+            "app/synthetic.py",
+            "capability._RestrictedRecoveryLocatorCapability__locator_id = '0' * 64\n",
+            "restricted recovery authority assignment "
+            "capability._RestrictedRecoveryLocatorCapability__locator_id",
+        ),
+        (
+            "app/synthetic.py",
+            "object.__setattr__(\n"
+            "    capability,\n"
+            "    '_RestrictedRecoveryLocatorCapability__authenticator',\n"
+            "    b'x' * 32,\n"
+            ")\n",
+            "reflective restricted recovery authority __setattr__",
+        ),
+        (
+            "app/synthetic.py",
+            "def tamper_binding(recovery_record):\n"
+            "    recovery_record.binding_sha256 = '0' * 64\n",
+            "restricted recovery authority assignment recovery_record.binding_sha256",
+        ),
+        (
+            "app/synthetic.py",
+            "def tamper_authenticator(recovery_record):\n"
+            "    recovery_record.capability_authenticator = b'x' * 32\n",
+            "restricted recovery authority assignment "
+            "recovery_record.capability_authenticator",
+        ),
+        (
+            "app/synthetic.py",
+            "core._BoundaryCore__restricted_recovery_records.clear()\n",
+            "restricted recovery attribute access "
+            "core._BoundaryCore__restricted_recovery_records",
+        ),
+        (
+            "app/synthetic.py",
+            "getattr(core, '_BoundaryCore__restricted_recovery_records')\n",
+            "dynamic restricted recovery authority getattr",
+        ),
+        (
+            "app/synthetic.py",
+            "vars(core)['_BoundaryCore__restricted_recovery_records']\n",
+            "dynamic restricted recovery registry lookup",
+        ),
+        (
+            "app/synthetic.py",
+            "capability._read(object())\n",
+            "restricted recovery attribute access capability._read",
+        ),
+        (
+            "app/synthetic.py",
+            "core._derive_restricted_recovery_paths(context, purpose)\n",
+            "restricted private call _derive_restricted_recovery_paths",
+        ),
+        (
+            "app/synthetic.py",
+            "core._restricted_recovery_locator_binding(\n"
+            "    locator, context, transaction, source, target, purpose, owner, "
+            "owner_object_binding\n"
+            ")\n",
+            "restricted private call _restricted_recovery_locator_binding",
+        ),
+        (
+            "app/synthetic.py",
+            "core._restricted_recovery_owner_thread_object_binding(owner_object)\n",
+            "restricted private call "
+            "_restricted_recovery_owner_thread_object_binding",
+        ),
+        (
+            "app/synthetic.py",
+            "core._restricted_recovery_capability_authenticator(locator, binding)\n",
+            "restricted private call _restricted_recovery_capability_authenticator",
+        ),
+        (
+            "app/synthetic.py",
+            "core._revoke_restricted_recovery_records(ticket_id)\n",
+            "restricted private call _revoke_restricted_recovery_records",
+        ),
+        (
+            "app/safety/production_guard.py",
+            "class _BoundaryCore:\n"
+            "    @property\n"
+            "    def diagnostic_registry_counts(self):\n"
+            "        return tuple(self.__restricted_recovery_records.keys())\n",
+            "restricted recovery attribute access "
+            "self.__restricted_recovery_records",
+        ),
+        (
+            "app/safety/production_guard.py",
+            "class _BoundaryCore:\n"
+            "    @property\n"
+            "    def diagnostic_registry_counts(self):\n"
+            "        return tuple(\n"
+            "            record.source_relative_path\n"
+            "            for record in self.__restricted_recovery_records.values()\n"
+            "        )\n",
+            "restricted recovery attribute access "
+            "self.__restricted_recovery_records",
+        ),
+        (
+            "app/safety/production_guard.py",
+            "class _BoundaryCore:\n"
+            "    def unrelated(self, recovery_record):\n"
+            "        return recovery_record.locator_id\n",
+            "restricted recovery attribute access recovery_record.locator_id",
+        ),
+        (
+            "app/safety/production_guard.py",
+            "class _BoundaryCore:\n"
+            "    def consume_restricted_recovery_locator(self, capability):\n"
+            "        return capability."
+            "_RestrictedRecoveryLocatorCapability__locator_id\n",
+            "restricted recovery attribute access capability."
+            "_RestrictedRecoveryLocatorCapability__locator_id",
+        ),
+        (
+            "app/synthetic.py",
+            "copy_ledgers.matches_run_scope(run_id)\n",
+            "restricted private call matches_run_scope",
+        ),
+        (
+            "app/synthetic.py",
+            "copy_ledgers.transaction_binding(context, evidence)\n",
+            "restricted private call transaction_binding",
+        ),
+        (
+            "app/synthetic.py",
+            "copy_ledgers.target_locator(target, classification)\n",
+            "restricted private call target_locator",
+        ),
+        (
+            "app/synthetic.py",
+            "epoch = copy_ledgers.storage_epoch_id\n",
+            "sensitive authority attribute access copy_ledgers.storage_epoch_id",
+        ),
+        (
+            "app/safety/copy_ledger.py",
+            "def unrelated():\n"
+            "    return _derive_copy_ledger_epoch_id(revision, run_id)\n",
+            "restricted private call _derive_copy_ledger_epoch_id",
+        ),
+        (
+            "app/synthetic.py",
+            "operation_ledger.operation_reference(operation_id, classification)\n",
+            "restricted private call operation_reference",
+        ),
+        (
+            "app/synthetic.py",
+            "copy_ledgers._append_transition_under_existing_mutex(mutex, recovery)\n",
+            "restricted private call _append_transition_under_existing_mutex",
+        ),
+        (
+            "app/safety/copy_operation.py",
+            "class _TestLocalCopyOperation:\n"
+            "    def unrelated(self):\n"
+            "        self._target_evidence(target, material)\n",
+            "restricted private call _target_evidence",
+        ),
+        (
+            "app/safety/copy_operation.py",
+            "class _TestLocalCopyOperation:\n"
+            "    def unrelated(self):\n"
+            "        self._require_target_absent_twice(target)\n",
+            "restricted private call _require_target_absent_twice",
+        ),
+        (
+            "app/synthetic.py",
+            "writer._require_directory_target_absent_under_existing_mutex(\n"
+            "    mutex, target\n"
+            ")\n",
+            "restricted private call "
+            "_require_directory_target_absent_under_existing_mutex",
+        ),
+        (
+            "app/safety/copy_operation.py",
+            "class _TestLocalCopyOperation:\n"
+            "    def unrelated(self):\n"
+            "        self._runtime._writer."
+            "_require_directory_target_absent_under_existing_mutex(\n"
+            "            mutex, target\n"
+            "        )\n",
+            "restricted private call "
+            "_require_directory_target_absent_under_existing_mutex",
+        ),
+        (
+            "app/safety/windows_handle_writer.py",
+            "class _WindowsHandleWriter:\n"
+            "    def unrelated(self, target):\n"
+            "        self._after_directory_target_absence_first_observation(target)\n",
+            "restricted private call "
+            "_after_directory_target_absence_first_observation",
+        ),
+        (
+            "app/synthetic.py",
+            "source_lease.verify_unchanged(evidence)\n",
+            "restricted private call verify_unchanged",
+        ),
+        (
+            "app/safety/copy_operation.py",
+            "class _TestLocalCopyOperation:\n"
+            "    def unrelated(self):\n"
+            "        self._raise_recovery_contradiction()\n",
+            "restricted private call _raise_recovery_contradiction",
+        ),
+        (
+            "app/synthetic.py",
+            "proof = capability._audit_ledger._storage\n"
+            "segments = capability._audit_segment_sha256s\n",
+            "sensitive authority attribute access",
+        ),
+        (
+            "app/synthetic.py",
+            "copy_ledgers._seal(code)\n",
+            "restricted private call _seal",
+        ),
+        (
+            "app/safety/copy_ledger.py",
+            "def unrelated():\n"
+            "    return _AuthenticatedCopyAncestors(\n"
+            "        object(), _constructor=_AUTHENTICATED_COPY_ANCESTORS_CONSTRUCTOR\n"
+            "    )\n",
+            "restricted private symbol _AUTHENTICATED_COPY_ANCESTORS_CONSTRUCTOR outside exact scope unrelated",
+        ),
+        (
+            "app/synthetic.py",
+            "from app.safety.windows_handle_writer import "
+            "HandleObjectIdentityMaterial\n",
+            "private import HandleObjectIdentityMaterial",
+        ),
+        (
+            "app/safety/windows_handle_writer.py",
+            "def unrelated():\n"
+            "    return HandleObjectIdentityMaterial(\n"
+            "        _constructor=_IDENTITY_MATERIAL_CONSTRUCTOR\n"
+            "    )\n",
+            "restricted private symbol _IDENTITY_MATERIAL_CONSTRUCTOR outside exact scope unrelated",
+        ),
+        (
+            "app/synthetic.py",
+            "material._operation_hmac_sha256(key)\n",
+            "restricted private call _operation_hmac_sha256",
+        ),
+        (
+            "app/synthetic.py",
+            "raw = material._HandleObjectIdentityMaterial__frame\n",
+            "sensitive authority attribute access",
+        ),
+        (
+            "app/synthetic.py",
+            "material = snapshot.tree_identity_material\n",
+            "sensitive authority attribute access",
+        ),
+    ],
+)
+def test_s3_f_reconcile_authority_canaries_fail_closed(
+    file: str,
+    source: str,
+    expected: str,
+) -> None:
+    rendered = "\n".join(
+        detail
+        for _finding_file, _line, detail in scan_unauthorized_guard_source(
+            source,
+            file=file,
+        )
+    )
+    assert expected in rendered
+
+
+def test_s3_f_plain_digest_ancestor_self_proof_is_rejected_in_allowed_scope() -> None:
+    findings = scan_unauthorized_guard_source(
+        '''
+def _create_test_copy_ledgers():
+    ledgers._verify_external_ancestors_under_existing_mutex(
+        mutex, ("a" * 64,), ("b" * 64,)
+    )
+''',
+        file="app/safety/production_guard.py",
+    )
+    rendered = "\n".join(detail for _file, _line, detail in findings)
+    assert "authenticated ancestor verify requires its exact one-shot issue result" in rendered
+
+
+def test_s3_f_authenticated_ancestor_capability_cannot_be_reassigned_or_reused() -> None:
+    findings = scan_unauthorized_guard_source(
+        '''
+def _create_test_copy_ledgers():
+    capability = ledgers._issue_authenticated_ancestors_under_existing_mutex(
+        mutex, audit_ledger, operation_ledger
+    )
+    capability = ("a" * 64,)
+    ledgers._verify_external_ancestors_under_existing_mutex(mutex, capability)
+    ledgers._verify_external_ancestors_under_existing_mutex(mutex, capability)
+''',
+        file="app/safety/production_guard.py",
+    )
+    rendered = "\n".join(detail for _file, _line, detail in findings)
+    assert "authenticated ancestor issue must feed one exact local verify" in rendered
+    assert "authenticated ancestor verify requires its exact one-shot issue result" in rendered

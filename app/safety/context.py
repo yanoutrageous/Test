@@ -9,6 +9,7 @@ from typing import Any
 
 
 _SAFE_ID = re.compile(r"^[A-Z0-9](?:[A-Z0-9_-]{0,126}[A-Z0-9])?$")
+_COPY_LEDGER_EPOCH_ID = re.compile(r"^[0-9A-F]{64}$")
 
 
 class ContextError(ValueError):
@@ -47,6 +48,7 @@ class Purpose(StrEnum):
 
 class ScopeKind(StrEnum):
     RUN_ID = "RUN_ID"
+    COPY_LEDGER_EPOCH_ID = "COPY_LEDGER_EPOCH_ID"
     COPY_ID = "COPY_ID"
     JOB_ID = "JOB_ID"
     STATE_ID = "STATE_ID"
@@ -85,6 +87,13 @@ class ScopeId:
         if type(self.kind) is not ScopeKind:
             raise ContextError("scope kind must be a ScopeKind value")
         validate_safe_id(self.value, field_name=f"scope[{self.kind.value}]")
+        if (
+            self.kind is ScopeKind.COPY_LEDGER_EPOCH_ID
+            and _COPY_LEDGER_EPOCH_ID.fullmatch(self.value) is None
+        ):
+            raise ContextError(
+                "COPY_LEDGER_EPOCH_ID scope must be one opaque 64-character HMAC identifier"
+            )
 
     def to_audit_dict(self) -> dict[str, str | None]:
         return {"kind": self.kind.value, "value": None}

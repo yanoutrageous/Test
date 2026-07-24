@@ -16,6 +16,7 @@ from typing import Any, Protocol
 
 
 _REPARSE_ATTRIBUTE = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
+_WIN32_MAX_PATH = 260
 _INVALID_COMPONENT_CHARACTERS = frozenset('<>"|?*')
 _RESERVED_NAMES = frozenset(
     {
@@ -158,8 +159,50 @@ class PathProbe(Protocol):
 
 
 class NativePathProbe:
+    """Inspect already-authorized paths without exposing Win32 namespaces."""
+
     def lstat(self, path: Path) -> os.stat_result:
-        return os.lstat(path)
+        if os.name != "nt":
+            return os.lstat(path)
+
+        path_text = os.fspath(path)
+        if isinstance(path_text, bytes) or "\0" in path_text:
+            raise OSError("native path probe requires a text local-drive path")
+        windows_path = path_text.replace("/", "\\")
+        lower = windows_path.casefold()
+        if lower.startswith(("\\\\?\\", "\\\\.\\", "\\??\\")) or lower.startswith(
+            "\\\\"
+        ):
+            raise OSError(
+                "native path probe refuses UNC, device and extended namespaces"
+            )
+
+        pure = PureWindowsPath(windows_path)
+        if (
+            not pure.is_absolute()
+            or not re.fullmatch(r"[A-Za-z]:", pure.drive)
+            or any(component in {".", ".."} for component in pure.parts[1:])
+        ):
+            raise OSError(
+                "native path probe requires an authorized absolute local-drive path"
+            )
+
+        normalized = ntpath.normpath(windows_path)
+        drive, tail = ntpath.splitdrive(normalized)
+        if (
+            not re.fullmatch(r"[A-Za-z]:", drive)
+            or not tail.startswith("\\")
+            or tail.startswith("\\\\")
+        ):
+            raise OSError(
+                "native path probe requires an authorized absolute local-drive path"
+            )
+        native_path = (
+            normalized
+            if len(normalized) < _WIN32_MAX_PATH
+            else "\\\\?\\" + normalized
+        )
+        return os.lstat(native_path)
 
 
 @dataclass(frozen=True, slots=True)

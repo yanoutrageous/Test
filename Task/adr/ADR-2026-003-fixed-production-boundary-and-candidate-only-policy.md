@@ -5,7 +5,7 @@
 - 决策级别：D2
 - 影响里程碑：M0—M5
 - Requirement IDs：`M0-SAFE-001`、`M0-SAFE-002`、`M0-SAFE-003`、`M0-SAFE-004`、`M0-SAFE-006`、`M0-SAFE-007`
-- 补充 ADR：`ADR-2026-001-central-workspace-guard.md`、`ADR-2026-002-workspace-guard-capability-boundaries.md`
+- 补充 ADR：`ADR-2026-001-central-workspace-guard.md`、`ADR-2026-002-workspace-guard-capability-boundaries.md`、`ADR-2026-005-portable-project-root-and-relocation.md`（只替换物理路径绑定，不允许调用者注入根）
 
 ## 背景与已确认事实
 

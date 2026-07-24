@@ -6,13 +6,31 @@ import ntpath
 import os
 import stat
 from pathlib import Path, PureWindowsPath
+from threading import Lock
 from typing import Any
 
 import pytest
 
+from app.project_root import PROJECT_ROOT as VERIFIED_PROJECT_ROOT
+from scripts.run_safe_pytest import (
+    SOURCE_WITNESS_FILE_NAME,
+    SOURCE_WITNESS_MAX_BYTES,
+    SOURCE_WITNESS_MAX_SOURCES,
+    SOURCE_WITNESS_SCHEMA_VERSION,
+    SOURCE_WITNESS_SCOPE,
+    SOURCE_WITNESS_SOURCE_MAX_BYTES,
+    SafetyStop,
+    _WindowsStreamInspector,
+    _canonical_json_bytes,
+    _sign_source_witness_payload,
+    _source_witness_locator_id,
+)
 
-EXPECTED_PROJECT_ROOT = Path(r"D:\AAA命题\Test")
+
 REPARSE_ATTRIBUTE = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
+_SOURCE_WITNESS_REGISTRY: dict[str, dict[str, Any]] = {}
+_SOURCE_WITNESS_LOCK = Lock()
+_SOURCE_WITNESS_FINISHED = False
 
 
 def _absolute_lexical(path: str | os.PathLike[str]) -> Path:
@@ -61,10 +79,306 @@ def _read_json(path: Path) -> dict[str, Any]:
     return payload
 
 
+def _source_witness_context() -> tuple[Path, Path, str]:
+    raw_run_root = os.environ.get("M0_TEST_LAB_ROOT")
+    launch_token = os.environ.get("M0_TEST_LAB_TOKEN")
+    if not raw_run_root or not launch_token:
+        _fail("synthetic source registration requires the safe launcher")
+    run_root = _absolute_lexical(raw_run_root)
+    project_root = _absolute_lexical(Path(__file__).parent.parent)
+    test_lab_root = project_root / "tmp" / "test_lab"
+    relative_run = _relative_parts(run_root, test_lab_root)
+    if relative_run != (run_root.name,) or not run_root.name.startswith("RUN-"):
+        _fail("synthetic source registration has an invalid run root")
+    _verify_existing_chain(run_root)
+    return run_root, run_root / "external", launch_token
+
+
+def _is_plain(identity: os.stat_result) -> bool:
+    attributes = int(getattr(identity, "st_file_attributes", 0))
+    reparse_tag = int(getattr(identity, "st_reparse_tag", 0))
+    return not (
+        stat.S_ISLNK(identity.st_mode)
+        or attributes & REPARSE_ATTRIBUTE
+        or reparse_tag
+    )
+
+
+def _parent_identity(identity: os.stat_result) -> dict[str, int]:
+    return {
+        "device": int(identity.st_dev),
+        "inode": int(identity.st_ino),
+        "mode": int(identity.st_mode),
+        "file_attributes": int(getattr(identity, "st_file_attributes", 0)),
+        "reparse_tag": int(getattr(identity, "st_reparse_tag", 0)),
+    }
+
+
+def _source_metadata(identity: os.stat_result) -> dict[str, int]:
+    return {
+        "device": int(identity.st_dev),
+        "inode": int(identity.st_ino),
+        "mode": int(identity.st_mode),
+        "file_attributes": int(getattr(identity, "st_file_attributes", 0)),
+        "reparse_tag": int(getattr(identity, "st_reparse_tag", 0)),
+        "nlink": int(identity.st_nlink),
+        "size": int(identity.st_size),
+        "mtime_ns": int(identity.st_mtime_ns),
+    }
+
+
+def _source_has_default_stream_only(source: Path) -> bool:
+    if os.name != "nt":
+        return True
+    try:
+        _WindowsStreamInspector().require_default_stream_only(source)
+    except SafetyStop:
+        return False
+    return True
+
+
+def _capture_parent(
+    run_root: Path,
+    parent: Path,
+) -> dict[str, int] | None:
+    relative = _relative_parts(parent, run_root)
+    if relative is None:
+        return None
+    current = run_root
+    components = (None, *relative)
+    final_identity: os.stat_result | None = None
+    for component in components:
+        if component is not None:
+            current = current / component
+        try:
+            identity = os.lstat(current)
+        except OSError:
+            return None
+        if not _is_plain(identity) or not stat.S_ISDIR(identity.st_mode):
+            return None
+        final_identity = identity
+    if final_identity is None or int(final_identity.st_ino) <= 0:
+        return None
+    return _parent_identity(final_identity)
+
+
+def _capture_synthetic_source(
+    run_root: Path,
+    source: Path,
+) -> tuple[dict[str, int] | None, dict[str, Any] | None]:
+    parent_before = _capture_parent(run_root, source.parent)
+    if parent_before is None:
+        return None, None
+    try:
+        path_before = os.lstat(source)
+    except OSError:
+        return parent_before, None
+    if (
+        not _is_plain(path_before)
+        or not stat.S_ISREG(path_before.st_mode)
+        or int(path_before.st_ino) <= 0
+        or int(path_before.st_size) < 0
+        or int(path_before.st_size) > SOURCE_WITNESS_SOURCE_MAX_BYTES
+        or not _source_has_default_stream_only(source)
+    ):
+        return parent_before, None
+    try:
+        digest = hashlib.sha256()
+        with source.open("rb") as handle:
+            handle_before = os.fstat(handle.fileno())
+            if (
+                not _is_plain(handle_before)
+                or not stat.S_ISREG(handle_before.st_mode)
+                or _source_metadata(handle_before) != _source_metadata(path_before)
+            ):
+                return parent_before, None
+            for block in iter(lambda: handle.read(1024 * 1024), b""):
+                digest.update(block)
+            handle_after = os.fstat(handle.fileno())
+    except OSError:
+        return parent_before, None
+    if _source_metadata(handle_before) != _source_metadata(handle_after):
+        return parent_before, None
+    try:
+        path_after = os.lstat(source)
+    except OSError:
+        return parent_before, None
+    if (
+        not _is_plain(path_after)
+        or not stat.S_ISREG(path_after.st_mode)
+        or _source_metadata(path_after) != _source_metadata(handle_after)
+        or not _source_has_default_stream_only(source)
+    ):
+        return parent_before, None
+    parent_after = _capture_parent(run_root, source.parent)
+    if parent_after is None or parent_after != parent_before:
+        return parent_after, None
+    try:
+        path_bound = os.lstat(source)
+    except OSError:
+        return parent_after, None
+    parent_bound = _capture_parent(run_root, source.parent)
+    if (
+        not _is_plain(path_bound)
+        or not stat.S_ISREG(path_bound.st_mode)
+        or _source_metadata(path_bound) != _source_metadata(handle_after)
+        or not _source_has_default_stream_only(source)
+        or parent_bound != parent_after
+    ):
+        return parent_bound, None
+    return parent_bound, {
+        **_source_metadata(handle_after),
+        "sha256": digest.hexdigest(),
+        "default_stream_only": True,
+    }
+
+
+def register_synthetic_source(path: str | os.PathLike[str]) -> str:
+    """Register a synthetic source for registration/final snapshot comparison."""
+
+    global _SOURCE_WITNESS_FINISHED
+    run_root, external_root, launch_token = _source_witness_context()
+    try:
+        source = _absolute_lexical(path)
+    except (TypeError, ValueError, OSError):
+        _fail("synthetic source registration received an invalid path")
+    relative = _relative_parts(source, external_root)
+    if not relative or any(
+        component in {"", ".", ".."}
+        or ":" in component
+        or component.rstrip(" .") != component
+        for component in relative
+    ):
+        _fail("synthetic source must be below the current run external root")
+    path_key = ntpath.normcase(str(source))
+    source_id = _source_witness_locator_id(path_key, launch_token)
+    with _SOURCE_WITNESS_LOCK:
+        if _SOURCE_WITNESS_FINISHED:
+            _fail("synthetic source registration is closed")
+        existing = _SOURCE_WITNESS_REGISTRY.get(path_key)
+        parent_before, source_before = _capture_synthetic_source(run_root, source)
+        if (
+            parent_before is None
+            or source_before is None
+            or source_before["nlink"] != 1
+        ):
+            _fail("synthetic source is not a stable single-link regular file")
+        if existing is not None:
+            if (
+                existing["source_id"] != source_id
+                or existing["parent_before"] != parent_before
+                or existing["source_before"] != source_before
+            ):
+                _fail("synthetic source changed during duplicate registration")
+            return source_id
+        if len(_SOURCE_WITNESS_REGISTRY) >= SOURCE_WITNESS_MAX_SOURCES:
+            _fail("synthetic source registration exceeds its fixed limit")
+        _SOURCE_WITNESS_REGISTRY[path_key] = {
+            "path": source,
+            "source_id": source_id,
+            "parent_before": parent_before,
+            "source_before": source_before,
+        }
+    return source_id
+
+
+def _write_source_witness_exclusive(path: Path, payload: dict[str, Any]) -> None:
+    raw = _canonical_json_bytes(payload) + b"\n"
+    if not raw or len(raw) > SOURCE_WITNESS_MAX_BYTES:
+        _fail("source witness result exceeds its fixed byte limit")
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_BINARY", 0)
+    try:
+        descriptor = os.open(path, flags, 0o600)
+    except OSError:
+        _fail("source witness result cannot be created exclusively")
+    try:
+        remaining = memoryview(raw)
+        while remaining:
+            written = os.write(descriptor, remaining)
+            if written <= 0:
+                _fail("source witness result could not be written completely")
+            remaining = remaining[written:]
+        os.fsync(descriptor)
+    except OSError:
+        _fail("source witness result could not be written completely")
+    finally:
+        os.close(descriptor)
+    try:
+        identity = os.lstat(path)
+    except OSError:
+        _fail("source witness result cannot be re-opened")
+    if (
+        not _is_plain(identity)
+        or not stat.S_ISREG(identity.st_mode)
+        or identity.st_nlink != 1
+        or identity.st_size != len(raw)
+    ):
+        _fail("source witness result is not a stable single-link regular file")
+
+
+@pytest.hookimpl(trylast=True)
+def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
+    del session, exitstatus
+    global _SOURCE_WITNESS_FINISHED
+    run_root, _external_root, launch_token = _source_witness_context()
+    with _SOURCE_WITNESS_LOCK:
+        if _SOURCE_WITNESS_FINISHED:
+            _fail("source witness finalization was invoked more than once")
+        _SOURCE_WITNESS_FINISHED = True
+        entries: list[dict[str, Any]] = []
+        for record in sorted(
+            _SOURCE_WITNESS_REGISTRY.values(),
+            key=lambda item: item["source_id"],
+        ):
+            parent_after, source_after = _capture_synthetic_source(
+                run_root,
+                record["path"],
+            )
+            final_state_matches_registration = (
+                parent_after == record["parent_before"]
+                and source_after == record["source_before"]
+            )
+            entries.append(
+                {
+                    "source_id": record["source_id"],
+                    "parent_before": record["parent_before"],
+                    "source_before": record["source_before"],
+                    "parent_after": parent_after,
+                    "source_after": source_after,
+                    "final_state_matches_registration": (
+                        final_state_matches_registration
+                    ),
+                }
+            )
+    matching_final_state_count = sum(
+        1 for entry in entries if entry["final_state_matches_registration"]
+    )
+    unsigned = {
+        "schema_version": SOURCE_WITNESS_SCHEMA_VERSION,
+        "run_id": run_root.name,
+        "launch_token_sha256": hashlib.sha256(
+            launch_token.encode("utf-8", "strict")
+        ).hexdigest(),
+        "source_count": len(entries),
+        "matching_final_state_count": matching_final_state_count,
+        "mismatched_final_state_count": len(entries) - matching_final_state_count,
+        "witness_scope": SOURCE_WITNESS_SCOPE,
+        "registered_source_final_state_matches": (
+            matching_final_state_count == len(entries)
+        ),
+        "sources": entries,
+    }
+    signed = _sign_source_witness_payload(unsigned, launch_token)
+    _write_source_witness_exclusive(
+        run_root / SOURCE_WITNESS_FILE_NAME,
+        signed,
+    )
+
+
 @pytest.hookimpl(tryfirst=True)
 def pytest_configure(config: pytest.Config) -> None:
     project_root = _absolute_lexical(Path(__file__).parent.parent)
-    expected_root = _absolute_lexical(EXPECTED_PROJECT_ROOT)
+    expected_root = _absolute_lexical(VERIFIED_PROJECT_ROOT)
     if not _same_path(project_root, expected_root):
         _fail(f"tests are outside the contracted project root: {project_root}")
     if not _same_path(_absolute_lexical(Path.cwd()), project_root):

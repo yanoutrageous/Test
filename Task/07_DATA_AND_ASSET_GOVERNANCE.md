@@ -12,7 +12,7 @@
 ## 2. 建议存储分区
 
 ```text
-D:\AAA命题\Test\
+<PROJECT_ROOT>\
 ├─ Base\                         # 已在项目内的参考原件，只读保护
 ├─ Copy\
 │  ├─ source\<copy_id>\         # 外部资料不可变副本

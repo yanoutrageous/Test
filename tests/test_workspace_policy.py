@@ -66,12 +66,13 @@ def _context(
     caller: Caller = Caller.TEST_LAB,
     purpose: Purpose = Purpose.TEST,
     operation_id: str = "OP-TEST-001",
+    run_id: str = "RUN-TEST-001",
     scopes: tuple[ScopeId, ...] = (),
     manifest_id: str | None = None,
     classification: DataClassification = DataClassification.INTERNAL,
 ) -> OperationContext:
     return OperationContext(
-        run_id="RUN-TEST-001",
+        run_id=run_id,
         job_id="JOB-TEST-001",
         operation_id=operation_id,
         caller=caller,
@@ -88,12 +89,13 @@ def _issued_context(
     caller: Caller = Caller.TEST_LAB,
     purpose: Purpose = Purpose.TEST,
     operation_id: str = "OP-TEST-001",
+    run_id: str = "RUN-TEST-001",
     scopes: tuple[ScopeId, ...] = (),
     manifest_id: str | None = None,
     classification: DataClassification = DataClassification.INTERNAL,
 ) -> OperationContext:
     return boundary.issue_context(
-        run_id="RUN-TEST-001",
+        run_id=run_id,
         job_id="JOB-TEST-001",
         operation_id=operation_id,
         caller=caller,
@@ -151,6 +153,7 @@ def _ticket(
 
 _SCOPE_TEST_VALUES = {
     ScopeKind.RUN_ID: "RUN-TEST-001",
+    ScopeKind.COPY_LEDGER_EPOCH_ID: "A" * 64,
     ScopeKind.COPY_ID: "COPY-001",
     ScopeKind.JOB_ID: "JOB-TEST-001",
     ScopeKind.STATE_ID: "STATE-001",
@@ -180,6 +183,14 @@ def _normal_grant_case(grant: Any) -> tuple[GuardedPath, OperationContext]:
         value = _SCOPE_TEST_VALUES[binding.scope_kind]
         tail[binding.tail_index] = value
         scopes[binding.scope_kind] = _scope(binding.scope_kind, value)
+    if rule.namespace in {
+        NamespaceId.COPY_SOURCE_LEDGER,
+        NamespaceId.COPY_OPERATION_LEDGER,
+    }:
+        scopes[ScopeKind.RUN_ID] = _scope(
+            ScopeKind.RUN_ID,
+            _SCOPE_TEST_VALUES[ScopeKind.RUN_ID],
+        )
     for scope_kind in grant.required_scopes:
         value = _SCOPE_TEST_VALUES[scope_kind]
         scopes[scope_kind] = _scope(scope_kind, value)
@@ -217,6 +228,692 @@ def policy_lab(tmp_path: Path) -> tuple[Path, Any]:
     return project, _create_test_boundary(project)
 
 
+def _issued_restricted_copy_recovery_context(
+    boundary: Any,
+    *,
+    label: str,
+    classification: DataClassification = DataClassification.RESTRICTED,
+    caller: Caller = Caller.IMPORT_SERVICE,
+    purpose: Purpose = Purpose.COPY_SOURCE,
+    omit_epoch_scope: bool = False,
+    extra_scopes: tuple[ScopeId, ...] = (),
+) -> OperationContext:
+    run_id = f"RUN-COPYREC-{label}"
+    job_id = f"JOB-COPYREC-{label}"
+    operation_id = f"OP-COPYREC-{label}"
+    manifest_id = f"MANIFEST-COPYREC-{label}"
+    scopes = [
+        _scope(ScopeKind.RUN_ID, run_id),
+        _scope(ScopeKind.JOB_ID, job_id),
+        _scope(ScopeKind.OPERATION_ID, operation_id),
+        _scope(ScopeKind.MANIFEST_ID, manifest_id),
+        _scope(ScopeKind.COPY_ID, f"COPY-COPYREC-{label}"),
+        _scope(ScopeKind.CHECKPOINT_ID, f"CHECKPOINT-COPYREC-{label}"),
+    ]
+    if not omit_epoch_scope:
+        scopes.append(_scope(ScopeKind.COPY_LEDGER_EPOCH_ID, "B" * 64))
+    scopes.extend(extra_scopes)
+    return boundary.issue_context(
+        run_id=run_id,
+        job_id=job_id,
+        operation_id=operation_id,
+        caller=caller,
+        purpose=purpose,
+        manifest_id=manifest_id,
+        classification=classification,
+        scopes=tuple(scopes),
+    )
+
+
+def _restricted_recovery_registry(boundary: Any) -> dict[str, Any]:
+    core = object.__getattribute__(boundary, "_TestWorkspaceBoundary__core")
+    return object.__getattribute__(
+        core,
+        "_BoundaryCore__restricted_recovery_records",
+    )
+
+
+def _restricted_recovery_opaque_values(capability: Any) -> tuple[Any, Any]:
+    locator_id = object.__getattribute__(
+        capability,
+        "_RestrictedRecoveryLocatorCapability__locator_id",
+    )
+    authenticator = object.__getattribute__(
+        capability,
+        "_RestrictedRecoveryLocatorCapability__authenticator",
+    )
+    return locator_id, authenticator
+
+
+def test_restricted_recovery_locator_is_exact_owner_thread_and_single_use(
+    policy_lab: tuple[Path, Any],
+) -> None:
+    project, boundary = policy_lab
+    run_id = "RUN-RECOVERY-001"
+    job_id = "JOB-RECOVERY-001"
+    operation_id = "OP-RECOVERY-001"
+    manifest_id = "MANIFEST-RECOVERY-001"
+    copy_id = "COPY-RECOVERY-001"
+    transaction_id = "TXN-RECOVERY-001"
+    context = boundary.issue_context(
+        run_id=run_id,
+        job_id=job_id,
+        operation_id=operation_id,
+        caller=Caller.IMPORT_SERVICE,
+        purpose=Purpose.COPY_SOURCE,
+        manifest_id=manifest_id,
+        classification=DataClassification.RESTRICTED,
+        scopes=(
+            _scope(ScopeKind.RUN_ID, run_id),
+            _scope(ScopeKind.JOB_ID, job_id),
+            _scope(ScopeKind.OPERATION_ID, operation_id),
+            _scope(ScopeKind.MANIFEST_ID, manifest_id),
+            _scope(ScopeKind.COPY_ID, copy_id),
+            _scope(ScopeKind.CHECKPOINT_ID, "CHECKPOINT-RECOVERY-001"),
+        ),
+    )
+    capability = boundary._issue_restricted_recovery_locator(
+        context,
+        transaction_id,
+    )
+    assert type(capability).__slots__ == ("__locator_id", "__authenticator")
+    assert not hasattr(capability, "__dict__")
+    capability_members = " ".join(dir(capability)).casefold()
+    for forbidden_member in (
+        "core",
+        "context",
+        "transaction",
+        "purpose",
+        "source",
+        "target",
+        "path",
+        "owner",
+        "thread",
+        "consumed",
+    ):
+        assert forbidden_member not in capability_members
+    representation = repr(capability)
+    assert representation == "_RestrictedRecoveryLocatorCapability(opaque=True)"
+    for secret in (copy_id, job_id, manifest_id, transaction_id):
+        assert secret not in representation
+    with pytest.raises(TypeError):
+        pickle.dumps(capability)
+    with pytest.raises(ProductionBoundaryError):
+        boundary._consume_restricted_recovery_locator(
+            Path("Copy/restricted/COPY-FAKE"),
+            transaction_id,
+        )
+
+    foreign_root = project.parent / "foreign" / "project"
+    foreign_root.mkdir(parents=True)
+    foreign = _create_test_boundary(foreign_root)
+    with pytest.raises(ProductionBoundaryError):
+        foreign._consume_restricted_recovery_locator(
+            capability,
+            transaction_id,
+        )
+    with pytest.raises(ProductionBoundaryError):
+        boundary._consume_restricted_recovery_locator(
+            capability,
+            "TXN-RECOVERY-WRONG",
+        )
+    assert boundary.diagnostic_registry_counts["restricted_recovery_live"] == 1
+
+    def cross_thread_consume() -> None:
+        boundary._consume_restricted_recovery_locator(
+            capability,
+            transaction_id,
+        )
+
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        with pytest.raises(ProductionBoundaryError):
+            pool.submit(cross_thread_consume).result()
+
+    source, target = boundary._consume_restricted_recovery_locator(
+        capability,
+        transaction_id,
+    )
+    assert source == (
+        Path("tmp")
+        / "jobs"
+        / "RESTRICTED"
+        / job_id
+        / "publish"
+        / manifest_id
+    )
+    assert target == Path("Copy") / "restricted" / copy_id
+    with pytest.raises(ProductionBoundaryError):
+        boundary._consume_restricted_recovery_locator(
+            capability,
+            transaction_id,
+        )
+    assert boundary.release_context(context)
+
+
+def test_restricted_recovery_rejects_reused_numeric_thread_ident(
+    policy_lab: tuple[Path, Any],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _project, boundary = policy_lab
+    context = _issued_restricted_copy_recovery_context(
+        boundary,
+        label="THREAD-IDENT-REUSE",
+    )
+    capability = boundary._issue_restricted_copy_recovery_locator(context)
+    locator_id, _authenticator = _restricted_recovery_opaque_values(capability)
+    registry = _restricted_recovery_registry(boundary)
+    record = registry[locator_id]
+    assert record.owner_thread_object is production_guard_module.threading.current_thread()
+    assert record.owner_thread_object.ident == record.owner_thread
+
+    replacement_thread = production_guard_module.threading.Thread()
+    replacement_thread._ident = record.owner_thread
+    with monkeypatch.context() as identity_reuse:
+        identity_reuse.setattr(
+            production_guard_module.threading,
+            "current_thread",
+            lambda: replacement_thread,
+        )
+        with pytest.raises(ProductionBoundaryError) as rejected:
+            boundary._consume_restricted_copy_recovery_locator(
+                capability,
+                context,
+            )
+    assert rejected.value.code is BoundaryErrorCode.INVALID_CONTEXT
+    assert locator_id in registry
+
+    boundary._consume_restricted_copy_recovery_locator(capability, context)
+    assert boundary.release_context(context)
+
+
+def test_restricted_recovery_thread_object_registry_tamper_is_authenticated(
+    policy_lab: tuple[Path, Any],
+) -> None:
+    _project, boundary = policy_lab
+    context = _issued_restricted_copy_recovery_context(
+        boundary,
+        label="THREAD-OBJECT-TAMPER",
+    )
+    capability = boundary._issue_restricted_copy_recovery_locator(context)
+    locator_id, _authenticator = _restricted_recovery_opaque_values(capability)
+    registry = _restricted_recovery_registry(boundary)
+    original_record = registry[locator_id]
+    replacement_thread = production_guard_module.threading.Thread()
+    replacement_thread._ident = original_record.owner_thread
+    registry[locator_id] = replace(
+        original_record,
+        owner_thread_object=replacement_thread,
+    )
+
+    with pytest.raises(ProductionBoundaryError) as rejected:
+        boundary._consume_restricted_copy_recovery_locator(capability, context)
+    assert rejected.value.code is BoundaryErrorCode.BOUNDARY_STATE_CHANGED
+    assert locator_id in registry
+
+    registry[locator_id] = original_record
+    boundary._consume_restricted_copy_recovery_locator(capability, context)
+    assert boundary.release_context(context)
+
+
+def test_restricted_recovery_locator_tamper_is_redacted_and_does_not_consume(
+    policy_lab: tuple[Path, Any],
+) -> None:
+    _project, boundary = policy_lab
+    context = _issued_restricted_copy_recovery_context(
+        boundary,
+        label="TAMPER",
+    )
+    capability = boundary._issue_restricted_copy_recovery_locator(context)
+    locator_id, authenticator = _restricted_recovery_opaque_values(capability)
+    registry = _restricted_recovery_registry(boundary)
+    assert registry[locator_id].context is context
+    record_representation = repr(registry[locator_id])
+    assert record_representation.endswith("locator='<redacted>')")
+    for secret in (
+        locator_id,
+        "JOB-COPYREC-TAMPER",
+        "MANIFEST-COPYREC-TAMPER",
+        "COPY-COPYREC-TAMPER",
+    ):
+        assert secret not in record_representation
+
+    object.__setattr__(
+        capability,
+        "_RestrictedRecoveryLocatorCapability__locator_id",
+        ["not-hashable"],
+    )
+    with pytest.raises(ProductionBoundaryError) as malformed_locator:
+        boundary._consume_restricted_copy_recovery_locator(capability, context)
+    assert malformed_locator.value.code is BoundaryErrorCode.INVALID_CONTEXT
+    assert locator_id in registry
+    assert boundary.diagnostic_registry_counts["restricted_recovery_live"] == 1
+
+    object.__setattr__(
+        capability,
+        "_RestrictedRecoveryLocatorCapability__locator_id",
+        locator_id,
+    )
+    object.__setattr__(
+        capability,
+        "_RestrictedRecoveryLocatorCapability__authenticator",
+        bytearray(authenticator),
+    )
+    with pytest.raises(ProductionBoundaryError) as malformed_authenticator:
+        boundary._consume_restricted_copy_recovery_locator(capability, context)
+    assert malformed_authenticator.value.code is BoundaryErrorCode.INVALID_CONTEXT
+    assert locator_id in registry
+
+    object.__setattr__(
+        capability,
+        "_RestrictedRecoveryLocatorCapability__authenticator",
+        b"X" * 32,
+    )
+    with pytest.raises(ProductionBoundaryError) as wrong_authenticator:
+        boundary._consume_restricted_copy_recovery_locator(capability, context)
+    assert wrong_authenticator.value.code is BoundaryErrorCode.INVALID_CONTEXT
+    assert locator_id in registry
+    redacted_error = str(wrong_authenticator.value)
+    for secret in (
+        locator_id,
+        "JOB-COPYREC-TAMPER",
+        "MANIFEST-COPYREC-TAMPER",
+        "COPY-COPYREC-TAMPER",
+        "tmp/jobs/RESTRICTED",
+        "Copy/restricted",
+    ):
+        assert secret not in redacted_error
+
+    object.__setattr__(
+        capability,
+        "_RestrictedRecoveryLocatorCapability__authenticator",
+        authenticator,
+    )
+    boundary._consume_restricted_copy_recovery_locator(capability, context)
+    assert locator_id not in registry
+    assert boundary.release_context(context)
+
+
+def test_restricted_recovery_locator_cross_token_mix_cannot_consume_either_record(
+    policy_lab: tuple[Path, Any],
+) -> None:
+    _project, boundary = policy_lab
+    context = _issued_restricted_copy_recovery_context(
+        boundary,
+        label="TOKEN-MIX",
+    )
+    first = boundary._issue_restricted_copy_recovery_locator(context)
+    second = boundary._issue_restricted_copy_recovery_locator(context)
+    first_id, first_authenticator = _restricted_recovery_opaque_values(first)
+    second_id, second_authenticator = _restricted_recovery_opaque_values(second)
+    registry = _restricted_recovery_registry(boundary)
+
+    object.__setattr__(
+        first,
+        "_RestrictedRecoveryLocatorCapability__locator_id",
+        second_id,
+    )
+    with pytest.raises(ProductionBoundaryError):
+        boundary._consume_restricted_copy_recovery_locator(first, context)
+    assert set(registry) == {first_id, second_id}
+
+    object.__setattr__(
+        first,
+        "_RestrictedRecoveryLocatorCapability__locator_id",
+        first_id,
+    )
+    object.__setattr__(
+        first,
+        "_RestrictedRecoveryLocatorCapability__authenticator",
+        second_authenticator,
+    )
+    with pytest.raises(ProductionBoundaryError):
+        boundary._consume_restricted_copy_recovery_locator(first, context)
+    assert set(registry) == {first_id, second_id}
+
+    object.__setattr__(
+        first,
+        "_RestrictedRecoveryLocatorCapability__authenticator",
+        first_authenticator,
+    )
+    boundary._consume_restricted_copy_recovery_locator(first, context)
+    boundary._consume_restricted_copy_recovery_locator(second, context)
+    assert boundary.release_context(context)
+
+
+@pytest.mark.parametrize(
+    ("field_name", "changed_value"),
+    [
+        ("source_relative_path", Path("tmp/jobs/RESTRICTED/FOREIGN/publish/FOREIGN")),
+        ("target_relative_path", Path("Copy/restricted/COPY-FOREIGN")),
+        ("binding_sha256", "0" * 64),
+        ("policy_digest", "0" * 64),
+        ("core_instance_id", "FOREIGN-CORE"),
+    ],
+)
+def test_restricted_recovery_record_authority_is_bound_and_failure_is_nonconsuming(
+    policy_lab: tuple[Path, Any],
+    field_name: str,
+    changed_value: Any,
+) -> None:
+    _project, boundary = policy_lab
+    context = _issued_restricted_copy_recovery_context(
+        boundary,
+        label=f"BOUND-{field_name.upper().replace('_', '-')}",
+    )
+    capability = boundary._issue_restricted_copy_recovery_locator(context)
+    locator_id, _authenticator = _restricted_recovery_opaque_values(capability)
+    registry = _restricted_recovery_registry(boundary)
+    original_record = registry[locator_id]
+    registry[locator_id] = replace(
+        original_record,
+        **{field_name: changed_value},
+    )
+
+    with pytest.raises(ProductionBoundaryError) as rejected:
+        boundary._consume_restricted_copy_recovery_locator(capability, context)
+    assert rejected.value.code is BoundaryErrorCode.INVALID_CONTEXT
+    assert locator_id in registry
+
+    registry[locator_id] = original_record
+    boundary._consume_restricted_copy_recovery_locator(capability, context)
+    assert boundary.release_context(context)
+
+
+def test_restricted_recovery_record_rejects_equal_pathlike_return_gadget(
+    policy_lab: tuple[Path, Any],
+) -> None:
+    _project, boundary = policy_lab
+    context = _issued_restricted_copy_recovery_context(
+        boundary,
+        label="PATHLIKE-GADGET",
+    )
+    capability = boundary._issue_restricted_copy_recovery_locator(context)
+    locator_id, _authenticator = _restricted_recovery_opaque_values(capability)
+    registry = _restricted_recovery_registry(boundary)
+    original_record = registry[locator_id]
+
+    class _EqualPathLike:
+        def __eq__(self, _other: object) -> bool:
+            return True
+
+        def __fspath__(self) -> str:
+            return "Copy/restricted/FOREIGN-COPY"
+
+    registry[locator_id] = replace(
+        original_record,
+        source_relative_path=_EqualPathLike(),
+    )
+
+    with pytest.raises(ProductionBoundaryError) as rejected:
+        boundary._consume_restricted_copy_recovery_locator(capability, context)
+    assert rejected.value.code is BoundaryErrorCode.BOUNDARY_STATE_CHANGED
+    assert locator_id in registry
+
+    registry[locator_id] = original_record
+    source, target = boundary._consume_restricted_copy_recovery_locator(
+        capability,
+        context,
+    )
+    assert type(source) is type(Path())
+    assert type(target) is type(Path())
+    assert "FOREIGN-COPY" not in source.as_posix()
+    assert "FOREIGN-COPY" not in target.as_posix()
+    assert boundary.release_context(context)
+
+
+def test_restricted_recovery_registry_corruption_fails_closed_without_consuming(
+    policy_lab: tuple[Path, Any],
+) -> None:
+    _project, boundary = policy_lab
+    context = _issued_restricted_copy_recovery_context(
+        boundary,
+        label="REGISTRY-CORRUPT",
+    )
+    capability = boundary._issue_restricted_copy_recovery_locator(context)
+    locator_id, _authenticator = _restricted_recovery_opaque_values(capability)
+    registry = _restricted_recovery_registry(boundary)
+    original_record = registry[locator_id]
+    registry[locator_id] = replace(original_record, locator_id="0" * 64)
+
+    with pytest.raises(ProductionBoundaryError) as rejected:
+        boundary._consume_restricted_copy_recovery_locator(capability, context)
+    assert rejected.value.code is BoundaryErrorCode.BOUNDARY_STATE_CHANGED
+    assert locator_id in registry
+
+    registry[locator_id] = original_record
+    boundary._consume_restricted_copy_recovery_locator(capability, context)
+    assert boundary.release_context(context)
+
+
+def test_restricted_recovery_registry_is_separately_bounded_and_nonconsuming(
+    policy_lab: tuple[Path, Any],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _project, boundary = policy_lab
+    monkeypatch.setattr(production_guard_module, "_MAX_REGISTRY_ITEMS", 1)
+    context = _issued_restricted_copy_recovery_context(
+        boundary,
+        label="CAPACITY",
+    )
+    first = boundary._issue_restricted_copy_recovery_locator(context)
+    with pytest.raises(ProductionBoundaryError) as rejected:
+        boundary._issue_restricted_copy_recovery_locator(context)
+    assert rejected.value.code is BoundaryErrorCode.REGISTRY_CAPACITY_EXCEEDED
+    assert boundary.diagnostic_registry_counts["restricted_recovery_live"] == 1
+
+    boundary._consume_restricted_copy_recovery_locator(first, context)
+    assert boundary.release_context(context)
+
+
+@pytest.mark.parametrize("finish_via_job_pin", [False, True])
+def test_restricted_recovery_context_revoke_cleans_live_records(
+    policy_lab: tuple[Path, Any],
+    finish_via_job_pin: bool,
+) -> None:
+    _project, boundary = policy_lab
+    context = _issued_restricted_copy_recovery_context(
+        boundary,
+        label="FINISH" if finish_via_job_pin else "RELEASE",
+    )
+    capability = boundary._issue_restricted_copy_recovery_locator(context)
+    assert boundary.diagnostic_registry_counts["restricted_recovery_live"] == 1
+
+    if finish_via_job_pin:
+        binding_sha256 = "a" * 64
+        pin = boundary._pin_job_operation_context(context, binding_sha256)
+        boundary._finish_job_operation_context(context, pin, binding_sha256)
+    else:
+        assert boundary.release_context(context)
+    assert boundary.diagnostic_registry_counts["restricted_recovery_live"] == 0
+
+    with pytest.raises(ProductionBoundaryError) as rejected:
+        boundary._consume_restricted_copy_recovery_locator(capability, context)
+    assert rejected.value.code is BoundaryErrorCode.INVALID_CONTEXT
+
+
+def test_restricted_copy_recovery_locator_is_opaque_thread_owned_and_single_use(
+    policy_lab: tuple[Path, Any],
+) -> None:
+    _project, boundary = policy_lab
+    context = _issued_restricted_copy_recovery_context(
+        boundary,
+        label="ONESHOT",
+    )
+    capability = boundary._issue_restricted_copy_recovery_locator(context)
+    assert "COPY-COPYREC-ONESHOT" not in repr(capability)
+    with pytest.raises(TypeError):
+        pickle.dumps(capability)
+    with pytest.raises(ProductionBoundaryError):
+        boundary._consume_restricted_copy_recovery_locator(
+            Path("Copy/restricted/COPY-FORGED"),
+            context,
+        )
+
+    def cross_thread_consume() -> None:
+        boundary._consume_restricted_copy_recovery_locator(capability, context)
+
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        with pytest.raises(ProductionBoundaryError):
+            pool.submit(cross_thread_consume).result()
+
+    source, target = boundary._consume_restricted_copy_recovery_locator(
+        capability,
+        context,
+    )
+    assert source == (
+        Path("tmp")
+        / "jobs"
+        / "RESTRICTED"
+        / "JOB-COPYREC-ONESHOT"
+        / "publish"
+        / "MANIFEST-COPYREC-ONESHOT"
+    )
+    assert target == Path("Copy/restricted/COPY-COPYREC-ONESHOT")
+    with pytest.raises(ProductionBoundaryError):
+        boundary._consume_restricted_copy_recovery_locator(capability, context)
+    assert boundary.release_context(context)
+
+
+def test_restricted_copy_recovery_locator_is_purpose_and_context_isolated(
+    policy_lab: tuple[Path, Any],
+) -> None:
+    _project, boundary = policy_lab
+    context = _issued_restricted_copy_recovery_context(
+        boundary,
+        label="ISOLATED",
+    )
+    equal_claims_context = _issued_restricted_copy_recovery_context(
+        boundary,
+        label="ISOLATED",
+    )
+    assert equal_claims_context == context
+    assert equal_claims_context is not context
+    shared_binding_id = f"COPYREC-{context.authority_ticket_id}"
+    generic_capability = boundary._issue_restricted_recovery_locator(
+        context,
+        shared_binding_id,
+    )
+    with pytest.raises(ProductionBoundaryError):
+        boundary._consume_restricted_copy_recovery_locator(
+            generic_capability,
+            context,
+        )
+    boundary._consume_restricted_recovery_locator(
+        generic_capability,
+        shared_binding_id,
+    )
+
+    copy_capability = boundary._issue_restricted_copy_recovery_locator(context)
+    with pytest.raises(ProductionBoundaryError):
+        boundary._consume_restricted_recovery_locator(
+            copy_capability,
+            shared_binding_id,
+        )
+    boundary._consume_restricted_copy_recovery_locator(copy_capability, context)
+
+    exact_context_capability = boundary._issue_restricted_copy_recovery_locator(
+        context
+    )
+    with pytest.raises(ProductionBoundaryError):
+        boundary._consume_restricted_copy_recovery_locator(
+            exact_context_capability,
+            equal_claims_context,
+        )
+    boundary._consume_restricted_copy_recovery_locator(
+        exact_context_capability,
+        context,
+    )
+    assert boundary.release_context(equal_claims_context)
+    assert boundary.release_context(context)
+
+
+def test_restricted_copy_recovery_locator_rejects_foreign_boundary(
+    policy_lab: tuple[Path, Any],
+) -> None:
+    project, boundary = policy_lab
+    context = _issued_restricted_copy_recovery_context(
+        boundary,
+        label="BOUNDARY",
+    )
+    capability = boundary._issue_restricted_copy_recovery_locator(context)
+    foreign_root = project.parent / "foreign-copy" / "project"
+    foreign_root.mkdir(parents=True)
+    foreign = _create_test_boundary(foreign_root)
+    foreign_context = _issued_restricted_copy_recovery_context(
+        foreign,
+        label="BOUNDARY",
+    )
+    with pytest.raises(ProductionBoundaryError):
+        foreign._consume_restricted_copy_recovery_locator(
+            capability,
+            foreign_context,
+        )
+    boundary._consume_restricted_copy_recovery_locator(capability, context)
+    assert foreign.release_context(foreign_context)
+    assert boundary.release_context(context)
+
+
+@pytest.mark.parametrize(
+    ("classification", "omit_epoch_scope", "extra_scopes"),
+    [
+        (DataClassification.INTERNAL, False, ()),
+        (DataClassification.RESTRICTED, True, ()),
+        (
+            DataClassification.RESTRICTED,
+            False,
+            (_scope(ScopeKind.STATE_ID, "STATE-COPYREC-EXTRA"),),
+        ),
+    ],
+)
+def test_restricted_copy_recovery_locator_requires_exact_complete_scopes(
+    policy_lab: tuple[Path, Any],
+    classification: DataClassification,
+    omit_epoch_scope: bool,
+    extra_scopes: tuple[ScopeId, ...],
+) -> None:
+    _project, boundary = policy_lab
+    context = _issued_restricted_copy_recovery_context(
+        boundary,
+        label=(
+            "INTERNAL"
+            if classification is DataClassification.INTERNAL
+            else "MISSING" if omit_epoch_scope else "EXTRA"
+        ),
+        classification=classification,
+        omit_epoch_scope=omit_epoch_scope,
+        extra_scopes=extra_scopes,
+    )
+    with pytest.raises(ProductionBoundaryError) as rejected:
+        boundary._issue_restricted_copy_recovery_locator(context)
+    assert rejected.value.code is BoundaryErrorCode.INVALID_CONTEXT
+    assert boundary.release_context(context)
+
+
+@pytest.mark.parametrize(
+    ("caller", "purpose"),
+    [
+        (Caller.TEST_LAB, Purpose.COPY_SOURCE),
+        (Caller.IMPORT_SERVICE, Purpose.TEST),
+    ],
+)
+def test_restricted_copy_recovery_locator_requires_exact_caller_and_purpose(
+    policy_lab: tuple[Path, Any],
+    caller: Caller,
+    purpose: Purpose,
+) -> None:
+    _project, boundary = policy_lab
+    context = _issued_restricted_copy_recovery_context(
+        boundary,
+        label=f"AUTH-{caller.value}-{purpose.value}",
+        caller=caller,
+        purpose=purpose,
+    )
+    with pytest.raises(ProductionBoundaryError) as rejected:
+        boundary._issue_restricted_copy_recovery_locator(context)
+    assert rejected.value.code is BoundaryErrorCode.INVALID_CONTEXT
+    assert boundary.release_context(context)
+
+
 @pytest.mark.parametrize(
     ("field", "value"),
     [
@@ -241,6 +938,8 @@ def test_operation_context_rejects_noncanonical_ids(field: str, value: str) -> N
 
 
 def test_operation_context_rejects_unknown_enums_and_scope_mismatch() -> None:
+    with pytest.raises(ContextError, match="opaque"):
+        ScopeId(ScopeKind.COPY_LEDGER_EPOCH_ID, "RUN-COPY-001")
     with pytest.raises(ContextError, match="caller"):
         OperationContext(
             run_id="RUN-TEST-001",
@@ -327,7 +1026,7 @@ def test_policy_uses_longest_component_prefix_and_stable_digest() -> None:
     assert policy.classify(Path("data/db/question_bank.sqlite3-wal")).namespace is NamespaceId.DATABASE_SIDECAR
     assert policy.classify(Path("data/db/question_bank.sqlite3")).namespace is NamespaceId.ACTIVE_DATABASE
     assert NamespacePolicy(tuple(reversed(DEFAULT_RULES))).digest == policy.digest
-    assert policy.digest == "8df50ded63443c3310603614fd6d317234ce026c351870d0488a84dd1cfe4d88"
+    assert policy.digest == "1d50da20075216ea7d3b20f68807ffe2cd108e9425a2c1c5ccc33292efe4d6cc"
     with pytest.raises(ValueError, match="no exact grant"):
         NamespacePolicy(DEFAULT_RULES, grants=())
 
@@ -492,6 +1191,15 @@ def test_policy_copies_public_configuration_and_detects_internal_tampering() -> 
     with pytest.raises(PolicyIntegrityError, match="cannot be recomputed"):
         _ = same_value_rule_policy.digest
 
+    topology_policy = NamespacePolicy()
+    object.__setattr__(
+        topology_policy,
+        "_publish_topology",
+        frozenset(),
+    )
+    with pytest.raises(PolicyIntegrityError, match="changed after construction"):
+        _ = topology_policy.digest
+
 
 def test_policy_constructor_rejects_any_unreviewed_grant_set_change() -> None:
     grant = next(
@@ -564,7 +1272,8 @@ def test_every_normal_capability_matches_the_exact_actor_matrix() -> None:
 
 
 def test_every_publish_topology_has_an_exact_actor_intersection() -> None:
-    for source_namespace, target_namespace in production_guard_module._PUBLISH_TOPOLOGY:
+    policy = NamespacePolicy()
+    for source_namespace, target_namespace in policy.publish_topology:
         source_actors = {
             (grant.caller, grant.purpose)
             for grant in EXACT_GRANTS
@@ -761,7 +1470,7 @@ def test_restricted_rule_actor_pairs_block_future_cross_product_grants() -> None
         if grant.namespace is NamespaceId.COPY_WORK_RESTRICTED
         and not grant.paired
         and grant.intent is PathIntent.EXISTING_WRITE
-        and grant.purpose is Purpose.BUILD_DERIVED
+        and grant.purpose is Purpose.COPY_SOURCE
     )
     append_base = next(
         grant
@@ -927,6 +1636,8 @@ def test_internal_read_metadata_must_equal_exact_grants(
     "namespace",
     [
         NamespaceId.COPY_LEDGER,
+        NamespaceId.COPY_SOURCE_LEDGER,
+        NamespaceId.COPY_OPERATION_LEDGER,
         NamespaceId.AUDIT_LOG,
         NamespaceId.AUDIT_KEY_REVISION,
     ],
@@ -1097,30 +1808,43 @@ def test_active_database_and_sidecars_are_exact_database_capabilities() -> None:
 
 def test_segment_namespaces_are_fixed_read_only_files_not_direct_write_surfaces() -> None:
     policy = NamespacePolicy()
-    allowed = policy.authorize(
-        _ticket(
-            "Copy/ledger/segments/COPY-001/00000000000000000000-"
-            + "a" * 64
-            + ".json",
-            intent=PathIntent.EXISTING_READ,
-            expected_kind=ExpectedKind.FILE,
-            exists=True,
-        ),
-        _context(
-            caller=Caller.IMPORT_SERVICE,
-            purpose=Purpose.COPY_SOURCE,
-            scopes=(_scope(ScopeKind.COPY_ID, "COPY-001"),),
-        ),
-    )
-    assert allowed.namespace is NamespaceId.COPY_LEDGER
+    opaque_epoch = "A" * 64
+    for ledger_kind, namespace in (
+        ("source", NamespaceId.COPY_SOURCE_LEDGER),
+        ("copy", NamespaceId.COPY_OPERATION_LEDGER),
+    ):
+        allowed = policy.authorize(
+            _ticket(
+                f"Copy/ledger/{ledger_kind}/segments/{opaque_epoch}/"
+                "00000000000000000000-" + "a" * 64 + ".json",
+                intent=PathIntent.EXISTING_READ,
+                expected_kind=ExpectedKind.FILE,
+                exists=True,
+            ),
+            _context(
+                caller=Caller.IMPORT_SERVICE,
+                purpose=Purpose.COPY_SOURCE,
+                run_id="RUN-COPY-001",
+                scopes=(
+                    _scope(ScopeKind.RUN_ID, "RUN-COPY-001"),
+                    _scope(ScopeKind.COPY_LEDGER_EPOCH_ID, opaque_epoch),
+                ),
+            ),
+        )
+        assert allowed.namespace is namespace
     for path, intent, kind in (
         ("Copy/ledger/events.jsonl", PathIntent.EXISTING_READ, ExpectedKind.FILE),
         (
-            "Copy/ledger/segments/COPY-001/00000000000000000000-" + "a" * 64 + ".json",
+            f"Copy/ledger/source/segments/{opaque_epoch}/"
+            "00000000000000000000-" + "a" * 64 + ".json",
             PathIntent.NEW_WRITE,
             ExpectedKind.FILE,
         ),
-        ("Copy/ledger/segments/COPY-001", PathIntent.CREATE_DIRECTORY, ExpectedKind.DIRECTORY),
+        (
+            f"Copy/ledger/source/segments/{opaque_epoch}",
+            PathIntent.CREATE_DIRECTORY,
+            ExpectedKind.DIRECTORY,
+        ),
         ("Copy/ledger", PathIntent.CREATE_DIRECTORY, ExpectedKind.DIRECTORY),
     ):
         with pytest.raises(NamespacePolicyError):
@@ -1128,6 +1852,63 @@ def test_segment_namespaces_are_fixed_read_only_files_not_direct_write_surfaces(
                 _ticket(path, intent=intent, expected_kind=kind),
                 _context(caller=Caller.IMPORT_SERVICE, purpose=Purpose.COPY_SOURCE),
             )
+
+    for path, epoch_scope in (
+        (
+            "Copy/ledger/source/segments/RUN-COPY-001/"
+            + "00000000000000000000-"
+            + "a" * 64
+            + ".json",
+            opaque_epoch,
+        ),
+        (
+            f"Copy/ledger/source/segments/{opaque_epoch}/"
+            + "00000000000000000000-"
+            + "a" * 64
+            + ".json",
+            "B" * 64,
+        ),
+    ):
+        with pytest.raises(NamespacePolicyError) as mismatch:
+            policy.authorize(
+                _ticket(
+                    path,
+                    intent=PathIntent.EXISTING_READ,
+                    expected_kind=ExpectedKind.FILE,
+                    exists=True,
+                ),
+                _context(
+                    caller=Caller.IMPORT_SERVICE,
+                    purpose=Purpose.COPY_SOURCE,
+                    run_id="RUN-COPY-001",
+                    scopes=(
+                        _scope(ScopeKind.RUN_ID, "RUN-COPY-001"),
+                        _scope(ScopeKind.COPY_LEDGER_EPOCH_ID, epoch_scope),
+                    ),
+                ),
+            )
+        assert mismatch.value.code is PolicyErrorCode.SCOPE_MISMATCH
+
+    with pytest.raises(NamespacePolicyError) as missing_run:
+        policy.authorize(
+            _ticket(
+                f"Copy/ledger/source/segments/{opaque_epoch}/"
+                + "00000000000000000000-"
+                + "a" * 64
+                + ".json",
+                intent=PathIntent.EXISTING_READ,
+                expected_kind=ExpectedKind.FILE,
+                exists=True,
+            ),
+            _context(
+                caller=Caller.IMPORT_SERVICE,
+                purpose=Purpose.COPY_SOURCE,
+                scopes=(
+                    _scope(ScopeKind.COPY_LEDGER_EPOCH_ID, opaque_epoch),
+                ),
+            ),
+        )
+    assert missing_run.value.code is PolicyErrorCode.SCOPE_REQUIRED
 
 
 def test_audit_key_revision_is_restricted_read_only_and_not_report_visible() -> None:
@@ -1180,10 +1961,11 @@ def test_exact_grants_reject_caller_purpose_cross_products(
     caller: Caller,
     purpose: Purpose,
 ) -> None:
+    opaque_epoch = "A" * 64
     with pytest.raises(NamespacePolicyError):
         NamespacePolicy().authorize(
             _ticket(
-                "Copy/ledger/segments/COPY-001/00000000000000000000-"
+                f"Copy/ledger/source/segments/{opaque_epoch}/00000000000000000000-"
                 + "a" * 64
                 + ".json",
                 intent=PathIntent.EXISTING_READ,
@@ -1193,7 +1975,11 @@ def test_exact_grants_reject_caller_purpose_cross_products(
             _context(
                 caller=caller,
                 purpose=purpose,
-                scopes=(_scope(ScopeKind.COPY_ID, "COPY-001"),),
+                run_id="RUN-COPY-001",
+                scopes=(
+                    _scope(ScopeKind.RUN_ID, "RUN-COPY-001"),
+                    _scope(ScopeKind.COPY_LEDGER_EPOCH_ID, opaque_epoch),
+                ),
             ),
         )
 
@@ -1309,6 +2095,7 @@ def test_restricted_context_cannot_downgrade_into_internal_partitions(
         (Caller.REPORT_SERVICE, Purpose.BUILD_EXPORT),
         (Caller.DATABASE_SERVICE, Purpose.MUTATE_DATABASE),
         (Caller.ASSET_SERVICE, Purpose.BUILD_DERIVED),
+        (Caller.IMPORT_SERVICE, Purpose.BUILD_DERIVED),
     ],
 )
 def test_restricted_staging_uses_least_privilege_import_actors(
@@ -1375,6 +2162,13 @@ def test_fixed_production_factory_has_no_injection_and_writer_is_closed() -> Non
         ProductionWorkspaceBoundary(_guard=object())  # type: ignore[call-arg]
     with pytest.raises(TypeError):
         ProductionWorkspaceBoundary()
+    for forbidden_surface in (
+        "_issue_restricted_recovery_locator",
+        "_consume_restricted_recovery_locator",
+        "_issue_restricted_copy_recovery_locator",
+        "_consume_restricted_copy_recovery_locator",
+    ):
+        assert not hasattr(boundary, forbidden_surface)
 
 
 def test_fixed_production_boundary_has_one_concurrent_cold_start() -> None:

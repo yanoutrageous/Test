@@ -6,6 +6,7 @@
 - 影响里程碑：M0—M5
 - Requirement IDs：`M0-SAFE-001`—`M0-SAFE-007`
 - 补充 ADR：`ADR-2026-002-workspace-guard-capability-boundaries.md`、`ADR-2026-003-fixed-production-boundary-and-candidate-only-policy.md`
+- 后续修订：`ADR-2026-005`取代固定 D 盘物理路径；本文既有 run 路径继续作为历史证据
 
 ## 背景与已确认事实
 
@@ -196,6 +197,82 @@ S3-E 采用以下不可逆约束：
 Windows 共享语义的实测补充：source-root handle在创建时取得`FILE_ADD_FILE/FILE_ADD_SUBDIRECTORY`，逻辑 seal 不能撤回既有 access。因此独立 target verification handle 必须 share READ/WRITE/DELETE 才能与原 handle共存；原 handle仍只 share READ，外部新写 handle仍被拒绝。该要求不是 child namespace 强锁。
 
 S3-E 仍不声称 hostile-writer 原子 snapshot。普通用户态目录 handle无法冻结 child namespace，且 rename 前必须关闭 descendant handles。named mutex约束本应用协作写者；最后检查、no-replace、post-rescan和恢复真值表负责检测剩余竞态，检测到不确定性只封存现场。
+
+## S3-F 设计冻结补充：合成外源 Copy 与独立双账本
+
+S3-F 在实现前冻结以下合同；本节若与本 ADR 前文单一`Copy/ledger/segments`示意冲突，以本节为准。该变更只影响 Test-local candidate，生产 writer 继续断开。
+
+### 1. 范围和外源只读能力
+
+1. S3-F 只处理 safe launcher 的`<run>/external/`内合成单文件；模拟项目根为同一 run 下的`<run>/project/`。两者都位于当前经验证的`PROJECT_ROOT\tmp\test_lab\RUN-*`内，但 external 必须在模拟 project 外；不得读取真实原卷、活动数据库或真实 PROJECT_ROOT 外资料。
+2. 新建独立`SyntheticReferenceReadPolicy`和私有 factory。该 authority 只有`EXISTING_READ`，不得复用、改根或暴露带 mutation API 的`WorkspaceGuard`/`_WindowsHandleWriter`；固定 root、policy digest、run marker、COPY_ID、classification、owner thread 和单次 lifecycle 全部进入能力绑定。
+3. source capability 从根到文件逐级使用 no-follow handle，目录和文件均拒绝 Reparse；源文件只允许普通、单链接、默认 stream 文件。source file handle 在整个 Copy 生命周期保持只读并拒绝 write/delete sharing；开始、读取后和返回前从同一 handle 重算 volume/file ID、大小、SHA-256 和时间/变化证据。
+4. S3-F 外源输入上限固定为一个不超过 64 MiB 的文件；目录、多文件输入、ADS、硬链接、named pipe 和不稳定对象不在本切片范围。Copy 对象固定包含外源逐字节副本`payload.bin`和系统生成的 canonical `provenance.json`；后者不是第二个外源输入。S3-F 不声称保留原始文件名。
+5. 经固定、密封的公开 boundary 正常调用时，source 的绝对路径、原始名称和 handle 值不得进入业务对象、异常、repr、receipt、audit、operation 或 Copy ledger。external locator 对 INTERNAL 和 RESTRICTED 都只以独立域 HMAC 保存；RESTRICTED 的 run/job/operation/copy/public IDs 同样不得明文落账。
+
+上述异常脱敏边界不是同进程安全沙箱。它不抵御 hostile same-process 代码通过 `__globals__`、`__closure__`、`object.__getattribute__`、`gc`、monkeypatch、`ctypes`、模块或类方法改写等方式绕过公开 boundary、提取或直接调用内部 raw callable；这类能力也不属于 S3-F 的安全声明。能够与本模块同进程执行的仓库源码和测试代码必须视为受信任、已审阅代码，并由静态门和 safe launcher 排除上述绕过。异常 vault 仅用于收窄正常接口上的 traceback/exception 泄漏面，不能作为恶意 Python 代码隔离机制。
+
+### 2. 双账本固定布局和独立认证
+
+原`COPY_LEDGER`父 namespace 改为禁止直接访问；公开 policy 只允许经业务 context 读取以下两个精确、只读 namespace，私有 ledger factory 才拥有写入 store 的能力：
+
+```text
+Copy/ledger/source/segments/<run_id>/<sequence>-<segment_sha256>.json
+Copy/ledger/copy/segments/<run_id>/<sequence>-<segment_sha256>.json
+```
+
+`<run_id>`是 ledger epoch，并绑定`RUN_ID` scope，不再错误绑定`COPY_ID`。两个 store 分别固定：
+
+- `ledger_kind=COPY_SOURCE`，segment hash/auth 域为`COPY-SOURCE-SEGMENT-V1`/`COPY-SOURCE-SEGMENT-AUTH-V1`；
+- `ledger_kind=COPY_OPERATION`使用 schema `1.3`，segment hash/auth/key/record 域固定为`COPY-OPERATION-SEGMENT-V4`/`COPY-OPERATION-SEGMENT-AUTH-V4`/`COPY-OPERATION-KEY-ID-V4`/`COPY-TRANSITION-V4`。
+
+两条链从同一已激活 audit key revision 通过不同域派生互不相同的 HMAC key/key ID；segment 不能跨 store、kind、epoch 或 domain 互换。每条链独立拥有 genesis、sequence、previous hash、canonical UTF-8/LF JSON、policy/revision/key binding、PENDING-to-no-replace publish、容量上限、启动全链扫描和 seal 状态。unknown/PENDING、缺号、分叉、非 canonical bytes、错误 schema/policy/key/domain、篡改或引用矛盾一律保留现场并 seal，不自动清理或补链。
+
+### 3. 单向证据 DAG 和状态机
+
+跨链引用只能按以下无环方向形成：
+
+```text
+authenticated audit capability head
+  -> COPY_SOURCE/SOURCE_OBSERVED record
+  -> immutable provenance metadata + publish PREPARED/terminal
+  -> COPY_OPERATION terminal
+```
+
+1. `SOURCE_OBSERVED`绑定 reference-read policy digest、audit head、classification、locator HMAC、source identity/size/SHA 和 transaction reference；取得真实 source receipt 后，以 source segment SHA、record SHA、完整脱敏 source record 和原 payload manifest 生成 canonical ASCII JSON + LF 的`provenance.json`。S3-E 实际发布树必须是`payload.bin + provenance.json`，因此 operation manifest、目标树和 Copy transition 均逐字节绑定该 metadata；只在 Copy ledger 中保存一个脱离发布树的摘要不满足本合同。
+2. Copy operation 在任何目标 mutation 前持久`PREPARED`，绑定 source segment/record、预期 manifest、target locator HMAC、classification、audit ancestor 和资源预算；同时预留 source、Copy 和 publish-operation 三方最坏恢复容量。任一预留不足时目标必须不存在。
+3. 实际目录发布仍只走 S3-E 的 exact reserved pair、source-root handle no-replace rename 与独立 target full rescan。S3-F 为 operation ledger 启用严格 typed locator：INTERNAL 为`SAFE_RELATIVE`；RESTRICTED 为域分离`HMAC_ONLY`，二者的字段形状、classification 和恢复输入必须精确匹配，禁止用明文相对路径绕过。该 INTERNAL `SAFE_RELATIVE`仅属于 operation ledger 的冻结语义；Copy ledger 的 persisted plan 对 operation/pair/transaction/source locator/target locator 一律再用 Copy epoch/run-scope key 和独立 role/mode 域投影为 HMAC，不得复制 operation ledger 明文。
+4. Copy `PREPARED`必须保存域分离 HMAC 化的 planned operation binding；Copy transition 单独保存 factory 生成的 opaque publish transaction ID 供 typed lookup，persisted plan 只保存其 HMAC 投影。authenticated publish terminal 和 target 独立复算完成后，Copy chain 才依次追加`MUTATED -> POSTCONDITION_VERIFIED -> COMMITTED`；每段绑定 exact publish transaction/terminal segment、source record、目标 root/whole-tree identity、`payload.bin`及`provenance.json`各自 identity/size/SHA 和 manifest/tree/topology。fresh reopen 必须用 transaction ID 取得 typed operation terminal，再由持有 Copy key 的 projector 从真实 terminal 重建完整 HMAC plan 并精确比较，要求它确为同一 operation/context/manifest/target/classification/budget/source ancestry 的`COMMITTED`或`RECOVERED_COMMIT`，不得以“某个 SHA 出现在 operation chain 集合中”替代语义核验。只有 Copy terminal 已持久且所有祖先仍可认证时才能返回 typed success receipt。
+5. 合法状态边为`None -> PREPARED -> MUTATED -> POSTCONDITION_VERIFIED -> COMMITTED`、`PREPARED -> ABORTED`、进入 native boundary 后到`IN_DOUBT`，以及从`PREPARED/MUTATED/POSTCONDITION_VERIFIED/IN_DOUBT`到唯一的`RECOVERED_COMMIT/RECOVERED_ABORT`。terminal 后不得追加或再次 mutation；相同事务 replay 只返回原 receipt。
+
+### 4. 分类、SQLite 和不可变原件
+
+1. destination partition 由 source classification 和 context 共同决定：INTERNAL 只能进入`Copy/source/<copy_id>`，RESTRICTED 只能进入`Copy/restricted/<copy_id>`；RESTRICTED 不得降级，字符串伪枚举或 scope/caller/purpose 不精确时零写拒绝。
+2. 在 source ledger 或 staging 写入前，按不区分大小写的原始名称和同柄头部检查拒绝`.db/.db3/.sqlite/.sqlite3`、`-wal/-shm/-journal`、`.wal/.shm/.journal`以及`SQLite format 3\0`。活动库、sidecar、journal 或其硬链接永不进入通用 Copy；S4 之前没有例外。
+3. target 必须 no-replace；同 copy ID 冲突不得覆盖。成功后的双文件 Copy object 是 immutable object store：公共能力不能 append、existing-write、replace、move或 child-create；可用性由 authenticated Copy receipt、typed publish terminal、canonical provenance 和 live target whole-tree rescan共同决定，不能只因路径存在就自动收养孤儿。
+
+### 5. 崩溃恢复真值表
+
+恢复只追加事实，不复制、rename、覆盖、删除或清理：
+
+- source record 已认证、publish operation 未进入 native boundary且 target 不存在：在追加前执行不消费最终能力的同柄 source checkpoint，追加`RECOVERED_ABORT`后只执行一次 consuming final verification，保留 source record 和 staging；
+- publish operation 已认证为 COMMITTED、target 双重 handle scan 与 source/provenance/manifest完全匹配、external source capability 重新验证一致，但 Copy terminal 缺失：只追加一次`RECOVERED_COMMIT`，不得再次发布；
+- Copy COMMIT 已持久但调用方未收到：replay 原 typed receipt，segment 数不变；
+- source 无法重新验证、target 双存/双失/缺失/错身份/错内容、classification/budget/head漂移、source/copy/operation/audit任一祖先缺失，或任何组合不能唯一解释：`RECOVERY_CONTRADICTION`并 seal，保留现场。
+
+RESTRICTED 恢复不从 HMAC 反推路径，也不得由 Copy 代码根据 context 自行拼接路径。调用者必须在每次`reconcile`前，使用同一 reopened boundary 和此次 recovery operation 的 exact context 对象重新签发单次、owner-thread-bound、purpose-bound recovery locator capability；`reconcile`须在打开 external source、观察 target 或追加账本前消费它，并同时核验 capability 返回的 source/target 与 authenticated publish transition 的两个 locator HMAC。INTERNAL recovery 必须拒绝多余 capability。不得引入可逆路径加密来绕过脱敏合同。
+
+### 6. 验收边界
+
+S3-F 必须通过正常、边界、失败、恢复、安全、属性和故障注入测试，并以 fresh reopen 验证两条链及交叉祖先。safe launcher 只能证明候选没有 Test 外 mutation authority，以及每个已登记合成源的登记快照与`pytest_sessionfinish`终态在 identity/metadata/bytes/default-stream 上等价；该 witness 不证明两个观测点之间从未发生瞬时变化。真正 Copy 生命周期内的不变性由同柄只读、deny-write/delete sharing 和 Copy 前后/恢复重验共同支撑。launcher 不监控整机所有 Test 外路径，不能据此声称全程源不变或全盘动态零写。真实 Test 外 Copy 旅程留在完成 S3-H 安全冻结后的 M0 用户流程，并须对被选 source 及父目录另做定向只读 witness。
+
+本切片不连接 production facade，不迁移任何 production inventory entry，不处理真实业务资料，不实现 quarantine/restore，也不进入 M1。
+
+### 7. S3-H 前不得扩大解释的历史验证边界
+
+1. 新 Copy epoch 的 rotation preflight 只认证**同一逻辑 RUN**映射出的历史 source/copy 双链、HMAC、对称性和 pending 状态；当前没有历史 operation-epoch resolver，因此不声称已经验证所有历史 publish terminal 的完整 operation 祖先。S3-H 必须在生产接线或 M0 exit 前补齐历史 operation resolver、同 mutex 全 DAG 复核，以及旧 operation chain 缺失/损坏的封存测试。
+2. 公开 Copy-ledger `EXISTING_READ`票据只证明当前 context 的 RUN_ID 到 opaque epoch 路径映射唯一且由已激活 audit revision 支持；票据不解析 segment，也不证明 JSON、HMAC、previous-hash chain 或业务状态真实。任何正式消费者必须通过`DurableCopyLedgers`完整解析/HMAC 验证或使用 typed receipt，才能把读取字节当作账本事实。
+3. 上述限制不降低当前 Test-local Copy 的成功条件：本切片仍须对当前事务 fresh reopen 两条链并验证 source/copy/operation/audit 交叉祖先；限制只禁止把该当前事务证明外推为“所有历史 epoch 的完整 DAG 已验证”。
 
 ## 回滚
 

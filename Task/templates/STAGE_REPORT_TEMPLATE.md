@@ -63,7 +63,7 @@
 
 ## 6. 安全证明
 
-- [ ] 所有写入位于`D:\AAA命题\Test`
+- [ ] 所有项目写入位于当前 marker 验证通过的`PROJECT_ROOT`
 - [ ] Test 外写入为 0
 - [ ] Copy 台账与源/副本哈希完整
 - [ ] 无 Reparse Point/ADS/UNC/路径穿越

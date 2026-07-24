@@ -7,8 +7,24 @@ import sys
 from collections.abc import Mapping
 from pathlib import Path, PureWindowsPath
 
+_BOOTSTRAP_PROJECT_ROOT = Path(__file__).parent.parent.parent
+_BOOTSTRAP_PROJECT_ROOT_TEXT = str(_BOOTSTRAP_PROJECT_ROOT)
+try:
+    sys.path.insert(0, _BOOTSTRAP_PROJECT_ROOT_TEXT)
+    from app.project_root import PROJECT_ROOT as _EXPECTED_PROJECT_ROOT
 
-_EXPECTED_PROJECT_ROOT = Path(r"D:\AAA命题\Test")
+    if ntpath.normcase(ntpath.normpath(str(_EXPECTED_PROJECT_ROOT))) != ntpath.normcase(
+        ntpath.normpath(_BOOTSTRAP_PROJECT_ROOT_TEXT)
+    ):
+        raise PermissionError(
+            "SAFE_TEST_HARDLINK_DENIED: bootstrap project root differs"
+        )
+except BaseException:
+    os._exit(96)
+finally:
+    if sys.path and sys.path[0] == _BOOTSTRAP_PROJECT_ROOT_TEXT:
+        del sys.path[0]
+
 _REPARSE_ATTRIBUTE = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
 
 
@@ -220,9 +236,26 @@ def _install_hardlink_guard() -> None:
                 and _same_path(temp_path, tmp_path)
             ):
                 return False
-            if not all(
-                _relative_parts(path, run_root)
-                for path in (cwd_path, temp_path, link_path, target_path)
+            cwd_tail = _relative_parts(cwd_path, run_root)
+            temp_tail = _relative_parts(temp_path, run_root)
+            link_tail = _relative_parts(link_path, run_root)
+            target_tail = _relative_parts(target_path, run_root)
+            temp_from_cwd = _relative_parts(temp_path, cwd_path)
+            link_from_cwd = _relative_parts(link_path, cwd_path)
+            target_from_cwd = _relative_parts(target_path, cwd_path)
+            temp_prefix = "external-process-temp-"
+            temp_suffix = temp_path.name.removeprefix(temp_prefix)
+            if (
+                cwd_tail is None
+                or not temp_tail
+                or not link_tail
+                or not target_tail
+                or temp_from_cwd != (temp_path.name,)
+                or not link_from_cwd
+                or not target_from_cwd
+                or not temp_path.name.startswith(temp_prefix)
+                or len(temp_suffix) != 12
+                or any(character not in "0123456789abcdef" for character in temp_suffix)
             ):
                 return False
             _verify_chain(expected_cmd)

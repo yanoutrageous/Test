@@ -11,11 +11,14 @@ from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path, PureWindowsPath
+from types import MappingProxyType
 from typing import Any, NoReturn
 
 from app.safety.context import DataClassification, validate_safe_id
 from app.safety.segment_ledger import AuditKeyRevision, canonical_json_bytes
 from app.safety.windows_handle_writer import (
+    HandleObjectIdentityMaterial,
+    HandleTreeIdentityMaterial,
     HandleWriterCode,
     HandleWriterError,
     RuntimeMutexLease,
@@ -49,6 +52,7 @@ class OperationLedgerCode(StrEnum):
     RESOURCE_LIMIT = "RESOURCE_LIMIT"
     STORAGE_FAILURE = "STORAGE_FAILURE"
     RECOVERY_CONTRADICTION = "RECOVERY_CONTRADICTION"
+    READ_ONLY_EPOCH = "READ_ONLY_EPOCH"
     LEDGER_SEALED = "LEDGER_SEALED"
 
 
@@ -69,6 +73,161 @@ def _raise_without_context(error: OperationLedgerError) -> NoReturn:
     raise error from None
 
 
+_OPERATION_TRANSITION_PARSER_V1_0 = "OPERATION_TRANSITION_V1_0_INTERNAL_SAFE_RELATIVE"
+_OPERATION_TRANSITION_PARSER_V1_1 = "OPERATION_TRANSITION_V1_1_TYPED_LOCATOR"
+
+_OPERATION_STATE_VALUES = frozenset(
+    {
+        "PREPARED",
+        "ABORTED",
+        "MUTATED",
+        "POSTCONDITION_VERIFIED",
+        "COMMITTED",
+        "IN_DOUBT",
+        "RECOVERED_COMMIT",
+        "RECOVERED_ABORT",
+    }
+)
+_OPERATION_COMPLETION_KIND_VALUES = frozenset(
+    {
+        "NATIVE_COMMIT",
+        "RECOVERED_COMMIT_WITH_NATIVE_MUTATION",
+        "RECOVERED_COMMIT_OBSERVATION_ONLY",
+    }
+)
+_OPERATION_ALLOWED_TRANSITION_VALUES = frozenset(
+    {
+        (None, "PREPARED"),
+        ("PREPARED", "ABORTED"),
+        ("PREPARED", "MUTATED"),
+        ("PREPARED", "IN_DOUBT"),
+        ("MUTATED", "POSTCONDITION_VERIFIED"),
+        ("MUTATED", "IN_DOUBT"),
+        ("POSTCONDITION_VERIFIED", "COMMITTED"),
+        ("POSTCONDITION_VERIFIED", "IN_DOUBT"),
+        ("IN_DOUBT", "RECOVERED_COMMIT"),
+        ("IN_DOUBT", "RECOVERED_ABORT"),
+        ("PREPARED", "RECOVERED_COMMIT"),
+        ("PREPARED", "RECOVERED_ABORT"),
+        ("MUTATED", "RECOVERED_COMMIT"),
+        ("POSTCONDITION_VERIFIED", "RECOVERED_COMMIT"),
+    }
+)
+_OPERATION_TERMINAL_STATE_VALUES = frozenset(
+    {"ABORTED", "COMMITTED", "RECOVERED_ABORT", "RECOVERED_COMMIT"}
+)
+_OPERATION_RECOVERY_REASON_VALUES = frozenset(
+    {"SOURCE_EXACT_TARGET_ABSENT", "SOURCE_ABSENT_TARGET_EXACT"}
+)
+_OPERATION_RECOVERY_GUARANTEE_SCOPE_VALUES = frozenset(
+    {"COOPERATIVE_APPLICATION_WRITERS_ONLY"}
+)
+_OPERATION_SEGMENT_KIND_VALUES = frozenset({"GENESIS", "OPERATION_TRANSITION"})
+
+
+@dataclass(frozen=True, slots=True)
+class _ReviewedOperationEpochBinding:
+    policy_digest: str
+    schema_version: str
+    parser_id: str
+    allow_new_transactions: bool
+    allow_recovery_append: bool
+    state_values: frozenset[str]
+    completion_kind_values: frozenset[str]
+    classification_values: frozenset[str]
+    locator_mode_values: frozenset[str]
+    allowed_transition_values: frozenset[tuple[str | None, str]]
+    terminal_state_values: frozenset[str]
+    recovery_reason_values: frozenset[str]
+    recovery_guarantee_scope_values: frozenset[str]
+    segment_kind_values: frozenset[str]
+
+
+_OPERATION_V7_BINDING = _ReviewedOperationEpochBinding(
+    policy_digest="8df50ded63443c3310603614fd6d317234ce026c351870d0488a84dd1cfe4d88",
+    schema_version="1.0",
+    parser_id=_OPERATION_TRANSITION_PARSER_V1_0,
+    allow_new_transactions=False,
+    allow_recovery_append=True,
+    state_values=_OPERATION_STATE_VALUES,
+    completion_kind_values=_OPERATION_COMPLETION_KIND_VALUES,
+    classification_values=frozenset({"INTERNAL"}),
+    locator_mode_values=frozenset({"SAFE_RELATIVE"}),
+    allowed_transition_values=_OPERATION_ALLOWED_TRANSITION_VALUES,
+    terminal_state_values=_OPERATION_TERMINAL_STATE_VALUES,
+    recovery_reason_values=_OPERATION_RECOVERY_REASON_VALUES,
+    recovery_guarantee_scope_values=_OPERATION_RECOVERY_GUARANTEE_SCOPE_VALUES,
+    segment_kind_values=_OPERATION_SEGMENT_KIND_VALUES,
+)
+_OPERATION_V8_BINDING = _ReviewedOperationEpochBinding(
+    policy_digest="1d50da20075216ea7d3b20f68807ffe2cd108e9425a2c1c5ccc33292efe4d6cc",
+    schema_version="1.1",
+    parser_id=_OPERATION_TRANSITION_PARSER_V1_1,
+    allow_new_transactions=True,
+    allow_recovery_append=True,
+    state_values=_OPERATION_STATE_VALUES,
+    completion_kind_values=_OPERATION_COMPLETION_KIND_VALUES,
+    classification_values=frozenset({"INTERNAL", "RESTRICTED"}),
+    locator_mode_values=frozenset({"SAFE_RELATIVE", "HMAC_ONLY"}),
+    allowed_transition_values=_OPERATION_ALLOWED_TRANSITION_VALUES,
+    terminal_state_values=_OPERATION_TERMINAL_STATE_VALUES,
+    recovery_reason_values=_OPERATION_RECOVERY_REASON_VALUES,
+    recovery_guarantee_scope_values=_OPERATION_RECOVERY_GUARANTEE_SCOPE_VALUES,
+    segment_kind_values=_OPERATION_SEGMENT_KIND_VALUES,
+)
+_REVIEWED_OPERATION_EPOCH_BINDINGS = MappingProxyType(
+    {
+        (binding.policy_digest, binding.schema_version): binding
+        for binding in (_OPERATION_V7_BINDING, _OPERATION_V8_BINDING)
+    }
+)
+
+
+def _reviewed_operation_epoch_binding(
+    policy_digest: Any,
+    schema_version: Any,
+) -> _ReviewedOperationEpochBinding:
+    if (
+        type(policy_digest) is not str
+        or not _SHA256.fullmatch(policy_digest)
+        or type(schema_version) is not str
+    ):
+        raise OperationLedgerError(
+            OperationLedgerCode.AUTHENTICATION_FAILED,
+            "operation epoch policy and schema binding is not canonical",
+        )
+    binding = _REVIEWED_OPERATION_EPOCH_BINDINGS.get(
+        (policy_digest, schema_version)
+    )
+    if binding is None:
+        raise OperationLedgerError(
+            OperationLedgerCode.AUTHENTICATION_FAILED,
+            "operation epoch policy and schema binding is not reviewed",
+        )
+    return binding
+
+
+def _reviewed_operation_policy_request(
+    policy_digest: Any,
+) -> _ReviewedOperationEpochBinding:
+    if type(policy_digest) is not str or not _SHA256.fullmatch(policy_digest):
+        raise OperationLedgerError(
+            OperationLedgerCode.INVALID_REQUEST,
+            "operation policy digest is not canonical",
+        )
+    matches = tuple(
+        binding
+        for binding in _REVIEWED_OPERATION_EPOCH_BINDINGS.values()
+        if binding.policy_digest == policy_digest
+    )
+    if len(matches) != 1:
+        raise OperationLedgerError(
+            OperationLedgerCode.INVALID_REQUEST,
+            "operation policy digest has no unique reviewed parser binding",
+        )
+    return matches[0]
+
+
 class OperationState(StrEnum):
     PREPARED = "PREPARED"
     ABORTED = "ABORTED"
@@ -86,14 +245,53 @@ class OperationCompletionKind(StrEnum):
     RECOVERED_COMMIT_OBSERVATION_ONLY = "RECOVERED_COMMIT_OBSERVATION_ONLY"
 
 
-_TERMINAL_STATES = frozenset(
+class OperationLocatorMode(StrEnum):
+    SAFE_RELATIVE = "SAFE_RELATIVE"
+    HMAC_ONLY = "HMAC_ONLY"
+
+
+class OperationLocatorRole(StrEnum):
+    SOURCE = "SOURCE"
+    TARGET = "TARGET"
+
+
+_OPERATION_STATE_BY_VALUE = MappingProxyType(
     {
-        OperationState.ABORTED,
-        OperationState.COMMITTED,
-        OperationState.RECOVERED_ABORT,
-        OperationState.RECOVERED_COMMIT,
+        "PREPARED": OperationState.PREPARED,
+        "ABORTED": OperationState.ABORTED,
+        "MUTATED": OperationState.MUTATED,
+        "POSTCONDITION_VERIFIED": OperationState.POSTCONDITION_VERIFIED,
+        "COMMITTED": OperationState.COMMITTED,
+        "IN_DOUBT": OperationState.IN_DOUBT,
+        "RECOVERED_COMMIT": OperationState.RECOVERED_COMMIT,
+        "RECOVERED_ABORT": OperationState.RECOVERED_ABORT,
     }
 )
+_OPERATION_COMPLETION_KIND_BY_VALUE = MappingProxyType(
+    {
+        "NATIVE_COMMIT": OperationCompletionKind.NATIVE_COMMIT,
+        "RECOVERED_COMMIT_WITH_NATIVE_MUTATION": (
+            OperationCompletionKind.RECOVERED_COMMIT_WITH_NATIVE_MUTATION
+        ),
+        "RECOVERED_COMMIT_OBSERVATION_ONLY": (
+            OperationCompletionKind.RECOVERED_COMMIT_OBSERVATION_ONLY
+        ),
+    }
+)
+_OPERATION_LOCATOR_MODE_BY_VALUE = MappingProxyType(
+    {
+        "SAFE_RELATIVE": OperationLocatorMode.SAFE_RELATIVE,
+        "HMAC_ONLY": OperationLocatorMode.HMAC_ONLY,
+    }
+)
+_OPERATION_CLASSIFICATION_BY_VALUE = MappingProxyType(
+    {
+        "INTERNAL": DataClassification.INTERNAL,
+        "RESTRICTED": DataClassification.RESTRICTED,
+    }
+)
+
+
 _ALLOWED_TRANSITIONS: frozenset[tuple[OperationState | None, OperationState]] = (
     frozenset(
         {
@@ -255,6 +453,7 @@ class OperationTransition:
     recovery_authority_head_sha256: str | None = None
     error_code: str | None = None
     recovery_reason: str | None = None
+    locator_mode: OperationLocatorMode = OperationLocatorMode.SAFE_RELATIVE
     classification: DataClassification = DataClassification.INTERNAL
 
     def __post_init__(self) -> None:
@@ -302,8 +501,22 @@ class OperationTransition:
                 OperationLedgerCode.INVALID_REQUEST,
                 "operation completion kind is not exact",
             )
-        _safe_relative(self.source_locator, "source_locator")
-        _safe_relative(self.target_locator, "target_locator")
+        if type(self.locator_mode) is not OperationLocatorMode:
+            raise OperationLedgerError(
+                OperationLedgerCode.INVALID_REQUEST,
+                "operation locator mode is not exact",
+            )
+        if self.locator_mode is OperationLocatorMode.SAFE_RELATIVE:
+            _safe_relative(self.source_locator, "source_locator")
+            _safe_relative(self.target_locator, "target_locator")
+        elif any(
+            type(value) is not str or not _SHA256.fullmatch(value)
+            for value in (self.source_locator, self.target_locator)
+        ):
+            raise OperationLedgerError(
+                OperationLedgerCode.INVALID_REQUEST,
+                "HMAC-only operation locators must be canonical digests",
+            )
         if (
             type(self.source_evidence) is not OperationTreeEvidence
             or (
@@ -312,11 +525,20 @@ class OperationTransition:
             )
             or type(self.mutation_attempted) is not bool
             or type(self.classification) is not DataClassification
-            or self.classification is not DataClassification.INTERNAL
         ):
             raise OperationLedgerError(
                 OperationLedgerCode.INVALID_REQUEST,
-                "S3-E operation transitions require exact INTERNAL evidence values",
+                "operation transitions require exact evidence values",
+            )
+        expected_locator_mode = (
+            OperationLocatorMode.HMAC_ONLY
+            if self.classification is DataClassification.RESTRICTED
+            else OperationLocatorMode.SAFE_RELATIVE
+        )
+        if self.locator_mode is not expected_locator_mode:
+            raise OperationLedgerError(
+                OperationLedgerCode.INVALID_REQUEST,
+                "classification and operation locator mode disagree",
             )
         if self.error_code is not None:
             try:
@@ -505,7 +727,7 @@ class OperationTransition:
             "recovery_reason": self.recovery_reason,
             "recovery_guarantee_scope": self.recovery_guarantee_scope,
             "recovery_authority_head_sha256": self.recovery_authority_head_sha256,
-            "redaction_mode": "SAFE_RELATIVE",
+            "redaction_mode": self.locator_mode.value,
             "source_evidence": self.source_evidence.to_json(),
             "source_locator": self.source_locator,
             "target_evidence": (
@@ -600,7 +822,10 @@ def _evidence_from_json(value: Any) -> OperationTreeEvidence:
         ) from exc
 
 
-def _transition_from_json(value: Any) -> OperationTransition:
+def _transition_from_json_for_binding(
+    value: Any,
+    binding: _ReviewedOperationEpochBinding,
+) -> OperationTransition:
     expected = {
         "audit_ledger_head_sha256",
         "budget_sha256",
@@ -627,10 +852,58 @@ def _transition_from_json(value: Any) -> OperationTransition:
         "transaction_id",
         "transition_id",
     }
-    if type(value) is not dict or set(value) != expected or value["redaction_mode"] != "SAFE_RELATIVE":
+    if type(value) is not dict or set(value) != expected:
         raise OperationLedgerError(
             OperationLedgerCode.CHAIN_CORRUPT,
             "operation transition has an invalid exact shape",
+        )
+    previous_state = value["previous_state"]
+    next_state = value["next_state"]
+    completion_kind = value["completion_kind"]
+    classification = value["classification"]
+    locator_mode = value["redaction_mode"]
+    recovery_reason = value["recovery_reason"]
+    recovery_scope = value["recovery_guarantee_scope"]
+    if (
+        (
+            previous_state is not None
+            and (
+                type(previous_state) is not str
+                or previous_state not in binding.state_values
+            )
+        )
+        or type(next_state) is not str
+        or next_state not in binding.state_values
+        or (previous_state, next_state) not in binding.allowed_transition_values
+        or (
+            completion_kind is not None
+            and (
+                type(completion_kind) is not str
+                or completion_kind not in binding.completion_kind_values
+            )
+        )
+        or type(classification) is not str
+        or classification not in binding.classification_values
+        or type(locator_mode) is not str
+        or locator_mode not in binding.locator_mode_values
+        or (
+            recovery_reason is not None
+            and (
+                type(recovery_reason) is not str
+                or recovery_reason not in binding.recovery_reason_values
+            )
+        )
+        or (
+            recovery_scope is not None
+            and (
+                type(recovery_scope) is not str
+                or recovery_scope not in binding.recovery_guarantee_scope_values
+            )
+        )
+    ):
+        raise OperationLedgerError(
+            OperationLedgerCode.CHAIN_CORRUPT,
+            "operation transition uses a value outside its reviewed epoch profile",
         )
     try:
         return OperationTransition(
@@ -640,10 +913,10 @@ def _transition_from_json(value: Any) -> OperationTransition:
             pair_id=value["pair_id"],
             previous_state=(
                 None
-                if value["previous_state"] is None
-                else OperationState(value["previous_state"])
+                if previous_state is None
+                else _OPERATION_STATE_BY_VALUE[previous_state]
             ),
-            next_state=OperationState(value["next_state"]),
+            next_state=_OPERATION_STATE_BY_VALUE[next_state],
             context_binding_sha256=value["context_binding_sha256"],
             manifest_sha256=value["manifest_sha256"],
             budget_sha256=value["budget_sha256"],
@@ -663,8 +936,8 @@ def _transition_from_json(value: Any) -> OperationTransition:
             ],
             completion_kind=(
                 None
-                if value["completion_kind"] is None
-                else OperationCompletionKind(value["completion_kind"])
+                if completion_kind is None
+                else _OPERATION_COMPLETION_KIND_BY_VALUE[completion_kind]
             ),
             error_code=value["error_code"],
             recovery_reason=value["recovery_reason"],
@@ -672,13 +945,36 @@ def _transition_from_json(value: Any) -> OperationTransition:
             recovery_authority_head_sha256=value[
                 "recovery_authority_head_sha256"
             ],
-            classification=DataClassification(value["classification"]),
+            locator_mode=_OPERATION_LOCATOR_MODE_BY_VALUE[locator_mode],
+            classification=_OPERATION_CLASSIFICATION_BY_VALUE[classification],
         )
     except (KeyError, TypeError, ValueError, OperationLedgerError) as exc:
         raise OperationLedgerError(
             OperationLedgerCode.CHAIN_CORRUPT,
             "operation transition failed canonical validation",
         ) from exc
+
+
+def _transition_from_json_v1_0(value: Any) -> OperationTransition:
+    return _transition_from_json_for_binding(value, _OPERATION_V7_BINDING)
+
+
+def _transition_from_json_v1_1(value: Any) -> OperationTransition:
+    return _transition_from_json_for_binding(value, _OPERATION_V8_BINDING)
+
+
+_REVIEWED_OPERATION_TRANSITION_PARSERS = MappingProxyType(
+    {
+        _OPERATION_TRANSITION_PARSER_V1_0: _transition_from_json_v1_0,
+        _OPERATION_TRANSITION_PARSER_V1_1: _transition_from_json_v1_1,
+    }
+)
+
+
+def _transition_from_json(value: Any) -> OperationTransition:
+    """Backward-compatible name for the current typed transition parser."""
+
+    return _transition_from_json_v1_1(value)
 
 
 class DurableOperationLedger:
@@ -715,7 +1011,23 @@ class DurableOperationLedger:
                 OperationLedgerCode.INVALID_REQUEST,
                 "operation ledger epoch is not canonical",
             ) from None
-        self._policy_digest = _require_sha256(policy_digest, "policy_digest")
+        requested_policy_digest = _require_sha256(policy_digest, "policy_digest")
+        if initialize:
+            requested_policy_binding = _reviewed_operation_policy_request(
+                requested_policy_digest
+            )
+            if requested_policy_binding is not _OPERATION_V8_BINDING:
+                raise OperationLedgerError(
+                    OperationLedgerCode.READ_ONLY_EPOCH,
+                    "new operation epochs require the reviewed writable V8 binding",
+                )
+            self._epoch_binding = requested_policy_binding
+        else:
+            # The caller's current-policy hint is not epoch authority.  The
+            # canonical genesis selects a reviewed binding under the mutex.
+            self._epoch_binding = _OPERATION_V8_BINDING
+        self._requested_policy_digest = requested_policy_digest
+        self._policy_digest = self._epoch_binding.policy_digest
         self._storage = storage
         revisions: dict[str, AuditKeyRevision] = {revision.revision_id: revision}
         for item in known_revisions:
@@ -799,10 +1111,29 @@ class DurableOperationLedger:
             self._require_open()
             return self._revision.revision_id
 
+    @property
+    def policy_digest(self) -> str:
+        with self._lock:
+            self._require_open()
+            return self._epoch_binding.policy_digest
+
+    @property
+    def schema_version(self) -> str:
+        with self._lock:
+            self._require_open()
+            return self._epoch_binding.schema_version
+
+    @property
+    def is_read_only_epoch(self) -> bool:
+        with self._lock:
+            self._require_open()
+            return not self._epoch_binding.allow_new_transactions
+
     def durable_identity_digest(self, volume_serial: int, file_id: bytes) -> str:
         if (
             type(volume_serial) is not int
             or volume_serial < 0
+            or volume_serial > (1 << 64) - 1
             or type(file_id) is not bytes
             or len(file_id) != 16
         ):
@@ -817,6 +1148,152 @@ class DurableOperationLedger:
             + file_id,
             hashlib.sha256,
         ).hexdigest()
+
+    def durable_object_identity_digest(
+        self,
+        material: HandleObjectIdentityMaterial,
+    ) -> str:
+        """Project detached kernel identity without exposing or persisting it."""
+
+        if type(material) is not HandleObjectIdentityMaterial:
+            raise OperationLedgerError(
+                OperationLedgerCode.INVALID_REQUEST,
+                "durable object identity material is invalid",
+            )
+        with self._lock:
+            self._require_open()
+            return material._operation_hmac_sha256(self._operation_key)
+
+    def durable_tree_identity_digest(
+        self,
+        material: HandleTreeIdentityMaterial,
+    ) -> str:
+        """Bind every relative tree node under the restart-stable ledger key."""
+
+        if type(material) is not HandleTreeIdentityMaterial:
+            raise OperationLedgerError(
+                OperationLedgerCode.INVALID_REQUEST,
+                "durable tree identity material is invalid",
+            )
+        with self._lock:
+            self._require_open()
+            if self._epoch_binding is not _OPERATION_V8_BINDING:
+                raise OperationLedgerError(
+                    OperationLedgerCode.READ_ONLY_EPOCH,
+                    "legacy operation epochs retain root-only identity semantics",
+                )
+            return material._operation_hmac_sha256(self._operation_key)
+
+    def durable_tree_evidence_identity_digest(
+        self,
+        volume_serial: int,
+        file_id: bytes,
+        material: HandleTreeIdentityMaterial | None,
+    ) -> str:
+        """Select the frozen per-epoch identity semantics for tree evidence."""
+
+        if (
+            type(volume_serial) is not int
+            or volume_serial < 0
+            or volume_serial > (1 << 64) - 1
+            or type(file_id) is not bytes
+            or len(file_id) != 16
+        ):
+            raise OperationLedgerError(
+                OperationLedgerCode.INVALID_REQUEST,
+                "durable tree evidence root identity is invalid",
+            )
+        with self._lock:
+            self._require_open()
+            if self._epoch_binding is _OPERATION_V7_BINDING:
+                return hmac.new(
+                    self._operation_key,
+                    b"OPERATION-ROOT-IDENTITY-V1\0"
+                    + volume_serial.to_bytes(8, "little", signed=False)
+                    + file_id,
+                    hashlib.sha256,
+                ).hexdigest()
+            if (
+                self._epoch_binding is not _OPERATION_V8_BINDING
+                or type(material) is not HandleTreeIdentityMaterial
+            ):
+                raise OperationLedgerError(
+                    OperationLedgerCode.INVALID_REQUEST,
+                    "current operation epoch requires exact whole-tree identity",
+                )
+            return material._operation_hmac_sha256(self._operation_key)
+
+    def locator_hmac(
+        self,
+        relative_locator: str,
+        *,
+        transaction_id: str,
+        role: OperationLocatorRole,
+    ) -> str:
+        """Project a V8 locator with exact epoch, transaction, and side binding."""
+
+        canonical_locator = _safe_relative(relative_locator, "relative_locator")
+        try:
+            canonical_transaction_id = validate_safe_id(
+                transaction_id,
+                field_name="transaction_id",
+            )
+        except Exception:
+            raise OperationLedgerError(
+                OperationLedgerCode.INVALID_REQUEST,
+                "operation locator transaction identity is not canonical",
+            ) from None
+        if type(role) is not OperationLocatorRole:
+            raise OperationLedgerError(
+                OperationLedgerCode.INVALID_REQUEST,
+                "operation locator role is not exact",
+            )
+        with self._lock:
+            self._require_open()
+            if self._epoch_binding is not _OPERATION_V8_BINDING:
+                raise OperationLedgerError(
+                    OperationLedgerCode.READ_ONLY_EPOCH,
+                    "legacy operation epochs do not issue HMAC-only locators",
+                )
+            binding = canonical_json_bytes(
+                {
+                    "epoch_id": self._epoch_id,
+                    "relative_locator": canonical_locator,
+                    "role": role.value,
+                    "transaction_id": canonical_transaction_id,
+                }
+            )
+            return hmac.new(
+                self._operation_key,
+                b"OPERATION-LOCATOR-HMAC-V2\0" + binding,
+                hashlib.sha256,
+            ).hexdigest()
+
+    def operation_reference(
+        self,
+        operation_id: str,
+        classification: DataClassification,
+    ) -> str:
+        try:
+            canonical = validate_safe_id(operation_id, field_name="operation_id")
+        except Exception:
+            raise OperationLedgerError(
+                OperationLedgerCode.INVALID_REQUEST,
+                "operation reference input is not canonical",
+            ) from None
+        if type(classification) is not DataClassification:
+            raise OperationLedgerError(
+                OperationLedgerCode.INVALID_REQUEST,
+                "operation reference classification is not exact",
+            )
+        if classification is DataClassification.INTERNAL:
+            return canonical
+        digest = hmac.new(
+            self._operation_key,
+            b"OPERATION-ID-HMAC-V1\0" + canonical.encode("ascii", "strict"),
+            hashlib.sha256,
+        ).hexdigest().upper()
+        return "OPREF-" + digest[:32]
 
     def _startup_under_mutex(
         self,
@@ -911,6 +1388,22 @@ class DurableOperationLedger:
                         "transition ID replay differs from committed content",
                     )
                 return replace(replay, replayed=True)
+            if not self._epoch_binding.allow_new_transactions:
+                history = self._transaction_history.get(transition.transaction_id)
+                if history is None:
+                    raise OperationLedgerError(
+                        OperationLedgerCode.READ_ONLY_EPOCH,
+                        "reviewed legacy operation epochs reject new transactions",
+                    )
+                if (
+                    not self._epoch_binding.allow_recovery_append
+                    or transition.next_state.value
+                    not in {"RECOVERED_COMMIT", "RECOVERED_ABORT"}
+                ):
+                    raise OperationLedgerError(
+                        OperationLedgerCode.READ_ONLY_EPOCH,
+                        "reviewed legacy operation epochs accept only terminal recovery",
+                    )
             self._validate_next_transition(transition)
             head = self.head
             sequence = head.last_sequence + 1
@@ -951,8 +1444,18 @@ class DurableOperationLedger:
         return tuple(
             history[-1]
             for transaction_id, history in sorted(self._transaction_history.items())
-            if history[-1].next_state not in _TERMINAL_STATES
+            if history[-1].next_state.value
+            not in self._epoch_binding.terminal_state_values
         )
+
+    def authenticated_segment_sha256s_under_existing_mutex(
+        self,
+        lease: RuntimeMutexLease,
+    ) -> tuple[str, ...]:
+        """Return the ordered, fully authenticated segment inventory under one mutex."""
+
+        self._rescan_under_existing_mutex(lease)
+        return tuple(segment.segment_sha256 for segment in self._segments)
 
     def operation_result_under_existing_mutex(
         self,
@@ -1044,7 +1547,7 @@ class DurableOperationLedger:
         self._seal(OperationLedgerCode.CHAIN_CORRUPT)
         raise OperationLedgerError(
             OperationLedgerCode.CHAIN_CORRUPT,
-            "operation facts reference an audit head outside the authenticated chain",
+            "operation facts differ from the authenticated audit epoch policy or chain",
         ) from None
 
     def _seal_recovery_contradiction(self) -> NoReturn:
@@ -1072,7 +1575,7 @@ class DurableOperationLedger:
                 )
             return
         previous = history[-1]
-        if previous.next_state in _TERMINAL_STATES:
+        if previous.next_state.value in self._epoch_binding.terminal_state_values:
             raise OperationLedgerError(
                 OperationLedgerCode.ILLEGAL_TRANSITION,
                 "terminal transaction cannot advance",
@@ -1085,6 +1588,7 @@ class DurableOperationLedger:
             "budget_sha256",
             "source_locator",
             "target_locator",
+            "locator_mode",
             "source_evidence",
             "audit_ledger_head_sha256",
             "classification",
@@ -1167,7 +1671,7 @@ class DurableOperationLedger:
             )
 
     def _select_persisted_revision_under_mutex(self) -> None:
-        """Select the genesis-bound key before authenticating the complete chain."""
+        """Select reviewed genesis parser/key candidates before the authenticating scan."""
 
         try:
             snapshot = self._storage.read_flat_directory(
@@ -1181,33 +1685,67 @@ class DurableOperationLedger:
                 OperationLedgerCode.STORAGE_FAILURE,
                 "operation genesis cannot be read for key selection",
             ) from exc
-        candidates = []
+        candidates: list[tuple[str, bytes]] = []
         for entry in snapshot.entries:
             match = _SEGMENT_FILE.fullmatch(entry.name)
             if match is None:
                 raise OperationLedgerError(
                     OperationLedgerCode.UNKNOWN_ENTRY,
                     "operation segment store contains an unknown or pending entry",
-                )
+            )
             if int(match.group("sequence")) == 0:
-                candidates.append(entry.payload)
+                candidates.append((entry.name, entry.payload))
         if len(candidates) != 1:
             raise OperationLedgerError(
                 OperationLedgerCode.CHAIN_CORRUPT,
                 "operation ledger requires exactly one genesis segment",
             )
+        genesis_name, genesis_payload = candidates[0]
         try:
-            value = _decode_ascii_json(candidates[0])
+            value = _decode_ascii_json(genesis_payload)
+            canonical = canonical_json_bytes(value)
             revision_id = value["key_revision_id"]
-        except (UnicodeError, ValueError, TypeError, KeyError):
+            expected_keys = {
+                "created_at_utc",
+                "epoch_id",
+                "key_id",
+                "key_revision_id",
+                "key_revision_sha256",
+                "ledger_id",
+                "policy_digest",
+                "previous_segment_sha256",
+                "schema_id",
+                "schema_version",
+                "segment_hmac_sha256",
+                "segment_kind",
+                "segment_sha256",
+                "sequence",
+                "transition",
+                "transition_sha256",
+            }
+        except Exception:
             raise OperationLedgerError(
                 OperationLedgerCode.CHAIN_CORRUPT,
-                "operation genesis cannot select a canonical key revision",
+                "operation genesis cannot select a canonical reviewed binding",
             ) from None
-        if type(revision_id) is not str:
+        if (
+            type(value) is not dict
+            or set(value) != expected_keys
+            or canonical != genesis_payload
+            or value["schema_id"] != "M0-OPERATION-SEGMENT"
+            or value["ledger_id"] != "OPERATION"
+            or value["epoch_id"] != self._epoch_id
+            or type(value["sequence"]) is not int
+            or value["sequence"] != 0
+            or value["previous_segment_sha256"] is not None
+            or value["segment_kind"] != "GENESIS"
+            or value["transition"] is not None
+            or value["transition_sha256"] is not None
+            or type(revision_id) is not str
+        ):
             raise OperationLedgerError(
                 OperationLedgerCode.CHAIN_CORRUPT,
-                "operation genesis key revision identity is not canonical",
+                "operation genesis cannot select a canonical reviewed binding",
             )
         try:
             validate_safe_id(revision_id, field_name="key_revision_id")
@@ -1222,15 +1760,55 @@ class DurableOperationLedger:
                 OperationLedgerCode.AUTHENTICATION_FAILED,
                 "operation genesis key revision is unavailable",
             )
-        self._revision = revision
-        self._operation_key = hmac.new(
+        operation_key = hmac.new(
             revision.segment_hmac_key,
             b"OPERATION-SEGMENT-AUTH-V1\0",
             hashlib.sha256,
         ).digest()
-        self._operation_key_id = hashlib.sha256(
-            b"OPERATION-KEY-ID-V1\0" + self._operation_key
+        operation_key_id = hashlib.sha256(
+            b"OPERATION-KEY-ID-V1\0" + operation_key
         ).hexdigest()
+        body = dict(value)
+        supplied_hmac = body.pop("segment_hmac_sha256")
+        supplied_sha = body.pop("segment_sha256")
+        try:
+            body_bytes = canonical_json_bytes(body)
+        except Exception:
+            raise OperationLedgerError(
+                OperationLedgerCode.CHAIN_CORRUPT,
+                "operation genesis body cannot be authenticated canonically",
+            ) from None
+        computed_sha = hashlib.sha256(
+            b"OPERATION-SEGMENT-V1\0" + body_bytes
+        ).hexdigest()
+        computed_hmac = hmac.new(
+            operation_key,
+            b"OPERATION-SEGMENT-V1\0" + body_bytes,
+            hashlib.sha256,
+        ).hexdigest()
+        genesis_match = _SEGMENT_FILE.fullmatch(genesis_name)
+        if (
+            genesis_match is None
+            or genesis_match.group("sha") != computed_sha
+            or type(supplied_sha) is not str
+            or supplied_sha != computed_sha
+            or type(supplied_hmac) is not str
+            or not hmac.compare_digest(supplied_hmac, computed_hmac)
+            or value["key_id"] != operation_key_id
+            or value["key_revision_sha256"] != revision.revision_sha256
+        ):
+            raise OperationLedgerError(
+                OperationLedgerCode.AUTHENTICATION_FAILED,
+                "operation genesis authenticator or key binding differs",
+            )
+        self._epoch_binding = _reviewed_operation_epoch_binding(
+            value["policy_digest"],
+            value["schema_version"],
+        )
+        self._policy_digest = self._epoch_binding.policy_digest
+        self._revision = revision
+        self._operation_key = operation_key
+        self._operation_key_id = operation_key_id
 
     def _publish_genesis(self, created_at_utc: str) -> None:
         created = _validate_utc_seconds(created_at_utc)
@@ -1262,7 +1840,7 @@ class DurableOperationLedger:
             "policy_digest": self._policy_digest,
             "previous_segment_sha256": previous,
             "schema_id": "M0-OPERATION-SEGMENT",
-            "schema_version": "1.0",
+            "schema_version": self._epoch_binding.schema_version,
             "segment_kind": kind,
             "sequence": sequence,
             "transition": None if transition is None else transition.to_json(),
@@ -1383,13 +1961,15 @@ class DurableOperationLedger:
                         "budget_sha256",
                         "source_locator",
                         "target_locator",
+                        "locator_mode",
                         "source_evidence",
                         "audit_ledger_head_sha256",
                         "classification",
                     )
                     if (
                         transition.previous_state is not previous_transition.next_state
-                        or previous_transition.next_state in _TERMINAL_STATES
+                        or previous_transition.next_state.value
+                        in self._epoch_binding.terminal_state_values
                         or any(
                             getattr(transition, field) != getattr(previous_transition, field)
                             for field in stable_fields
@@ -1470,7 +2050,8 @@ class DurableOperationLedger:
             sorted(
                 transaction_id
                 for transaction_id, history in histories.items()
-                if history[-1].next_state not in _TERMINAL_STATES
+                if history[-1].next_state.value
+                not in self._epoch_binding.terminal_state_values
             )
         )
         self._segments = tuple(segments)
@@ -1571,8 +2152,8 @@ class DurableOperationLedger:
             or value["epoch_id"] != self._epoch_id
             or value["ledger_id"] != "OPERATION"
             or value["schema_id"] != "M0-OPERATION-SEGMENT"
-            or value["schema_version"] != "1.0"
-            or value["policy_digest"] != self._policy_digest
+            or value["schema_version"] != self._epoch_binding.schema_version
+            or value["policy_digest"] != self._epoch_binding.policy_digest
             or value["key_id"] != self._operation_key_id
             or value["key_revision_id"] != self._revision.revision_id
             or value["key_revision_sha256"] != self._revision.revision_sha256
@@ -1583,7 +2164,10 @@ class DurableOperationLedger:
             )
         _validate_utc_seconds(value["created_at_utc"])
         kind = value["segment_kind"]
-        if kind not in {"GENESIS", "OPERATION_TRANSITION"}:
+        if (
+            type(kind) is not str
+            or kind not in self._epoch_binding.segment_kind_values
+        ):
             raise OperationLedgerError(
                 OperationLedgerCode.CHAIN_CORRUPT,
                 "operation segment kind is unknown",
@@ -1597,7 +2181,15 @@ class DurableOperationLedger:
                     "operation genesis must not contain a transition",
                 )
         else:
-            transition = _transition_from_json(value["transition"])
+            parser = _REVIEWED_OPERATION_TRANSITION_PARSERS.get(
+                self._epoch_binding.parser_id
+            )
+            if parser is None:
+                raise OperationLedgerError(
+                    OperationLedgerCode.AUTHENTICATION_FAILED,
+                    "operation epoch selected an unreviewed transition parser",
+                )
+            transition = parser(value["transition"])
             if transition_sha != transition.digest:
                 raise OperationLedgerError(
                     OperationLedgerCode.CHAIN_CORRUPT,
@@ -1645,6 +2237,8 @@ __all__ = [
     "OperationLedgerError",
     "OperationLedgerHead",
     "OperationCompletionKind",
+    "OperationLocatorMode",
+    "OperationLocatorRole",
     "OperationSegmentReceipt",
     "OperationState",
     "OperationTransition",

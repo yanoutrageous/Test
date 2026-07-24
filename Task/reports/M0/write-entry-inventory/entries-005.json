@@ -1,7 +1,64 @@
 {
-  "chunk_digest_sha256": "ec433e0916805fe131eb6788f0ec579076deeb94e66e9f93d133fe1f5d44e5ed",
+  "chunk_digest_sha256": "13189ff96cba9e06f26184d42d3876068e860461c79dc36bc67b57779999fb0b",
   "chunk_index": 5,
   "entries": [
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.question_assets.crop_question_assets",
+        "app.question_assets._load_crop_rows"
+      ],
+      "callee": "conn.execute",
+      "column": 11,
+      "detail": "dynamic SQL is fail-closed because its effect cannot be proven",
+      "end_column": 5,
+      "end_line": 57,
+      "entry_id": "WE-1F68F983EA4318F0E815B6B0",
+      "file": "app/question_assets.py",
+      "function": "app.question_assets._load_crop_rows",
+      "input_source": "CLI_ARGUMENT_OR_CONFIG",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "line": 36,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "IMPORT_SERVICE",
+      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
+      "resolution": "DYNAMIC",
+      "risk": "P0",
+      "root_ids": [
+        "CLI:MAIN"
+      ],
+      "source_sha256": "117afd7f9e203751c90ce470541a6670f47e7275f8207d1ea6e02b12528bad68",
+      "statement_fingerprint": "cbaf3a0a2164c7a7214338af652b8623d14dd6d66acf9c8d09cd0cd2272e2259",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    },
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.question_assets.crop_question_assets"
+      ],
+      "callee": "app.database.initialize_database",
+      "column": 4,
+      "detail": "implicit schema/directory initialization",
+      "end_column": 32,
+      "end_line": 69,
+      "entry_id": "WE-9D173DB79C69835CC921F678",
+      "file": "app/question_assets.py",
+      "function": "app.question_assets.crop_question_assets",
+      "input_source": "CLI_ARGUMENT_OR_CONFIG",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "line": 69,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "IMPORT_SERVICE",
+      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
+      "resolution": "ALIAS_RESOLVED",
+      "risk": "P1",
+      "root_ids": [
+        "CLI:MAIN"
+      ],
+      "source_sha256": "117afd7f9e203751c90ce470541a6670f47e7275f8207d1ea6e02b12528bad68",
+      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    },
     {
       "call_chain": [
         "app.cli.main",
@@ -697,64 +754,6 @@
       ],
       "source_sha256": "a7f0373d7028a82145c35fc06136ff99f98829a6788e9241c43c7578fcc1c796",
       "statement_fingerprint": "e2af00e8e51e5e4bf6c72ae3f53f839762a97beca03e17c513d7695b6bf1dae3",
-      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
-    },
-    {
-      "call_chain": [
-        "app.cli.main",
-        "app.question_split.split_questions",
-        "app.question_split.write_question_candidates"
-      ],
-      "callee": "app.database.connect_database().execute",
-      "column": 16,
-      "detail": "UPDATE",
-      "end_column": 17,
-      "end_line": 402,
-      "entry_id": "WE-E26C65757F2C30C2648599A4",
-      "file": "app/question_split.py",
-      "function": "app.question_split.write_question_candidates",
-      "input_source": "CLI_ARGUMENT_OR_CONFIG",
-      "kind": "SQLITE_MUTATION",
-      "line": 382,
-      "migration_status": "UNMIGRATED_BLOCKED",
-      "owner": "IMPORT_SERVICE",
-      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
-      "resolution": "ALIAS_RESOLVED",
-      "risk": "P1",
-      "root_ids": [
-        "CLI:MAIN"
-      ],
-      "source_sha256": "a7f0373d7028a82145c35fc06136ff99f98829a6788e9241c43c7578fcc1c796",
-      "statement_fingerprint": "236f8677e4d84c2b699137cb36a198421bcbd22bf3a0cf7cc828fe4721a23832",
-      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
-    },
-    {
-      "call_chain": [
-        "app.cli.main",
-        "app.question_split.split_questions",
-        "app.question_split.write_question_candidates"
-      ],
-      "callee": "app.database.connect_database().commit",
-      "column": 8,
-      "detail": "transaction commit",
-      "end_column": 21,
-      "end_line": 406,
-      "entry_id": "WE-FC573A13BB15803CFB83E0F7",
-      "file": "app/question_split.py",
-      "function": "app.question_split.write_question_candidates",
-      "input_source": "CLI_ARGUMENT_OR_CONFIG",
-      "kind": "SQLITE_TRANSACTION",
-      "line": 406,
-      "migration_status": "UNMIGRATED_BLOCKED",
-      "owner": "IMPORT_SERVICE",
-      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
-      "resolution": "ALIAS_RESOLVED",
-      "risk": "P1",
-      "root_ids": [
-        "CLI:MAIN"
-      ],
-      "source_sha256": "a7f0373d7028a82145c35fc06136ff99f98829a6788e9241c43c7578fcc1c796",
-      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     }
   ],

@@ -38,7 +38,7 @@
 | R-021 | 视觉基线被自动更新以掩盖退化 | M | H | 视觉系统常见误用 | 基线更新独立 D2 审计，旧基线不可覆盖 | M3 | Open |
 | R-022 | 当前数据库备份只是文件复制，不一致 | H | Critical | WAL 状态下 copy2 不可靠 | SQLite Backup API、完整性、实际恢复 | M4 | Open |
 | R-023 | “备份存在”但无法恢复 | H | Critical | 尚无完整恢复产品流程 | staging 恢复、故障注入、恢复后用户旅程 | M4 | Open |
-| R-024 | 同盘备份无法抵御整个 D 盘故障 | H | H | 当前唯一写根限制 | 对客户准确披露；异盘灾备需用户另行授权 | M4/M5 | Accepted limitation |
+| R-024 | 同卷备份无法抵御整个产品根所在卷故障 | H | H | 当前唯一写根限制 | 对客户准确披露；异卷灾备需用户另行授权 | M4/M5 | Accepted limitation |
 | R-025 | 批量渲染/备份耗尽磁盘并诱发危险清理 | M | Critical | 参考资产约 2.6 GiB，派生可能倍增 | 小样估算、minimum_free、停止而不自动清理 | All | Open |
 | R-026 | CDN/遥测接触成绩和题库 | H | Critical | 现有 HTML 引用远程脚本 | 静态依赖本地化、CSP、断网验收、网络审计 | M0/M3/M5 | Open |
 | R-027 | PII 进入日志、embedding、Git 或客户包 | H | Critical | XLSX 含姓名、学号、IP、QQ | restricted Copy、匿名化、扫描、禁止列表 | All | Open |
@@ -55,6 +55,7 @@
 | R-038 | 把静态扫描/测试实验室误称为 hostile-code OS sandbox | M | Critical | Python audit hook、watcher 和句柄围栏不能约束任意恶意 native/反射代码 | 受信任源码审查、固定 bootstrap、Job Object、watcher/fence、禁止未审阅 native 测试；准确披露边界 | M0/All | Open |
 | R-039 | 把调用者提供的 pair evidence 当成实际字节证明 | M | Critical | S2 `PairEvidence`仍只绑定声明；若未来入口绕过 S3-E live lease 会重新引入风险 | S3-E Test-local writer 已在 exact reservation 内从 live handles 重算、mutation 前再验、target 全树复算并以 operation chain 对账；生产 writer继续断开，S3-H 冻结后再评估关闭 | M0 | Open |
 | R-040 | 把内存 audit sink 当成可恢复的持久审计 | M | Critical | S2 sink 仅用于候选失败关闭，进程退出即丢失 | S3 追加式持久 ledger、批次 receipt、启动校验、故障注入和恢复演练 | M0 | Open |
+| R-041 | 固定盘符、旧主机锁或绝对路径使迁移后授权错误 | H | Critical | 2026-07-24 从旧 D 路径迁到 E 路径后，运行代码、状态和本机映射仍含旧路径 | marker + 受信任模块位置确定唯一根；持久路径相对化；本机映射 Git 忽略；迁移复核、数据库检查和新安全基线 | M0/All | Mitigating |
 
 ## 3. 风险关闭要求
 

@@ -914,7 +914,7 @@ def test_self_consistent_unknown_segment_schema_is_rejected_and_retained(
             _constructor=_LEDGER_CONSTRUCTOR,
         )
 
-    assert captured.value.code is LedgerCode.CHAIN_CORRUPT
+    assert captured.value.code is LedgerCode.POLICY_MISMATCH
     assert tampered.read_bytes() == payload
     assert {path.name for path in _segment_files(ledger_lab)} == {tampered.name}
     with pytest.raises(HandleWriterError) as sealed:

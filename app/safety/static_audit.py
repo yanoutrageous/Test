@@ -11,9 +11,10 @@ from pathlib import Path
 from typing import Any, Iterable, Iterator
 
 from app.config import PROJECT_ROOT
+from app.project_root import PROJECT_ROOT as _VERIFIED_PROJECT_ROOT
 
 
-SCANNER_VERSION = "M0-S3-STATIC-AUDIT-V9"
+SCANNER_VERSION = "M0-S3-STATIC-AUDIT-V16"
 PRODUCTION_ROOTS = ("app", "scripts")
 SOURCE_SUFFIXES = (".py", ".sql")
 SOURCE_BYTE_NORMALIZATION = "UTF8_LF_V1"
@@ -43,7 +44,15 @@ _AUDITED_INDEXED_CALLS = frozenset(
         ("app/question_assets.py", "app.question_assets.crop_question_assets", "43569ee06df8a7fc8875ec3f15a3cb2d3d0583ae4941fb94e72b99eac9f8171a"),
         ("app/question_split.py", "app.question_split.extract_page_text_blocks", "1aef377320dac5bfadb0aac1281fdacb17d8c36ac214ddcd92ed1e69aa05edc3"),
         ("app/safety/audit_events.py", "app.safety.audit_events.audit_hmac_key_id", "c78ca38e66dbcf5cb8df482b19dead92b2a003dd04d5b48bc239e6d3d3606cda"),
+        ("app/safety/copy_operation.py", "app.safety.copy_operation._TestLocalCopyOperation._require_worst_case_publish_budget", "5df82d08868214f698faeae1893fcb2fb04455b44bd2c2d9f42067355fba434d"),
+        ("app/safety/copy_operation.py", "app.safety.copy_operation._TestLocalCopyOperation._target_evidence", "1f31e4f650e22f2186a41f544e55ad25849db6455f5ffb0cf0ec4f8cefe60590"),
+        ("app/safety/copy_operation.py", "app.safety.copy_operation._TestLocalCopyOperation._target_evidence", "2901297b0933a43a0f713b401b16d15e3158125724dd3de02ca91e48ee0e83f2"),
+        ("app/safety/copy_operation.py", "app.safety.copy_operation._TestLocalCopyOperation._target_evidence", "72250afb55a1eeef9b5ef86f6b42e39f7e3056a1fed2ca15bad34fe6935c520d"),
+        ("app/safety/copy_operation.py", "app.safety.copy_operation._TestLocalCopyOperation._target_evidence", "be075eb99ec6e8d00342c9f0dace1800549a67700e315750c0a0ddba32731d54"),
+        ("app/safety/external_source.py", "app.safety.external_source._ReferenceReadApi.require_default_stream", "4bc9a8375287dea4dd2cf015cce3e07c9364c810d2b8063f15ba4c52127e6de5"),
+        ("app/safety/external_source.py", "app.safety.external_source._validated_source_name", "ebb841a115a85b101e0ad764729df612b93a2b547e6abf5210722f0ccdddd1e4"),
         ("app/safety/production_guard.py", "app.safety.production_guard._create_test_boundary", "c74c3f6c1d132b896ac4b6ac0a6da4f83e6615421cee5858697dd38d5ce975d6"),
+        ("app/safety/static_audit.py", "app.safety.static_audit._guard_findings", "4ed428eb19f4dfc1f1d6ed3319e6d60c2386f7c074192cdf710cbf48e4fbbb08"),
         ("app/safety/static_audit.py", "app.safety.static_audit._SinkVisitor.visit_Global", "addd2d256c10ae286feedeedb6b0ecd310c6d9eafc4b429f7a54cdf1f5a21a56"),
         ("app/safety/static_audit.py", "app.safety.static_audit._SinkVisitor.visit_Global", "ecacb8e1ecbe79b62f74dc0dc6885b5f1b269854da13461baf3572b7b28de490"),
         ("app/safety/static_audit.py", "app.safety.static_audit._SinkVisitor.visit_Global", "f323ea157bced7c5a1ad1886625e0797582641ab0e7681bfd28fbfe4eb2b12e3"),
@@ -91,11 +100,101 @@ _AUDITED_INDEXED_CALLS = frozenset(
     }
 )
 
+# S3-F builds fixed, code-identity-keyed exception vaults so public failures do
+# not retain source paths or authority objects in traceback frames.  The
+# implementation necessarily uses ``globals`` and ``FunctionType`` plus fixed
+# closure dispatch.  Only these exact reviewed AST callsites are suppressed,
+# only during the full production scan; any edit or synthetic copy fails closed.
+_AUDITED_DYNAMIC_CALLS = frozenset(
+    {
+        ("app/safety/copy_operation.py", "app.safety.copy_operation._create_copy_boundary_runtime", "84963364438461c87cb2d800531560a4935c054671e7e6f459bc6a8006de3023"),
+        ("app/safety/copy_operation.py", "app.safety.copy_operation._create_copy_boundary_runtime.dispatch", "0981a87d3f527cf303f3af144738a521c17abe64eb335150dab923e26a7f54db"),
+        ("app/safety/copy_operation.py", "app.safety.copy_operation._create_copy_boundary_runtime.register", "0796ac13589259764060920f990341d81a312580b5b41fe58090ffd90cfe67da"),
+        ("app/safety/copy_operation.py", "app.safety.copy_operation._path_free_exception_boundary", "ba525b52ec1b7c45e1f4deb769d4a1653f972eb7e440070ef48810b89b1ce8bd"),
+        ("app/safety/copy_operation.py", "<module>", "c28646b37fd6e3553087860fbb0883ce0897ccd04f37a31c82150a3ab105a05a"),
+        ("app/safety/external_source.py", "app.safety.external_source._create_external_boundary_runtime", "84963364438461c87cb2d800531560a4935c054671e7e6f459bc6a8006de3023"),
+        ("app/safety/external_source.py", "app.safety.external_source._create_external_boundary_runtime.dispatch", "0981a87d3f527cf303f3af144738a521c17abe64eb335150dab923e26a7f54db"),
+        ("app/safety/external_source.py", "app.safety.external_source._create_external_boundary_runtime.register", "0796ac13589259764060920f990341d81a312580b5b41fe58090ffd90cfe67da"),
+        ("app/safety/external_source.py", "app.safety.external_source._path_free_exception_boundary", "60e6db54225f8451fc300f252c4119249980927c95390f9ea0946e89ad9f2923"),
+        ("app/safety/external_source.py", "<module>", "b4bd3fa56b9d29cde5a2a176b9aef6833a5197556488435a68afb3e7c0d68bed"),
+    }
+)
+
 # The safe launcher deliberately keeps the already-audited ``ctypes`` module on
 # three private runtime objects.  Suppression is exact (file/function/AST), is
 # active only for the full production scan, and drifts closed.
 _AUDITED_CAPABILITY_STORES = frozenset(
     {
+        (
+            "app/safety/external_source.py",
+            "app.safety.external_source._ReferenceReadApi.__init__",
+            "1064e62ff455ab4e526ee266e65442b586377a9afcb413cf134f45a72c0186e4",
+        ),
+        (
+            "app/safety/external_source.py",
+            "app.safety.external_source._ReferenceReadApi.__init__",
+            "3311159ac8f03231b502403042e5b095ec7d3e163b0d670ea664bcfc2974dbb2",
+        ),
+        (
+            "app/safety/external_source.py",
+            "app.safety.external_source._ReferenceReadApi.__init__",
+            "3c714b0ff80069aad944e767d3a6000ce135a8ef90bbd8a3faa9b8ca8c2391e9",
+        ),
+        (
+            "app/safety/external_source.py",
+            "app.safety.external_source._ReferenceReadApi.__init__",
+            "4008610d09f8470cd00a0ea4fb59ead369274e83c633e00e1146e29fbe55b2b5",
+        ),
+        (
+            "app/safety/external_source.py",
+            "app.safety.external_source._ReferenceReadApi.__init__",
+            "5830c8bffc003a1e01d8310f7affca6f2a5a09c34971891080a88f59d1a43b84",
+        ),
+        (
+            "app/safety/external_source.py",
+            "app.safety.external_source._ReferenceReadApi.__init__",
+            "5bf7a081c452334d1249142ecb9b07924cf64475f225296653c9076fb44b6069",
+        ),
+        (
+            "app/safety/external_source.py",
+            "app.safety.external_source._ReferenceReadApi.__init__",
+            "760a336c7462cd06d401dd823bb142d6262e1b361e5fcb13ce34a0d01395fa3d",
+        ),
+        (
+            "app/safety/external_source.py",
+            "app.safety.external_source._ReferenceReadApi.__init__",
+            "9cc738a82ad72278e6b38ee186221f967ec947da264ceaa3a1a73ffe32a0bbd7",
+        ),
+        (
+            "app/safety/external_source.py",
+            "app.safety.external_source._ReferenceReadApi.__init__",
+            "9cec56da79759d0ebaefa0a2f901d6c2c08c30b727c1ac9cc6fd370fa15b1acf",
+        ),
+        (
+            "app/safety/external_source.py",
+            "app.safety.external_source._ReferenceReadApi.__init__",
+            "ae91a2a14d1565edc3e370b7ccc61841e3dd42beb21d6335e4b8b2a0ed3044f6",
+        ),
+        (
+            "app/safety/external_source.py",
+            "app.safety.external_source._ReferenceReadApi.__init__",
+            "af05300fe9760e8a920ac4d5325139c73cd2183e85d70969e2213c413b6de5b0",
+        ),
+        (
+            "app/safety/external_source.py",
+            "app.safety.external_source._ReferenceReadApi.__init__",
+            "e1ba4d940ade6409e828ff8d219ee0ae173e0078badce9c6dc7e1bf774a49909",
+        ),
+        (
+            "app/safety/external_source.py",
+            "app.safety.external_source._ReferenceReadApi.__init__",
+            "f0f8cc5aaa988b104300f95988b6cecd4f5a04553c914e135aaa4ef6b49fc808",
+        ),
+        (
+            "app/safety/external_source.py",
+            "app.safety.external_source._ReferenceReadApi.__init__",
+            "f17f2ed660d0f15d9bac556b9817ccf29b519d5727208d8187eceac382a7fda2",
+        ),
         (
             "scripts/run_safe_pytest.py",
             "scripts.run_safe_pytest._WindowsJob.__init__",
@@ -434,6 +533,19 @@ def _assert_audited_indexed_hits(
                 for (file, function, fingerprint), count in sorted(drift.items())
             )
         )
+    dynamic_drift = {
+        callsite: hits.get(callsite, 0)
+        for callsite in _AUDITED_DYNAMIC_CALLS
+        if hits.get(callsite, 0) != 1
+    }
+    if dynamic_drift:
+        raise RuntimeError(
+            "audited dynamic callsite suppression drifted: "
+            + "; ".join(
+                f"{file}:{function}:{fingerprint}={count}"
+                for (file, function, fingerprint), count in sorted(dynamic_drift.items())
+            )
+        )
     store_drift = {
         callsite: hits.get(callsite, 0)
         for callsite in _AUDITED_CAPABILITY_STORES
@@ -493,6 +605,10 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
     job_file = "app/safety/job_operation.py"
     operation_file = "app/safety/operation_ledger.py"
     writer_file = "app/safety/windows_handle_writer.py"
+    copy_ledger_file = "app/safety/copy_ledger.py"
+    copy_operation_file = "app/safety/copy_operation.py"
+    external_source_file = "app/safety/external_source.py"
+    project_root_file = "app/project_root.py"
     safety_module_prefixes = (
         "app.safety.production_guard",
         "app.safety.namespace_policy",
@@ -500,26 +616,58 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         "app.safety.segment_ledger",
         "app.safety.job_operation",
         "app.safety.operation_ledger",
+        "app.safety.copy_ledger",
+        "app.safety.copy_operation",
+        "app.safety.external_source",
     )
-    scope_aliases: dict[str, str] = dict(module.imports)
-    for _ in range(8):
-        changed = False
-        for node in ast.walk(module.tree):
-            if isinstance(node, ast.Assign):
-                targets = node.targets
-                value = node.value
-            elif isinstance(node, ast.AnnAssign) and node.value is not None:
-                targets = [node.target]
-                value = node.value
-            else:
-                continue
-            resolved, _confidence = _resolve_callee(value, scope_aliases)
-            for target in targets:
-                if isinstance(target, ast.Name) and scope_aliases.get(target.id) != resolved:
-                    scope_aliases[target.id] = resolved
-                    changed = True
-        if not changed:
-            break
+    assignments_by_scope: dict[str, list[tuple[list[ast.expr], ast.expr]]] = defaultdict(list)
+    for candidate in ast.walk(module.tree):
+        if isinstance(candidate, ast.Assign):
+            targets = list(candidate.targets)
+            value = candidate.value
+        elif isinstance(candidate, ast.AnnAssign) and candidate.value is not None:
+            targets = [candidate.target]
+            value = candidate.value
+        else:
+            continue
+        assignments_by_scope[
+            _enclosing_function_qualname(candidate, module.parents)
+        ].append((targets, value))
+
+    def resolve_scope_aliases(
+        initial: dict[str, str],
+        assignments: list[tuple[list[ast.expr], ast.expr]],
+    ) -> dict[str, str]:
+        aliases = dict(initial)
+        for _ in range(8):
+            changed = False
+            for targets, value in assignments:
+                resolved, _confidence = _resolve_callee(value, aliases)
+                for target in targets:
+                    if (
+                        isinstance(target, ast.Name)
+                        and aliases.get(target.id) != resolved
+                    ):
+                        aliases[target.id] = resolved
+                        changed = True
+            if not changed:
+                break
+        return aliases
+
+    module_aliases = resolve_scope_aliases(
+        dict(module.imports),
+        assignments_by_scope.get("<module>", []),
+    )
+    aliases_by_scope = {
+        scope: resolve_scope_aliases(module_aliases, assignments)
+        for scope, assignments in assignments_by_scope.items()
+        if scope != "<module>"
+    }
+    aliases_by_scope["<module>"] = module_aliases
+
+    def aliases_for(node: ast.AST) -> dict[str, str]:
+        scope = _enclosing_function_qualname(node, module.parents)
+        return aliases_by_scope.get(scope, module_aliases)
 
     forbidden_constructors = {
         "WorkspaceGuard",
@@ -551,11 +699,44 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         "_PAIR_RESERVATION_CONSTRUCTOR",
         "_DirectoryPublishJournalPermit",
         "_DIRECTORY_PUBLISH_PERMIT_CONSTRUCTOR",
+        "HandleObjectIdentityMaterial",
+        "HandleTreeIdentityMaterial",
+        "_IDENTITY_MATERIAL_CONSTRUCTOR",
         "_AUDIT_AUTHORITY_CONSTRUCTOR",
         "_LEDGER_CONSTRUCTOR",
         "_HANDLE_WRITER_CONSTRUCTOR",
         "_TOKEN_CONSTRUCTOR",
         "_PAIR_CLAIM_CONSTRUCTOR",
+        "DurableCopyLedgers",
+        "_COPY_LEDGERS_CONSTRUCTOR",
+        "_AuthenticatedCopyAncestors",
+        "_AUTHENTICATED_COPY_ANCESTORS_CONSTRUCTOR",
+        "_TestLocalCopyOperation",
+        "_COPY_OPERATION_CONSTRUCTOR",
+        "_ReferenceReadApi",
+        "_READ_API_CONSTRUCTOR",
+        "SyntheticReferenceReadPolicy",
+        "_POLICY_CONSTRUCTOR",
+        "_SyntheticReferenceLease",
+        "_LEASE_CONSTRUCTOR",
+        "_CopyExecutionPermit",
+        "_COPY_EXECUTION_PERMIT_CONSTRUCTOR",
+        "_create_synthetic_reference_read_policy",
+        "_copy_execution_scope_sha256",
+        "_copy_execution_binding_sha256",
+        "_require_copy_execution_authorities",
+        "_issue_copy_execution_permit",
+        "_check_copy_execution_permit",
+        "_validate_copy_execution_permit",
+        "_consume_copy_execution_permit",
+        "_create_test_copy_ledgers",
+        "_create_test_copy_operation",
+        "_RestrictedRecoveryLocatorRecord",
+        "_RestrictedRecoveryLocatorCapability",
+        "_RECOVERY_LOCATOR_CONSTRUCTOR",
+        "CopyProvenanceMaterial",
+        "build_copy_provenance_material",
+        "COPY_PROVENANCE_FILE_NAME",
     }
     forbidden_private_imports = {
         "_BoundaryCore",
@@ -588,6 +769,36 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         "_PAIR_RESERVATION_CONSTRUCTOR",
         "_DirectoryPublishJournalPermit",
         "_DIRECTORY_PUBLISH_PERMIT_CONSTRUCTOR",
+        "_IDENTITY_MATERIAL_CONSTRUCTOR",
+        "_COPY_LEDGERS_CONSTRUCTOR",
+        "_AuthenticatedCopyAncestors",
+        "_AUTHENTICATED_COPY_ANCESTORS_CONSTRUCTOR",
+        "_TestLocalCopyOperation",
+        "_COPY_OPERATION_CONSTRUCTOR",
+        "_ReferenceReadApi",
+        "_READ_API_CONSTRUCTOR",
+        "SyntheticReferenceReadPolicy",
+        "_POLICY_CONSTRUCTOR",
+        "_SyntheticReferenceLease",
+        "_LEASE_CONSTRUCTOR",
+        "_CopyExecutionPermit",
+        "_COPY_EXECUTION_PERMIT_CONSTRUCTOR",
+        "_create_synthetic_reference_read_policy",
+        "_copy_execution_scope_sha256",
+        "_copy_execution_binding_sha256",
+        "_require_copy_execution_authorities",
+        "_issue_copy_execution_permit",
+        "_check_copy_execution_permit",
+        "_validate_copy_execution_permit",
+        "_consume_copy_execution_permit",
+        "_create_test_copy_ledgers",
+        "_create_test_copy_operation",
+        "_RestrictedRecoveryLocatorRecord",
+        "_RestrictedRecoveryLocatorCapability",
+        "_RECOVERY_LOCATOR_CONSTRUCTOR",
+        "CopyProvenanceMaterial",
+        "build_copy_provenance_material",
+        "COPY_PROVENANCE_FILE_NAME",
     }
     sensitive_assignments = {
         "CONTRACT_PROJECT_ROOT",
@@ -635,6 +846,37 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         "_OPERATION_LEDGER_CONSTRUCTOR",
         "_PAIR_RESERVATION_CONSTRUCTOR",
         "_DIRECTORY_PUBLISH_PERMIT_CONSTRUCTOR",
+        "_IDENTITY_MATERIAL_CONSTRUCTOR",
+        "__frame",
+        "__rows",
+        "_COPY_LEDGERS_CONSTRUCTOR",
+        "_AUTHENTICATED_COPY_ANCESTORS_CONSTRUCTOR",
+        "_COPY_OPERATION_CONSTRUCTOR",
+        "_READ_API_CONSTRUCTOR",
+        "_POLICY_CONSTRUCTOR",
+        "_LEASE_CONSTRUCTOR",
+        "_COPY_EXECUTION_PERMIT_CONSTRUCTOR",
+        "_RECOVERY_LOCATOR_CONSTRUCTOR",
+        "_publish_terminal_binding_sha256s",
+        "_copy_cross_reference_sha256",
+        "_runtime",
+        "_writer",
+        "_operation_ledger",
+        "_workspace_root",
+        "_ledgers",
+        "_source_policy",
+        "_source_chain",
+        "_copy_chain",
+        "_revision",
+        "_run_scope_id",
+        "_run_scope_hmac_sha256",
+        "_known_revisions",
+        "_requested_revision_id",
+        "_append_enabled",
+        "_api",
+        "_locator_key",
+        "_digest_key",
+        "auth_key",
         "POLICY_ID",
         "POLICY_VERSION",
         "POLICY_DIGEST",
@@ -655,6 +897,7 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
             allowed_file,
             job_file,
             operation_file,
+            copy_ledger_file,
             "app/safety/windows_handle_writer.py",
         },
         "_WindowsApi": {
@@ -664,13 +907,24 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         },
         "_create_test_handle_writer": {allowed_file},
         "AuditKeyRevisionStore": {allowed_file, ledger_file},
-        "DurableAuditLedger": {allowed_file, ledger_file, job_file},
+        "DurableAuditLedger": {
+            allowed_file,
+            ledger_file,
+            job_file,
+            copy_ledger_file,
+        },
         "DurableAuditSink": {allowed_file, ledger_file},
-        "DurableOperationLedger": {allowed_file, job_file, operation_file},
+        "DurableOperationLedger": {
+            allowed_file,
+            job_file,
+            operation_file,
+            copy_operation_file,
+            copy_ledger_file,
+        },
         "_AuditAuthority": {allowed_file},
         "_TestDurableBoundaryBundle": {allowed_file},
         "_create_test_durable_boundary": {allowed_file},
-        "_TestJobRuntime": {allowed_file, job_file},
+        "_TestJobRuntime": {allowed_file, job_file, copy_operation_file},
         "_build_test_job_runtime": {allowed_file, job_file},
         "_JOB_RUNTIME_CONSTRUCTOR": {allowed_file, job_file},
         "_ImmutableFileLease": {
@@ -687,6 +941,9 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         "_PAIR_RESERVATION_CONSTRUCTOR": {allowed_file},
         "_DirectoryPublishJournalPermit": {job_file, writer_file},
         "_DIRECTORY_PUBLISH_PERMIT_CONSTRUCTOR": {writer_file},
+        "HandleObjectIdentityMaterial": {writer_file, operation_file},
+        "HandleTreeIdentityMaterial": {writer_file, operation_file},
+        "_IDENTITY_MATERIAL_CONSTRUCTOR": {writer_file},
         "_AUDIT_AUTHORITY_CONSTRUCTOR": {allowed_file},
         "_LEDGER_CONSTRUCTOR": {allowed_file, ledger_file},
         "_HANDLE_WRITER_CONSTRUCTOR": {
@@ -698,8 +955,71 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
             allowed_file,
             "app/safety/namespace_policy.py",
         },
+        "DurableCopyLedgers": {
+            allowed_file,
+            copy_ledger_file,
+            copy_operation_file,
+        },
+        "_COPY_LEDGERS_CONSTRUCTOR": {allowed_file, copy_ledger_file},
+        "_AuthenticatedCopyAncestors": {copy_ledger_file},
+        "_AUTHENTICATED_COPY_ANCESTORS_CONSTRUCTOR": {copy_ledger_file},
+        "_TestLocalCopyOperation": {allowed_file, copy_operation_file},
+        "_COPY_OPERATION_CONSTRUCTOR": {allowed_file, copy_operation_file},
+        "_ReferenceReadApi": {external_source_file},
+        "_READ_API_CONSTRUCTOR": {external_source_file},
+        "SyntheticReferenceReadPolicy": {
+            external_source_file,
+            copy_operation_file,
+        },
+        "_POLICY_CONSTRUCTOR": {external_source_file},
+        "_SyntheticReferenceLease": {
+            external_source_file,
+            copy_operation_file,
+        },
+        "_LEASE_CONSTRUCTOR": {external_source_file},
+        "_CopyExecutionPermit": {
+            external_source_file,
+            copy_operation_file,
+        },
+        "_COPY_EXECUTION_PERMIT_CONSTRUCTOR": {external_source_file},
+        "_create_synthetic_reference_read_policy": {
+            allowed_file,
+            external_source_file,
+        },
+        "_copy_execution_scope_sha256": {external_source_file},
+        "_copy_execution_binding_sha256": {external_source_file},
+        "_require_copy_execution_authorities": {external_source_file},
+        "_issue_copy_execution_permit": {
+            external_source_file,
+            copy_operation_file,
+        },
+        "_check_copy_execution_permit": {external_source_file},
+        "_validate_copy_execution_permit": {
+            external_source_file,
+            copy_operation_file,
+        },
+        "_consume_copy_execution_permit": {
+            external_source_file,
+            copy_operation_file,
+        },
+        "_create_test_copy_ledgers": {allowed_file},
+        "_create_test_copy_operation": {allowed_file},
+        "_RestrictedRecoveryLocatorRecord": {allowed_file},
+        "_RestrictedRecoveryLocatorCapability": {allowed_file},
+        "_RECOVERY_LOCATOR_CONSTRUCTOR": {allowed_file},
+        "CopyProvenanceMaterial": {copy_ledger_file, copy_operation_file},
+        "build_copy_provenance_material": {copy_ledger_file, copy_operation_file},
+        "COPY_PROVENANCE_FILE_NAME": {copy_ledger_file, copy_operation_file},
     }
     restricted_private_calls: dict[str, set[tuple[str, str]]] = {
+        "_operation_hmac_sha256": {
+            (operation_file, "DurableOperationLedger.durable_object_identity_digest"),
+            (operation_file, "DurableOperationLedger.durable_tree_identity_digest"),
+            (
+                operation_file,
+                "DurableOperationLedger.durable_tree_evidence_identity_digest",
+            ),
+        },
         "_issue_directory_publish_journal_permit": {
             (job_file, "_OperationLease.execute_publish_pair"),
         },
@@ -709,16 +1029,78 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         "_observe_existing_tree_snapshot": {
             (allowed_file, "_reconcile_test_publish_operation.observe_once"),
         },
+        "_require_directory_target_absent_under_existing_mutex": {
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._require_target_absent_twice",
+            ),
+        },
+        "_after_directory_target_absence_first_observation": {
+            (
+                writer_file,
+                "_WindowsHandleWriter._require_directory_target_absent_under_existing_mutex",
+            ),
+        },
         "_append_transition_under_existing_mutex": {
             (job_file, "_PublishOperationJournal._append"),
             (allowed_file, "_reconcile_test_publish_operation"),
+            (copy_operation_file, "_TestLocalCopyOperation._execute_new"),
+            (copy_operation_file, "_TestLocalCopyOperation._append_failure_fact"),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._reconcile_committed_publish",
+            ),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._reconcile_absent_publish",
+            ),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._reconcile_source_only_abort",
+            ),
         },
         "transaction_result_under_existing_mutex": {
             (allowed_file, "_reconcile_test_publish_operation"),
+            (job_file, "_OperationLease.execute_publish_pair"),
+            (copy_operation_file, "_TestLocalCopyOperation._try_replay"),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._reconcile_consumed_source",
+            ),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._validate_ledgers_for_new_operation",
+            ),
+            (copy_operation_file, "_TestLocalCopyOperation._append_failure_fact"),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._validate_authenticated_publish_result",
+            ),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._reconcile_committed_publish",
+            ),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._reconcile_absent_publish",
+            ),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._reconcile_source_only_abort",
+            ),
+            (
+                copy_ledger_file,
+                "DurableCopyLedgers._authenticated_publish_terminal_bindings_under_existing_mutex",
+            ),
         },
         "operation_result_under_existing_mutex": {
             (job_file, "_TestJobRuntime.replay_committed_publish"),
             (job_file, "_TestJobRuntime.begin_operation"),
+            (copy_operation_file, "_TestLocalCopyOperation._append_failure_fact"),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._reconcile_consumed_source",
+            ),
         },
         "_rescan_under_existing_mutex": {
             (job_file, "_TestJobRuntime.replay_committed_publish"),
@@ -731,11 +1113,49 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
             (operation_file, "DurableOperationLedger.operation_result_under_existing_mutex"),
             (operation_file, "DurableOperationLedger.transaction_result_under_existing_mutex"),
             (operation_file, "DurableOperationLedger.bound_audit_heads_under_existing_mutex"),
+            (operation_file, "DurableOperationLedger.authenticated_segment_sha256s_under_existing_mutex"),
             (allowed_file, "_create_test_operation_ledger"),
+            (allowed_file, "_create_test_copy_ledgers"),
             (allowed_file, "_reconcile_test_publish_operation"),
+            (allowed_file, "_BoundaryCore._attest_copy_ledger_read"),
             (ledger_file, "DurableAuditLedger._contains_segment_sha256_under_existing_mutex"),
             (ledger_file, "DurableAuditLedger._contains_all_segment_sha256_under_existing_mutex"),
             (ledger_file, "DurableAuditLedger._activated_revision_ids_under_existing_mutex"),
+            (ledger_file, "DurableAuditLedger.authenticated_segment_sha256s_under_existing_mutex"),
+            (copy_ledger_file, "DurableCopyLedgers.source_result_under_existing_mutex"),
+            (
+                copy_ledger_file,
+                "DurableCopyLedgers.transaction_source_result_under_existing_mutex",
+            ),
+            (copy_ledger_file, "DurableCopyLedgers.transaction_result_under_existing_mutex"),
+            (copy_ledger_file, "DurableCopyLedgers.bound_audit_ancestors_under_existing_mutex"),
+            (copy_ledger_file, "DurableCopyLedgers.bound_publish_terminals_under_existing_mutex"),
+            (
+                copy_ledger_file,
+                "DurableCopyLedgers._authenticated_publish_terminal_bindings_under_existing_mutex",
+            ),
+            (
+                copy_ledger_file,
+                "DurableCopyLedgers._append_revision_is_current_under_existing_mutex",
+            ),
+            (
+                copy_ledger_file,
+                "DurableCopyLedgers._issue_operation_absence_witness_under_existing_mutex",
+            ),
+            (copy_operation_file, "_TestLocalCopyOperation._try_replay"),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._prepare_source_for_execute",
+            ),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._load_source_for_recovery",
+            ),
+            (copy_operation_file, "_TestLocalCopyOperation._validate_ledgers_for_new_operation"),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._reconcile_consumed_source",
+            ),
         },
         "bound_audit_heads_under_existing_mutex": {
             (job_file, "_TestJobRuntime._validate_operation_audit_bindings"),
@@ -745,9 +1165,16 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
             (job_file, "_TestJobRuntime._validate_operation_audit_bindings"),
             (allowed_file, "_create_test_operation_ledger"),
             (ledger_file, "DurableAuditLedger._contains_segment_sha256_under_existing_mutex"),
+            (copy_operation_file, "_TestLocalCopyOperation._verify_all_ancestors"),
         },
         "_activated_revision_ids_under_existing_mutex": {
             (allowed_file, "_create_test_operation_ledger"),
+            (allowed_file, "_create_test_copy_ledgers"),
+            (allowed_file, "_BoundaryCore._attest_copy_ledger_read"),
+            (
+                copy_ledger_file,
+                "DurableCopyLedgers._append_revision_is_current_under_existing_mutex",
+            ),
         },
         "_seal_cross_ledger_contradiction": {
             (job_file, "_TestJobRuntime._validate_operation_audit_bindings"),
@@ -792,6 +1219,480 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         "_DirectoryPublishJournalPermit": {
             (writer_file, "_WindowsHandleWriter._issue_directory_publish_journal_permit"),
         },
+        "DurableCopyLedgers": {
+            (allowed_file, "_create_test_copy_ledgers"),
+            (
+                copy_ledger_file,
+                "DurableCopyLedgers._preflight_new_epoch_under_existing_mutex",
+            ),
+        },
+        "_AuthenticatedCopyAncestors": {
+            (copy_ledger_file, "DurableCopyLedgers._issue_authenticated_ancestors_under_existing_mutex"),
+        },
+        "_TestLocalCopyOperation": {
+            (allowed_file, "_create_test_copy_operation"),
+        },
+        "_ReferenceReadApi": {
+            (external_source_file, "_create_synthetic_reference_read_policy"),
+        },
+        "SyntheticReferenceReadPolicy": {
+            (external_source_file, "_create_synthetic_reference_read_policy"),
+        },
+        "_SyntheticReferenceLease": {
+            (external_source_file, "SyntheticReferenceReadPolicy.open_reference"),
+        },
+        "_CopyExecutionPermit": {
+            (external_source_file, "_issue_copy_execution_permit"),
+        },
+        "CopyProvenanceMaterial": {
+            (copy_ledger_file, "build_copy_provenance_material"),
+        },
+        "build_copy_provenance_material": {
+            (copy_ledger_file, "DurableCopyLedgers._validate_source_cross_reference"),
+            (
+                copy_ledger_file,
+                "DurableCopyLedgers._authenticate_persisted_publish_plan",
+            ),
+            (
+                copy_ledger_file,
+                "DurableCopyLedgers._authenticated_publish_terminal_bindings_under_existing_mutex",
+            ),
+            (copy_operation_file, "_TestLocalCopyOperation._copy_provenance_material"),
+        },
+        "publish_operation_binding": {
+            (
+                copy_ledger_file,
+                "DurableCopyLedgers._issue_operation_absence_witness_under_existing_mutex",
+            ),
+            (
+                copy_ledger_file,
+                "DurableCopyLedgers._authenticated_publish_terminal_bindings_under_existing_mutex",
+            ),
+            (copy_operation_file, "_TestLocalCopyOperation._publish_operation_binding"),
+        },
+        "_authenticated_publish_terminal_bindings_under_existing_mutex": {
+            (
+                copy_ledger_file,
+                "DurableCopyLedgers._issue_authenticated_ancestors_under_existing_mutex",
+            ),
+            (
+                copy_ledger_file,
+                "DurableCopyLedgers._verify_external_ancestors_under_existing_mutex",
+            ),
+        },
+        "_create_synthetic_reference_read_policy": {
+            (allowed_file, "_create_test_copy_operation"),
+        },
+        "_copy_execution_scope_sha256": {
+            (external_source_file, "_require_copy_execution_authorities"),
+        },
+        "_copy_execution_binding_sha256": {
+            (external_source_file, "_issue_copy_execution_permit"),
+            (external_source_file, "_check_copy_execution_permit"),
+        },
+        "_require_copy_execution_authorities": {
+            (external_source_file, "_issue_copy_execution_permit"),
+            (external_source_file, "_check_copy_execution_permit"),
+        },
+        "_issue_copy_execution_permit": {
+            (copy_operation_file, "_TestLocalCopyOperation._issue_execution_permit"),
+        },
+        "_check_copy_execution_permit": {
+            (external_source_file, "_validate_copy_execution_permit"),
+            (external_source_file, "_consume_copy_execution_permit"),
+        },
+        "_validate_copy_execution_permit": {
+            (copy_operation_file, "_TestLocalCopyOperation._validate_execution_permit"),
+        },
+        "_consume_copy_execution_permit": {
+            (copy_operation_file, "_TestLocalCopyOperation._consume_execution_permit"),
+        },
+        "_append_source_under_existing_mutex": {
+            (copy_operation_file, "_TestLocalCopyOperation._execute_new"),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._prepare_source_for_execute",
+            ),
+        },
+        "source_result_under_existing_mutex": {
+            (copy_operation_file, "_TestLocalCopyOperation._try_replay"),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._reconcile_consumed_source",
+            ),
+        },
+        "transaction_source_result_under_existing_mutex": {
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._reconcile_consumed_source",
+            ),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._prepare_source_for_execute",
+            ),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._load_source_for_recovery",
+            ),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._validate_ledgers_for_new_operation",
+            ),
+        },
+        "open_reference": {
+            (copy_operation_file, "_TestLocalCopyOperation.execute"),
+            (copy_operation_file, "_TestLocalCopyOperation.reconcile"),
+        },
+        "read_once": {
+            (copy_operation_file, "_TestLocalCopyOperation.execute"),
+            (copy_operation_file, "_TestLocalCopyOperation.reconcile"),
+        },
+        "operation_reference": {
+            (job_file, "_TestJobRuntime.replay_committed_publish"),
+            (job_file, "_TestJobRuntime.begin_operation"),
+            (job_file, "_PublishOperationJournal._append"),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._reconcile_consumed_source",
+            ),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._validate_recovery_publish_binding",
+            ),
+            (copy_operation_file, "_TestLocalCopyOperation._append_failure_fact"),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._execution_operation_identity_sha256",
+            ),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._publish_operation_binding",
+            ),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._unstarted_publish_plan",
+            ),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._reserved_publish_plan",
+            ),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._issue_operation_absence_witness",
+            ),
+        },
+        "_copy_recovery_result": {
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._reconcile_consumed_source",
+            ),
+        },
+        "_validate_recovery_binding": {
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._reconcile_consumed_source",
+            ),
+        },
+        "_validate_recovery_publish_binding": {
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._reconcile_consumed_source",
+            ),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._validate_authenticated_publish_result",
+            ),
+        },
+        "_recovered_transition": {
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._reconcile_committed_publish",
+            ),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._reconcile_absent_publish",
+            ),
+        },
+        "_source_only_recovered_abort_transition": {
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._reconcile_source_only_abort",
+            ),
+        },
+        "_reconcile_source_only_abort": {
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._reconcile_consumed_source",
+            ),
+        },
+        "_reconcile_committed_publish": {
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._reconcile_consumed_source",
+            ),
+        },
+        "_reconcile_absent_publish": {
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._reconcile_consumed_source",
+            ),
+        },
+        "_validate_source_only_recovery_binding": {
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._reconcile_consumed_source",
+            ),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._prepare_source_for_execute",
+            ),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._load_source_for_recovery",
+            ),
+        },
+        "_target_evidence": {
+            (copy_operation_file, "_TestLocalCopyOperation._execute_new"),
+            (copy_operation_file, "_TestLocalCopyOperation._try_replay"),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._reconcile_committed_publish",
+            ),
+        },
+        "_require_target_absent_twice": {
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._reconcile_source_only_abort",
+            ),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._reconcile_absent_publish",
+            ),
+        },
+        "verify_unchanged": {
+            (copy_operation_file, "_TestLocalCopyOperation._execute_new"),
+            (copy_operation_file, "_TestLocalCopyOperation._try_replay"),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._reconcile_committed_publish",
+            ),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._reconcile_absent_publish",
+            ),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._reconcile_source_only_abort",
+            ),
+        },
+        "_issue_execution_permit": {
+            (copy_operation_file, "_TestLocalCopyOperation.execute"),
+            (copy_operation_file, "_TestLocalCopyOperation.reconcile"),
+        },
+        "_validate_execution_permit": {
+            (copy_operation_file, "_TestLocalCopyOperation._try_replay"),
+        },
+        "_consume_execution_permit": {
+            (copy_operation_file, "_TestLocalCopyOperation.reconcile"),
+            (copy_operation_file, "_TestLocalCopyOperation._execute_new"),
+            (copy_operation_file, "_TestLocalCopyOperation._try_replay"),
+        },
+        "_raise_recovery_contradiction": {
+            (copy_operation_file, "_TestLocalCopyOperation.reconcile"),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._load_source_for_recovery",
+            ),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._reconcile_consumed_source",
+            ),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._copy_recovery_result",
+            ),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._reconcile_committed_publish",
+            ),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._reconcile_absent_publish",
+            ),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._reconcile_source_only_abort",
+            ),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._validate_recovery_binding",
+            ),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._validate_recovery_publish_binding",
+            ),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._validate_source_only_recovery_binding",
+            ),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._recovered_transition",
+            ),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._require_target_absent_twice",
+            ),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._authoritative_publish_relative_paths",
+            ),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._unstarted_publish_plan",
+            ),
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation._issue_operation_absence_witness",
+            ),
+        },
+        "bound_audit_ancestors_under_existing_mutex": {
+            (copy_ledger_file, "DurableCopyLedgers._verify_external_ancestors_under_existing_mutex"),
+        },
+        "bound_publish_terminals_under_existing_mutex": {
+            (copy_ledger_file, "DurableCopyLedgers._verify_external_ancestors_under_existing_mutex"),
+        },
+        "_issue_authenticated_ancestors_under_existing_mutex": {
+            (allowed_file, "_create_test_copy_ledgers"),
+            (copy_operation_file, "_TestLocalCopyOperation._verify_all_ancestors"),
+        },
+        "_verify_external_ancestors_under_existing_mutex": {
+            (allowed_file, "_create_test_copy_ledgers"),
+            (copy_operation_file, "_TestLocalCopyOperation._verify_all_ancestors"),
+        },
+        "authenticated_segment_sha256s_under_existing_mutex": {
+            (copy_ledger_file, "DurableCopyLedgers._issue_authenticated_ancestors_under_existing_mutex"),
+            (copy_ledger_file, "DurableCopyLedgers._verify_external_ancestors_under_existing_mutex"),
+            (
+                copy_ledger_file,
+                "DurableCopyLedgers._issue_operation_absence_witness_under_existing_mutex",
+            ),
+            (
+                copy_ledger_file,
+                "DurableCopyLedgers._authenticated_publish_terminal_bindings_under_existing_mutex",
+            ),
+        },
+        "_create_test_copy_ledgers": set(),
+        "_create_test_copy_operation": set(),
+        "_derive_copy_ledger_epoch_id": {
+            (copy_ledger_file, "DurableCopyLedgers.__init__"),
+            (copy_ledger_file, "DurableCopyLedgers.matches_run_scope"),
+            (
+                copy_ledger_file,
+                "DurableCopyLedgers._preflight_new_epoch_under_existing_mutex",
+            ),
+            (allowed_file, "_BoundaryCore._attest_copy_ledger_read"),
+        },
+        "_derive_run_scope_hmac": {
+            (copy_ledger_file, "DurableCopyLedgers.__init__"),
+            (
+                copy_ledger_file,
+                "DurableCopyLedgers._select_persisted_revision_under_mutex",
+            ),
+        },
+        "_require_append_revision_current": {
+            (
+                copy_ledger_file,
+                "DurableCopyLedgers._append_source_under_existing_mutex",
+            ),
+        },
+        "_require_transition_append_allowed": {
+            (
+                copy_ledger_file,
+                "DurableCopyLedgers._append_transition_under_existing_mutex",
+            ),
+        },
+        "matches_run_scope": {
+            (allowed_file, "_create_test_copy_operation"),
+            (copy_operation_file, "_TestLocalCopyOperation.__init__"),
+        },
+        "transaction_binding": {
+            (copy_operation_file, "_TestLocalCopyOperation._stable_bindings"),
+        },
+        "copy_object_binding": {
+            (copy_operation_file, "_TestLocalCopyOperation._stable_bindings"),
+        },
+        "target_locator": {
+            (copy_operation_file, "_TestLocalCopyOperation._copy_target_locator"),
+            (copy_ledger_file, "DurableCopyLedgers.publish_operation_binding"),
+            (
+                copy_ledger_file,
+                "DurableCopyLedgers._authenticated_publish_terminal_bindings_under_existing_mutex",
+            ),
+        },
+        "_RestrictedRecoveryLocatorRecord": {
+            (allowed_file, "_BoundaryCore.issue_restricted_recovery_locator"),
+        },
+        "_RestrictedRecoveryLocatorCapability": {
+            (allowed_file, "_BoundaryCore.issue_restricted_recovery_locator"),
+        },
+        "issue_restricted_recovery_locator": {
+            (allowed_file, "_TestWorkspaceBoundary._issue_restricted_recovery_locator"),
+            (allowed_file, "_BoundaryCore.issue_restricted_copy_recovery_locator"),
+        },
+        "consume_restricted_recovery_locator": {
+            (allowed_file, "_TestWorkspaceBoundary._consume_restricted_recovery_locator"),
+            (allowed_file, "_BoundaryCore.consume_restricted_copy_recovery_locator"),
+        },
+        "issue_restricted_copy_recovery_locator": {
+            (
+                allowed_file,
+                "_TestWorkspaceBoundary._issue_restricted_copy_recovery_locator",
+            ),
+        },
+        "consume_restricted_copy_recovery_locator": {
+            (
+                allowed_file,
+                "_TestWorkspaceBoundary._consume_restricted_copy_recovery_locator",
+            ),
+        },
+        "_issue_restricted_recovery_locator": set(),
+        "_consume_restricted_recovery_locator": {
+            (allowed_file, "_reconcile_test_publish_operation"),
+        },
+        "_issue_restricted_copy_recovery_locator": set(),
+        "_consume_restricted_copy_recovery_locator": {
+            (
+                copy_operation_file,
+                "_TestLocalCopyOperation.reconcile",
+            ),
+        },
+        "_restricted_copy_recovery_binding_id": {
+            (allowed_file, "_BoundaryCore.issue_restricted_copy_recovery_locator"),
+            (allowed_file, "_BoundaryCore.consume_restricted_copy_recovery_locator"),
+            (allowed_file, "_BoundaryCore.consume_restricted_recovery_locator"),
+        },
+        "_derive_restricted_recovery_paths": {
+            (allowed_file, "_BoundaryCore.issue_restricted_recovery_locator"),
+            (allowed_file, "_BoundaryCore.consume_restricted_recovery_locator"),
+        },
+        "_restricted_recovery_locator_binding": {
+            (allowed_file, "_BoundaryCore.issue_restricted_recovery_locator"),
+            (allowed_file, "_BoundaryCore.consume_restricted_recovery_locator"),
+        },
+        "_restricted_recovery_owner_thread_object_binding": {
+            (allowed_file, "_BoundaryCore.issue_restricted_recovery_locator"),
+            (allowed_file, "_BoundaryCore.consume_restricted_recovery_locator"),
+            (allowed_file, "_BoundaryCore._assert_invariants"),
+        },
+        "_restricted_recovery_capability_authenticator": {
+            (allowed_file, "_BoundaryCore.issue_restricted_recovery_locator"),
+            (allowed_file, "_BoundaryCore.consume_restricted_recovery_locator"),
+        },
+        "_revoke_restricted_recovery_records": {
+            (allowed_file, "_BoundaryCore.release_test_context"),
+            (allowed_file, "_BoundaryCore.finish_test_job_context"),
+        },
     }
     restricted_symbol_scopes: dict[str, set[tuple[str, str]]] = {
         "_PAIR_RESERVATION_CONSTRUCTOR": {
@@ -804,8 +1705,630 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
             (writer_file, "_DirectoryPublishJournalPermit.__init__"),
             (writer_file, "_WindowsHandleWriter._issue_directory_publish_journal_permit"),
         },
+        "_IDENTITY_MATERIAL_CONSTRUCTOR": {
+            (writer_file, "<module>"),
+            (writer_file, "HandleObjectIdentityMaterial.__init__"),
+            (writer_file, "HandleTreeIdentityMaterial.__init__"),
+            (writer_file, "_WindowsHandleWriter._read_flat_directory_impl"),
+            (writer_file, "_WindowsHandleWriter._build_tree_snapshot"),
+            (writer_file, "_WindowsHandleWriter._identity_material"),
+        },
+        "_COPY_LEDGERS_CONSTRUCTOR": {
+            (copy_ledger_file, "<module>"),
+            (copy_ledger_file, "DurableCopyLedgers.__init__"),
+            (allowed_file, "_create_test_copy_ledgers"),
+        },
+        "_AUTHENTICATED_COPY_ANCESTORS_CONSTRUCTOR": {
+            (copy_ledger_file, "<module>"),
+            (copy_ledger_file, "_AuthenticatedCopyAncestors.__init__"),
+            (copy_ledger_file, "DurableCopyLedgers._issue_authenticated_ancestors_under_existing_mutex"),
+        },
+        "_COPY_OPERATION_CONSTRUCTOR": {
+            (copy_operation_file, "<module>"),
+            (copy_operation_file, "_TestLocalCopyOperation.__init__"),
+            (allowed_file, "_create_test_copy_operation"),
+        },
+        "_READ_API_CONSTRUCTOR": {
+            (external_source_file, "<module>"),
+            (external_source_file, "_ReferenceReadApi.__init__"),
+            (external_source_file, "_create_synthetic_reference_read_policy"),
+        },
+        "_POLICY_CONSTRUCTOR": {
+            (external_source_file, "<module>"),
+            (external_source_file, "SyntheticReferenceReadPolicy.__init__"),
+            (external_source_file, "_create_synthetic_reference_read_policy"),
+        },
+        "_LEASE_CONSTRUCTOR": {
+            (external_source_file, "<module>"),
+            (external_source_file, "_SyntheticReferenceLease.__init__"),
+            (external_source_file, "SyntheticReferenceReadPolicy.open_reference"),
+        },
+        "_COPY_EXECUTION_PERMIT_CONSTRUCTOR": {
+            (external_source_file, "<module>"),
+            (external_source_file, "_CopyExecutionPermit.__init__"),
+            (external_source_file, "_issue_copy_execution_permit"),
+        },
+        "_RECOVERY_LOCATOR_CONSTRUCTOR": {
+            (allowed_file, "<module>"),
+            (allowed_file, "_RestrictedRecoveryLocatorCapability.__init__"),
+            (allowed_file, "_RestrictedRecoveryLocatorCapability._read"),
+            (allowed_file, "_BoundaryCore.issue_restricted_recovery_locator"),
+            (allowed_file, "_BoundaryCore.consume_restricted_recovery_locator"),
+        },
     }
+    restricted_recovery_registry_attributes = frozenset(
+        {
+            "__restricted_recovery_records",
+            "_BoundaryCore__restricted_recovery_records",
+            "_restricted_recovery_records",
+            "__restricted_recovery_registry",
+            "_BoundaryCore__restricted_recovery_registry",
+        }
+    )
+    restricted_recovery_capability_attributes = frozenset(
+        {
+            "_read",
+            "__locator_id",
+            "_RestrictedRecoveryLocatorCapability__locator_id",
+            "_locator_id",
+            "locator_id",
+            "__authenticator",
+            "_RestrictedRecoveryLocatorCapability__authenticator",
+            "_authenticator",
+            "authenticator",
+            "_token",
+            "token",
+            "_opaque_token",
+            "opaque_token",
+            "_binding",
+            "binding",
+            "_binding_sha256",
+            "binding_sha256",
+            "__dict__",
+            "owner_thread",
+            "lifecycle",
+            "consumed",
+            "source_relative_path",
+            "target_relative_path",
+        }
+    )
+    restricted_recovery_record_attributes = frozenset(
+        {
+            "locator_id",
+            "core_instance_id",
+            "purpose",
+            "context",
+            "context_digest",
+            "context_ticket_id",
+            "transaction_id",
+            "owner_thread",
+            "owner_thread_object",
+            "owner_thread_object_binding_sha256",
+            "source_relative_path",
+            "target_relative_path",
+            "policy_version",
+            "policy_digest",
+            "binding_sha256",
+            "capability_authenticator",
+            "__dict__",
+            "lifecycle",
+            "consumed",
+        }
+    )
+    restricted_recovery_registry_scopes = {
+        (allowed_file, "_BoundaryCore.__init__"),
+        (allowed_file, "_BoundaryCore.issue_restricted_recovery_locator"),
+        (allowed_file, "_BoundaryCore.consume_restricted_recovery_locator"),
+        (allowed_file, "_BoundaryCore._revoke_restricted_recovery_records"),
+        (allowed_file, "_BoundaryCore._assert_invariants"),
+    }
+    restricted_recovery_record_scopes = {
+        (allowed_file, "_RestrictedRecoveryLocatorRecord.__repr__"),
+        (allowed_file, "_BoundaryCore.consume_restricted_recovery_locator"),
+        (allowed_file, "_BoundaryCore._revoke_restricted_recovery_records"),
+        (allowed_file, "_BoundaryCore._assert_invariants"),
+    }
+    restricted_recovery_capability_scopes = {
+        (allowed_file, "_RestrictedRecoveryLocatorCapability.__init__"),
+        (allowed_file, "_RestrictedRecoveryLocatorCapability._read"),
+        (allowed_file, "_BoundaryCore.consume_restricted_recovery_locator"),
+    }
+    sensitive_authority_attributes = {
+        "_api",
+        "_audit_ledger",
+        "_audit_segment_sha256s",
+        "_copy_chain",
+        "_copy_ledgers",
+        "_digest_key",
+        "_key_store",
+        "_ledger",
+        "_ledgers",
+        "_locator_key",
+        "_operation_ledger",
+        "_policy",
+        "_publish_terminal_binding_sha256s",
+        "_copy_cross_reference_sha256",
+        "_publish_segment_sha256s",
+        "_revision",
+        "_run_scope_id",
+        "_run_scope_hmac_sha256",
+        "_known_revisions",
+        "_requested_revision_id",
+        "_append_enabled",
+        "_runtime",
+        "_source_chain",
+        "_source_policy",
+        "_storage",
+        "_workspace_root",
+        "_writer",
+        "auth_key",
+        "__frame",
+        "__rows",
+        "_HandleObjectIdentityMaterial__frame",
+        "identity_material",
+        "root_identity_material",
+        "tree_identity_material",
+        "storage_epoch_id",
+    }
+    authority_access_scope_prefixes: dict[str, tuple[str, ...]] = {
+        writer_file: (
+            "HandleObjectIdentityMaterial.",
+            "HandleTreeIdentityMaterial.",
+            "RuntimeMutexLease.",
+            "DirectoryHandleLease.",
+            "_ImmutableFileLease.",
+            "_ObservedTreeLease.",
+            "_DirectoryPublishJournalPermit.",
+            "_WindowsHandleWriter.",
+        ),
+        ledger_file: (
+            "AuditKeyRevisionStore.",
+            "DurableAuditLedger.",
+            "DurableAuditSink.",
+        ),
+        operation_file: ("DurableOperationLedger.",),
+        job_file: (
+            "_TestJobRuntime.",
+            "_OperationLease.",
+            "_JobStagingLease.",
+            "_ObservedJobTreeLease.",
+            "_PublishOperationJournal.",
+        ),
+        copy_ledger_file: (
+            "_CopyChain.",
+            "_AuthenticatedCopyAncestors.",
+            "DurableCopyLedgers.",
+        ),
+        copy_operation_file: ("_TestLocalCopyOperation.",),
+        external_source_file: (
+            "_ReferenceReadApi.",
+            "SyntheticReferenceReadPolicy.",
+            "_SyntheticReferenceLease.",
+            "_CopyExecutionPermit.",
+        ),
+    }
+    authority_access_exact_scopes: set[tuple[str, str]] = {
+        (external_source_file, "_copy_execution_scope_sha256"),
+        (external_source_file, "_copy_execution_binding_sha256"),
+        (external_source_file, "_require_copy_execution_authorities"),
+        (external_source_file, "_issue_copy_execution_permit"),
+        (external_source_file, "_check_copy_execution_permit"),
+        (external_source_file, "_validate_copy_execution_permit"),
+        (external_source_file, "_consume_copy_execution_permit"),
+        (external_source_file, "_create_synthetic_reference_read_policy"),
+        (copy_ledger_file, "_derive_copy_ledger_epoch_id"),
+        (copy_ledger_file, "_copy_epoch_pair_presence.present"),
+        (allowed_file, "_AuditAuthority.__post_init__"),
+        (allowed_file, "_create_test_job_runtime"),
+        (allowed_file, "_create_test_copy_ledgers"),
+        (allowed_file, "_create_test_copy_operation"),
+        (allowed_file, "_reconcile_test_publish_operation"),
+        (allowed_file, "_reconcile_test_publish_operation.observe_once"),
+        (allowed_file, "_BoundaryCore.issue_restricted_recovery_locator"),
+        (allowed_file, "_BoundaryCore.consume_restricted_recovery_locator"),
+        (allowed_file, "_BoundaryCore.issue_restricted_copy_recovery_locator"),
+        (allowed_file, "_BoundaryCore.consume_restricted_copy_recovery_locator"),
+        (allowed_file, "_BoundaryCore._restricted_copy_recovery_binding_id"),
+        (allowed_file, "_TestWorkspaceBoundary._issue_restricted_recovery_locator"),
+        (allowed_file, "_TestWorkspaceBoundary._consume_restricted_recovery_locator"),
+        (allowed_file, "_TestWorkspaceBoundary._issue_restricted_copy_recovery_locator"),
+        (allowed_file, "_TestWorkspaceBoundary._consume_restricted_copy_recovery_locator"),
+    }
+
+    def authority_attribute_access_allowed(enclosing: str) -> bool:
+        if (module.file, enclosing) in authority_access_exact_scopes:
+            return True
+        return enclosing.startswith(
+            authority_access_scope_prefixes.get(module.file, ())
+        )
+
+    def enclosing_function_node(node: ast.AST) -> ast.FunctionDef | ast.AsyncFunctionDef | None:
+        current = module.parents.get(node)
+        while current is not None:
+            if isinstance(current, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                return current
+            current = module.parents.get(current)
+        return None
+
+    def annotation_restricted_recovery_kind(annotation: ast.AST | None) -> str | None:
+        if annotation is None:
+            return None
+        leaves = {
+            (
+                candidate.id
+                if isinstance(candidate, ast.Name)
+                else candidate.attr
+            )
+            for candidate in ast.walk(annotation)
+            if isinstance(candidate, (ast.Name, ast.Attribute))
+        }
+        if "_RestrictedRecoveryLocatorCapability" in leaves:
+            return "capability"
+        if "_RestrictedRecoveryLocatorRecord" in leaves:
+            return "record"
+        return "other"
+
+    def annotated_restricted_recovery_kind(name: str, node: ast.AST) -> str | None:
+        function = enclosing_function_node(node)
+        if function is None:
+            return None
+        arguments = (
+            *function.args.posonlyargs,
+            *function.args.args,
+            *function.args.kwonlyargs,
+        )
+        for argument in arguments:
+            if argument.arg == name:
+                return annotation_restricted_recovery_kind(argument.annotation)
+        for argument in (function.args.vararg, function.args.kwarg):
+            if argument is not None and argument.arg == name:
+                return annotation_restricted_recovery_kind(argument.annotation)
+        return None
+
+    def restricted_recovery_receiver_kind(
+        receiver: ast.AST,
+        enclosing: str,
+    ) -> str | None:
+        resolved, _ = _resolve_callee(receiver, aliases_for(receiver))
+        lowered = resolved.lower()
+        if "restrictedrecoverylocatorcapability" in lowered or (
+            "restricted_recovery" in lowered and "capability" in lowered
+        ):
+            return "capability"
+        if "restrictedrecoverylocatorrecord" in lowered or (
+            "restricted_recovery" in lowered and "record" in lowered
+        ):
+            return "record"
+        terminal = ""
+        if isinstance(receiver, ast.Name):
+            terminal = receiver.id
+            annotated = annotated_restricted_recovery_kind(terminal, receiver)
+            if annotated is not None:
+                return annotated
+        elif isinstance(receiver, ast.Attribute):
+            terminal = receiver.attr
+        lowered_terminal = terminal.lower()
+        if lowered_terminal == "self":
+            if enclosing.startswith("_RestrictedRecoveryLocatorCapability."):
+                return "capability"
+            if enclosing.startswith("_RestrictedRecoveryLocatorRecord."):
+                return "record"
+        if "capability" in lowered_terminal and (
+            "recovery" in lowered_terminal
+            or "locator" in lowered_terminal
+            or lowered_terminal == "capability"
+        ):
+            return "capability"
+        if "record" in lowered_terminal and (
+            "recovery" in lowered_terminal or "locator" in lowered_terminal
+        ):
+            return "record"
+        if lowered_terminal in {"record", "removed"} and (
+            module.file != allowed_file
+            or (module.file, enclosing) in restricted_recovery_record_scopes
+        ):
+            return "record"
+        return None
+
+    def restricted_recovery_registry_access_allowed(
+        node: ast.Attribute,
+        enclosing: str,
+    ) -> bool:
+        scope = (module.file, enclosing)
+        if scope in restricted_recovery_registry_scopes:
+            if scope == (allowed_file, "_BoundaryCore.__init__"):
+                return isinstance(node.ctx, ast.Store)
+            return True
+        if scope != (allowed_file, "_BoundaryCore.diagnostic_registry_counts"):
+            return False
+        parent = module.parents.get(node)
+        if not isinstance(parent, ast.Call) or not parent.args or parent.args[0] is not node:
+            return False
+        callee, _ = _resolve_callee(parent.func, aliases_for(parent))
+        return callee in {"len", "builtins.len"} and len(parent.args) == 1
+
+    def restricted_recovery_capability_access_allowed(
+        attribute: str,
+        enclosing: str,
+    ) -> bool:
+        allowed_by_scope = {
+            (
+                allowed_file,
+                "_RestrictedRecoveryLocatorCapability.__init__",
+            ): {
+                "__locator_id",
+                "__authenticator",
+            },
+            (
+                allowed_file,
+                "_RestrictedRecoveryLocatorCapability._read",
+            ): {
+                "__locator_id",
+                "__authenticator",
+            },
+            (
+                allowed_file,
+                "_BoundaryCore.consume_restricted_recovery_locator",
+            ): {"_read"},
+        }
+        return attribute in allowed_by_scope.get((module.file, enclosing), set())
+
+    def restricted_recovery_record_access_allowed(
+        node: ast.Attribute,
+        enclosing: str,
+    ) -> bool:
+        attribute = node.attr
+        allowed_by_scope = {
+            (
+                allowed_file,
+                "_RestrictedRecoveryLocatorRecord.__repr__",
+            ): {"lifecycle"},
+            (
+                allowed_file,
+                "_BoundaryCore.consume_restricted_recovery_locator",
+            ): set(restricted_recovery_record_attributes) - {"consumed"},
+            (
+                allowed_file,
+                "_BoundaryCore._revoke_restricted_recovery_records",
+            ): {"context_ticket_id"},
+            (
+                allowed_file,
+                "_BoundaryCore._assert_invariants",
+            ): {
+                "locator_id",
+                "lifecycle",
+                "context_ticket_id",
+                "context",
+                "owner_thread",
+                "owner_thread_object",
+                "owner_thread_object_binding_sha256",
+                "source_relative_path",
+                "target_relative_path",
+            },
+        }
+        allowed = attribute in allowed_by_scope.get((module.file, enclosing), set())
+        if (
+            allowed
+            and enclosing == "_BoundaryCore.consume_restricted_recovery_locator"
+            and attribute in {"source_relative_path", "target_relative_path"}
+        ):
+            expected_name = (
+                "expected_source"
+                if attribute == "source_relative_path"
+                else "expected_target"
+            )
+            parent = module.parents.get(node)
+            type_compare = (
+                module.parents.get(parent)
+                if isinstance(parent, ast.Call)
+                else None
+            )
+            type_other: ast.AST | None = None
+            if (
+                isinstance(type_compare, ast.Compare)
+                and len(type_compare.ops) == 1
+                and isinstance(type_compare.ops[0], ast.Is)
+                and len(type_compare.comparators) == 1
+            ):
+                if type_compare.left is parent:
+                    type_other = type_compare.comparators[0]
+                elif type_compare.comparators[0] is parent:
+                    type_other = type_compare.left
+            exact_type_check = (
+                isinstance(parent, ast.Call)
+                and isinstance(parent.func, ast.Name)
+                and parent.func.id == "type"
+                and len(parent.args) == 1
+                and parent.args[0] is node
+                and not parent.keywords
+                and isinstance(type_other, ast.Call)
+                and isinstance(type_other.func, ast.Name)
+                and type_other.func.id == "type"
+                and len(type_other.args) == 1
+                and isinstance(type_other.args[0], ast.Name)
+                and type_other.args[0].id == expected_name
+                and not type_other.keywords
+            )
+            canonical_call = (
+                module.parents.get(parent)
+                if isinstance(parent, ast.Attribute)
+                else None
+            )
+            canonical_compare_node = (
+                module.parents.get(canonical_call)
+                if isinstance(canonical_call, ast.Call)
+                else None
+            )
+            canonical_other: ast.AST | None = None
+            if (
+                isinstance(canonical_compare_node, ast.Compare)
+                and len(canonical_compare_node.ops) == 1
+                and isinstance(canonical_compare_node.ops[0], ast.Eq)
+                and len(canonical_compare_node.comparators) == 1
+            ):
+                if canonical_compare_node.left is canonical_call:
+                    canonical_other = canonical_compare_node.comparators[0]
+                elif canonical_compare_node.comparators[0] is canonical_call:
+                    canonical_other = canonical_compare_node.left
+            canonical_compare = (
+                isinstance(parent, ast.Attribute)
+                and parent.value is node
+                and parent.attr == "as_posix"
+                and isinstance(canonical_call, ast.Call)
+                and canonical_call.func is parent
+                and not canonical_call.args
+                and not canonical_call.keywords
+                and isinstance(canonical_other, ast.Call)
+                and isinstance(canonical_other.func, ast.Attribute)
+                and isinstance(canonical_other.func.value, ast.Name)
+                and canonical_other.func.value.id == expected_name
+                and canonical_other.func.attr == "as_posix"
+                and not canonical_other.args
+                and not canonical_other.keywords
+            )
+            return exact_type_check or canonical_compare
+        return allowed
+
+    def assigned_local_name(call: ast.Call) -> str | None:
+        parent = module.parents.get(call)
+        if isinstance(parent, ast.Assign) and parent.value is call:
+            if len(parent.targets) == 1 and isinstance(parent.targets[0], ast.Name):
+                return parent.targets[0].id
+        if (
+            isinstance(parent, ast.AnnAssign)
+            and parent.value is call
+            and isinstance(parent.target, ast.Name)
+        ):
+            return parent.target.id
+        return None
+
+    def call_receiver_shape(call: ast.Call) -> str | None:
+        if not isinstance(call.func, ast.Attribute):
+            return None
+        return ast.dump(call.func.value, annotate_fields=True, include_attributes=False)
+
+    def call_leaf(call: ast.Call) -> str:
+        resolved, _ = _resolve_callee(call.func, aliases_for(call))
+        return resolved.rsplit(".", 1)[-1]
+
+    def same_expression(left: ast.expr, right: ast.expr) -> bool:
+        return ast.dump(
+            left,
+            annotate_fields=True,
+            include_attributes=False,
+        ) == ast.dump(
+            right,
+            annotate_fields=True,
+            include_attributes=False,
+        )
+
+    def assigns_name(node: ast.AST, name: str) -> bool:
+        targets: tuple[ast.expr, ...] = ()
+        if isinstance(node, ast.Assign):
+            targets = tuple(node.targets)
+        elif isinstance(node, (ast.AnnAssign, ast.AugAssign, ast.NamedExpr)):
+            targets = (node.target,)
+        return any(
+            isinstance(item, ast.Name) and item.id == name
+            for target in targets
+            for item in ast.walk(target)
+        )
+
+    def ancestor_issue_is_well_formed(call: ast.Call) -> bool:
+        if (
+            call_leaf(call)
+            != "_issue_authenticated_ancestors_under_existing_mutex"
+            or len(call.args) != 3
+            or call.keywords
+            or assigned_local_name(call) is None
+            or call_receiver_shape(call) is None
+        ):
+            return False
+        # The issuer accepts exact ledger authorities, never caller-supplied
+        # digest inventories or other literal stand-ins.
+        return not any(
+            isinstance(argument, (ast.Tuple, ast.List, ast.Set, ast.Dict, ast.Constant))
+            for argument in call.args[1:]
+        )
+
+    def exact_issue_for_verify(call: ast.Call) -> ast.Call | None:
+        if (
+            call_leaf(call)
+            != "_verify_external_ancestors_under_existing_mutex"
+            or len(call.args) != 2
+            or call.keywords
+            or not isinstance(call.args[1], ast.Name)
+            or call_receiver_shape(call) is None
+        ):
+            return None
+        function = enclosing_function_node(call)
+        if function is None:
+            return None
+        capability_name = call.args[1].id
+        candidates: list[ast.Call] = []
+        for item in ast.walk(function):
+            if (
+                not isinstance(item, ast.Call)
+                or enclosing_function_node(item) is not function
+                or not ancestor_issue_is_well_formed(item)
+                or assigned_local_name(item) != capability_name
+                or item.lineno >= call.lineno
+                or call_receiver_shape(item) != call_receiver_shape(call)
+                or not same_expression(item.args[0], call.args[0])
+            ):
+                continue
+            candidates.append(item)
+        if len(candidates) != 1:
+            return None
+        issue = candidates[0]
+        issue_assignment = module.parents.get(issue)
+        for item in ast.walk(function):
+            if (
+                item is issue_assignment
+                or enclosing_function_node(item) is not function
+                or not assigns_name(item, capability_name)
+            ):
+                continue
+            item_line = getattr(item, "lineno", 0)
+            if issue.lineno < item_line <= call.lineno:
+                return None
+        matching_verifies = [
+            item
+            for item in ast.walk(function)
+            if isinstance(item, ast.Call)
+            and enclosing_function_node(item) is function
+            and call_leaf(item)
+            == "_verify_external_ancestors_under_existing_mutex"
+            and len(item.args) == 2
+            and not item.keywords
+            and isinstance(item.args[1], ast.Name)
+            and item.args[1].id == capability_name
+        ]
+        return issue if matching_verifies == [call] else None
+
+    def ancestor_issue_has_exact_verify(call: ast.Call) -> bool:
+        if not ancestor_issue_is_well_formed(call):
+            return False
+        function = enclosing_function_node(call)
+        capability_name = assigned_local_name(call)
+        if function is None or capability_name is None:
+            return False
+        verifies = [
+            item
+            for item in ast.walk(function)
+            if isinstance(item, ast.Call)
+            and enclosing_function_node(item) is function
+            and call_leaf(item)
+            == "_verify_external_ancestors_under_existing_mutex"
+            and len(item.args) == 2
+            and not item.keywords
+            and isinstance(item.args[1], ast.Name)
+            and item.args[1].id == capability_name
+        ]
+        return len(verifies) == 1 and exact_issue_for_verify(verifies[0]) is call
+
     for node in ast.walk(module.tree):
+        node_aliases = aliases_for(node)
         if isinstance(node, ast.ImportFrom):
             base = _resolve_import_module(module.module, node.module, node.level)
             for alias in node.names:
@@ -840,12 +2363,62 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
                 operation_kernel_import = (
                     module.file == operation_file
                     and base == "app.safety.windows_handle_writer"
-                    and alias.name == "_WindowsHandleWriter"
+                    and alias.name
+                    in {
+                        "HandleObjectIdentityMaterial",
+                        "HandleTreeIdentityMaterial",
+                        "_WindowsHandleWriter",
+                    }
+                )
+                copy_ledger_kernel_import = (
+                    module.file == copy_ledger_file
+                    and alias.name
+                    in {
+                        "app.safety.operation_ledger": {
+                            "DurableOperationLedger",
+                        },
+                        "app.safety.segment_ledger": {
+                            "DurableAuditLedger",
+                        },
+                        "app.safety.windows_handle_writer": {
+                            "_WindowsHandleWriter",
+                        },
+                    }.get(base, set())
+                )
+                copy_operation_kernel_import = (
+                    module.file == copy_operation_file
+                    and alias.name
+                    in {
+                        "app.safety.copy_ledger": {
+                            "COPY_PROVENANCE_FILE_NAME",
+                            "CopyProvenanceMaterial",
+                            "DurableCopyLedgers",
+                            "build_copy_provenance_material",
+                        },
+                        "app.safety.external_source": {
+                            "SyntheticReferenceReadPolicy",
+                            "_CopyExecutionPermit",
+                            "_SyntheticReferenceLease",
+                            "_consume_copy_execution_permit",
+                            "_issue_copy_execution_permit",
+                            "_validate_copy_execution_permit",
+                        },
+                        "app.safety.job_operation": {
+                            "_OperationLease",
+                            "_TestJobRuntime",
+                            "_receipt_from_authenticated_terminal",
+                        },
+                        "app.safety.operation_ledger": {
+                            "DurableOperationLedger",
+                        },
+                    }.get(base, set())
                 )
                 if (
                     module.file != allowed_file
                     and not job_kernel_import
                     and not operation_kernel_import
+                    and not copy_ledger_kernel_import
+                    and not copy_operation_kernel_import
                     and base.startswith(safety_module_prefixes)
                     and (
                         alias.name == "*"
@@ -858,7 +2431,7 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
                         (module.file, node.lineno, f"private import {alias.name}")
                     )
         if isinstance(node, (ast.Name, ast.Attribute)):
-            resolved, _ = _resolve_callee(node, scope_aliases)
+            resolved, _ = _resolve_callee(node, node_aliases)
             leaf = resolved.rsplit(".", 1)[-1]
             allowed_symbol_scopes = restricted_symbol_scopes.get(leaf)
             if allowed_symbol_scopes is not None:
@@ -878,9 +2451,67 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
                 findings.append(
                     (module.file, getattr(node, "lineno", 0), f"forbidden symbol reference {resolved}")
                 )
+        if isinstance(node, ast.Attribute):
+            enclosing = _enclosing_function_qualname(node, module.parents)
+            resolved, _ = _resolve_callee(node, node_aliases)
+            receiver_kind = restricted_recovery_receiver_kind(node.value, enclosing)
+            restricted_recovery_access = False
+            if node.attr in restricted_recovery_registry_attributes:
+                restricted_recovery_access = not restricted_recovery_registry_access_allowed(
+                    node,
+                    enclosing,
+                )
+            elif receiver_kind == "capability" and (
+                node.attr in restricted_recovery_capability_attributes
+                or node.attr in restricted_recovery_record_attributes
+            ):
+                restricted_recovery_access = (
+                    not restricted_recovery_capability_access_allowed(
+                        node.attr,
+                        enclosing,
+                    )
+                )
+            elif (
+                receiver_kind == "record"
+                and node.attr in restricted_recovery_record_attributes
+            ):
+                restricted_recovery_access = not restricted_recovery_record_access_allowed(
+                    node,
+                    enclosing,
+                )
+            if restricted_recovery_access:
+                action = (
+                    "attribute access"
+                    if isinstance(node.ctx, ast.Load)
+                    else "authority assignment"
+                )
+                findings.append(
+                    (
+                        module.file,
+                        node.lineno,
+                        f"restricted recovery {action} {resolved}",
+                    )
+                )
+        if isinstance(node, ast.Attribute) and isinstance(node.ctx, ast.Load):
+            parent = module.parents.get(node)
+            if not (isinstance(parent, ast.Attribute) and parent.value is node):
+                resolved, _ = _resolve_callee(node, node_aliases)
+                sensitive_parts = sensitive_authority_attributes.intersection(
+                    resolved.split(".")
+                )
+                if sensitive_parts:
+                    enclosing = _enclosing_function_qualname(node, module.parents)
+                    if not authority_attribute_access_allowed(enclosing):
+                        findings.append(
+                            (
+                                module.file,
+                                node.lineno,
+                                f"sensitive authority attribute access {resolved}",
+                            )
+                        )
         if isinstance(node, ast.ClassDef):
             for base in node.bases:
-                resolved, _ = _resolve_callee(base, scope_aliases)
+                resolved, _ = _resolve_callee(base, node_aliases)
                 leaf = resolved.rsplit(".", 1)[-1]
                 if (
                     leaf in forbidden_constructors
@@ -891,8 +2522,52 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
                         (module.file, node.lineno, f"subclass {resolved}")
                     )
         if isinstance(node, ast.Call):
-            callee, _ = _resolve_callee(node.func, scope_aliases)
+            callee, _ = _resolve_callee(node.func, node_aliases)
             leaf = callee.rsplit(".", 1)[-1]
+            if (
+                leaf == "_issue_authenticated_ancestors_under_existing_mutex"
+                and not ancestor_issue_has_exact_verify(node)
+            ):
+                findings.append(
+                    (
+                        module.file,
+                        node.lineno,
+                        "authenticated ancestor issue must feed one exact local verify",
+                    )
+                )
+            if (
+                leaf == "_verify_external_ancestors_under_existing_mutex"
+                and exact_issue_for_verify(node) is None
+            ):
+                findings.append(
+                    (
+                        module.file,
+                        node.lineno,
+                        "authenticated ancestor verify requires its exact one-shot issue result",
+                    )
+                )
+            copy_ledger_seal_call = leaf == "_seal" and (
+                "._ledgers._seal" in callee
+                or "DurableCopyLedgers" in callee
+                or callee.startswith("copy_ledgers._seal")
+            )
+            if copy_ledger_seal_call and (
+                module.file,
+                _enclosing_function_qualname(node, module.parents),
+            ) not in {
+                (
+                    copy_operation_file,
+                    "_TestLocalCopyOperation._seal_cross_reference_failure",
+                ),
+                (
+                    copy_operation_file,
+                    "_TestLocalCopyOperation._raise_recovery_contradiction",
+                ),
+                (allowed_file, "_create_test_copy_ledgers"),
+            }:
+                findings.append(
+                    (module.file, node.lineno, "restricted private call _seal")
+                )
             allowed_private_callers = restricted_private_calls.get(leaf)
             if (
                 allowed_private_callers is not None
@@ -929,6 +2604,97 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
                 "_install_boundary_pair_seal",
             } and module.file != allowed_file:
                 findings.append((module.file, node.lineno, f"private pair policy call {leaf}"))
+            if leaf in {"getattr", "setattr", "delattr"} and len(node.args) >= 2:
+                attribute = _constant_text(node.args[1])
+                enclosing = _enclosing_function_qualname(node, module.parents)
+                receiver_kind = restricted_recovery_receiver_kind(
+                    node.args[0],
+                    enclosing,
+                )
+                dynamic_recovery_access = (
+                    attribute in restricted_recovery_registry_attributes
+                    or (
+                        receiver_kind == "capability"
+                        and (
+                            attribute is None
+                            or attribute in restricted_recovery_capability_attributes
+                            or attribute in restricted_recovery_record_attributes
+                        )
+                    )
+                    or (
+                        receiver_kind == "record"
+                        and (
+                            attribute is None
+                            or attribute in restricted_recovery_record_attributes
+                        )
+                    )
+                )
+                if dynamic_recovery_access:
+                    findings.append(
+                        (
+                            module.file,
+                            node.lineno,
+                            f"dynamic restricted recovery authority {leaf}",
+                        )
+                    )
+            if leaf == "vars" and node.args:
+                enclosing = _enclosing_function_qualname(node, module.parents)
+                if (
+                    restricted_recovery_receiver_kind(node.args[0], enclosing)
+                    is not None
+                ):
+                    findings.append(
+                        (
+                            module.file,
+                            node.lineno,
+                            "dynamic restricted recovery authority vars",
+                        )
+                    )
+            if leaf in {"__getattribute__", "__setattr__", "__delattr__"}:
+                reflective_receiver: ast.AST | None = None
+                reflective_attribute: str | None = None
+                if isinstance(node.func, ast.Attribute):
+                    owner, _ = _resolve_callee(node.func.value, node_aliases)
+                    if owner in {"object", "builtins.object"} and len(node.args) >= 2:
+                        reflective_receiver = node.args[0]
+                        reflective_attribute = _constant_text(node.args[1])
+                    elif node.args:
+                        reflective_receiver = node.func.value
+                        reflective_attribute = _constant_text(node.args[0])
+                if reflective_receiver is not None:
+                    enclosing = _enclosing_function_qualname(node, module.parents)
+                    receiver_kind = restricted_recovery_receiver_kind(
+                        reflective_receiver,
+                        enclosing,
+                    )
+                    if (
+                        reflective_attribute in restricted_recovery_registry_attributes
+                        or (
+                            receiver_kind == "capability"
+                            and (
+                                reflective_attribute is None
+                                or reflective_attribute
+                                in restricted_recovery_capability_attributes
+                                or reflective_attribute
+                                in restricted_recovery_record_attributes
+                            )
+                        )
+                        or (
+                            receiver_kind == "record"
+                            and (
+                                reflective_attribute is None
+                                or reflective_attribute
+                                in restricted_recovery_record_attributes
+                            )
+                        )
+                    ):
+                        findings.append(
+                            (
+                                module.file,
+                                node.lineno,
+                                f"reflective restricted recovery authority {leaf}",
+                            )
+                        )
             if leaf in {"setattr", "__setattr__"} and len(node.args) >= 2:
                 attribute = _constant_text(node.args[1])
                 if attribute in sensitive_assignments and module.file != allowed_file:
@@ -936,7 +2702,7 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
                         (module.file, node.lineno, f"private state assignment {attribute}")
                     )
             if leaf == "getattr" and len(node.args) >= 2:
-                receiver, _ = _resolve_callee(node.args[0], scope_aliases)
+                receiver, _ = _resolve_callee(node.args[0], node_aliases)
                 attribute = _constant_text(node.args[1])
                 if (
                     receiver.startswith(safety_module_prefixes)
@@ -952,7 +2718,7 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
                         (module.file, node.lineno, "dynamic safety attribute lookup")
                     )
             if leaf == "vars" and node.args:
-                receiver, _ = _resolve_callee(node.args[0], scope_aliases)
+                receiver, _ = _resolve_callee(node.args[0], node_aliases)
                 if receiver.startswith(safety_module_prefixes) and module.file != allowed_file:
                     findings.append(
                         (module.file, node.lineno, "dynamic safety module dictionary lookup")
@@ -961,21 +2727,21 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
                 receiver = ""
                 if isinstance(node.func, ast.Attribute):
                     receiver_node = node.func.value
-                    receiver, _ = _resolve_callee(receiver_node, scope_aliases)
+                    receiver, _ = _resolve_callee(receiver_node, node_aliases)
                     if (
                         isinstance(receiver_node, ast.Call)
                         and receiver_node.args
-                        and _resolve_callee(receiver_node.func, scope_aliases)[0]
+                        and _resolve_callee(receiver_node.func, node_aliases)[0]
                         in {"type", "builtins.type"}
                     ):
                         receiver, _ = _resolve_callee(
                             receiver_node.args[0],
-                            scope_aliases,
+                            node_aliases,
                         )
                     if receiver in {"object", "builtins.object"} and node.args:
-                        receiver, _ = _resolve_callee(node.args[0], scope_aliases)
+                        receiver, _ = _resolve_callee(node.args[0], node_aliases)
                 elif node.args:
-                    receiver, _ = _resolve_callee(node.args[0], scope_aliases)
+                    receiver, _ = _resolve_callee(node.args[0], node_aliases)
                 if receiver.startswith(safety_module_prefixes) and module.file != allowed_file:
                     findings.append(
                         (module.file, node.lineno, "reflective safety attribute lookup")
@@ -986,10 +2752,20 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
                         (module.file, node.lineno, "pair-enabled policy construction")
                     )
         if isinstance(node, ast.Attribute) and node.attr == "__dict__":
-            receiver, _ = _resolve_callee(node.value, scope_aliases)
+            receiver, _ = _resolve_callee(node.value, node_aliases)
             if receiver.startswith(safety_module_prefixes) and module.file != allowed_file:
                 findings.append(
                     (module.file, node.lineno, "safety module __dict__ lookup")
+                )
+        if isinstance(node, ast.Subscript):
+            indexed_attribute = _constant_text(node.slice)
+            if indexed_attribute in restricted_recovery_registry_attributes:
+                findings.append(
+                    (
+                        module.file,
+                        node.lineno,
+                        "dynamic restricted recovery registry lookup",
+                    )
                 )
         if isinstance(node, (ast.Assign, ast.AnnAssign, ast.AugAssign)):
             targets: list[ast.expr]
@@ -1009,13 +2785,23 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
                     module.file == allowed_file
                     or (module.file == "app/config.py" and target_name == "PROJECT_ROOT")
                     or (
+                        module.file == project_root_file
+                        and target_name == "PROJECT_ROOT"
+                    )
+                    or (
                         module.file == "app/safety/windows_handle_writer.py"
                         and target_name
                         in {
                             "_HANDLE_WRITER_CONSTRUCTOR",
                             "_IMMUTABLE_FILE_LEASE_CONSTRUCTOR",
                             "_DIRECTORY_PUBLISH_PERMIT_CONSTRUCTOR",
+                            "_IDENTITY_MATERIAL_CONSTRUCTOR",
+                            "__frame",
+                            "__rows",
                             "_path_authority",
+                            "_api",
+                            "_writer",
+                            "_workspace_root",
                             "_mutex_name",
                             "_ACTIVE_MUTEX_NAMES",
                         }
@@ -1035,6 +2821,7 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
                             "_head",
                             "_epoch_id",
                             "_initial_revision_id",
+                            "_revision",
                             "_master_key",
                             "_KEY_ROOT",
                             "_SEGMENT_ROOT",
@@ -1045,7 +2832,15 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
                     )
                     or (
                         module.file == job_file
-                        and target_name in {"_ledger", "_JOB_RUNTIME_CONSTRUCTOR"}
+                        and target_name
+                        in {
+                            "_ledger",
+                            "_runtime",
+                            "_writer",
+                            "_operation_ledger",
+                            "_workspace_root",
+                            "_JOB_RUNTIME_CONSTRUCTOR",
+                        }
                     )
                     or (
                         module.file == operation_file
@@ -1056,6 +2851,8 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
                             "_segments",
                             "_head",
                             "_epoch_id",
+                            "_revision",
+                            "_known_revisions",
                             "_SEGMENT_ROOT",
                             "_OPERATION_LEDGER_CONSTRUCTOR",
                             "_total_segment_bytes",
@@ -1075,6 +2872,54 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
                             "POLICY_VERSION",
                             "POLICY_DIGEST",
                             "EXPECTED_POLICY_DIGEST",
+                        }
+                    )
+                    or (
+                        module.file == copy_ledger_file
+                        and target_name
+                        in {
+                            "_COPY_LEDGERS_CONSTRUCTOR",
+                            "_AUTHENTICATED_COPY_ANCESTORS_CONSTRUCTOR",
+                            "_storage",
+                            "_epoch_id",
+                            "_sealed_code",
+                            "_source_chain",
+                            "_copy_chain",
+                            "_revision",
+                            "_run_scope_id",
+                            "_run_scope_hmac_sha256",
+                            "_known_revisions",
+                            "_requested_revision_id",
+                            "_append_enabled",
+                            "_operation_ledger",
+                            "_publish_terminal_binding_sha256s",
+                            "_copy_cross_reference_sha256",
+                            "auth_key",
+                        }
+                    )
+                    or (
+                        module.file == copy_operation_file
+                        and target_name
+                        in {
+                            "_COPY_OPERATION_CONSTRUCTOR",
+                            "_runtime",
+                            "_ledgers",
+                            "_source_policy",
+                        }
+                    )
+                    or (
+                        module.file == external_source_file
+                        and target_name
+                        in {
+                            "CONTRACT_PROJECT_ROOT",
+                            "_READ_API_CONSTRUCTOR",
+                            "_POLICY_CONSTRUCTOR",
+                            "_LEASE_CONSTRUCTOR",
+                            "_COPY_EXECUTION_PERMIT_CONSTRUCTOR",
+                            "_api",
+                            "_policy",
+                            "_locator_key",
+                            "_digest_key",
                         }
                     )
                 )
@@ -1196,9 +3041,9 @@ def build_inventory_bundle(
     return payload, tuple(chunks)
 
 
-def _verified_project_root() -> Path:
+def _verified_project_root(_expected: Path = _VERIFIED_PROJECT_ROOT) -> Path:
     root = Path(PROJECT_ROOT)
-    expected = Path(r"D:\AAA命题\Test")
+    expected = Path(_expected)
     if str(root).casefold() != str(expected).casefold():
         raise RuntimeError("static audit project root differs from the execution contract")
     return root
@@ -1931,6 +3776,14 @@ class _SinkVisitor(ast.NodeVisitor):
             allow_audited_indexed=self.audited_indexed_hits is not None,
         )
         if (
+            classification is not None
+            and classification[0] is WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY
+            and callsite in _AUDITED_DYNAMIC_CALLS
+            and self.audited_indexed_hits is not None
+        ):
+            self.audited_indexed_hits[callsite] += 1
+            classification = None
+        if (
             classification is None
             and callsite in (_AUDITED_INDEXED_CALLS | _AUDITED_PARAMETER_CALLS)
             and self.audited_indexed_hits is not None
@@ -2584,6 +4437,8 @@ def _classify_call(
         "getfileinformationbyhandleex",
         "getfinalpathnamebyhandlea",
         "getfinalpathnamebyhandlew",
+        "getvolumeinformationw",
+        "getvolumepathnamew",
         "get_last_error",
         "queryinformationjobobject",
         "readfile",

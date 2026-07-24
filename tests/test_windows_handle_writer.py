@@ -13,6 +13,7 @@ from typing import Iterator
 import pytest
 
 from app.safety import production_guard as production_guard_module
+from app.safety import windows_handle_writer as handle_writer_module
 from app.safety.production_guard import _create_test_handle_writer
 from app.safety.windows_handle_writer import (
     HandleWriterCode,
@@ -949,6 +950,33 @@ def test_no_replace_publish_reopens_and_verifies_chinese_final_file(
     assert receipt.sha256 == _sha256(payload)
 
 
+def test_no_replace_publish_reopens_extended_length_final_path(
+    handle_lab: _HandleLab,
+) -> None:
+    writer = handle_lab.writer
+    directory = handle_lab.project / "long-path"
+    directory.mkdir()
+    suffix = ".json"
+    name_characters = max(32, 270 - len(str(directory)) - 1 - len(suffix))
+    assert name_characters + len(suffix) <= 240
+    final_name = "f" * name_characters + suffix
+    target = directory / final_name
+    assert len(str(target)) >= 260
+    payload = b"extended-local-path"
+
+    receipt = writer.publish_new_file(
+        Path("long-path") / "PENDING-0001.json",
+        Path("long-path") / final_name,
+        payload,
+        expected_sha256=_sha256(payload),
+    )
+
+    verified_target = Path(writer._api._win32_path_text(target))
+    assert verified_target.read_bytes() == payload
+    assert receipt.operation == "PUBLISH_NEW_FILE"
+    assert receipt.sha256 == _sha256(payload)
+
+
 def test_publish_source_handle_uses_exact_access_share_and_flags(
     handle_lab: _HandleLab,
     monkeypatch: pytest.MonkeyPatch,
@@ -1189,6 +1217,95 @@ def test_flat_directory_snapshot_is_handle_bounded_and_repr_redacted(
     assert str(directory) not in surface
 
 
+def test_flat_directory_scan_accepts_payload_plus_provenance_budget_only(
+    handle_lab: _HandleLab,
+) -> None:
+    writer = handle_lab.writer
+    directory = handle_lab.project / "flat-copy-budget"
+    directory.mkdir()
+
+    snapshot = writer.read_flat_directory(
+        "flat-copy-budget",
+        maximum_entries=2,
+        maximum_file_bytes=64 * 1024 * 1024,
+        maximum_total_bytes=(64 * 1024 * 1024) + (16 * 1024),
+    )
+    assert snapshot.entry_count == 0
+
+    with pytest.raises(HandleWriterError) as captured:
+        writer.read_flat_directory(
+            "flat-copy-budget",
+            maximum_entries=2,
+            maximum_file_bytes=64 * 1024 * 1024,
+            maximum_total_bytes=(64 * 1024 * 1024) + (16 * 1024) + 1,
+        )
+    assert captured.value.code is HandleWriterCode.INVALID_REQUEST
+
+
+def test_flat_directory_mixed_case_names_have_stable_canonical_tree_identity(
+    handle_lab: _HandleLab,
+) -> None:
+    writer = handle_lab.writer
+    directory = handle_lab.project / "flat-mixed-case"
+    directory.mkdir()
+    (directory / "Z.bin").write_bytes(b"upper")
+    (directory / "a.bin").write_bytes(b"lower")
+
+    first = writer.read_flat_directory(
+        "flat-mixed-case",
+        maximum_entries=8,
+        maximum_file_bytes=1024,
+        maximum_total_bytes=4096,
+    )
+    second = writer.read_flat_directory(
+        "flat-mixed-case",
+        maximum_entries=8,
+        maximum_file_bytes=1024,
+        maximum_total_bytes=4096,
+    )
+
+    assert [entry.name for entry in first.entries] == ["a.bin", "Z.bin"]
+    projection_key = b"I" * 32
+    assert first.tree_identity_material._operation_hmac_sha256(projection_key) == (
+        second.tree_identity_material._operation_hmac_sha256(projection_key)
+    )
+
+
+def test_flat_directory_identity_constructor_failure_is_typed_and_path_free(
+    handle_lab: _HandleLab,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    writer = handle_lab.writer
+    directory = handle_lab.project / "flat-identity-failure"
+    directory.mkdir()
+    source = directory / "sensitive-name.bin"
+    source.write_bytes(b"identity")
+
+    def reject_identity(*_args: object, **_kwargs: object) -> object:
+        raise TypeError("injected identity constructor failure")
+
+    monkeypatch.setattr(
+        handle_writer_module,
+        "HandleTreeIdentityMaterial",
+        reject_identity,
+    )
+    with pytest.raises(HandleWriterError) as captured:
+        writer.read_flat_directory(
+            "flat-identity-failure",
+            maximum_entries=8,
+            maximum_file_bytes=1024,
+            maximum_total_bytes=4096,
+        )
+
+    assert captured.value.code is HandleWriterCode.DIRECTORY_SCAN_FAILED
+    _assert_serialized_error_is_path_free(
+        captured.value,
+        str(directory),
+        source.name,
+        "injected identity constructor failure",
+    )
+
+
 def test_flat_directory_rejects_child_directory_without_disclosure(
     handle_lab: _HandleLab,
 ) -> None:
@@ -1231,6 +1348,165 @@ def test_runtime_mutex_registry_blocks_second_instance_until_release(
 
     with second.acquire_runtime_mutex() as acquired:
         assert acquired.abandoned is False
+
+
+def test_directory_target_absence_is_observed_through_one_verified_parent_handle(
+    handle_lab: _HandleLab,
+) -> None:
+    writer = handle_lab.writer
+    (handle_lab.project / "Copy" / "source").mkdir(parents=True)
+
+    with writer.acquire_runtime_mutex() as mutex:
+        writer._require_directory_target_absent_under_existing_mutex(
+            mutex,
+            Path("Copy") / "source" / "copy-object",
+        )
+
+    assert not (handle_lab.project / "Copy" / "source" / "copy-object").exists()
+
+
+def test_directory_target_absence_rejects_casefold_collision(
+    handle_lab: _HandleLab,
+) -> None:
+    writer = handle_lab.writer
+    parent = handle_lab.project / "Copy" / "source"
+    parent.mkdir(parents=True)
+    (parent / "COPY-OBJECT").mkdir()
+
+    with writer.acquire_runtime_mutex() as mutex:
+        with pytest.raises(HandleWriterError) as captured:
+            writer._require_directory_target_absent_under_existing_mutex(
+                mutex,
+                Path("Copy") / "source" / "copy-object",
+            )
+
+    assert captured.value.code is HandleWriterCode.TARGET_CONFLICT
+
+
+def test_directory_target_absence_detects_creation_between_same_handle_scans(
+    handle_lab: _HandleLab,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    writer = handle_lab.writer
+    parent = handle_lab.project / "Copy" / "source"
+    parent.mkdir(parents=True)
+
+    def create_target(
+        _writer: _WindowsHandleWriter,
+        target: object,
+    ) -> None:
+        target.path.mkdir()
+
+    monkeypatch.setattr(
+        _WindowsHandleWriter,
+        "_after_directory_target_absence_first_observation",
+        create_target,
+    )
+    with writer.acquire_runtime_mutex() as mutex:
+        with pytest.raises(HandleWriterError) as captured:
+            writer._require_directory_target_absent_under_existing_mutex(
+                mutex,
+                Path("Copy") / "source" / "copy-object",
+            )
+
+    assert captured.value.code is HandleWriterCode.TARGET_CONFLICT
+    assert (parent / "copy-object").is_dir()
+
+
+def test_directory_target_absence_releases_hidden_ticket_when_reservation_is_busy(
+    handle_lab: _HandleLab,
+) -> None:
+    writer = handle_lab.writer
+    (handle_lab.project / "Copy" / "source").mkdir(parents=True)
+    assert writer._operation_lock.acquire(blocking=False)
+    try:
+        with writer.acquire_runtime_mutex() as mutex:
+            with pytest.raises(HandleWriterError) as captured:
+                writer._require_directory_target_absent_under_existing_mutex(
+                    mutex,
+                    Path("Copy") / "source" / "copy-object",
+                )
+    finally:
+        writer._operation_lock.release()
+
+    assert captured.value.code is HandleWriterCode.WRITER_BUSY
+    assert not writer._issued
+    assert not writer._inflight
+
+
+def test_directory_target_absence_closes_fences_before_releasing_reservation(
+    handle_lab: _HandleLab,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    writer = handle_lab.writer
+    (handle_lab.project / "Copy" / "source").mkdir(parents=True)
+    original_close_all = _WindowsHandleWriter._close_all
+    observed: list[tuple[bool, bool]] = []
+
+    def observe_close_order(
+        current: _WindowsHandleWriter,
+        handles: list[int],
+    ) -> None:
+        if handles:
+            observed.append(
+                (
+                    current._operation_lock.locked(),
+                    bool(current._inflight),
+                )
+            )
+        original_close_all(current, handles)
+
+    monkeypatch.setattr(
+        _WindowsHandleWriter,
+        "_close_all",
+        observe_close_order,
+    )
+    with writer.acquire_runtime_mutex() as mutex:
+        writer._require_directory_target_absent_under_existing_mutex(
+            mutex,
+            Path("Copy") / "source" / "copy-object",
+        )
+
+    assert observed == [(True, True)]
+    assert not writer._issued
+    assert not writer._inflight
+
+
+def test_directory_target_absence_close_failure_seals_before_return(
+    handle_lab: _HandleLab,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    writer = handle_lab.writer
+    (handle_lab.project / "Copy" / "source").mkdir(parents=True)
+    original_close_all = _WindowsHandleWriter._close_all
+
+    def close_then_report_failure(
+        current: _WindowsHandleWriter,
+        handles: list[int],
+    ) -> None:
+        original_close_all(current, handles)
+        if handles:
+            raise HandleWriterError(
+                HandleWriterCode.HANDLE_CLOSE_FAILED,
+                "injected close report failure",
+            )
+
+    monkeypatch.setattr(
+        _WindowsHandleWriter,
+        "_close_all",
+        close_then_report_failure,
+    )
+    with writer.acquire_runtime_mutex() as mutex:
+        with pytest.raises(HandleWriterError) as captured:
+            writer._require_directory_target_absent_under_existing_mutex(
+                mutex,
+                Path("Copy") / "source" / "copy-object",
+            )
+
+    assert captured.value.code is HandleWriterCode.HANDLE_CLOSE_FAILED
+    assert writer._poisoned == HandleWriterCode.HANDLE_CLOSE_FAILED.value
+    assert not writer._issued
+    assert not writer._inflight
 
 
 def test_spent_ticket_tombstones_are_bounded(handle_lab: _HandleLab) -> None:

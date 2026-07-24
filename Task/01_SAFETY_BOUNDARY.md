@@ -4,30 +4,48 @@
 
 本规范适用于 M0—M5 全部开发、测试、数据处理、渲染、恢复、安装和 Git 操作。安全底线高于进度、便利性和功能目标。任何操作如果不能证明安全，就应失败关闭，而不是猜测后继续。
 
-固定路径：
+逻辑路径（物理盘符和父目录不是合同的一部分）：
 
 ```text
-REFERENCE_ROOT  = D:\AAA命题
-PROJECT_ROOT    = D:\AAA命题\Test
-COPY_ROOT       = D:\AAA命题\Test\Copy
-TASK_ROOT       = D:\AAA命题\Test\Task
-TMP_ROOT        = D:\AAA命题\Test\tmp
-QUARANTINE_ROOT = D:\AAA命题\Test\data\quarantine
-BACKUP_ROOT     = D:\AAA命题\Test\backups
-AUDIT_ROOT      = D:\AAA命题\Test\logs\audit
+PROJECT_ROOT    = 受信任 app/project_root.py 所在仓库、且根标记验证通过的本机 NTFS 目录
+REFERENCE_ROOTS = Task/local/ 中按逻辑 ID 维护的本机只读路径映射
+COPY_ROOT       = <PROJECT_ROOT>\Copy
+TASK_ROOT       = <PROJECT_ROOT>\Task
+TMP_ROOT        = <PROJECT_ROOT>\tmp
+QUARANTINE_ROOT = <PROJECT_ROOT>\data\quarantine
+BACKUP_ROOT     = <PROJECT_ROOT>\backups
+AUDIT_ROOT      = <PROJECT_ROOT>\logs\audit
 ```
 
-- `REFERENCE_ROOT`内普通文件允许只读。
+- `REFERENCE_ROOTS`内已登记的普通文件允许只读；绝对路径只保存在 Git 忽略的本机映射中。
 - 项目业务文件、参考资料副本、运行状态、缓存、日志和派生结果的唯一写根是`PROJECT_ROOT`。
 - `PROJECT_ROOT`之外的业务文件和参考原件均视为只读；唯一例外是第 8 节定义的、经独立审计批准的依赖包管理器事务。该例外只允许安装工具自身，不扩大项目数据写入边界。
 - 系统程序和已安装运行时可按确定路径读取，但不得以“工具发现”为由扫描无关用户目录。
+
+### 1.1 根目录发现与跨电脑迁移
+
+- 根权限只由受跟踪的`app/project_root.py`代码位置与根目录`.exam-bank-root.json`的精确内容共同确定；marker 不保存盘符、用户名或绝对路径。
+- 必须拒绝 UNC、设备路径、盘符根、非 NTFS、缺失/篡改/硬链接 marker，以及根、祖先或权限模块链中的 Reparse Point。
+- cwd、环境变量、命令行`project_root`、配置覆盖和本机参考路径映射均不能授予或扩大生产写根。
+- 数据库、manifest、备份和业务表只保存项目相对路径或对象 ID；外部绝对路径只存在于`Task/local/`映射和受限的历史运行证据中。
+- `.venv`、缓存和测试实验室不是跨机器可信产物；迁移后应按锁定依赖重建或逐项验证，不得仅因目录被复制就声明环境有效。
+
+迁移必须在没有业务 mutation、safe launcher、迁移、Git 提交/推送或活动数据库事务时进行。恢复执行前必须：
+
+1. 完整复制同一项目根，不拼接不同时间点的代码、数据库与资产；
+2. 在新位置运行`python -m app.project_root`，验证 marker、NTFS、本地盘和全链无 Reparse；
+3. 重建或验证项目虚拟环境，核对 Python、Flask、PyMuPDF、pytest 和 SQLite 版本；
+4. 更新 Git 忽略的`Task/local/`外部参考映射，并只读核对逻辑 ID 与源哈希；
+5. 复核 Git branch/HEAD/remote/工作树、中间状态、活动数据库哈希、`integrity_check`与`foreign_key_check`；
+6. 旧物理路径上的测试/文件系统证据保留为历史证据；使用新 run ID 重跑根目录、保护树、外部零写入和当前切片回归；
+7. 上述证据全部通过后，才能在新位置恢复生产或候选 mutation。
 
 ## 2. 永久禁止项
 
 以下操作不能因赶进度、测试失败、恢复失败或磁盘不足而执行：
 
-1. 在 Test 外创建、修改、移动、重命名或删除业务文件、参考资料或项目派生内容；第 8 节批准的依赖安装事务不属于业务文件写入；
-2. 把处理结果写回 Test 外原件位置；
+1. 在`PROJECT_ROOT`外创建、修改、移动、重命名或删除业务文件、参考资料或项目派生内容；第 8 节批准的依赖安装事务不属于业务文件写入；
+2. 把处理结果写回`PROJECT_ROOT`外原件位置；
 3. 对未逐项登记的目录执行递归、通配符、镜像或清空操作；
 4. 格式化磁盘、修改分区、卷、引导或文件系统；
 5. 提权取得目录所有权、递归修改 ACL、关闭安全软件；
@@ -94,7 +112,7 @@ takeown /R
 2. 拒绝其他盘符、UNC、网络共享、`\\?\`、`\\.\`和设备路径；
 3. 拒绝`..`、NTFS ADS、控制字符、尾随空格/点及 Windows 保留名；
 4. 对现存路径解析真实路径；新路径解析最近的现存父目录；
-5. 使用组件级、大小写不敏感比较确认目标严格位于 Test 内，必须拒绝`Test2`前缀混淆；
+5. 使用组件级、大小写不敏感比较确认目标严格位于已验证`PROJECT_ROOT`内，必须拒绝相似前缀混淆；
 6. 逐层检查从项目根到目标父目录，不得包含符号链接、Junction、挂载点或其他 Reparse Point；
 7. 创建父目录后、正式写入前再次校验，写入后再核对最终文件，降低路径替换竞态；
 8. 记录请求路径、规范化路径、用途、job ID、调用者和结果。
@@ -127,7 +145,7 @@ M0 必须覆盖：
 
 任一越界用例未被拒绝，禁止处理真实数据。
 
-## 5. Test 外资料 Copy 流程
+## 5. `PROJECT_ROOT`外资料 Copy 流程
 
 纯只读查看普通文件可直接进行。一旦需要转换、OCR、裁切、渲染、Office/PDF 工具打开、字体分析或其他可能产生副作用的处理，必须：
 
@@ -140,7 +158,7 @@ M0 必须覆盖：
 7. 后续加工只写`Copy/work/<classification>/<copy_id>/<job_id>/`或正式派生目录，其中`classification`必须是`INTERNAL`或`RESTRICTED`且与上下文完全一致；
 8. 若外部源在复制过程中变化，废弃该批次并创建新 copy，不猜测版本。
 
-第三方工具无法证明不会写入源文件旁时，禁止直接以 Test 外路径作为输入。
+第三方工具无法证明不会写入源文件旁时，禁止直接以`PROJECT_ROOT`外路径作为输入。
 
 ## 6. 安全写入、移动和删除
 
@@ -258,7 +276,7 @@ M0—M5 自动运行期间不得永久清空隔离区。释放隔离区空间必
 
 出现以下任一情况，立即停止相关写入：
 
-- 路径不能证明位于 Test；
+- 路径不能证明位于当前经 marker 验证的`PROJECT_ROOT`；
 - 发现 Reparse Point、Junction、符号链接、ADS、UNC 或设备路径；
 - 实际写入与 manifest 不一致；
 - 检查点、备份、恢复或数据库完整性失败；

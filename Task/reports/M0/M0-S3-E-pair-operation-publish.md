@@ -119,9 +119,9 @@ live tree revalidate
 | `RUN-20260712-M0-S3E-LAUNCHER-018` | 72 passed | safe launcher 与 S3-E exact mode selection 门 |
 | `RUN-20260712-M0-S3E-COMBINED-019` | 399 passed | 最终 S3-E/S3-D/writer/ledger/policy/static/inventory 组合门 |
 
-`RUN-009`：pytest/effective exit 均为 0；JUnit 366 tests、failure/error/skip 均为 0，SHA-256 为 `9a2bb42c1c09b80358fbf7e3b055accd1836f7c38f555c2f0440fae9d2563239`。保护树前后均 93,762 条、digest 均为 `ab4be5df72f7ef8b45da36d6bca8bbc82c09cb09dd7dfe6e5a02fe306a5e0630`；runtime changes 0；活动 SQLite 前后 SHA-256 均为 `1505bf05bd8e385eada30642110596363c561c330da02a40a497072064ad1c94`；source inputs unchanged。
+`RUN-009`：pytest/effective exit 均为 0；JUnit 366 tests、failure/error/skip 均为 0，SHA-256 为 `9a2bb42c1c09b80358fbf7e3b055accd1836f7c38f555c2f0440fae9d2563239`。保护树前后均 93,762 条、digest 均为 `ab4be5df72f7ef8b45da36d6bca8bbc82c09cb09dd7dfe6e5a02fe306a5e0630`；runtime changes 0；活动 SQLite 前后 SHA-256 均为 `1505bf05bd8e385eada30642110596363c561c330da02a40a497072064ad1c94`。当时结果中的`source inputs unchanged`是旧 schema 字段名，只表达已监测保护集的证据门通过，不表示对整机或未登记外部源的全程监控。
 
-最终 `RUN-COMBINED-019`：pytest/effective exit 均为 0；JUnit 399 tests、failure/error/skip 均为 0，SHA-256 为 `83252bf90f3a738797470b4b751683ec31260bd8023517e4046ffbd39de0c514`。保护树前后均 99,504 条、digest 均为 `5f54cbc367373f500081e2d3f88e6c8f2f2c8e507a229487159ad9756c6c958c`；runtime changes 0；活动 SQLite 前后 SHA-256 均为 `1505bf05bd8e385eada30642110596363c561c330da02a40a497072064ad1c94`；source inputs unchanged。三名独立只读复核者分别复核最终 pair/audit 绑定、operation/key/capacity、recovery proof/祖先关系，结论均为当前范围 `P0=0、P1=0`。
+最终 `RUN-COMBINED-019`：pytest/effective exit 均为 0；JUnit 399 tests、failure/error/skip 均为 0，SHA-256 为 `83252bf90f3a738797470b4b751683ec31260bd8023517e4046ffbd39de0c514`。保护树前后均 99,504 条、digest 均为 `5f54cbc367373f500081e2d3f88e6c8f2f2c8e507a229487159ad9756c6c958c`；runtime changes 0；活动 SQLite 前后 SHA-256 均为 `1505bf05bd8e385eada30642110596363c561c330da02a40a497072064ad1c94`；旧 schema 的`source inputs unchanged`门通过，其保证范围同上。三名独立只读复核者分别复核最终 pair/audit 绑定、operation/key/capacity、recovery proof/祖先关系，结论均为当前范围 `P0=0、P1=0`。
 
 ### 失败但保留的开发运行
 

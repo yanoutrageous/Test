@@ -54,7 +54,7 @@ Requirement
 所有会写入、迁移、覆盖、隔离、恢复、制造损坏或验证删除的测试只能运行在：
 
 ```text
-D:\AAA命题\Test\tmp\test_lab\<run_id>\
+<PROJECT_ROOT>\tmp\test_lab\<run_id>\
 ```
 
 路径越界测试不得把真实 Test 外目录作为攻击目标。应在 test_lab 中创建：
@@ -75,6 +75,7 @@ D:\AAA命题\Test\tmp\test_lab\<run_id>\
 
 ### 4.2 契约与迁移测试
 
+- portable root 必须覆盖中文/空格/不同父目录的合法模拟迁移，以及固定盘符残留、相对根、UNC、盘符根、缺失/篡改/硬链接 marker、Reparse 和非 NTFS 的失败关闭；迁移后旧物理路径证据不得冒充新基线；
 - QuestionIR、FigureIR、PaperIR、manifest 和 API schema 往返；
 - schema 升级、回滚、旧数据读取、重复迁移和中断恢复；
 - 数据库`integrity_check`、`foreign_key_check`和业务不变量；
