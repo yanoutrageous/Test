@@ -1,7 +1,7 @@
 {
   "state_version": "1.1.0",
   "plan_version": "1.1.0",
-  "updated_at": "2026-07-25T02:04:06+08:00",
+  "updated_at": "2026-07-25T02:17:01+08:00",
   "current_milestone": "M0",
   "current_slice": "M0_S5_DOMAIN_IR_GOLD",
   "status": "RUNNING",
@@ -384,7 +384,7 @@
     "retention_contract": "Task/TEST_GATE_RETENTION.md"
   },
   "s4_checkpoint": {
-    "local_acceptance_status": "PASSED_FUNCTIONAL_CHECKPOINT_COMMITTED_REMOTE_VERIFICATION_PENDING",
+    "local_acceptance_status": "PUBLISHED_AND_VERIFIED_AT_ORIGIN",
     "functional_checkpoint_commit": "29602bc1af5001e486e9df8b5568af1b51984d08",
     "report": "Task/reports/M0/M0-S4-sqlite-migration-backup.md",
     "read_only_gateway": "PASSED_MODE_RO_QUERY_ONLY_GET_ZERO_WRITE",
@@ -480,16 +480,16 @@
     "base_commit": "bfd4d35973974a223f465cd08910f303518a8586",
     "remote": "https://github.com/yanoutrageous/Test.git",
     "planning_published_commit": "bfd4d35973974a223f465cd08910f303518a8586",
-    "publication_status": "M0_S3H_PUBLISHED_AND_VERIFIED",
-    "published_checkpoint": "b38dd5e5399cc37dae3fa1086b29c7b5e1385477",
-    "verified_origin_head": "b38dd5e5399cc37dae3fa1086b29c7b5e1385477",
-    "verified_draft_pr_head": "b38dd5e5399cc37dae3fa1086b29c7b5e1385477",
-    "draft_pr_state": "OPEN_DRAFT_MERGEABLE",
+    "publication_status": "M0_S4_FUNCTIONAL_AND_ACCEPTANCE_CHECKPOINTS_PUBLISHED_AND_ORIGIN_VERIFIED",
+    "published_checkpoint": "29602bc1af5001e486e9df8b5568af1b51984d08",
+    "verified_origin_head": "51d2a7498eac3955a8ec8a1f1288bd69e0da598a",
+    "verified_draft_pr_head": null,
+    "draft_pr_state": "NOT_REVERIFIED_AFTER_S4_PUSH_LOCAL_GH_NOT_AUTHENTICATED",
     "draft_pr_body_update": "NOT_APPLIED_GITHUB_APP_INTEGRATION_403_GH_NOT_PERSISTENTLY_AUTHENTICATED_NO_BYPASS_ATTEMPTED",
     "planning_pull_request": "https://github.com/yanoutrageous/Test/pull/1",
     "integration_pull_request": "https://github.com/yanoutrageous/Test/pull/2"
   },
-  "last_verified_checkpoint": "c1a74d560ed0d3ca31194e4da062a3aa3de07a05",
+  "last_verified_checkpoint": "51d2a7498eac3955a8ec8a1f1288bd69e0da598a",
   "last_unverified_pause_checkpoint": "aec3d7413a06251e4865b601fd680090b466892e",
   "active_job_id": "M0-S5-DOMAIN-IR-GOLD",
   "active_writer": {
@@ -575,7 +575,8 @@
     "RUN-20260725-M0-S4-GATE-102 passed 462 tests and RUN-20260725-M0-FULL-GATE-103 passed 1038 tests with zero failures/errors/skips; activity database, 4817-entry protected tree, watcher, handle fence, run tree, immutable evidence, 80 source witnesses, and process tree all passed",
     "production inventory final preview RUN-20260725-M0-S4-INVENTORY-101 matches tracked bytes at 55 sources, 462 entries, 19 chunks, UNKNOWN=0, all entries UNMIGRATED_BLOCKED, payload c5b306f75aeb7fcb7ba685ddf40160f3f97b450fc53f0fe49dcbeaf3fc571e6f",
     "all 14 cold archives were rehashed and fully listed at S4 freeze with 196442 members, 183 run roots, zero coverage/hash/member differences, and zero unsafe paths; only final run 103 and inventory preview 101 remain hot",
-    "M0-S4 functional scope was explicitly staged as exactly 44 allowlisted files with zero deletions, binaries, files over 1 MiB, diff-check findings, or secret-pattern findings, and committed as 29602bc1af5001e486e9df8b5568af1b51984d08"
+    "M0-S4 functional scope was explicitly staged as exactly 44 allowlisted files with zero deletions, binaries, files over 1 MiB, diff-check findings, or secret-pattern findings, and committed as 29602bc1af5001e486e9df8b5568af1b51984d08",
+    "M0-S4 functional and acceptance-report commits were ordinary-pushed through 51d2a7498eac3955a8ec8a1f1288bd69e0da598a and verified identical at local HEAD, origin, and ls-remote; Draft PR metadata was not reverified because local gh is not authenticated"
   ],
   "not_started": [
     "activity database migration activation (intentionally deferred until a later authorized switch)",
