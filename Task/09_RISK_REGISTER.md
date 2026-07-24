@@ -19,7 +19,7 @@
 | R-002 | 任意`db_path/output_path/project_root`逃逸 | H | Critical | 现有代码多个入口接受调用者路径 | 封闭入口、统一 Guard、攻击矩阵 | M0 | Open |
 | R-003 | Junction/符号链接/ADS/TOCTOU 绕过 | M | Critical | Windows 路径复杂且现有保护不统一 | 逐层 Reparse Point、ADS、父目录二次检查、故障测试 | M0 | Open |
 | R-004 | 当前数据库为空，旧报告不可复现 | H | H | 核心业务表为 0 行 | 建立事实基线和可重建种子批次，旧报告只作历史资料 | M0/M1 | Open |
-| R-005 | 数据库迁移损坏活动数据 | M | Critical | schema 将大幅版本化 | 一致快照、副本迁移、完整性、staging、回滚 | M0+ | Open |
+| R-005 | 数据库迁移损坏活动数据 | M | Critical | schema 将大幅版本化；活动库切换尚未执行 | S4 已通过一致快照、只追加目录、副本迁移、真实中断、完整性、staging 和 rescue 回滚；活动切换仍需后续冻结门 | M0+ | Mitigating |
 | R-006 | NEW9 无文本层，无法恢复精确字体/语义 | H | H | 91 页无可提取文本和字体 | 分离视觉/内容真值；整页回归；字体等效声明 | M0/M1 | Open |
 | R-007 | 多种页面尺寸被误当成一个模板 | H | H | 176×250、182×257、184×260、A4、A3 共存 | 模板族和版本化 token，分别金标 | M0/M1 | Open |
 | R-008 | MathType OLE、WMF、Corel 轮廓兼容失败 | H | H | 多份 DOCX 含大量 OLE/WMF，答题卡无文本层 | 原件保留、规范化派生、代表压力样本、降级轨 | M1 | Open |
@@ -36,10 +36,10 @@
 | R-019 | 语义搜索质量低或索引过期 | H | M | 模型/语料变更，人工金标尚未建立 | 混合检索、金标 Recall/nDCG、重建索引、stale 管理 | M3 | Open |
 | R-020 | 模板编辑器执行任意 TeX/命令 | M | Critical | 若开放源码输入会破坏边界 | 受控 token、静态检查、沙箱编译 | M3 | Open |
 | R-021 | 视觉基线被自动更新以掩盖退化 | M | H | 视觉系统常见误用 | 基线更新独立 D2 审计，旧基线不可覆盖 | M3 | Open |
-| R-022 | 当前数据库备份只是文件复制，不一致 | H | Critical | WAL 状态下 copy2 不可靠 | SQLite Backup API、完整性、实际恢复 | M4 | Open |
-| R-023 | “备份存在”但无法恢复 | H | Critical | 尚无完整恢复产品流程 | staging 恢复、故障注入、恢复后用户旅程 | M4 | Open |
+| R-022 | 数据库备份若退回文件复制会不一致 | M | Critical | WAL 状态下 copy2 不可靠；S4 已移除导入批次的活动库 copy2 | SQLite Backup API、WAL 一致快照、integrity/FK/FTS、实际暂存恢复已由 RUN-102/103 通过；M4 继续覆盖整产品 | M0/M4 | Mitigating |
+| R-023 | “备份存在”但无法恢复 | M | Critical | SQLite 暂存恢复已通过；尚无完整产品恢复用户旅程 | S4 staging restore、篡改/缺失/中断故障注入已通过；M4/M5 增加 assets、版本指针和恢复后用户旅程 | M4/M5 | Mitigating |
 | R-024 | 同卷备份无法抵御整个产品根所在卷故障 | H | H | 当前唯一写根限制 | 对客户准确披露；异卷灾备需用户另行授权 | M4/M5 | Accepted limitation |
-| R-025 | 批量渲染/备份耗尽磁盘并诱发危险清理 | M | Critical | 参考资产约 2.6 GiB，派生可能倍增；历史门禁热目录曾达到约 8.4 GiB | 小样估算、minimum_free、按`TEST_GATE_RETENTION.md`归档并只保留最新热证据、停止而不自动清理；S3-H 后 E 盘约 60.63 GiB 可用 | All | Open |
+| R-025 | 批量渲染/备份耗尽磁盘并诱发危险清理 | M | Critical | 参考资产约 2.6 GiB，派生可能倍增；历史门禁热目录曾达到约 8.4 GiB | 小样估算、minimum_free、冷归档仅在生成/阶段冻结校验、日常 core/阶段 full 分层、只保留最新热证据、停止而不自动清理；S4 后 E 盘约 60.33 GiB 可用 | All | Mitigating |
 | R-026 | CDN/遥测接触成绩和题库 | H | Critical | 现有 HTML 引用远程脚本 | 静态依赖本地化、CSP、断网验收、网络审计 | M0/M3/M5 | Open |
 | R-027 | PII 进入日志、embedding、Git 或客户包 | H | Critical | XLSX 含姓名、学号、IP、QQ | restricted Copy、匿名化、扫描、禁止列表 | All | Open |
 | R-028 | 原卷、解析、字体许可阻止客户分发 | M | H | 本地使用不等于可再分发 | 许可清单、local-use-only、客户自备、发布阻断 | M0/M5 | Open |

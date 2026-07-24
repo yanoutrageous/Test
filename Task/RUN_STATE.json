@@ -1,9 +1,9 @@
 {
   "state_version": "1.1.0",
   "plan_version": "1.1.0",
-  "updated_at": "2026-07-24T23:31:00+08:00",
+  "updated_at": "2026-07-25T02:04:06+08:00",
   "current_milestone": "M0",
-  "current_slice": "M0_S4_SQLITE_MIGRATION_BACKUP",
+  "current_slice": "M0_S5_DOMAIN_IR_GOLD",
   "status": "RUNNING",
   "implementation_status": "IN_PROGRESS",
   "task_scope": {
@@ -383,6 +383,91 @@
     "report": "Task/reports/M0/M0-evidence-storage-20260724.md",
     "retention_contract": "Task/TEST_GATE_RETENTION.md"
   },
+  "s4_checkpoint": {
+    "local_acceptance_status": "PASSED_FUNCTIONAL_CHECKPOINT_COMMITTED_REMOTE_VERIFICATION_PENDING",
+    "functional_checkpoint_commit": "29602bc1af5001e486e9df8b5568af1b51984d08",
+    "report": "Task/reports/M0/M0-S4-sqlite-migration-backup.md",
+    "read_only_gateway": "PASSED_MODE_RO_QUERY_ONLY_GET_ZERO_WRITE",
+    "migration_catalog": {
+      "current_version": 1,
+      "initial_migration_id": "0001_INITIAL_LEGACY_BASELINE",
+      "normalized_schema_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "transactional_interrupt_and_real_process_crash_matrix": "PASSED"
+    },
+    "backup_restore": {
+      "sqlite_backup_api": "PASSED_WAL_CONSISTENT_SNAPSHOT",
+      "staging_restore": "PASSED",
+      "copy_migration_with_rescue_backup": "PASSED",
+      "activity_state_switch_performed": false
+    },
+    "inventory": {
+      "run_id": "RUN-20260725-M0-S4-INVENTORY-101",
+      "source_count": 55,
+      "entry_count": 462,
+      "chunk_count": 19,
+      "unknown_dynamic_count": 0,
+      "unmigrated_count": 462,
+      "production_writer_connected": false,
+      "m0_exit_allowed": false,
+      "inventory_payload_sha256": "c5b306f75aeb7fcb7ba685ddf40160f3f97b450fc53f0fe49dcbeaf3fc571e6f",
+      "manifest_file_sha256": "1c93ae69802284b2d3bf648b0e0ef8b0771ad216dc8621e61ab2d40c0fb5606b"
+    },
+    "core_gate": {
+      "run_id": "RUN-20260725-M0-S4-CORE-FIX-100",
+      "effective_exit_code": 0,
+      "pytest_tests": 69,
+      "pytest_failures": 0
+    },
+    "s4_gate": {
+      "run_id": "RUN-20260725-M0-S4-GATE-102",
+      "effective_exit_code": 0,
+      "pytest_tests": 462,
+      "pytest_failures": 0,
+      "activity_database_unchanged": true,
+      "all_safety_gates_passed": true
+    },
+    "full_gate": {
+      "run_id": "RUN-20260725-M0-FULL-GATE-103",
+      "finished_at": "2026-07-25T02:04:06+08:00",
+      "effective_exit_code": 0,
+      "pytest_tests": 1038,
+      "pytest_failures": 0,
+      "pytest_errors": 0,
+      "pytest_skipped": 0,
+      "symlink_capability_deselected": 1,
+      "protected_tree_entries": 4817,
+      "protected_tree_unchanged": true,
+      "activity_database_unchanged": true,
+      "runtime_monitor_unchanged": true,
+      "handle_fence_valid": true,
+      "run_tree_safe": true,
+      "immutable_evidence_unchanged": true,
+      "source_witness_count": 80,
+      "source_witness_valid": true,
+      "process_tree_terminated": true
+    },
+    "activity_database": {
+      "sha256": "1505bf05bd8e385eada30642110596363c561c330da02a40a497072064ad1c94",
+      "integrity_check": "ok",
+      "foreign_key_violations": 0,
+      "user_version": 0,
+      "schema_migrations_exists": false,
+      "migration_or_switch_performed": false
+    },
+    "storage_freeze": {
+      "archive_count": 14,
+      "archive_total_bytes": 680550360,
+      "archive_entry_count": 196442,
+      "archive_run_root_count": 183,
+      "archive_coverage_difference_count": 0,
+      "archive_failed_validation_count": 0,
+      "archive_unsafe_member_count": 0,
+      "hot_retained_run": "RUN-20260725-M0-FULL-GATE-103",
+      "hot_retained_inventory_preview": "RUN-20260725-M0-S4-INVENTORY-101",
+      "e_free_bytes": 64775925760,
+      "cold_archive_validation": "ON_ARCHIVE_AND_STAGE_FREEZE"
+    }
+  },
   "project_root": {
     "authority": "TRUSTED_MODULE_PLUS_ROOT_MARKER",
     "marker": ".exam-bank-root.json",
@@ -404,9 +489,9 @@
     "planning_pull_request": "https://github.com/yanoutrageous/Test/pull/1",
     "integration_pull_request": "https://github.com/yanoutrageous/Test/pull/2"
   },
-  "last_verified_checkpoint": "b38dd5e5399cc37dae3fa1086b29c7b5e1385477",
+  "last_verified_checkpoint": "c1a74d560ed0d3ca31194e4da062a3aa3de07a05",
   "last_unverified_pause_checkpoint": "aec3d7413a06251e4865b601fd680090b466892e",
-  "active_job_id": "M0-S4-SQLITE-MIGRATION-BACKUP",
+  "active_job_id": "M0-S5-DOMAIN-IR-GOLD",
   "active_writer": {
     "owner": "/root",
     "run_id": "RUN-20260724-M0-S4-COORD-080",
@@ -483,20 +568,27 @@
     "production inventory V16 final preview RUN-20260724-M0-S3H-INVENTORY-077 matches tracked bytes at 53 sources, 468 entries, 19 chunks, UNKNOWN=0, all entries UNMIGRATED_BLOCKED, payload 6f9624ecfa941e54cfb1e8f08015952d725785ae15bd1bd9a1a338e27d0d9d9a",
     "independent PowerShell and .NET audit recomputed JUnit, every inventory chunk, and all 53 UTF8_LF_V1 source hashes with zero mismatches",
     "156 superseded test runs and four superseded inventory previews are covered by verified relative-path archives and moved out of the hot E-drive tree; only final run 079 and preview 077 remain hot",
-    "M0-S3-H was explicitly staged as exactly 21 allowlisted files, committed as b38dd5e5399cc37dae3fa1086b29c7b5e1385477, ordinary-pushed, and verified identical at local HEAD, origin, remote refs, and Draft PR 2 head; PR remains open, draft, and mergeable"
+    "M0-S3-H was explicitly staged as exactly 21 allowlisted files, committed as b38dd5e5399cc37dae3fa1086b29c7b5e1385477, ordinary-pushed, and verified identical at local HEAD, origin, remote refs, and Draft PR 2 head; PR remains open, draft, and mergeable",
+    "M0-S4 added a no-create mode=ro query gateway, removed lazy GET initialization and derived-model rebuilds, and proved eight Web GET routes leave database bytes, mtime, directory membership, and SQLite sidecars unchanged",
+    "M0-S4 added append-only schema migration version 1, exact legacy compatibility, normalized schema hashing, fixed failpoint enums, transaction rollback, post-commit reconciliation, and real os._exit crash tests",
+    "M0-S4 replaced import-batch activity database copy2 with SQLite Backup API snapshots, canonical manifests, staging restore, rescue backup, copy migration, integrity/FK/FTS/business-path validation, and interruption recovery",
+    "RUN-20260725-M0-S4-GATE-102 passed 462 tests and RUN-20260725-M0-FULL-GATE-103 passed 1038 tests with zero failures/errors/skips; activity database, 4817-entry protected tree, watcher, handle fence, run tree, immutable evidence, 80 source witnesses, and process tree all passed",
+    "production inventory final preview RUN-20260725-M0-S4-INVENTORY-101 matches tracked bytes at 55 sources, 462 entries, 19 chunks, UNKNOWN=0, all entries UNMIGRATED_BLOCKED, payload c5b306f75aeb7fcb7ba685ddf40160f3f97b450fc53f0fe49dcbeaf3fc571e6f",
+    "all 14 cold archives were rehashed and fully listed at S4 freeze with 196442 members, 183 run roots, zero coverage/hash/member differences, and zero unsafe paths; only final run 103 and inventory preview 101 remain hot",
+    "M0-S4 functional scope was explicitly staged as exactly 44 allowlisted files with zero deletions, binaries, files over 1 MiB, diff-check findings, or secret-pattern findings, and committed as 29602bc1af5001e486e9df8b5568af1b51984d08"
   ],
   "not_started": [
-    "database migration",
+    "activity database migration activation (intentionally deferred until a later authorized switch)",
     "question import",
     "OCR or image processing",
     "high-fidelity renderer implementation",
     "blueprint solver implementation",
     "formal export generation",
-    "backup activation or restore"
+    "customer-facing full-product backup activation and restore journey"
   ],
   "blockers": [
     "M0-SYMLINK-CAPABILITY-001: RUN-20260724-M0-SYMLINK-CAPABILITY-038 returned WinError 1314 when the ordinary account attempted to create a real directory symlink; all other safety gates in that run were clean, no privilege elevation or Developer Mode change is authorized, and independent M0 work may continue"
   ],
-  "next_required_action": "Implement M0-S4 append-only SQLite schema migration, SQLite Backup API, staging restore, integrity checks, interruption recovery, and rollback on database copies without touching the activity database.",
-  "resume_rule": "Resume from the final S3-H gate RUN-20260724-M0-S3H-S3-TOTAL-079 and inventory preview 077. Never reuse a run ID or treat an old physical-root result as current. Keep production writer disconnected and real business data untouched through S4-S6 and the remaining M0 gates."
+  "next_required_action": "Implement M0-S5 versioned domain objects, IR validation and round-trip rules, then freeze content, visual, scoring, and figure gold registries without touching real business data.",
+  "resume_rule": "Resume from S4 functional checkpoint 29602bc1af5001e486e9df8b5568af1b51984d08, final gate RUN-20260725-M0-FULL-GATE-103, and inventory preview 101. Never reuse a run ID. Keep production writer disconnected, the activity database at user_version 0, and real business data untouched through S5-S6 and the remaining M0 gates."
 }

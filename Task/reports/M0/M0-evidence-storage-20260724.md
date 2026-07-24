@@ -144,3 +144,41 @@ tar -tzf tmp/test_lab_archives/test-lab-RUN-20260724-M0-S3H-070-through-078.tar.
 - 历史失败轮次 CORE-052 与 COMBINED-056 的功能失败和干净安全门均已保留在增量归档；它们不再代表当前功能状态。
 - `RUN-20260724-M0-S3H-S3-TOTAL-079`最终退出码 0：997 项测试、0 failure/error/skip；保护树前后均 4,741 项，活动数据库、runtime watcher、句柄围栏、run tree、不可变证据、80 个源码见证和进程树全部通过。
 - S3-H 失败轮次 TOTAL-071（旧静态样例未迁到 multi-epoch scope）与 TOTAL-075（Job Object 异步终止竞态）均已记录原因、保留干净安全门并由 079 替代。
+
+## S4 存储追加记录（2026-07-25）
+
+S4 按同一保留合同继续整理，没有重写上方 S3 历史事实。新增归档如下：
+
+| 归档 | bytes | 成员 | 运行根 | SHA-256 |
+|---|---:|---:|---:|---|
+| `test-lab-S3H-final-079-and-S4-core-failed-081.tar.gz` | 4,444,453 | 9,068 | 2 | `b5d65257966cf093000c3a9e5fe9d3913ea042f783adfd650c8b8d9f5dc6e60e` |
+| `test-lab-S4-core-082-through-084.tar.gz` | 3,912,157 | 945 | 3 | `0a8ff2794954bd5941127de22d325dd7a4609acfb5888d57aa2b4d43b36ce0b1` |
+| `test-lab-S4-085-through-090.tar.gz` | 8,858,695 | 2,707 | 6 | `be729ad48070c0abce5beac38d9a116f78b66957a7a2d447a3456c786f44062f` |
+| `test-lab-S4-091-097-and-full-timeout-098.tar.gz` | 8,875,917 | 6,478 | 5 | `44a9d52daa5b9acf77621a62e33bf60e6b6801ee46de71d690d71a531c4d59fd` |
+| `inventory-previews-S3H-077-and-S4-092-094.tar.gz` | 152,141 | 66 | 3 | `e96b1c24cc916f665adf6ce755c38cee1e380689fdb3389d8c48ffaf46d35994` |
+| `test-lab-full-099-single-functional-failure.tar.gz` | 3,417,374 | 9,220 | 1 | `c91a9544bbbfdb25d8b0109b43310ba5a33488321e455f1a607af459d3203ff4` |
+| `test-lab-S4-fix-100-and-final-102.tar.gz` | 3,798,295 | 1,709 | 2 | `71073044d6597431d01bfd1b76eeb7ff22d76a8c82dd8608dcc0d8267fc57ef4` |
+| `inventory-preview-S4-superseded-095.tar.gz` | 51,437 | 22 | 1 | `2efbe54e1ae84494a857a8adc02d67f07cb3f101059ff3d16ef2ff570f73dba2` |
+
+阶段冻结复核重新计算了全部 14 个归档：
+
+- 归档总大小：680,550,360 bytes（约 649.03 MiB）。
+- 完整成员：196,442；运行根：183。
+- manifest 与实际归档覆盖差异：0。
+- SHA-256、字节数、成员数和运行根差异：0。
+- 绝对路径、盘符路径和含`..`成员：0。
+
+safe launcher 只对固定的普通目录`tmp/test_lab_archives`应用冷归档排除，并在
+`run-manifest.json`记录`cold_archive_validation=ON_ARCHIVE_AND_STAGE_FREEZE`。
+这消除了每次门禁重复读取约 649 MiB 冷历史的成本；归档仍在生成时和每个阶段冻结/
+跨电脑迁移前完整复核。
+
+S4 结束后的热状态：
+
+- `tmp/test_lab`只保留最终全绿`RUN-20260725-M0-FULL-GATE-103`，约 126.41 MiB。
+- `tmp/inventory_preview`只保留最终`RUN-20260725-M0-S4-INVENTORY-101`，约 0.49 MiB。
+- 被替代原始目录在归档校验后移动到
+  `C:\Users\<current-user>\AppData\Local\Codex\workspace-relief\yanoutrageous-Test`；
+  该位置只是本机可恢复暂存，不是跨电脑合同。
+- E 盘可用空间为 64,775,925,760 bytes（约 60.33 GiB）。
+- 没有删除原始题卷、真实业务数据或客户资产，也没有使用危险递归删除。

@@ -1,6 +1,17 @@
 # 当前状态
 
-更新时间：2026-07-24 23:31 +08:00
+更新时间：2026-07-25 02:04 +08:00
+
+## M0-S4 本地验收与存储收敛（2026-07-25）
+
+- M0-S4 已通过本地功能与安全验收；功能检查点为`29602bc1af5001e486e9df8b5568af1b51984d08`。只读数据库网关、只追加 schema migration、SQLite Backup API、一致快照、暂存恢复、数据库副本迁移和中断恢复均已实现。
+- `RUN-20260725-M0-S4-CORE-FIX-100`为 69/69，`RUN-20260725-M0-S4-GATE-102`为 462/462；最终全仓冻结`RUN-20260725-M0-FULL-GATE-103`为 1038/1038，另 1 个真实目录 symlink 能力用例按普通账户 WinError 1314 的既定边界单独排除。
+- 103 的保护树前后均为 4,817 项，80 个登记来源全部匹配；活动 SQLite、runtime watcher、句柄围栏、run tree、不可变证据和进程树全部通过。
+- 活动 SQLite 从未迁移或切换，SHA-256 仍为`1505bf05bd8e385eada30642110596363c561c330da02a40a497072064ad1c94`，`integrity_check=ok`、外键违规 0、`user_version=0`、`schema_migrations`不存在，25 张表和真实业务状态保持原样。
+- 最终 inventory preview 为`RUN-20260725-M0-S4-INVENTORY-101`：55 个生产源、462 个入口、19 个分片、`UNKNOWN=0`；全部入口仍为`UNMIGRATED_BLOCKED`，production writer 与`m0_exit_allowed`均为 false。payload SHA-256 为`c5b306f75aeb7fcb7ba685ddf40160f3f97b450fc53f0fe49dcbeaf3fc571e6f`。
+- 14 个冷归档已在阶段冻结时重算 SHA-256 并完整列出 196,442 个成员和 183 个运行根；覆盖、哈希、成员和危险路径差异均为 0。冷归档约 649.03 MiB，日常门禁不再重复枚举。
+- `tmp/test_lab`只保留最终全绿 103（约 126.41 MiB），`tmp/inventory_preview`只保留 101（约 0.49 MiB）；被替代原始目录均在校验后可恢复地迁到 C 盘，没有危险递归删除。E 盘当前约 60.33 GiB 可用。
+- 当前切片转入 M0-S5 领域模型、IR 与金标基线；M0 总门仍未通过，production writer 和真实业务数据继续保持隔离。完整证据见`Task/reports/M0/M0-S4-sqlite-migration-backup.md`。
 
 ## 目标已恢复（2026-07-24）
 
@@ -37,7 +48,7 @@
 
 - 计划版本：1.1.0
 - 当前阶段：M0 入场审计完成，M0 尚未验收
-- 当前切片：S3-H 与 S3 总门已验收、提交、push 并远端核验；M0-S4 SQLite migration/Backup API 开始，M0 总门尚未通过
+- 当前切片：M0-S4 SQLite migration/Backup API 已本地验收并形成精确功能检查点；转入 M0-S5 领域模型、IR 与金标基线，M0 总门尚未通过
 - M0—M5 实现：M0 已开始；M1—M5 未开始
 - 本任务有效终点：按用户后续明确要求，连续完成修订后的 M0—M5，直到真实用户流程、恢复演练和客户交付包全部通过；不得把 M0 或代码完成误报为终局
 - 当前禁止：活动数据库迁移、题库导入、OCR、正式排版、批量资产、备份切换和业务文件清理
@@ -72,7 +83,7 @@
 - 目标 NEW9 PDF 已在 Test 内，但其正文无可提取文字层；视觉回归必须包含整页像素/锚点检查
 - 活动 SQLite SHA-256 为`1505bf05...ad1c94`，`integrity_check=ok`、外键违规 0、`user_version=0`，19 个业务表均为 0 行
 - 历史“1123 题/阶段 14”报告不是当前可复现事实
-- 生产静态 inventory V16 覆盖`app/`和`scripts/`的 53 个源文件、468 个副作用入口和 19 个分片；`UNKNOWN=0`、未授权安全内核构造 0，但 468 项仍全部`UNMIGRATED_BLOCKED`
+- 生产静态 inventory V16 覆盖`app/`和`scripts/`的 55 个源文件、462 个副作用入口和 19 个分片；`UNKNOWN=0`、未授权安全内核构造 0，但 462 项仍全部`UNMIGRATED_BLOCKED`
 - Policy V7 digest 为`8df50ded...e4d88`；生产 boundary 固定根且`writer_available=false`，`m0_exit_allowed=false`
 - S3-E 最终核心回归`RUN-20260712-M0-S3E-016`为`30 passed`，launcher 门`RUN-20260712-M0-S3E-LAUNCHER-018`为`72 passed`，组合门`RUN-20260712-M0-S3E-COMBINED-019`为`399 passed`；JUnit failure/error/skip 均为 0
 - RUN-009 保护树前后均 93,762 条、运行时变更 0、句柄围栏 93,762 个；活动 SQLite 前后 SHA-256 相同。旧结果字段`source inputs unchanged`只是该次已监测保护集的起止/运行时证据，不声称监控整机或未登记外部源
@@ -103,7 +114,7 @@
 3. portable root 与 S3-F 合成 Copy/双 ledger 已由`RUN-20260724-M0-PORTABLE-FULL-037`验收，并作为`f9756df79d979ef10f54fc4634f15849857019da`完成精确暂存审计、checkpoint commit、普通 push 与远端核验；
 4. S3-G quarantine/retained restore 已由 CORE-053、INVENTORY-057、GATE-058 与清理后 POSTCLEAN-059 验收，并作为`a757e181a64aea9cbbc91669b7ad48b043bbafd6`完成精确提交、普通 push 与远端核验；
 5. S3-H 历史 operation resolver、完整 DAG、真实 crash/race 矩阵、最终 inventory 和 S3 总门已由 INVENTORY-GATE-078 与 S3-TOTAL-079 验收，并作为`b38dd5e5399cc37dae3fa1086b29c7b5e1385477`完成精确提交、普通 push 与远端核验；
-6. 当前进入 M0-S4 SQLite migration/Backup API；按长期终点继续完成 M0—M5，只有 M5 客户交付包、真实用户流程和恢复演练全部通过后才可结束。
+6. M0-S4 SQLite migration/Backup API 已由 CORE-100、S4-102 和 FULL-103 验收；当前进入 M0-S5 领域模型、IR 与金标基线。按长期终点继续完成 M0—M5，只有 M5 客户交付包、真实用户流程和恢复演练全部通过后才可结束。
 
 ## 历史暂停检查点（已于 2026-07-24恢复）
 
