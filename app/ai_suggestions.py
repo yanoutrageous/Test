@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from .database import connect_database, initialize_database
+from .database import connect_database, connect_database_read_only, initialize_database
 from .question_repository import _insert_review_event, _review_snapshot
 
 
@@ -60,8 +60,7 @@ def list_ai_suggestions(
     *,
     db_path: Path | None = None,
 ) -> list[dict[str, Any]]:
-    initialize_database(db_path)
-    with connect_database(db_path) as conn:
+    with connect_database_read_only(db_path) as conn:
         rows = conn.execute(
             """
             SELECT id,

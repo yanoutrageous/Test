@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from .config import PROJECT_ROOT
-from .database import connect_database, initialize_database
+from .database import connect_database, connect_database_read_only, initialize_database
 from .exports import save_html_export
 from .export_quality import (
     EXPORT_QUALITY_CLASSIFICATION_VERSION,
@@ -42,11 +42,6 @@ class ExportSelectionService:
         self.use_export_quality = use_export_quality
 
     def select_for_question_ids(self, question_ids: list[int]) -> dict[str, Any]:
-        self.ensure_source_attributions()
-        if self.use_export_quality:
-            self.ensure_export_quality_states()
-        else:
-            self.ensure_usability_states()
         unique_ids = [int(value) for value in dict.fromkeys(question_ids)]
         if not unique_ids:
             return {"questions": [], "rejected": [], "eligible_ids": []}
@@ -111,13 +106,14 @@ class ExportSelectionService:
         }
 
     def sample_export_questions(self, *, limit: int = 20) -> list[dict[str, Any]]:
+        self.ensure_source_attributions()
         if self.use_export_quality:
             self.ensure_export_quality_states()
             return self._sample_export_quality_questions(limit=limit)
 
         self.ensure_usability_states()
         capped = max(1, min(limit, 100))
-        with connect_database(self.db_path) as conn:
+        with connect_database_read_only(self.db_path) as conn:
             strict_limit = max(1, capped // 2)
             strict_rows = conn.execute(
                 """
@@ -170,7 +166,7 @@ class ExportSelectionService:
 
     def _sample_export_quality_questions(self, *, limit: int) -> list[dict[str, Any]]:
         capped = max(1, min(limit, 100))
-        with connect_database(self.db_path) as conn:
+        with connect_database_read_only(self.db_path) as conn:
             structured_limit = max(1, capped // 2)
             structured_rows = conn.execute(
                 """
@@ -235,7 +231,7 @@ class ExportSelectionService:
 
     def ensure_usability_states(self) -> dict[str, Any]:
         initialize_database(self.db_path)
-        with connect_database(self.db_path) as conn:
+        with connect_database_read_only(self.db_path) as conn:
             question_count = int(conn.execute("SELECT count(*) FROM questions").fetchone()[0])
             usability_count = int(
                 conn.execute("SELECT count(*) FROM question_usability_states").fetchone()[0]
@@ -269,7 +265,7 @@ class ExportSelectionService:
         if not question_ids:
             return []
         placeholders = ", ".join("?" for _ in question_ids)
-        with connect_database(self.db_path) as conn:
+        with connect_database_read_only(self.db_path) as conn:
             rows = conn.execute(
                 f"""
                 SELECT q.id,

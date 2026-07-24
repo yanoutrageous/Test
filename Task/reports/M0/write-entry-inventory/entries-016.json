@@ -1,5 +1,5 @@
 {
-  "chunk_digest_sha256": "e119bf84595651106f7c9ce9006b13d84621ca3305c420399ba1fd2d3d30267a",
+  "chunk_digest_sha256": "d1e2b89ff4295aac45b520b8b792075e52e69b02aef5c3568cd72246835ec89b",
   "chunk_index": 16,
   "entries": [
     {
@@ -366,7 +366,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "1fca4f3f9512740d48e5a7d5bdd2a923e708075bfb1638a3d84d473de177cf80",
+      "source_sha256": "4f55559b7e63d78456098a7b598be63bb24d48a0bbe0d3056ca09a6d4cfd132c",
       "statement_fingerprint": "9fa690f7580cb48f7c6caf208c3aeb9c931f2db5e446918aede4fa98f6f42d60",
       "target_namespace": "NETWORK_DEFAULT_DENY"
     },
@@ -379,13 +379,13 @@
       "column": 4,
       "detail": "implicit schema/directory initialization",
       "end_column": 32,
-      "end_line": 271,
+      "end_line": 273,
       "entry_id": "WE-5D94059A9D7C2545DD1C0D33",
       "file": "app/structured_ai.py",
       "function": "app.structured_ai.run_structured_ai_corrections",
       "input_source": "CLI_ARGUMENT_OR_CONFIG",
       "kind": "DATABASE_IMPLICIT_INITIALIZER",
-      "line": 271,
+      "line": 273,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "APPLICATION_SERVICE",
       "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
@@ -394,7 +394,7 @@
       "root_ids": [
         "CLI:MAIN"
       ],
-      "source_sha256": "1fca4f3f9512740d48e5a7d5bdd2a923e708075bfb1638a3d84d473de177cf80",
+      "source_sha256": "4f55559b7e63d78456098a7b598be63bb24d48a0bbe0d3056ca09a6d4cfd132c",
       "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     },
@@ -422,7 +422,7 @@
       "root_ids": [
         "CLI:MAIN"
       ],
-      "source_sha256": "1fca4f3f9512740d48e5a7d5bdd2a923e708075bfb1638a3d84d473de177cf80",
+      "source_sha256": "4f55559b7e63d78456098a7b598be63bb24d48a0bbe0d3056ca09a6d4cfd132c",
       "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     },
@@ -450,7 +450,7 @@
       "root_ids": [
         "CLI:MAIN"
       ],
-      "source_sha256": "1fca4f3f9512740d48e5a7d5bdd2a923e708075bfb1638a3d84d473de177cf80",
+      "source_sha256": "4f55559b7e63d78456098a7b598be63bb24d48a0bbe0d3056ca09a6d4cfd132c",
       "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     },
@@ -478,7 +478,7 @@
       "root_ids": [
         "CLI:MAIN"
       ],
-      "source_sha256": "1fca4f3f9512740d48e5a7d5bdd2a923e708075bfb1638a3d84d473de177cf80",
+      "source_sha256": "4f55559b7e63d78456098a7b598be63bb24d48a0bbe0d3056ca09a6d4cfd132c",
       "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     },
@@ -507,7 +507,7 @@
       "root_ids": [
         "CLI:MAIN"
       ],
-      "source_sha256": "1fca4f3f9512740d48e5a7d5bdd2a923e708075bfb1638a3d84d473de177cf80",
+      "source_sha256": "4f55559b7e63d78456098a7b598be63bb24d48a0bbe0d3056ca09a6d4cfd132c",
       "statement_fingerprint": "74fa55252452be8de92a775553381e1f1d44bd762f52f8ee4c92aa1c08fa21d6",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     },
@@ -536,7 +536,7 @@
       "root_ids": [
         "CLI:MAIN"
       ],
-      "source_sha256": "1fca4f3f9512740d48e5a7d5bdd2a923e708075bfb1638a3d84d473de177cf80",
+      "source_sha256": "4f55559b7e63d78456098a7b598be63bb24d48a0bbe0d3056ca09a6d4cfd132c",
       "statement_fingerprint": "dba0d58c82736b967fe3459ee562e4268ca95a235a8b44eaf11a1af3f6af2305",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     },
@@ -565,7 +565,7 @@
       "root_ids": [
         "CLI:MAIN"
       ],
-      "source_sha256": "1fca4f3f9512740d48e5a7d5bdd2a923e708075bfb1638a3d84d473de177cf80",
+      "source_sha256": "4f55559b7e63d78456098a7b598be63bb24d48a0bbe0d3056ca09a6d4cfd132c",
       "statement_fingerprint": "e90d012b783f8f5b1e953a4279a9a8bc7352d1416b08fcd7b33dc1446297ca3b",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     },
@@ -594,10 +594,9 @@
         "CLI:MAIN",
         "FACTORY:CREATE_APP",
         "MODULE:APP",
-        "WEB:GET /structured-review",
         "WEB:POST /structured-review/<int:question_id>/status"
       ],
-      "source_sha256": "c995272cd908cb3fd9cf08e007ce9a408aacd0d44b53a2d673c9ef1420aa6f27",
+      "source_sha256": "9e3814f77516834d3d934c3eff806c20c58f46dc31e4e8ed083e110d1bd40d5a",
       "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     },
@@ -626,10 +625,9 @@
         "CLI:MAIN",
         "FACTORY:CREATE_APP",
         "MODULE:APP",
-        "WEB:GET /structured-review",
         "WEB:POST /structured-review/<int:question_id>/status"
       ],
-      "source_sha256": "c995272cd908cb3fd9cf08e007ce9a408aacd0d44b53a2d673c9ef1420aa6f27",
+      "source_sha256": "9e3814f77516834d3d934c3eff806c20c58f46dc31e4e8ed083e110d1bd40d5a",
       "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     },
@@ -658,10 +656,9 @@
         "CLI:MAIN",
         "FACTORY:CREATE_APP",
         "MODULE:APP",
-        "WEB:GET /structured-review",
         "WEB:POST /structured-review/<int:question_id>/status"
       ],
-      "source_sha256": "c995272cd908cb3fd9cf08e007ce9a408aacd0d44b53a2d673c9ef1420aa6f27",
+      "source_sha256": "9e3814f77516834d3d934c3eff806c20c58f46dc31e4e8ed083e110d1bd40d5a",
       "statement_fingerprint": "6aef6275bd26ad3e0a3b7fa8837d302584b0cce573e7c6aa69fbd155f4df9c40",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     },
@@ -690,10 +687,9 @@
         "CLI:MAIN",
         "FACTORY:CREATE_APP",
         "MODULE:APP",
-        "WEB:GET /structured-review",
         "WEB:POST /structured-review/<int:question_id>/status"
       ],
-      "source_sha256": "c995272cd908cb3fd9cf08e007ce9a408aacd0d44b53a2d673c9ef1420aa6f27",
+      "source_sha256": "9e3814f77516834d3d934c3eff806c20c58f46dc31e4e8ed083e110d1bd40d5a",
       "statement_fingerprint": "498bce4a70d50228ea49489e05cdeb74b39e95cc86b154d50594001506fdcb46",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     },
@@ -722,10 +718,9 @@
         "CLI:MAIN",
         "FACTORY:CREATE_APP",
         "MODULE:APP",
-        "WEB:GET /structured-review",
         "WEB:POST /structured-review/<int:question_id>/status"
       ],
-      "source_sha256": "c995272cd908cb3fd9cf08e007ce9a408aacd0d44b53a2d673c9ef1420aa6f27",
+      "source_sha256": "9e3814f77516834d3d934c3eff806c20c58f46dc31e4e8ed083e110d1bd40d5a",
       "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     }

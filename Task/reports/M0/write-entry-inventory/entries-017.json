@@ -1,148 +1,24 @@
 {
-  "chunk_digest_sha256": "48718661d2d6eafdf2673bd754b2ce0e379631662ab34113eaf298af3bff0a69",
+  "chunk_digest_sha256": "5ca3de199619ac6d02875b9e2d4a8b47fa3fa3e6635eda32941d4be92f34268b",
   "chunk_index": 17,
   "entries": [
     {
       "call_chain": [
         "app.web.create_app",
-        "app.structured_content.get_structured_content"
-      ],
-      "callee": "app.database.initialize_database",
-      "column": 4,
-      "detail": "implicit schema/directory initialization",
-      "end_column": 32,
-      "end_line": 142,
-      "entry_id": "WE-897A22210E995332F873C0E8",
-      "file": "app/structured_content.py",
-      "function": "app.structured_content.get_structured_content",
-      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
-      "kind": "DATABASE_IMPLICIT_INITIALIZER",
-      "line": 142,
-      "migration_status": "UNMIGRATED_BLOCKED",
-      "owner": "APPLICATION_SERVICE",
-      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
-      "resolution": "ALIAS_RESOLVED",
-      "risk": "P1",
-      "root_ids": [
-        "FACTORY:CREATE_APP",
-        "MODULE:APP",
-        "WEB:GET /questions/<int:question_id>",
-        "WEB:POST /questions/<int:question_id>"
-      ],
-      "source_sha256": "c995272cd908cb3fd9cf08e007ce9a408aacd0d44b53a2d673c9ef1420aa6f27",
-      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db",
-      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
-    },
-    {
-      "call_chain": [
-        "app.web.create_app",
-        "app.structured_content.get_structured_content"
-      ],
-      "callee": "app.database.connect_database",
-      "column": 9,
-      "detail": "legacy database gateway",
-      "end_column": 34,
-      "end_line": 143,
-      "entry_id": "WE-A671911D19EC0A8A2FAD1D75",
-      "file": "app/structured_content.py",
-      "function": "app.structured_content.get_structured_content",
-      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
-      "kind": "DATABASE_GATEWAY",
-      "line": 143,
-      "migration_status": "UNMIGRATED_BLOCKED",
-      "owner": "APPLICATION_SERVICE",
-      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
-      "resolution": "ALIAS_RESOLVED",
-      "risk": "P1",
-      "root_ids": [
-        "FACTORY:CREATE_APP",
-        "MODULE:APP",
-        "WEB:GET /questions/<int:question_id>",
-        "WEB:POST /questions/<int:question_id>"
-      ],
-      "source_sha256": "c995272cd908cb3fd9cf08e007ce9a408aacd0d44b53a2d673c9ef1420aa6f27",
-      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6",
-      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
-    },
-    {
-      "call_chain": [
-        "app.web.create_app",
         "app.web._basket_questions",
         "app.structured_content.get_structured_contents_by_question_ids"
       ],
-      "callee": "app.database.initialize_database",
-      "column": 4,
-      "detail": "implicit schema/directory initialization",
-      "end_column": 32,
-      "end_line": 162,
-      "entry_id": "WE-3365029CD7C537CBD897696A",
-      "file": "app/structured_content.py",
-      "function": "app.structured_content.get_structured_contents_by_question_ids",
-      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
-      "kind": "DATABASE_IMPLICIT_INITIALIZER",
-      "line": 162,
-      "migration_status": "UNMIGRATED_BLOCKED",
-      "owner": "APPLICATION_SERVICE",
-      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
-      "resolution": "ALIAS_RESOLVED",
-      "risk": "P1",
-      "root_ids": [
-        "FACTORY:CREATE_APP",
-        "MODULE:APP",
-        "WEB:GET /paper-basket"
-      ],
-      "source_sha256": "c995272cd908cb3fd9cf08e007ce9a408aacd0d44b53a2d673c9ef1420aa6f27",
-      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db",
-      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
-    },
-    {
-      "call_chain": [
-        "app.web.create_app",
-        "app.web._basket_questions",
-        "app.structured_content.get_structured_contents_by_question_ids"
-      ],
-      "callee": "app.database.connect_database",
-      "column": 9,
-      "detail": "legacy database gateway",
-      "end_column": 34,
-      "end_line": 165,
-      "entry_id": "WE-70DA567A6840D2BB9655DC07",
-      "file": "app/structured_content.py",
-      "function": "app.structured_content.get_structured_contents_by_question_ids",
-      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
-      "kind": "DATABASE_GATEWAY",
-      "line": 165,
-      "migration_status": "UNMIGRATED_BLOCKED",
-      "owner": "APPLICATION_SERVICE",
-      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
-      "resolution": "ALIAS_RESOLVED",
-      "risk": "P1",
-      "root_ids": [
-        "FACTORY:CREATE_APP",
-        "MODULE:APP",
-        "WEB:GET /paper-basket"
-      ],
-      "source_sha256": "c995272cd908cb3fd9cf08e007ce9a408aacd0d44b53a2d673c9ef1420aa6f27",
-      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6",
-      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
-    },
-    {
-      "call_chain": [
-        "app.web.create_app",
-        "app.web._basket_questions",
-        "app.structured_content.get_structured_contents_by_question_ids"
-      ],
-      "callee": "app.database.connect_database().execute",
+      "callee": "app.database.connect_database_read_only().execute",
       "column": 15,
       "detail": "dynamic SQL is fail-closed because its effect cannot be proven",
       "end_column": 9,
-      "end_line": 173,
-      "entry_id": "WE-E878C43E1F4A863CC0BB42DF",
+      "end_line": 171,
+      "entry_id": "WE-1FA42EC9C0265FC1CE1E11A9",
       "file": "app/structured_content.py",
       "function": "app.structured_content.get_structured_contents_by_question_ids",
       "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
       "kind": "SQLITE_DYNAMIC_SQL",
-      "line": 166,
+      "line": 164,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "APPLICATION_SERVICE",
       "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
@@ -153,64 +29,8 @@
         "MODULE:APP",
         "WEB:GET /paper-basket"
       ],
-      "source_sha256": "c995272cd908cb3fd9cf08e007ce9a408aacd0d44b53a2d673c9ef1420aa6f27",
+      "source_sha256": "9e3814f77516834d3d934c3eff806c20c58f46dc31e4e8ed083e110d1bd40d5a",
       "statement_fingerprint": "b3a013c198e15ed9d44ad66f470090cd3e335b5230ef884233756223ea4a22e8",
-      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
-    },
-    {
-      "call_chain": [
-        "app.cli.main",
-        "app.structured_content.summarize_structured_contents"
-      ],
-      "callee": "app.database.initialize_database",
-      "column": 4,
-      "detail": "implicit schema/directory initialization",
-      "end_column": 32,
-      "end_line": 181,
-      "entry_id": "WE-CF87DC7742AED866EDBA4913",
-      "file": "app/structured_content.py",
-      "function": "app.structured_content.summarize_structured_contents",
-      "input_source": "CLI_ARGUMENT_OR_CONFIG",
-      "kind": "DATABASE_IMPLICIT_INITIALIZER",
-      "line": 181,
-      "migration_status": "UNMIGRATED_BLOCKED",
-      "owner": "APPLICATION_SERVICE",
-      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
-      "resolution": "ALIAS_RESOLVED",
-      "risk": "P1",
-      "root_ids": [
-        "CLI:MAIN"
-      ],
-      "source_sha256": "c995272cd908cb3fd9cf08e007ce9a408aacd0d44b53a2d673c9ef1420aa6f27",
-      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db",
-      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
-    },
-    {
-      "call_chain": [
-        "app.cli.main",
-        "app.structured_content.summarize_structured_contents"
-      ],
-      "callee": "app.database.connect_database",
-      "column": 9,
-      "detail": "legacy database gateway",
-      "end_column": 34,
-      "end_line": 182,
-      "entry_id": "WE-058B6665F70623DA1400E562",
-      "file": "app/structured_content.py",
-      "function": "app.structured_content.summarize_structured_contents",
-      "input_source": "CLI_ARGUMENT_OR_CONFIG",
-      "kind": "DATABASE_GATEWAY",
-      "line": 182,
-      "migration_status": "UNMIGRATED_BLOCKED",
-      "owner": "APPLICATION_SERVICE",
-      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
-      "resolution": "ALIAS_RESOLVED",
-      "risk": "P1",
-      "root_ids": [
-        "CLI:MAIN"
-      ],
-      "source_sha256": "c995272cd908cb3fd9cf08e007ce9a408aacd0d44b53a2d673c9ef1420aa6f27",
-      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     },
     {
@@ -223,13 +43,13 @@
       "column": 11,
       "detail": "dynamic SQL is fail-closed because its effect cannot be proven",
       "end_column": 5,
-      "end_line": 220,
+      "end_line": 217,
       "entry_id": "WE-EB3EF07D8C72DEFA5EEC816F",
       "file": "app/structured_content.py",
       "function": "app.structured_content._count_distribution",
       "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
       "kind": "SQLITE_DYNAMIC_SQL",
-      "line": 213,
+      "line": 210,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "APPLICATION_SERVICE",
       "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
@@ -239,10 +59,9 @@
         "CLI:MAIN",
         "FACTORY:CREATE_APP",
         "MODULE:APP",
-        "WEB:GET /structured-review",
         "WEB:POST /structured-review/<int:question_id>/status"
       ],
-      "source_sha256": "c995272cd908cb3fd9cf08e007ce9a408aacd0d44b53a2d673c9ef1420aa6f27",
+      "source_sha256": "9e3814f77516834d3d934c3eff806c20c58f46dc31e4e8ed083e110d1bd40d5a",
       "statement_fingerprint": "f5170c2fb1dfd45e7a7066dd274cd908143cd928589f6ae7de37e2eecd789f7c",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     },
@@ -438,7 +257,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "529011ee761439f2e17cebea3175848bb1380ef7efa00f7f0152a9cecbc28cc0",
+      "source_sha256": "5f441c50558d92f0d2e987f302cc750f9cf4b7650d746a4dd2c86c32fad47acd",
       "statement_fingerprint": "3474f55c4f2c4ff899bf534b507dc606ac6ca48c4335543ec7104e00d9f58fff",
       "target_namespace": "TEST_LAB_RUNTIME"
     },
@@ -465,7 +284,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "529011ee761439f2e17cebea3175848bb1380ef7efa00f7f0152a9cecbc28cc0",
+      "source_sha256": "5f441c50558d92f0d2e987f302cc750f9cf4b7650d746a4dd2c86c32fad47acd",
       "statement_fingerprint": "3bae3dc169ca6f62e914ee9e23e5e96473cdab49dfb58fd9402aa70921a5a7ab",
       "target_namespace": "TEST_LAB_RUNTIME"
     },
@@ -492,7 +311,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "529011ee761439f2e17cebea3175848bb1380ef7efa00f7f0152a9cecbc28cc0",
+      "source_sha256": "5f441c50558d92f0d2e987f302cc750f9cf4b7650d746a4dd2c86c32fad47acd",
       "statement_fingerprint": "c6083b9fc5d56593852805263998f951047036e3aceeaad14e38dd86cad70fec",
       "target_namespace": "TEST_LAB_RUNTIME"
     },
@@ -519,7 +338,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "529011ee761439f2e17cebea3175848bb1380ef7efa00f7f0152a9cecbc28cc0",
+      "source_sha256": "5f441c50558d92f0d2e987f302cc750f9cf4b7650d746a4dd2c86c32fad47acd",
       "statement_fingerprint": "7dd9222051d8d2f4cd1b2700fe9c7e2eb6fbb34fa87670438efe9a6ac7dbea73",
       "target_namespace": "TEST_LAB_RUNTIME"
     },
@@ -546,7 +365,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "529011ee761439f2e17cebea3175848bb1380ef7efa00f7f0152a9cecbc28cc0",
+      "source_sha256": "5f441c50558d92f0d2e987f302cc750f9cf4b7650d746a4dd2c86c32fad47acd",
       "statement_fingerprint": "713f2b33010d6c8bc094fa6a54412e54dc5a1e45f3e89a87edb65dd4e363817d",
       "target_namespace": "TEST_LAB_RUNTIME"
     },
@@ -573,7 +392,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "529011ee761439f2e17cebea3175848bb1380ef7efa00f7f0152a9cecbc28cc0",
+      "source_sha256": "5f441c50558d92f0d2e987f302cc750f9cf4b7650d746a4dd2c86c32fad47acd",
       "statement_fingerprint": "2cc7784b0a5e02e898c0632852598ebb4021ff2be70d7ebb38196afc46f42ee8",
       "target_namespace": "TEST_LAB_RUNTIME"
     },
@@ -600,7 +419,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "529011ee761439f2e17cebea3175848bb1380ef7efa00f7f0152a9cecbc28cc0",
+      "source_sha256": "5f441c50558d92f0d2e987f302cc750f9cf4b7650d746a4dd2c86c32fad47acd",
       "statement_fingerprint": "7780013ca247acef940f6ad9307d1a12740d569665d56c15c68627898ebe3593",
       "target_namespace": "TEST_LAB_RUNTIME"
     },
@@ -612,13 +431,13 @@
       "column": 19,
       "detail": "native library binding requires an audited symbol allowlist",
       "end_column": 65,
-      "end_line": 359,
+      "end_line": 367,
       "entry_id": "WE-C2A9F7CB87A5D72F48A35444",
       "file": "scripts/run_safe_pytest.py",
       "function": "scripts.run_safe_pytest._WindowsProtectedTreeWatcher.__init__",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "NATIVE_API_BINDING",
-      "line": 359,
+      "line": 367,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "TEST_INFRASTRUCTURE",
       "required_control": "S3_NATIVE_API_FIXED_LIBRARY_AND_SYMBOL_ALLOWLIST",
@@ -627,7 +446,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "529011ee761439f2e17cebea3175848bb1380ef7efa00f7f0152a9cecbc28cc0",
+      "source_sha256": "5f441c50558d92f0d2e987f302cc750f9cf4b7650d746a4dd2c86c32fad47acd",
       "statement_fingerprint": "3474f55c4f2c4ff899bf534b507dc606ac6ca48c4335543ec7104e00d9f58fff",
       "target_namespace": "TEST_LAB_RUNTIME"
     },
@@ -639,13 +458,13 @@
       "column": 17,
       "detail": "Win32 file mutation or durability primitive",
       "end_column": 9,
-      "end_line": 394,
+      "end_line": 402,
       "entry_id": "WE-332C8A7D64369CB7B4A44B7D",
       "file": "scripts/run_safe_pytest.py",
       "function": "scripts.run_safe_pytest._WindowsProtectedTreeWatcher.__init__",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "FILESYSTEM_FILE_WRITE",
-      "line": 386,
+      "line": 394,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "TEST_INFRASTRUCTURE",
       "required_control": "S3_HANDLE_LEVEL_WORKSPACE_WRITER",
@@ -654,7 +473,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "529011ee761439f2e17cebea3175848bb1380ef7efa00f7f0152a9cecbc28cc0",
+      "source_sha256": "5f441c50558d92f0d2e987f302cc750f9cf4b7650d746a4dd2c86c32fad47acd",
       "statement_fingerprint": "b52e873c261d950f8af3d41eec4cb399d86171f37018497920074e905dd686c7",
       "target_namespace": "TEST_LAB_RUNTIME"
     },
@@ -666,13 +485,13 @@
       "column": 21,
       "detail": "low-level open may write",
       "end_column": 9,
-      "end_line": 439,
+      "end_line": 447,
       "entry_id": "WE-2A47AFA1DA2BCE6A16808E1F",
       "file": "scripts/run_safe_pytest.py",
       "function": "scripts.run_safe_pytest._WindowsProtectedTreeWatcher._write_marker",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "FILESYSTEM_FILE_WRITE",
-      "line": 435,
+      "line": 443,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "TEST_INFRASTRUCTURE",
       "required_control": "S3_HANDLE_LEVEL_WORKSPACE_WRITER",
@@ -681,7 +500,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "529011ee761439f2e17cebea3175848bb1380ef7efa00f7f0152a9cecbc28cc0",
+      "source_sha256": "5f441c50558d92f0d2e987f302cc750f9cf4b7650d746a4dd2c86c32fad47acd",
       "statement_fingerprint": "e48d8030e1d5de7806bbe9ba0c309d02aa1fadb53729796d50f34eda70ca0f66",
       "target_namespace": "TEST_LAB_RUNTIME"
     },
@@ -693,13 +512,13 @@
       "column": 12,
       "detail": "stream or file descriptor write",
       "end_column": 59,
-      "end_line": 441,
+      "end_line": 449,
       "entry_id": "WE-62C9F0495A7DE63AB390D440",
       "file": "scripts/run_safe_pytest.py",
       "function": "scripts.run_safe_pytest._WindowsProtectedTreeWatcher._write_marker",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "FILESYSTEM_FILE_WRITE",
-      "line": 441,
+      "line": 449,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "TEST_INFRASTRUCTURE",
       "required_control": "S3_HANDLE_LEVEL_WORKSPACE_WRITER",
@@ -708,8 +527,172 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "529011ee761439f2e17cebea3175848bb1380ef7efa00f7f0152a9cecbc28cc0",
+      "source_sha256": "5f441c50558d92f0d2e987f302cc750f9cf4b7650d746a4dd2c86c32fad47acd",
       "statement_fingerprint": "04f901d0661301ce7fc0835272521ac5aacd94c087c142c5f7cbb85c241d6bd0",
+      "target_namespace": "TEST_LAB_RUNTIME"
+    },
+    {
+      "call_chain": [
+        "scripts.run_safe_pytest._WindowsProtectedTreeFence.__init__"
+      ],
+      "callee": "ctypes.WinDLL",
+      "column": 19,
+      "detail": "native library binding requires an audited symbol allowlist",
+      "end_column": 65,
+      "end_line": 637,
+      "entry_id": "WE-52B54C62ADBA165D8C8D57FB",
+      "file": "scripts/run_safe_pytest.py",
+      "function": "scripts.run_safe_pytest._WindowsProtectedTreeFence.__init__",
+      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
+      "kind": "NATIVE_API_BINDING",
+      "line": 637,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "TEST_INFRASTRUCTURE",
+      "required_control": "S3_NATIVE_API_FIXED_LIBRARY_AND_SYMBOL_ALLOWLIST",
+      "resolution": "CONSERVATIVE",
+      "risk": "P0",
+      "root_ids": [
+        "INTERNAL-DIRECT"
+      ],
+      "source_sha256": "5f441c50558d92f0d2e987f302cc750f9cf4b7650d746a4dd2c86c32fad47acd",
+      "statement_fingerprint": "3474f55c4f2c4ff899bf534b507dc606ac6ca48c4335543ec7104e00d9f58fff",
+      "target_namespace": "TEST_LAB_RUNTIME"
+    },
+    {
+      "call_chain": [
+        "scripts.run_safe_pytest._WindowsProtectedTreeFence.__init__"
+      ],
+      "callee": "ctypes.WinDLL().CreateFileW",
+      "column": 25,
+      "detail": "Win32 file mutation or durability primitive",
+      "end_column": 17,
+      "end_line": 688,
+      "entry_id": "WE-6C18267CA0D405495C174551",
+      "file": "scripts/run_safe_pytest.py",
+      "function": "scripts.run_safe_pytest._WindowsProtectedTreeFence.__init__",
+      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
+      "kind": "FILESYSTEM_FILE_WRITE",
+      "line": 680,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "TEST_INFRASTRUCTURE",
+      "required_control": "S3_HANDLE_LEVEL_WORKSPACE_WRITER",
+      "resolution": "CONSERVATIVE",
+      "risk": "P1",
+      "root_ids": [
+        "INTERNAL-DIRECT"
+      ],
+      "source_sha256": "5f441c50558d92f0d2e987f302cc750f9cf4b7650d746a4dd2c86c32fad47acd",
+      "statement_fingerprint": "54e7aba638d2603cb3e93eee4f0f9111afa705bf7ae1b3d32efef877299836b7",
+      "target_namespace": "TEST_LAB_RUNTIME"
+    },
+    {
+      "call_chain": [
+        "scripts.run_safe_pytest._WindowsStreamInspector.__init__"
+      ],
+      "callee": "ctypes.WinDLL",
+      "column": 19,
+      "detail": "native library binding requires an audited symbol allowlist",
+      "end_column": 65,
+      "end_line": 855,
+      "entry_id": "WE-F8A0C38891C6E10F0ACCFAD8",
+      "file": "scripts/run_safe_pytest.py",
+      "function": "scripts.run_safe_pytest._WindowsStreamInspector.__init__",
+      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
+      "kind": "NATIVE_API_BINDING",
+      "line": 855,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "TEST_INFRASTRUCTURE",
+      "required_control": "S3_NATIVE_API_FIXED_LIBRARY_AND_SYMBOL_ALLOWLIST",
+      "resolution": "CONSERVATIVE",
+      "risk": "P0",
+      "root_ids": [
+        "INTERNAL-DIRECT"
+      ],
+      "source_sha256": "5f441c50558d92f0d2e987f302cc750f9cf4b7650d746a4dd2c86c32fad47acd",
+      "statement_fingerprint": "3474f55c4f2c4ff899bf534b507dc606ac6ca48c4335543ec7104e00d9f58fff",
+      "target_namespace": "TEST_LAB_RUNTIME"
+    },
+    {
+      "call_chain": [
+        "scripts.run_safe_pytest._WindowsStreamInspector.require_default_stream_only"
+      ],
+      "callee": "self._kernel32.CreateFileW",
+      "column": 17,
+      "detail": "Win32 file mutation or durability primitive",
+      "end_column": 9,
+      "end_line": 894,
+      "entry_id": "WE-151F5C0A0782D0382349FDCD",
+      "file": "scripts/run_safe_pytest.py",
+      "function": "scripts.run_safe_pytest._WindowsStreamInspector.require_default_stream_only",
+      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
+      "kind": "FILESYSTEM_FILE_WRITE",
+      "line": 885,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "TEST_INFRASTRUCTURE",
+      "required_control": "S3_HANDLE_LEVEL_WORKSPACE_WRITER",
+      "resolution": "CONSERVATIVE",
+      "risk": "P1",
+      "root_ids": [
+        "INTERNAL-DIRECT"
+      ],
+      "source_sha256": "5f441c50558d92f0d2e987f302cc750f9cf4b7650d746a4dd2c86c32fad47acd",
+      "statement_fingerprint": "dd167905a49b370b62e99e3239bfc60d15f3c481c309a45adeab51b077931f1a",
+      "target_namespace": "TEST_LAB_RUNTIME"
+    },
+    {
+      "call_chain": [
+        "scripts.run_safe_pytest.main",
+        "scripts.run_safe_pytest._write_json_exclusive"
+      ],
+      "callee": "open",
+      "column": 9,
+      "detail": "file open in write-capable mode",
+      "end_column": 5,
+      "end_line": 1679,
+      "entry_id": "WE-FAEA5393A1DF4713DC2AFF53",
+      "file": "scripts/run_safe_pytest.py",
+      "function": "scripts.run_safe_pytest._write_json_exclusive",
+      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
+      "kind": "FILESYSTEM_FILE_WRITE",
+      "line": 1674,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "TEST_INFRASTRUCTURE",
+      "required_control": "S3_HANDLE_LEVEL_WORKSPACE_WRITER",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "SCRIPT:scripts/run_safe_pytest.py"
+      ],
+      "source_sha256": "5f441c50558d92f0d2e987f302cc750f9cf4b7650d746a4dd2c86c32fad47acd",
+      "statement_fingerprint": "e44de1e95baf974631b5a28ab7851f3a9256a2b5159eba26d5e1efa1bb764c00",
+      "target_namespace": "TEST_LAB_RUNTIME"
+    },
+    {
+      "call_chain": [
+        "scripts.run_safe_pytest.main",
+        "scripts.run_safe_pytest._write_json_exclusive"
+      ],
+      "callee": "open().write",
+      "column": 8,
+      "detail": "stream or file descriptor write",
+      "end_column": 26,
+      "end_line": 1684,
+      "entry_id": "WE-2769A3712D30A76BC9472659",
+      "file": "scripts/run_safe_pytest.py",
+      "function": "scripts.run_safe_pytest._write_json_exclusive",
+      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
+      "kind": "FILESYSTEM_FILE_WRITE",
+      "line": 1684,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "TEST_INFRASTRUCTURE",
+      "required_control": "S3_HANDLE_LEVEL_WORKSPACE_WRITER",
+      "resolution": "CONSERVATIVE",
+      "risk": "P1",
+      "root_ids": [
+        "SCRIPT:scripts/run_safe_pytest.py"
+      ],
+      "source_sha256": "5f441c50558d92f0d2e987f302cc750f9cf4b7650d746a4dd2c86c32fad47acd",
+      "statement_fingerprint": "c08e0eaaa509384f20cdefa40e74244fd4ff647f5d7a398a28a5099a8f9fc9ab",
       "target_namespace": "TEST_LAB_RUNTIME"
     }
   ],

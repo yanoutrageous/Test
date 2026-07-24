@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from .config import PROJECT_ROOT, get_project_paths
-from .database import connect_database, initialize_database
+from .database import connect_database, connect_database_read_only, initialize_database
 from .export_quality import (
     EXPORT_READY_STATUSES,
     ExportQualityService,
@@ -148,10 +148,9 @@ def get_stage14_quality_by_question_ids(
 ) -> dict[int, dict[str, Any]]:
     if not question_ids:
         return {}
-    initialize_database(db_path)
     unique_ids = list(dict.fromkeys(int(value) for value in question_ids))
     placeholders = ", ".join("?" for _ in unique_ids)
-    with connect_database(db_path) as conn:
+    with connect_database_read_only(db_path) as conn:
         rows = conn.execute(
             f"""
             SELECT *
@@ -800,8 +799,7 @@ class Stage14QualityService:
         return asset_id
 
     def summarize(self) -> dict[str, Any]:
-        initialize_database(self.db_path)
-        with connect_database(self.db_path) as conn:
+        with connect_database_read_only(self.db_path) as conn:
             queue_count = int(conn.execute("SELECT count(*) FROM stage14_quality_queue").fetchone()[0])
             question_count = int(conn.execute("SELECT count(*) FROM questions").fetchone()[0])
             missing_queue = int(

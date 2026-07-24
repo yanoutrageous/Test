@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from .config import PROJECT_ROOT
-from .database import connect_database, initialize_database
+from .database import connect_database, connect_database_read_only, initialize_database
 
 
 SOURCE_ATTRIBUTION_VERSION = "source_attribution_v2"
@@ -45,7 +45,7 @@ class SourceAttributionService:
 
     def ensure_source_attributions(self) -> dict[str, Any]:
         initialize_database(self.db_path)
-        with connect_database(self.db_path) as conn:
+        with connect_database_read_only(self.db_path) as conn:
             question_count = int(conn.execute("SELECT count(*) FROM questions").fetchone()[0])
             attribution_count = int(
                 conn.execute("SELECT count(*) FROM question_source_attributions").fetchone()[0]
@@ -197,8 +197,7 @@ class SourceAttributionService:
         return result
 
     def summarize(self) -> dict[str, Any]:
-        initialize_database(self.db_path)
-        with connect_database(self.db_path) as conn:
+        with connect_database_read_only(self.db_path) as conn:
             question_count = int(conn.execute("SELECT count(*) FROM questions").fetchone()[0])
             attribution_count = int(
                 conn.execute("SELECT count(*) FROM question_source_attributions").fetchone()[0]

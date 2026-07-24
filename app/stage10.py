@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from .config import PROJECT_ROOT
-from .database import connect_database, initialize_database
+from .database import connect_database, connect_database_read_only, initialize_database
 from .exports import save_html_export
 from .question_repository import get_questions_by_ids
 from .structured_ai import validate_ai_output_payload
@@ -441,8 +441,6 @@ def list_structured_review_items(
     stage14_reason: str | None = None,
     limit: int = 100,
 ) -> list[dict[str, Any]]:
-    initialize_database(db_path)
-    initialize_structured_contents(db_path=db_path)
     capped = max(1, min(limit, 500))
     clauses = ["1 = 1"]
     params: list[Any] = []
@@ -488,7 +486,7 @@ def list_structured_review_items(
     params.append(capped)
     where_sql = " AND ".join(clauses)
 
-    with connect_database(db_path) as conn:
+    with connect_database_read_only(db_path) as conn:
         rows = conn.execute(
             f"""
             SELECT q.id AS question_id,

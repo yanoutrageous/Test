@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from .database import connect_database, initialize_database
+from .database import connect_database, connect_database_read_only, initialize_database
 
 
 STRUCTURED_ALGORITHM_VERSION = "stage9_structured_v1"
@@ -139,8 +139,7 @@ def get_structured_content(
     *,
     db_path: Path | None = None,
 ) -> dict[str, Any] | None:
-    initialize_database(db_path)
-    with connect_database(db_path) as conn:
+    with connect_database_read_only(db_path) as conn:
         row = conn.execute(
             """
             SELECT *
@@ -159,10 +158,9 @@ def get_structured_contents_by_question_ids(
 ) -> dict[int, dict[str, Any]]:
     if not question_ids:
         return {}
-    initialize_database(db_path)
     unique_ids = list(dict.fromkeys(int(value) for value in question_ids))
     placeholders = ", ".join("?" for _ in unique_ids)
-    with connect_database(db_path) as conn:
+    with connect_database_read_only(db_path) as conn:
         rows = conn.execute(
             f"""
             SELECT *
@@ -178,8 +176,7 @@ def summarize_structured_contents(
     *,
     db_path: Path | None = None,
 ) -> dict[str, Any]:
-    initialize_database(db_path)
-    with connect_database(db_path) as conn:
+    with connect_database_read_only(db_path) as conn:
         question_count = conn.execute("SELECT count(*) FROM questions").fetchone()[0]
         total_structured = conn.execute(
             "SELECT count(*) FROM question_structured_contents"

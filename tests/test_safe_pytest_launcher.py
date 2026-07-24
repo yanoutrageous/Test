@@ -652,9 +652,34 @@ def test_s3d_mode_has_a_fixed_non_injectable_selection(tmp_path: Path) -> None:
                 "tests/test_write_entry_inventory.py",
             ],
         ),
+        (
+            "s4_core",
+            [
+                "tests/test_database_migrations.py",
+                "tests/test_database_backup.py",
+                "tests/test_database.py",
+                "tests/test_import_batches.py",
+                "tests/test_structured_ai.py",
+                "tests/test_web.py",
+            ],
+        ),
+        (
+            "s4",
+            [
+                "tests/test_database_migrations.py",
+                "tests/test_database_backup.py",
+                "tests/test_database.py",
+                "tests/test_import_batches.py",
+                "tests/test_structured_ai.py",
+                "tests/test_web.py",
+                "tests/test_workspace_policy.py",
+                "tests/test_write_entry_inventory.py",
+                "tests/test_safe_pytest_launcher.py",
+            ],
+        ),
     ),
 )
-def test_s3e_through_s3h_modes_have_exact_non_injectable_selections(
+def test_s3e_through_s4_modes_have_exact_non_injectable_selections(
     tmp_path: Path,
     mode: str,
     selection: list[str],
@@ -752,6 +777,43 @@ def test_protected_tree_snapshot_ignores_only_the_current_run_root(
     changed = _snapshot_changes(before, after)
     assert all("RUN-SAFE-005" not in item for item in changed)
     assert "F:tmp/test_lab/RUN-SAFE-OLD/evidence.txt" in changed
+
+
+def test_cold_archive_exclusion_skips_only_verified_archive_root(
+    tmp_path: Path,
+) -> None:
+    project = tmp_path / "project"
+    current_run = project / "tmp" / "test_lab" / "RUN-SAFE-CURRENT"
+    previous_run = project / "tmp" / "test_lab" / "RUN-SAFE-PREVIOUS"
+    cold_archives = project / "tmp" / "test_lab_archives"
+    current_run.mkdir(parents=True)
+    previous_run.mkdir(parents=True)
+    cold_archives.mkdir(parents=True)
+    current_file = current_run / "current.txt"
+    previous_file = previous_run / "previous.txt"
+    archive_file = cold_archives / "history.tar.gz"
+    current_file.write_text("before", encoding="utf-8")
+    previous_file.write_text("before", encoding="utf-8")
+    archive_file.write_bytes(b"verified-cold-archive")
+
+    before = _protected_tree_snapshot(
+        project,
+        excluded_root=current_run,
+        additional_excluded_roots=(cold_archives,),
+    )
+    current_file.write_text("after", encoding="utf-8")
+    archive_file.write_bytes(b"checked-at-stage-freeze")
+    previous_file.write_text("after", encoding="utf-8")
+    after = _protected_tree_snapshot(
+        project,
+        excluded_root=current_run,
+        additional_excluded_roots=(cold_archives,),
+    )
+
+    changed = _snapshot_changes(before, after)
+    assert all("RUN-SAFE-CURRENT" not in item for item in changed)
+    assert all("test_lab_archives" not in item for item in changed)
+    assert "F:tmp/test_lab/RUN-SAFE-PREVIOUS/previous.txt" in changed
 
 
 def test_windows_extended_path_canonicalizes_drive_and_unc_namespaces() -> None:
@@ -896,6 +958,30 @@ def test_runtime_watcher_ignores_only_its_excluded_root(tmp_path: Path) -> None:
     assert changes == ()
 
 
+def test_runtime_watcher_ignores_current_run_and_cold_archives_only(
+    tmp_path: Path,
+) -> None:
+    project = tmp_path / "project"
+    excluded = project / "current-run"
+    cold_archives = project / "tmp" / "test_lab_archives"
+    excluded.mkdir(parents=True)
+    cold_archives.mkdir(parents=True)
+    watcher = _WindowsProtectedTreeWatcher(
+        project,
+        excluded_root=excluded,
+        additional_excluded_roots=(cold_archives,),
+    )
+    (excluded / "current.txt").write_text("current", encoding="utf-8")
+    (cold_archives / "cold.tar.gz").write_bytes(b"cold")
+    protected = project / "must-be-observed.txt"
+    protected.write_text("protected", encoding="utf-8")
+    changes, error = watcher.finish()
+    assert error is None
+    assert any(change.endswith(":must-be-observed.txt") for change in changes)
+    assert all("current-run" not in change for change in changes)
+    assert all("test_lab_archives" not in change for change in changes)
+
+
 def test_runtime_watcher_cannot_be_stopped_by_an_early_drain_marker(
     tmp_path: Path,
 ) -> None:
@@ -968,6 +1054,40 @@ def test_protected_tree_fence_blocks_direct_protected_file_write(
             alias.unlink()
     assert protected.read_bytes() == b"immutable"
     assert protected.stat().st_nlink == 1
+
+
+def test_protected_tree_fence_does_not_open_cold_archive_files(
+    tmp_path: Path,
+) -> None:
+    project = tmp_path / "project"
+    excluded = project / "current-run"
+    cold_archives = project / "tmp" / "test_lab_archives"
+    excluded.mkdir(parents=True)
+    cold_archives.mkdir(parents=True)
+    protected = project / "protected.bin"
+    archive = cold_archives / "history.tar.gz"
+    protected.write_bytes(b"protected")
+    archive.write_bytes(b"cold")
+    snapshot = _protected_tree_snapshot(
+        project,
+        excluded_root=excluded,
+        additional_excluded_roots=(cold_archives,),
+    )
+    assert all("test_lab_archives" not in key for key in snapshot)
+    fence = _WindowsProtectedTreeFence(
+        project,
+        excluded_root=excluded,
+        additional_excluded_roots=(cold_archives,),
+        snapshot=snapshot,
+    )
+    try:
+        archive.write_bytes(b"stage-freeze-validation-is-separate")
+        with pytest.raises(OSError):
+            protected.write_bytes(b"tampered")
+    finally:
+        _count, error = fence.finish()
+    assert error is None
+    assert protected.read_bytes() == b"protected"
 
 
 def test_test_lab_hardlink_guard_rejects_source_outside_current_run(
@@ -1600,6 +1720,8 @@ def test_only_copy_bearing_modes_require_a_registered_source_witness() -> None:
         "s3g",
         "s3g_core",
         "s3h_core",
+        "s4",
+        "s4_core",
         "launcher",
         "symlink",
     }.isdisjoint(SOURCE_REGISTRATION_REQUIRED_MODES)
@@ -1632,6 +1754,8 @@ def test_only_copy_bearing_modes_require_a_registered_source_witness() -> None:
         "s3g",
         "s3g_core",
         "s3h_core",
+        "s4",
+        "s4_core",
         "launcher",
         "symlink",
     }:

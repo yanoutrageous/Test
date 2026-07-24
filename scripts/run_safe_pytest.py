@@ -342,16 +342,24 @@ class _WindowsProtectedTreeWatcher:
         5: "RENAMED_NEW",
     }
 
-    def __init__(self, root: Path, *, excluded_root: Path) -> None:
+    def __init__(
+        self,
+        root: Path,
+        *,
+        excluded_root: Path,
+        additional_excluded_roots: Sequence[Path] = (),
+    ) -> None:
         if os.name != "nt":
             raise SafetyStop("recursive protected-tree monitoring requires Windows")
         self._root = _absolute_lexical(root)
         self._excluded_root = _absolute_lexical(excluded_root)
-        excluded_parts = _relative_parts(self._excluded_root, self._root)
-        if not excluded_parts:
-            raise SafetyStop("protected-tree monitor exclusion must be below the root")
+        self._excluded_roots = _validated_excluded_roots(
+            self._root,
+            self._excluded_root,
+            additional_excluded_roots,
+            label="protected-tree monitor",
+        )
         _verify_existing_chain(self._root)
-        _verify_existing_chain(self._excluded_root)
 
         import ctypes
         from ctypes import wintypes
@@ -493,7 +501,10 @@ class _WindowsProtectedTreeWatcher:
             ):
                 self._drained.set()
                 saw_drain = True
-            if _relative_parts(candidate, self._excluded_root) is None:
+            if not any(
+                _relative_parts(candidate, excluded) is not None
+                for excluded in self._excluded_roots
+            ):
                 relative = PureWindowsPath(*(_relative_parts(candidate, self._root) or ()))
                 action_name = self._ACTION_NAMES.get(action, f"ACTION_{action}")
                 with self._lock:
@@ -603,18 +614,22 @@ class _WindowsProtectedTreeFence:
         root: Path,
         *,
         excluded_root: Path,
+        additional_excluded_roots: Sequence[Path] = (),
         snapshot: dict[str, dict[str, Any]],
     ) -> None:
         if os.name != "nt":
             raise SafetyStop("protected-tree handle fencing requires Windows")
         self._root = _absolute_lexical(root)
         self._excluded_root = _absolute_lexical(excluded_root)
-        if not _relative_parts(self._excluded_root, self._root):
-            raise SafetyStop("protected-tree fence exclusion must be below the root")
+        self._excluded_roots = _validated_excluded_roots(
+            self._root,
+            self._excluded_root,
+            additional_excluded_roots,
+            label="protected-tree fence",
+        )
         if type(snapshot) is not dict or not snapshot:
             raise SafetyStop("protected-tree fence requires a non-empty snapshot")
         _verify_existing_chain(self._root)
-        _verify_existing_chain(self._excluded_root)
 
         import ctypes
         from ctypes import wintypes
@@ -647,10 +662,10 @@ class _WindowsProtectedTreeFence:
                     else self._root / Path(relative.replace("/", os.sep))
                 )
                 candidate = _absolute_lexical(candidate)
-                if _relative_parts(candidate, self._root) is None or _relative_parts(
-                    candidate,
-                    self._excluded_root,
-                ) is not None:
+                if _relative_parts(candidate, self._root) is None or any(
+                    _relative_parts(candidate, excluded) is not None
+                    for excluded in self._excluded_roots
+                ):
                     raise SafetyStop("protected-tree fence path escaped its audited set")
                 identity = _lstat_no_reparse(candidate)
                 is_directory = stat.S_ISDIR(identity.st_mode)
@@ -681,6 +696,7 @@ class _WindowsProtectedTreeFence:
             fenced_snapshot = _protected_tree_snapshot(
                 self._root,
                 excluded_root=self._excluded_root,
+                additional_excluded_roots=self._excluded_roots[1:],
             )
             changes = _snapshot_changes(snapshot, fenced_snapshot)
             if changes:
@@ -1163,6 +1179,38 @@ def _is_within(path: Path, parent: Path) -> bool:
     return _relative_parts(_absolute_lexical(path), _absolute_lexical(parent)) is not None
 
 
+def _validated_excluded_roots(
+    project_root: Path,
+    excluded_root: Path,
+    additional_excluded_roots: Sequence[Path],
+    *,
+    label: str,
+) -> tuple[Path, ...]:
+    if isinstance(additional_excluded_roots, (str, bytes)) or not isinstance(
+        additional_excluded_roots,
+        Sequence,
+    ):
+        raise SafetyStop(f"{label} additional exclusions must be a path sequence")
+    root = _absolute_lexical(project_root)
+    candidates = (
+        _absolute_lexical(excluded_root),
+        *(_absolute_lexical(path) for path in additional_excluded_roots),
+    )
+    if len({ntpath.normcase(str(path)) for path in candidates}) != len(candidates):
+        raise SafetyStop(f"{label} exclusions cannot repeat")
+    for candidate in candidates:
+        if not _relative_parts(candidate, root):
+            raise SafetyStop(f"{label} exclusion must be below the root")
+        _verify_existing_chain(candidate)
+        if not candidate.is_dir():
+            raise SafetyStop(f"{label} exclusion must be an existing directory")
+    for index, candidate in enumerate(candidates):
+        for other in candidates[index + 1 :]:
+            if _is_within(candidate, other) or _is_within(other, candidate):
+                raise SafetyStop(f"{label} exclusions cannot overlap")
+    return candidates
+
+
 def _identity_payload(identity: os.stat_result) -> dict[str, int]:
     return {
         "device": int(identity.st_dev),
@@ -1178,7 +1226,14 @@ def _protected_tree_snapshot(
     project_root: Path,
     *,
     excluded_root: Path,
+    additional_excluded_roots: Sequence[Path] = (),
 ) -> dict[str, dict[str, Any]]:
+    exclusions = _validated_excluded_roots(
+        project_root,
+        excluded_root,
+        additional_excluded_roots,
+        label="protected-tree snapshot",
+    )
     rows: dict[str, dict[str, Any]] = {}
     hardlink_groups: dict[tuple[int, int], list[tuple[Path, os.stat_result]]] = (
         defaultdict(list)
@@ -1192,7 +1247,7 @@ def _protected_tree_snapshot(
         kept_directories: list[str] = []
         for name in directory_names:
             candidate = current / name
-            if _is_within(candidate, excluded_root):
+            if any(_is_within(candidate, excluded) for excluded in exclusions):
                 continue
             identity = _lstat_no_reparse(candidate)
             if not stat.S_ISDIR(identity.st_mode):
@@ -1200,7 +1255,7 @@ def _protected_tree_snapshot(
             kept_directories.append(name)
         directory_names[:] = kept_directories
 
-        if not _is_within(current, excluded_root):
+        if not any(_is_within(current, excluded) for excluded in exclusions):
             identity = _lstat_no_reparse(current)
             relative = current.relative_to(project_root).as_posix() or "."
             rows[f"D:{relative}"] = {
@@ -1211,7 +1266,7 @@ def _protected_tree_snapshot(
             }
         for name in file_names:
             candidate = current / name
-            if _is_within(candidate, excluded_root):
+            if any(_is_within(candidate, excluded) for excluded in exclusions):
                 continue
             identity = _lstat_no_reparse(candidate)
             if not stat.S_ISREG(identity.st_mode):
@@ -1748,6 +1803,27 @@ def _build_command(
             "tests/test_write_entry_inventory.py::test_full_digests_cover_policy_metadata_and_are_key_order_stable",
             "tests/test_write_entry_inventory.py::test_no_current_production_module_bypasses_fixed_boundary",
         ]
+    elif mode == "s4":
+        selection = [
+            "tests/test_database_migrations.py",
+            "tests/test_database_backup.py",
+            "tests/test_database.py",
+            "tests/test_import_batches.py",
+            "tests/test_structured_ai.py",
+            "tests/test_web.py",
+            "tests/test_workspace_policy.py",
+            "tests/test_write_entry_inventory.py",
+            "tests/test_safe_pytest_launcher.py",
+        ]
+    elif mode == "s4_core":
+        selection = [
+            "tests/test_database_migrations.py",
+            "tests/test_database_backup.py",
+            "tests/test_database.py",
+            "tests/test_import_batches.py",
+            "tests/test_structured_ai.py",
+            "tests/test_web.py",
+        ]
     elif mode == "launcher":
         selection = ["tests/test_safe_pytest_launcher.py"]
     elif mode == "symlink":
@@ -1803,6 +1879,8 @@ def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
             "s3g_core",
             "s3h",
             "s3h_core",
+            "s4",
+            "s4_core",
             "launcher",
             "symlink",
         ),
@@ -2053,6 +2131,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     _verify_existing_chain(test_lab_root)
     if not test_lab_root.is_dir():
         raise SafetyStop(f"test laboratory parent is not a directory: {test_lab_root}")
+    cold_archive_root = project_root / "tmp" / "test_lab_archives"
+    additional_protection_exclusions: tuple[Path, ...] = ()
+    if os.path.lexists(cold_archive_root):
+        _verify_existing_chain(cold_archive_root)
+        if not cold_archive_root.is_dir():
+            raise SafetyStop("cold test archive root is not a directory")
+        additional_protection_exclusions = (cold_archive_root,)
 
     run_root = test_lab_root / args.run_id
     if _relative_parts(run_root, test_lab_root) != (args.run_id,):
@@ -2109,6 +2194,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     protected_before = _protected_tree_snapshot(
         project_root,
         excluded_root=run_root,
+        additional_excluded_roots=additional_protection_exclusions,
     )
     protected_digest_before = _snapshot_digest(protected_before)
     protected_before_path = run_root / "protected-tree-before.json.gz"
@@ -2205,6 +2291,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         "protected_tree_snapshot_format": PROTECTED_TREE_SNAPSHOT_FORMAT,
         "protected_tree_snapshot_before": protected_before_path.name,
         "protected_tree_snapshot_after": protected_after_path.name,
+        "protected_tree_exclusions": [
+            path.relative_to(project_root).as_posix()
+            for path in (run_root, *additional_protection_exclusions)
+        ],
+        "cold_archive_validation": "ON_ARCHIVE_AND_STAGE_FREEZE",
         "protected_runtime_monitor": "ReadDirectoryChangesW recursive",
         "protected_handle_fence": "deny write/delete sharing on existing objects",
         "activity_database": str(database.relative_to(project_root)),
@@ -2223,12 +2314,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     handle_fence = _WindowsProtectedTreeFence(
         project_root,
         excluded_root=run_root,
+        additional_excluded_roots=additional_protection_exclusions,
         snapshot=protected_before,
     )
     try:
         runtime_monitor = _WindowsProtectedTreeWatcher(
             project_root,
             excluded_root=run_root,
+            additional_excluded_roots=additional_protection_exclusions,
         )
     except Exception:
         handle_fence.finish()
@@ -2251,6 +2344,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         protected_after = _protected_tree_snapshot(
             project_root,
             excluded_root=run_root,
+            additional_excluded_roots=additional_protection_exclusions,
         )
     finally:
         protected_runtime_changes, protected_runtime_error = runtime_monitor.finish()

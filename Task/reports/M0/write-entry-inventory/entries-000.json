@@ -1,5 +1,5 @@
 {
-  "chunk_digest_sha256": "1b6fd5bec872d991f354069725d49fafaa9eb7e494c5d849be6f805920631556",
+  "chunk_digest_sha256": "955b1bd1eafad3478f6ec1dc5002409c95d03b380df0e37a1e49a1885f50dbc4",
   "chunk_index": 0,
   "entries": [
     {
@@ -53,7 +53,7 @@
       "root_ids": [
         "CLI:MAIN"
       ],
-      "source_sha256": "ed1515bdca9b9c2bf0e4e149df665db8871e57a07cc6c096308026cd70fec1b9",
+      "source_sha256": "4bf08ae6e9d7e816a676b855d8ee06ebd4a2c2ca0992951e86bc95f3ad4ac73b",
       "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     },
@@ -81,7 +81,7 @@
       "root_ids": [
         "CLI:MAIN"
       ],
-      "source_sha256": "ed1515bdca9b9c2bf0e4e149df665db8871e57a07cc6c096308026cd70fec1b9",
+      "source_sha256": "4bf08ae6e9d7e816a676b855d8ee06ebd4a2c2ca0992951e86bc95f3ad4ac73b",
       "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     },
@@ -109,70 +109,8 @@
       "root_ids": [
         "CLI:MAIN"
       ],
-      "source_sha256": "ed1515bdca9b9c2bf0e4e149df665db8871e57a07cc6c096308026cd70fec1b9",
+      "source_sha256": "4bf08ae6e9d7e816a676b855d8ee06ebd4a2c2ca0992951e86bc95f3ad4ac73b",
       "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976",
-      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
-    },
-    {
-      "call_chain": [
-        "app.web.create_app",
-        "app.ai_suggestions.list_ai_suggestions"
-      ],
-      "callee": "app.database.initialize_database",
-      "column": 4,
-      "detail": "implicit schema/directory initialization",
-      "end_column": 32,
-      "end_line": 63,
-      "entry_id": "WE-CEF6E403213F647CDCF4F107",
-      "file": "app/ai_suggestions.py",
-      "function": "app.ai_suggestions.list_ai_suggestions",
-      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
-      "kind": "DATABASE_IMPLICIT_INITIALIZER",
-      "line": 63,
-      "migration_status": "UNMIGRATED_BLOCKED",
-      "owner": "APPLICATION_SERVICE",
-      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
-      "resolution": "ALIAS_RESOLVED",
-      "risk": "P1",
-      "root_ids": [
-        "FACTORY:CREATE_APP",
-        "MODULE:APP",
-        "WEB:GET /questions/<int:question_id>",
-        "WEB:POST /questions/<int:question_id>"
-      ],
-      "source_sha256": "ed1515bdca9b9c2bf0e4e149df665db8871e57a07cc6c096308026cd70fec1b9",
-      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db",
-      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
-    },
-    {
-      "call_chain": [
-        "app.web.create_app",
-        "app.ai_suggestions.list_ai_suggestions"
-      ],
-      "callee": "app.database.connect_database",
-      "column": 9,
-      "detail": "legacy database gateway",
-      "end_column": 34,
-      "end_line": 64,
-      "entry_id": "WE-516BCC6F8565DEC7BC3B31E4",
-      "file": "app/ai_suggestions.py",
-      "function": "app.ai_suggestions.list_ai_suggestions",
-      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
-      "kind": "DATABASE_GATEWAY",
-      "line": 64,
-      "migration_status": "UNMIGRATED_BLOCKED",
-      "owner": "APPLICATION_SERVICE",
-      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
-      "resolution": "ALIAS_RESOLVED",
-      "risk": "P1",
-      "root_ids": [
-        "FACTORY:CREATE_APP",
-        "MODULE:APP",
-        "WEB:GET /questions/<int:question_id>",
-        "WEB:POST /questions/<int:question_id>"
-      ],
-      "source_sha256": "ed1515bdca9b9c2bf0e4e149df665db8871e57a07cc6c096308026cd70fec1b9",
-      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     },
     {
@@ -184,12 +122,42 @@
       "column": 4,
       "detail": "implicit schema/directory initialization",
       "end_column": 32,
-      "end_line": 92,
+      "end_line": 91,
       "entry_id": "WE-EF64434BF26E1B756AFBEF26",
       "file": "app/ai_suggestions.py",
       "function": "app.ai_suggestions.accept_ai_suggestion",
       "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
       "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "line": 91,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
+      "resolution": "ALIAS_RESOLVED",
+      "risk": "P1",
+      "root_ids": [
+        "FACTORY:CREATE_APP",
+        "MODULE:APP",
+        "WEB:POST /questions/<int:question_id>/ai-suggestions/<int:suggestion_id>/accept"
+      ],
+      "source_sha256": "4bf08ae6e9d7e816a676b855d8ee06ebd4a2c2ca0992951e86bc95f3ad4ac73b",
+      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    },
+    {
+      "call_chain": [
+        "app.web.create_app",
+        "app.ai_suggestions.accept_ai_suggestion"
+      ],
+      "callee": "app.database.connect_database",
+      "column": 9,
+      "detail": "legacy database gateway",
+      "end_column": 34,
+      "end_line": 92,
+      "entry_id": "WE-15994E65B8783A9A6CF09DDB",
+      "file": "app/ai_suggestions.py",
+      "function": "app.ai_suggestions.accept_ai_suggestion",
+      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
+      "kind": "DATABASE_GATEWAY",
       "line": 92,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "APPLICATION_SERVICE",
@@ -201,37 +169,7 @@
         "MODULE:APP",
         "WEB:POST /questions/<int:question_id>/ai-suggestions/<int:suggestion_id>/accept"
       ],
-      "source_sha256": "ed1515bdca9b9c2bf0e4e149df665db8871e57a07cc6c096308026cd70fec1b9",
-      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db",
-      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
-    },
-    {
-      "call_chain": [
-        "app.web.create_app",
-        "app.ai_suggestions.accept_ai_suggestion"
-      ],
-      "callee": "app.database.connect_database",
-      "column": 9,
-      "detail": "legacy database gateway",
-      "end_column": 34,
-      "end_line": 93,
-      "entry_id": "WE-15994E65B8783A9A6CF09DDB",
-      "file": "app/ai_suggestions.py",
-      "function": "app.ai_suggestions.accept_ai_suggestion",
-      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
-      "kind": "DATABASE_GATEWAY",
-      "line": 93,
-      "migration_status": "UNMIGRATED_BLOCKED",
-      "owner": "APPLICATION_SERVICE",
-      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
-      "resolution": "ALIAS_RESOLVED",
-      "risk": "P1",
-      "root_ids": [
-        "FACTORY:CREATE_APP",
-        "MODULE:APP",
-        "WEB:POST /questions/<int:question_id>/ai-suggestions/<int:suggestion_id>/accept"
-      ],
-      "source_sha256": "ed1515bdca9b9c2bf0e4e149df665db8871e57a07cc6c096308026cd70fec1b9",
+      "source_sha256": "4bf08ae6e9d7e816a676b855d8ee06ebd4a2c2ca0992951e86bc95f3ad4ac73b",
       "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     },
@@ -244,13 +182,13 @@
       "column": 8,
       "detail": "dynamic SQL is fail-closed because its effect cannot be proven",
       "end_column": 9,
-      "end_line": 121,
+      "end_line": 120,
       "entry_id": "WE-D146B039603EC9C6AD27A39D",
       "file": "app/ai_suggestions.py",
       "function": "app.ai_suggestions.accept_ai_suggestion",
       "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
       "kind": "SQLITE_DYNAMIC_SQL",
-      "line": 113,
+      "line": 112,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "APPLICATION_SERVICE",
       "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
@@ -261,7 +199,7 @@
         "MODULE:APP",
         "WEB:POST /questions/<int:question_id>/ai-suggestions/<int:suggestion_id>/accept"
       ],
-      "source_sha256": "ed1515bdca9b9c2bf0e4e149df665db8871e57a07cc6c096308026cd70fec1b9",
+      "source_sha256": "4bf08ae6e9d7e816a676b855d8ee06ebd4a2c2ca0992951e86bc95f3ad4ac73b",
       "statement_fingerprint": "86766d9d3589fbd59c5ecbb5c97a059ececa3c6eafee16b8d92dcf995888dc12",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     },
@@ -274,13 +212,13 @@
       "column": 8,
       "detail": "UPDATE",
       "end_column": 9,
-      "end_line": 141,
+      "end_line": 140,
       "entry_id": "WE-6F2EE778E688C5DA2D4CEA58",
       "file": "app/ai_suggestions.py",
       "function": "app.ai_suggestions.accept_ai_suggestion",
       "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
       "kind": "SQLITE_MUTATION",
-      "line": 133,
+      "line": 132,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "APPLICATION_SERVICE",
       "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
@@ -291,7 +229,7 @@
         "MODULE:APP",
         "WEB:POST /questions/<int:question_id>/ai-suggestions/<int:suggestion_id>/accept"
       ],
-      "source_sha256": "ed1515bdca9b9c2bf0e4e149df665db8871e57a07cc6c096308026cd70fec1b9",
+      "source_sha256": "4bf08ae6e9d7e816a676b855d8ee06ebd4a2c2ca0992951e86bc95f3ad4ac73b",
       "statement_fingerprint": "89d8ade2fdd63cce64de2feeb5512bdf278bc42c160ffc44fb3b849b374362c3",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     },
@@ -304,13 +242,13 @@
       "column": 8,
       "detail": "transaction commit",
       "end_column": 21,
-      "end_line": 142,
+      "end_line": 141,
       "entry_id": "WE-9700851D1B841B05D8057627",
       "file": "app/ai_suggestions.py",
       "function": "app.ai_suggestions.accept_ai_suggestion",
       "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
       "kind": "SQLITE_TRANSACTION",
-      "line": 142,
+      "line": 141,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "APPLICATION_SERVICE",
       "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
@@ -321,7 +259,7 @@
         "MODULE:APP",
         "WEB:POST /questions/<int:question_id>/ai-suggestions/<int:suggestion_id>/accept"
       ],
-      "source_sha256": "ed1515bdca9b9c2bf0e4e149df665db8871e57a07cc6c096308026cd70fec1b9",
+      "source_sha256": "4bf08ae6e9d7e816a676b855d8ee06ebd4a2c2ca0992951e86bc95f3ad4ac73b",
       "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     },
@@ -334,13 +272,13 @@
       "column": 4,
       "detail": "implicit schema/directory initialization",
       "end_column": 32,
-      "end_line": 153,
+      "end_line": 152,
       "entry_id": "WE-AE0FB48ECC6958D9298D72B8",
       "file": "app/ai_suggestions.py",
       "function": "app.ai_suggestions.reject_ai_suggestion",
       "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
       "kind": "DATABASE_IMPLICIT_INITIALIZER",
-      "line": 153,
+      "line": 152,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "APPLICATION_SERVICE",
       "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
@@ -351,7 +289,7 @@
         "MODULE:APP",
         "WEB:POST /questions/<int:question_id>/ai-suggestions/<int:suggestion_id>/reject"
       ],
-      "source_sha256": "ed1515bdca9b9c2bf0e4e149df665db8871e57a07cc6c096308026cd70fec1b9",
+      "source_sha256": "4bf08ae6e9d7e816a676b855d8ee06ebd4a2c2ca0992951e86bc95f3ad4ac73b",
       "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     },
@@ -364,13 +302,13 @@
       "column": 9,
       "detail": "legacy database gateway",
       "end_column": 34,
-      "end_line": 154,
+      "end_line": 153,
       "entry_id": "WE-EFC4735720534EC8B8F90040",
       "file": "app/ai_suggestions.py",
       "function": "app.ai_suggestions.reject_ai_suggestion",
       "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
       "kind": "DATABASE_GATEWAY",
-      "line": 154,
+      "line": 153,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "APPLICATION_SERVICE",
       "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
@@ -381,7 +319,7 @@
         "MODULE:APP",
         "WEB:POST /questions/<int:question_id>/ai-suggestions/<int:suggestion_id>/reject"
       ],
-      "source_sha256": "ed1515bdca9b9c2bf0e4e149df665db8871e57a07cc6c096308026cd70fec1b9",
+      "source_sha256": "4bf08ae6e9d7e816a676b855d8ee06ebd4a2c2ca0992951e86bc95f3ad4ac73b",
       "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     },
@@ -394,13 +332,13 @@
       "column": 8,
       "detail": "UPDATE",
       "end_column": 9,
-      "end_line": 169,
+      "end_line": 168,
       "entry_id": "WE-C3076448792881E0D07C47F2",
       "file": "app/ai_suggestions.py",
       "function": "app.ai_suggestions.reject_ai_suggestion",
       "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
       "kind": "SQLITE_MUTATION",
-      "line": 161,
+      "line": 160,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "APPLICATION_SERVICE",
       "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
@@ -411,7 +349,7 @@
         "MODULE:APP",
         "WEB:POST /questions/<int:question_id>/ai-suggestions/<int:suggestion_id>/reject"
       ],
-      "source_sha256": "ed1515bdca9b9c2bf0e4e149df665db8871e57a07cc6c096308026cd70fec1b9",
+      "source_sha256": "4bf08ae6e9d7e816a676b855d8ee06ebd4a2c2ca0992951e86bc95f3ad4ac73b",
       "statement_fingerprint": "b0bcfa14299eef45f678bc62cd81e6aaef0584bc4338dd80a88db3f32b959ffa",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     },
@@ -424,13 +362,13 @@
       "column": 8,
       "detail": "transaction commit",
       "end_column": 21,
-      "end_line": 170,
+      "end_line": 169,
       "entry_id": "WE-D6FB85C9B9328FC1D27683F2",
       "file": "app/ai_suggestions.py",
       "function": "app.ai_suggestions.reject_ai_suggestion",
       "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
       "kind": "SQLITE_TRANSACTION",
-      "line": 170,
+      "line": 169,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "APPLICATION_SERVICE",
       "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
@@ -441,7 +379,7 @@
         "MODULE:APP",
         "WEB:POST /questions/<int:question_id>/ai-suggestions/<int:suggestion_id>/reject"
       ],
-      "source_sha256": "ed1515bdca9b9c2bf0e4e149df665db8871e57a07cc6c096308026cd70fec1b9",
+      "source_sha256": "4bf08ae6e9d7e816a676b855d8ee06ebd4a2c2ca0992951e86bc95f3ad4ac73b",
       "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     },
@@ -455,13 +393,13 @@
       "column": 11,
       "detail": "dynamic SQL is fail-closed because its effect cannot be proven",
       "end_column": 5,
-      "end_line": 213,
+      "end_line": 212,
       "entry_id": "WE-C8EF32215E1A3810BC80ECDB",
       "file": "app/ai_suggestions.py",
       "function": "app.ai_suggestions._load_questions_for_suggestions",
       "input_source": "CLI_ARGUMENT_OR_CONFIG",
       "kind": "SQLITE_DYNAMIC_SQL",
-      "line": 192,
+      "line": 191,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "APPLICATION_SERVICE",
       "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
@@ -470,7 +408,7 @@
       "root_ids": [
         "CLI:MAIN"
       ],
-      "source_sha256": "ed1515bdca9b9c2bf0e4e149df665db8871e57a07cc6c096308026cd70fec1b9",
+      "source_sha256": "4bf08ae6e9d7e816a676b855d8ee06ebd4a2c2ca0992951e86bc95f3ad4ac73b",
       "statement_fingerprint": "10709e90254158453d3e516cc41ca0a0371765c2497bca6bb8adf2845611e32c",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     },
@@ -484,13 +422,13 @@
       "column": 13,
       "detail": "INSERT",
       "end_column": 5,
-      "end_line": 256,
+      "end_line": 255,
       "entry_id": "WE-23C677D3F9E5991D4FDEEBA6",
       "file": "app/ai_suggestions.py",
       "function": "app.ai_suggestions._insert_mock_suggestion",
       "input_source": "CLI_ARGUMENT_OR_CONFIG",
       "kind": "SQLITE_MUTATION",
-      "line": 236,
+      "line": 235,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "APPLICATION_SERVICE",
       "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
@@ -499,7 +437,7 @@
       "root_ids": [
         "CLI:MAIN"
       ],
-      "source_sha256": "ed1515bdca9b9c2bf0e4e149df665db8871e57a07cc6c096308026cd70fec1b9",
+      "source_sha256": "4bf08ae6e9d7e816a676b855d8ee06ebd4a2c2ca0992951e86bc95f3ad4ac73b",
       "statement_fingerprint": "e50370568d7ddd2058e5ef7ed1e985f54b80a9327e65f449a1fdbcc63a18ce6f",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     },
@@ -725,6 +663,65 @@
       "source_sha256": "7e38b8f966d957db6eb6fca411bb70ec51026b79f18d25c367e03b73f34bf905",
       "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    },
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.codex_structure.export_codex_structure_batch",
+        "app.codex_structure._select_rows"
+      ],
+      "callee": "app.database.connect_database",
+      "column": 9,
+      "detail": "legacy database gateway",
+      "end_column": 34,
+      "end_line": 175,
+      "entry_id": "WE-FF53D5FD35C78FD0AA0D6048",
+      "file": "app/codex_structure.py",
+      "function": "app.codex_structure._select_rows",
+      "input_source": "CLI_ARGUMENT_OR_CONFIG",
+      "kind": "DATABASE_GATEWAY",
+      "line": 175,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
+      "resolution": "ALIAS_RESOLVED",
+      "risk": "P1",
+      "root_ids": [
+        "CLI:MAIN"
+      ],
+      "source_sha256": "7e38b8f966d957db6eb6fca411bb70ec51026b79f18d25c367e03b73f34bf905",
+      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    },
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.codex_structure.export_codex_structure_batch",
+        "app.codex_structure._build_codex_payload",
+        "app.codex_structure._split_options"
+      ],
+      "callee": "<indexed>.start",
+      "column": 18,
+      "detail": "unresolved indexed receiver start may launch a process or thread",
+      "end_column": 36,
+      "end_line": 420,
+      "entry_id": "WE-5B1FAF654700839B6F019CA7",
+      "file": "app/codex_structure.py",
+      "function": "app.codex_structure._split_options",
+      "input_source": "CLI_ARGUMENT_OR_CONFIG",
+      "kind": "EXTERNAL_PROCESS",
+      "line": 420,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "S3_CONTROLLED_PROCESS_WRAPPER",
+      "resolution": "CONSERVATIVE",
+      "risk": "P0",
+      "root_ids": [
+        "CLI:MAIN"
+      ],
+      "source_sha256": "7e38b8f966d957db6eb6fca411bb70ec51026b79f18d25c367e03b73f34bf905",
+      "statement_fingerprint": "1165533cc781fc3e2b880f4fa97b89160f92fc63c20d6f7ddfc2f7fc0a1ec2fa",
+      "target_namespace": "PROCESS_DEFAULT_DENY"
     }
   ],
   "entry_count": 25,

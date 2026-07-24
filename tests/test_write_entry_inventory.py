@@ -177,7 +177,7 @@ def test_inventory_covers_sql_sinks_schema_scripts_and_injected_connections() ->
 
     assert counts[WritePrimitiveKind.SQLITE_MUTATION] >= 52
     assert counts[WritePrimitiveKind.SQLITE_SCHEMA_MUTATION] >= 80
-    assert counts[WritePrimitiveKind.SQLITE_RAW_CONNECT] == 2
+    assert counts[WritePrimitiveKind.SQLITE_RAW_CONNECT] == 7
     assert any(
         file == "app/review_events.py"
         and function.endswith("ReviewEventService.record")
@@ -191,6 +191,16 @@ def test_inventory_covers_sql_sinks_schema_scripts_and_injected_connections() ->
         for file, function, kind in sites
     )
     assert any(entry.file == "app/schema.sql" for entry in entries)
+    assert any(
+        entry.file == "app/database_migrations.py"
+        and entry.kind is WritePrimitiveKind.SQLITE_RAW_CONNECT
+        for entry in entries
+    )
+    assert any(
+        entry.file == "app/database_backup.py"
+        and entry.kind is WritePrimitiveKind.SQLITE_BACKUP_OR_EXTENSION
+        for entry in entries
+    )
     assert any(
         entry.file == "scripts/run_safe_pytest.py"
         and entry.kind is WritePrimitiveKind.EXTERNAL_PROCESS

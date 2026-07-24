@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from .config import PROJECT_ROOT
-from .database import connect_database, initialize_database
+from .database import connect_database, connect_database_read_only, initialize_database
 from .risk_classifier import (
     EXPORT_USABLE_STATUSES,
     USABILITY_CLASSIFICATION_VERSION,
@@ -97,8 +97,7 @@ def summarize_usability_states(
     project_root: Path = PROJECT_ROOT,
 ) -> dict[str, Any]:
     if conn is None:
-        initialize_database(db_path)
-        with connect_database(db_path) as owned_conn:
+        with connect_database_read_only(db_path) as owned_conn:
             return summarize_usability_states(conn=owned_conn, project_root=project_root)
 
     question_count = int(conn.execute("SELECT count(*) FROM questions").fetchone()[0])
@@ -156,10 +155,9 @@ def get_usability_states_by_question_ids(
 ) -> dict[int, dict[str, Any]]:
     if not question_ids:
         return {}
-    initialize_database(db_path)
     unique_ids = list(dict.fromkeys(int(value) for value in question_ids))
     placeholders = ", ".join("?" for _ in unique_ids)
-    with connect_database(db_path) as conn:
+    with connect_database_read_only(db_path) as conn:
         rows = conn.execute(
             f"""
             SELECT *

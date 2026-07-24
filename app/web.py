@@ -27,6 +27,7 @@ from .exports import save_html_export
 from .export_selection import ExportSelectionService
 from .export_quality import (
     attach_export_quality_states,
+    classify_export_quality_states,
     get_export_quality_by_question_ids,
 )
 from .health import build_health_report
@@ -52,7 +53,6 @@ from .stage11 import (
     classify_usability_states,
     get_usability_states_by_question_ids,
 )
-from .source_attribution import SourceAttributionService
 from .structured_content import (
     get_structured_content,
     get_structured_contents_by_question_ids,
@@ -92,13 +92,8 @@ def _safe_next_url(value: str | None, fallback: str) -> str:
     return fallback
 
 
-def _basket_questions(db_path: Path, project_root: Path) -> list[dict]:
+def _basket_questions(db_path: Path) -> list[dict]:
     ids = _basket_ids()
-    SourceAttributionService(
-        db_path=db_path,
-        project_root=project_root,
-    ).ensure_source_attributions()
-    ExportSelectionService(db_path=db_path, project_root=project_root).ensure_export_quality_states()
     questions = get_questions_by_ids(ids, db_path=db_path)
     structured = get_structured_contents_by_question_ids(ids, db_path=db_path)
     attach_structured_contents(questions, structured)
@@ -114,13 +109,6 @@ def _basket_questions(db_path: Path, project_root: Path) -> list[dict]:
 
 def _truthy(value: str | None) -> bool:
     return (value or "").strip().lower() in {"1", "true", "yes", "on"}
-
-
-def _ensure_source_attributions(db_path: Path, project_root: Path) -> None:
-    SourceAttributionService(
-        db_path=db_path,
-        project_root=project_root,
-    ).ensure_source_attributions()
 
 
 def _optional_positive_int(value: str | None, *, field_name: str) -> int | None:
@@ -1190,7 +1178,6 @@ def create_app(
     @app.get("/questions")
     def questions():
         try:
-            _ensure_source_attributions(app.config["DB_PATH"], app.config["PROJECT_ROOT"])
             context = _question_context(request.args)
             rows = list_questions(
                 db_path=app.config["DB_PATH"],
@@ -1228,11 +1215,6 @@ def create_app(
         error = request.args.get("error")
         try:
             context = _structured_review_context(request.args)
-            _ensure_source_attributions(app.config["DB_PATH"], app.config["PROJECT_ROOT"])
-            ExportSelectionService(
-                db_path=app.config["DB_PATH"],
-                project_root=app.config["PROJECT_ROOT"],
-            ).ensure_export_quality_states()
             rows = list_structured_review_items(
                 db_path=app.config["DB_PATH"],
                 ai_status=context["ai_status"],
@@ -1272,10 +1254,10 @@ def create_app(
                 db_path=app.config["DB_PATH"],
                 project_root=app.config["PROJECT_ROOT"],
             )
-            ExportSelectionService(
+            classify_export_quality_states(
                 db_path=app.config["DB_PATH"],
                 project_root=app.config["PROJECT_ROOT"],
-            ).ensure_export_quality_states()
+            )
         except Stage10Error as exc:
             return redirect(url_for("structured_review", error=str(exc)))
         return redirect(next_url)
@@ -1337,11 +1319,6 @@ def create_app(
                     )
                 )
 
-        ExportSelectionService(
-            db_path=app.config["DB_PATH"],
-            project_root=app.config["PROJECT_ROOT"],
-        ).ensure_export_quality_states()
-        _ensure_source_attributions(app.config["DB_PATH"], app.config["PROJECT_ROOT"])
         question = get_question_detail(question_id, db_path=app.config["DB_PATH"])
         if question is None:
             abort(404)
@@ -1440,7 +1417,7 @@ def create_app(
 
     @app.get("/paper-basket")
     def paper_basket():
-        questions = _basket_questions(app.config["DB_PATH"], app.config["PROJECT_ROOT"])
+        questions = _basket_questions(app.config["DB_PATH"])
         return render_template_string(BASKET_TEMPLATE, questions=questions)
 
     @app.get("/paper-preview")

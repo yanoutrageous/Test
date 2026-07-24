@@ -1,7 +1,247 @@
 {
-  "chunk_digest_sha256": "d4606512402302eae2ea90bbe00ec671848198e6c55b25406b19e52b63546da4",
+  "chunk_digest_sha256": "d976f125bda5b6d0ea1952c943dd60c7c3697d260f0feac3b655f79fa2f06802",
   "chunk_index": 14,
   "entries": [
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.stage10.run_stage10_structure_batch",
+        "app.stage10._write_structured_payload"
+      ],
+      "callee": "conn.execute",
+      "column": 4,
+      "detail": "UPDATE",
+      "end_column": 5,
+      "end_line": 881,
+      "entry_id": "WE-9E036A668A187C23D10621B2",
+      "file": "app/stage10.py",
+      "function": "app.stage10._write_structured_payload",
+      "input_source": "CLI_ARGUMENT_OR_CONFIG",
+      "kind": "SQLITE_MUTATION",
+      "line": 847,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "REPORT_SERVICE",
+      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "CLI:MAIN"
+      ],
+      "source_sha256": "e7ef58509e9d2a9533f2db5c707c61ef9b75e108e1ffda47d9f36436eb4b7e7c",
+      "statement_fingerprint": "8570af9cd38d8d6cb55e7990f48f2ae6e647c8ac07367553b3a3e62512e31e59",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    },
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.stage10.run_stage10_structure_batch",
+        "app.stage10.isolate_high_risk_pages",
+        "app.stage10._mark_high_risk_structured_rows"
+      ],
+      "callee": "conn.execute",
+      "column": 8,
+      "detail": "UPDATE",
+      "end_column": 9,
+      "end_line": 936,
+      "entry_id": "WE-DD98C912FEC705EACCB1E591",
+      "file": "app/stage10.py",
+      "function": "app.stage10._mark_high_risk_structured_rows",
+      "input_source": "CLI_ARGUMENT_OR_CONFIG",
+      "kind": "SQLITE_MUTATION",
+      "line": 921,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "REPORT_SERVICE",
+      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "CLI:MAIN"
+      ],
+      "source_sha256": "e7ef58509e9d2a9533f2db5c707c61ef9b75e108e1ffda47d9f36436eb4b7e7c",
+      "statement_fingerprint": "3df49ab16e94f6db698e8a1580c39a994b2d2d853be762e29ac2c187ff4afed6",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    },
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.stage10.run_stage10_structure_batch",
+        "app.stage10._build_stage10_payload",
+        "app.stage10._split_options"
+      ],
+      "callee": "<indexed>.start",
+      "column": 18,
+      "detail": "unresolved indexed receiver start may launch a process or thread",
+      "end_column": 36,
+      "end_line": 1053,
+      "entry_id": "WE-EA0C47F43B8AA50691ED57B5",
+      "file": "app/stage10.py",
+      "function": "app.stage10._split_options",
+      "input_source": "CLI_ARGUMENT_OR_CONFIG",
+      "kind": "EXTERNAL_PROCESS",
+      "line": 1053,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "REPORT_SERVICE",
+      "required_control": "S3_CONTROLLED_PROCESS_WRAPPER",
+      "resolution": "CONSERVATIVE",
+      "risk": "P0",
+      "root_ids": [
+        "CLI:MAIN"
+      ],
+      "source_sha256": "e7ef58509e9d2a9533f2db5c707c61ef9b75e108e1ffda47d9f36436eb4b7e7c",
+      "statement_fingerprint": "1165533cc781fc3e2b880f4fa97b89160f92fc63c20d6f7ddfc2f7fc0a1ec2fa",
+      "target_namespace": "PROCESS_DEFAULT_DENY"
+    },
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.stage10.run_stage10_structure_batch",
+        "app.stage10._build_stage10_payload",
+        "app.stage10._split_options"
+      ],
+      "callee": "<indexed>.start",
+      "column": 14,
+      "detail": "unresolved indexed receiver start may launch a process or thread",
+      "end_column": 40,
+      "end_line": 1056,
+      "entry_id": "WE-FD9246DD204338A9461CD0CA",
+      "file": "app/stage10.py",
+      "function": "app.stage10._split_options",
+      "input_source": "CLI_ARGUMENT_OR_CONFIG",
+      "kind": "EXTERNAL_PROCESS",
+      "line": 1056,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "REPORT_SERVICE",
+      "required_control": "S3_CONTROLLED_PROCESS_WRAPPER",
+      "resolution": "CONSERVATIVE",
+      "risk": "P0",
+      "root_ids": [
+        "CLI:MAIN"
+      ],
+      "source_sha256": "e7ef58509e9d2a9533f2db5c707c61ef9b75e108e1ffda47d9f36436eb4b7e7c",
+      "statement_fingerprint": "2858d8895fe9eebf457b14f394c2288e266e557cfcc0a03625d19170ca3b4c39",
+      "target_namespace": "PROCESS_DEFAULT_DENY"
+    },
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.stage10.run_stage10_structure_batch",
+        "app.stage10._build_stage10_payload",
+        "app.stage10._extract_subquestions"
+      ],
+      "callee": "<indexed>.start",
+      "column": 14,
+      "detail": "unresolved indexed receiver start may launch a process or thread",
+      "end_column": 40,
+      "end_line": 1131,
+      "entry_id": "WE-FAD45F9840F5718B7874B878",
+      "file": "app/stage10.py",
+      "function": "app.stage10._extract_subquestions",
+      "input_source": "CLI_ARGUMENT_OR_CONFIG",
+      "kind": "EXTERNAL_PROCESS",
+      "line": 1131,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "REPORT_SERVICE",
+      "required_control": "S3_CONTROLLED_PROCESS_WRAPPER",
+      "resolution": "CONSERVATIVE",
+      "risk": "P0",
+      "root_ids": [
+        "CLI:MAIN"
+      ],
+      "source_sha256": "e7ef58509e9d2a9533f2db5c707c61ef9b75e108e1ffda47d9f36436eb4b7e7c",
+      "statement_fingerprint": "2858d8895fe9eebf457b14f394c2288e266e557cfcc0a03625d19170ca3b4c39",
+      "target_namespace": "PROCESS_DEFAULT_DENY"
+    },
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.stage10.run_stage10_structure_batch",
+        "app.stage10._quality_flag_counts"
+      ],
+      "callee": "conn.execute",
+      "column": 11,
+      "detail": "dynamic SQL is fail-closed because its effect cannot be proven",
+      "end_column": 5,
+      "end_line": 1245,
+      "entry_id": "WE-AA8B0DD4EE1FEC443649412F",
+      "file": "app/stage10.py",
+      "function": "app.stage10._quality_flag_counts",
+      "input_source": "CLI_ARGUMENT_OR_CONFIG",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "line": 1238,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "REPORT_SERVICE",
+      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
+      "resolution": "DYNAMIC",
+      "risk": "P0",
+      "root_ids": [
+        "CLI:MAIN"
+      ],
+      "source_sha256": "e7ef58509e9d2a9533f2db5c707c61ef9b75e108e1ffda47d9f36436eb4b7e7c",
+      "statement_fingerprint": "259c0d48e8b060adfd709d10f0867651b732331d45704a6e41b74ccda2f6fa40",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    },
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.stage11.classify_usability_states"
+      ],
+      "callee": "app.database.initialize_database",
+      "column": 4,
+      "detail": "implicit schema/directory initialization",
+      "end_column": 32,
+      "end_line": 29,
+      "entry_id": "WE-B43F275673F2874C0BA10A1E",
+      "file": "app/stage11.py",
+      "function": "app.stage11.classify_usability_states",
+      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "line": 29,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "REPORT_SERVICE",
+      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
+      "resolution": "ALIAS_RESOLVED",
+      "risk": "P1",
+      "root_ids": [
+        "CLI:MAIN",
+        "FACTORY:CREATE_APP",
+        "MODULE:APP",
+        "WEB:POST /structured-review/<int:question_id>/status"
+      ],
+      "source_sha256": "19331b88a5f7eaf0d84c7e8dc12188092b77583a13dd064c6978e2ff34eec782",
+      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    },
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.stage11.classify_usability_states"
+      ],
+      "callee": "app.database.connect_database",
+      "column": 9,
+      "detail": "legacy database gateway",
+      "end_column": 34,
+      "end_line": 34,
+      "entry_id": "WE-2C48DF4F820AF3D7B09885BD",
+      "file": "app/stage11.py",
+      "function": "app.stage11.classify_usability_states",
+      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
+      "kind": "DATABASE_GATEWAY",
+      "line": 34,
+      "migration_status": "UNMIGRATED_BLOCKED",
+      "owner": "REPORT_SERVICE",
+      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
+      "resolution": "ALIAS_RESOLVED",
+      "risk": "P1",
+      "root_ids": [
+        "CLI:MAIN",
+        "FACTORY:CREATE_APP",
+        "MODULE:APP",
+        "WEB:POST /structured-review/<int:question_id>/status"
+      ],
+      "source_sha256": "19331b88a5f7eaf0d84c7e8dc12188092b77583a13dd064c6978e2ff34eec782",
+      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6",
+      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
+    },
     {
       "call_chain": [
         "app.cli.main",
@@ -29,7 +269,7 @@
         "MODULE:APP",
         "WEB:POST /structured-review/<int:question_id>/status"
       ],
-      "source_sha256": "75be7f6e1ddc5b8ee07ae59ba5d230f818ed8d389f9799ec71d454826fbe9931",
+      "source_sha256": "19331b88a5f7eaf0d84c7e8dc12188092b77583a13dd064c6978e2ff34eec782",
       "statement_fingerprint": "bd2afe91ca179bceb9abe3d270f723ce9708068addd79ba8220bf06713fd2acc",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     },
@@ -60,151 +300,27 @@
         "MODULE:APP",
         "WEB:POST /structured-review/<int:question_id>/status"
       ],
-      "source_sha256": "75be7f6e1ddc5b8ee07ae59ba5d230f818ed8d389f9799ec71d454826fbe9931",
+      "source_sha256": "19331b88a5f7eaf0d84c7e8dc12188092b77583a13dd064c6978e2ff34eec782",
       "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     },
     {
       "call_chain": [
-        "app.cli.main",
-        "app.stage11.summarize_usability_states"
-      ],
-      "callee": "app.database.initialize_database",
-      "column": 8,
-      "detail": "implicit schema/directory initialization",
-      "end_column": 36,
-      "end_line": 100,
-      "entry_id": "WE-20FE71C21F75C42CB4283E6A",
-      "file": "app/stage11.py",
-      "function": "app.stage11.summarize_usability_states",
-      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
-      "kind": "DATABASE_IMPLICIT_INITIALIZER",
-      "line": 100,
-      "migration_status": "UNMIGRATED_BLOCKED",
-      "owner": "REPORT_SERVICE",
-      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
-      "resolution": "ALIAS_RESOLVED",
-      "risk": "P1",
-      "root_ids": [
-        "CLI:MAIN",
-        "FACTORY:CREATE_APP",
-        "MODULE:APP",
-        "WEB:POST /structured-review/<int:question_id>/status"
-      ],
-      "source_sha256": "75be7f6e1ddc5b8ee07ae59ba5d230f818ed8d389f9799ec71d454826fbe9931",
-      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db",
-      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
-    },
-    {
-      "call_chain": [
-        "app.cli.main",
-        "app.stage11.summarize_usability_states"
-      ],
-      "callee": "app.database.connect_database",
-      "column": 13,
-      "detail": "legacy database gateway",
-      "end_column": 38,
-      "end_line": 101,
-      "entry_id": "WE-5D37EBE006456BAD744D57BE",
-      "file": "app/stage11.py",
-      "function": "app.stage11.summarize_usability_states",
-      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
-      "kind": "DATABASE_GATEWAY",
-      "line": 101,
-      "migration_status": "UNMIGRATED_BLOCKED",
-      "owner": "REPORT_SERVICE",
-      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
-      "resolution": "ALIAS_RESOLVED",
-      "risk": "P1",
-      "root_ids": [
-        "CLI:MAIN",
-        "FACTORY:CREATE_APP",
-        "MODULE:APP",
-        "WEB:POST /structured-review/<int:question_id>/status"
-      ],
-      "source_sha256": "75be7f6e1ddc5b8ee07ae59ba5d230f818ed8d389f9799ec71d454826fbe9931",
-      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6",
-      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
-    },
-    {
-      "call_chain": [
         "app.web.create_app",
         "app.web._basket_questions",
         "app.stage11.get_usability_states_by_question_ids"
       ],
-      "callee": "app.database.initialize_database",
-      "column": 4,
-      "detail": "implicit schema/directory initialization",
-      "end_column": 32,
-      "end_line": 159,
-      "entry_id": "WE-2CE8263108FE7082CABB264B",
-      "file": "app/stage11.py",
-      "function": "app.stage11.get_usability_states_by_question_ids",
-      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
-      "kind": "DATABASE_IMPLICIT_INITIALIZER",
-      "line": 159,
-      "migration_status": "UNMIGRATED_BLOCKED",
-      "owner": "REPORT_SERVICE",
-      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
-      "resolution": "ALIAS_RESOLVED",
-      "risk": "P1",
-      "root_ids": [
-        "FACTORY:CREATE_APP",
-        "MODULE:APP",
-        "WEB:GET /paper-basket"
-      ],
-      "source_sha256": "75be7f6e1ddc5b8ee07ae59ba5d230f818ed8d389f9799ec71d454826fbe9931",
-      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db",
-      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
-    },
-    {
-      "call_chain": [
-        "app.web.create_app",
-        "app.web._basket_questions",
-        "app.stage11.get_usability_states_by_question_ids"
-      ],
-      "callee": "app.database.connect_database",
-      "column": 9,
-      "detail": "legacy database gateway",
-      "end_column": 34,
-      "end_line": 162,
-      "entry_id": "WE-E27994B22D0BAB2B8AA50F64",
-      "file": "app/stage11.py",
-      "function": "app.stage11.get_usability_states_by_question_ids",
-      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
-      "kind": "DATABASE_GATEWAY",
-      "line": 162,
-      "migration_status": "UNMIGRATED_BLOCKED",
-      "owner": "REPORT_SERVICE",
-      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
-      "resolution": "ALIAS_RESOLVED",
-      "risk": "P1",
-      "root_ids": [
-        "FACTORY:CREATE_APP",
-        "MODULE:APP",
-        "WEB:GET /paper-basket"
-      ],
-      "source_sha256": "75be7f6e1ddc5b8ee07ae59ba5d230f818ed8d389f9799ec71d454826fbe9931",
-      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6",
-      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
-    },
-    {
-      "call_chain": [
-        "app.web.create_app",
-        "app.web._basket_questions",
-        "app.stage11.get_usability_states_by_question_ids"
-      ],
-      "callee": "app.database.connect_database().execute",
+      "callee": "app.database.connect_database_read_only().execute",
       "column": 15,
       "detail": "dynamic SQL is fail-closed because its effect cannot be proven",
       "end_column": 9,
-      "end_line": 170,
-      "entry_id": "WE-AAE486B65745CA7D572857F7",
+      "end_line": 168,
+      "entry_id": "WE-D9CEC4B70CAF628C949E01DC",
       "file": "app/stage11.py",
       "function": "app.stage11.get_usability_states_by_question_ids",
       "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
       "kind": "SQLITE_DYNAMIC_SQL",
-      "line": 163,
+      "line": 161,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "REPORT_SERVICE",
       "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
@@ -215,7 +331,7 @@
         "MODULE:APP",
         "WEB:GET /paper-basket"
       ],
-      "source_sha256": "75be7f6e1ddc5b8ee07ae59ba5d230f818ed8d389f9799ec71d454826fbe9931",
+      "source_sha256": "19331b88a5f7eaf0d84c7e8dc12188092b77583a13dd064c6978e2ff34eec782",
       "statement_fingerprint": "4bd3574355eb6f90306e5a10384d893dd582a303484c39fb777aa27be2a1a050",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     },
@@ -228,13 +344,13 @@
       "column": 4,
       "detail": "directory creation",
       "end_column": 57,
-      "end_line": 198,
+      "end_line": 196,
       "entry_id": "WE-A0106B670B3FD60385D03789",
       "file": "app/stage11.py",
       "function": "app.stage11.write_stage11_quality_report",
       "input_source": "CLI_ARGUMENT_OR_CONFIG",
       "kind": "FILESYSTEM_DIRECTORY_CREATE",
-      "line": 198,
+      "line": 196,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "REPORT_SERVICE",
       "required_control": "S3_HANDLE_LEVEL_WORKSPACE_WRITER",
@@ -243,7 +359,7 @@
       "root_ids": [
         "CLI:MAIN"
       ],
-      "source_sha256": "75be7f6e1ddc5b8ee07ae59ba5d230f818ed8d389f9799ec71d454826fbe9931",
+      "source_sha256": "19331b88a5f7eaf0d84c7e8dc12188092b77583a13dd064c6978e2ff34eec782",
       "statement_fingerprint": "826c8474d9162f5aa46fd90d27d8df0eb46972aedeb42daad5712836b2c6fb9e",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_FILESYSTEM"
     },
@@ -256,13 +372,13 @@
       "column": 4,
       "detail": "file content mutation",
       "end_column": 57,
-      "end_line": 200,
+      "end_line": 198,
       "entry_id": "WE-065037F78DF96ED5B4FEA2C2",
       "file": "app/stage11.py",
       "function": "app.stage11.write_stage11_quality_report",
       "input_source": "CLI_ARGUMENT_OR_CONFIG",
       "kind": "FILESYSTEM_FILE_WRITE",
-      "line": 200,
+      "line": 198,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "REPORT_SERVICE",
       "required_control": "S3_HANDLE_LEVEL_WORKSPACE_WRITER",
@@ -271,7 +387,7 @@
       "root_ids": [
         "CLI:MAIN"
       ],
-      "source_sha256": "75be7f6e1ddc5b8ee07ae59ba5d230f818ed8d389f9799ec71d454826fbe9931",
+      "source_sha256": "19331b88a5f7eaf0d84c7e8dc12188092b77583a13dd064c6978e2ff34eec782",
       "statement_fingerprint": "fd8c2c1bac3d770a6ef6d50ec1f14ce7cd3fb185a8b74ab82e765a0411df4e70",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_FILESYSTEM"
     },
@@ -285,13 +401,13 @@
       "column": 11,
       "detail": "dynamic SQL is fail-closed because its effect cannot be proven",
       "end_column": 5,
-      "end_line": 265,
+      "end_line": 263,
       "entry_id": "WE-962723E6A42946A9EC956B9F",
       "file": "app/stage11.py",
       "function": "app.stage11._load_classification_rows",
       "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
       "kind": "SQLITE_DYNAMIC_SQL",
-      "line": 213,
+      "line": 211,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "REPORT_SERVICE",
       "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
@@ -303,7 +419,7 @@
         "MODULE:APP",
         "WEB:POST /structured-review/<int:question_id>/status"
       ],
-      "source_sha256": "75be7f6e1ddc5b8ee07ae59ba5d230f818ed8d389f9799ec71d454826fbe9931",
+      "source_sha256": "19331b88a5f7eaf0d84c7e8dc12188092b77583a13dd064c6978e2ff34eec782",
       "statement_fingerprint": "8c5f686a7234e38dd321a6e6eddcb5a718743edac813f4fae2650a90c300f7b8",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     },
@@ -317,13 +433,13 @@
       "column": 11,
       "detail": "dynamic SQL is fail-closed because its effect cannot be proven",
       "end_column": 5,
-      "end_line": 277,
+      "end_line": 275,
       "entry_id": "WE-D8FAC78B9E645F3EA7D197CC",
       "file": "app/stage11.py",
       "function": "app.stage11._distribution",
       "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
       "kind": "SQLITE_DYNAMIC_SQL",
-      "line": 270,
+      "line": 268,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "REPORT_SERVICE",
       "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
@@ -335,7 +451,7 @@
         "MODULE:APP",
         "WEB:POST /structured-review/<int:question_id>/status"
       ],
-      "source_sha256": "75be7f6e1ddc5b8ee07ae59ba5d230f818ed8d389f9799ec71d454826fbe9931",
+      "source_sha256": "19331b88a5f7eaf0d84c7e8dc12188092b77583a13dd064c6978e2ff34eec782",
       "statement_fingerprint": "634cc8af57a8505566df260710fe7b4bba22e97a3225b31e3646d7db32ebb46f",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     },
@@ -349,13 +465,13 @@
       "column": 11,
       "detail": "dynamic SQL is fail-closed because its effect cannot be proven",
       "end_column": 5,
-      "end_line": 343,
+      "end_line": 341,
       "entry_id": "WE-6BD3430109B139DBD6BA6EED",
       "file": "app/stage11.py",
       "function": "app.stage11._high_risk_page_rows",
       "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
       "kind": "SQLITE_DYNAMIC_SQL",
-      "line": 330,
+      "line": 328,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "REPORT_SERVICE",
       "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
@@ -367,7 +483,7 @@
         "MODULE:APP",
         "WEB:POST /structured-review/<int:question_id>/status"
       ],
-      "source_sha256": "75be7f6e1ddc5b8ee07ae59ba5d230f818ed8d389f9799ec71d454826fbe9931",
+      "source_sha256": "19331b88a5f7eaf0d84c7e8dc12188092b77583a13dd064c6978e2ff34eec782",
       "statement_fingerprint": "d2ccac762263566566d85cdbecebba431f68212632ca247c78b4f7439a487dfd",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     },
@@ -375,71 +491,17 @@
       "call_chain": [
         "app.stage14.get_stage14_quality_by_question_ids"
       ],
-      "callee": "app.database.initialize_database",
-      "column": 4,
-      "detail": "implicit schema/directory initialization",
-      "end_column": 32,
-      "end_line": 151,
-      "entry_id": "WE-42C734B06353B45C1346A705",
-      "file": "app/stage14.py",
-      "function": "app.stage14.get_stage14_quality_by_question_ids",
-      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
-      "kind": "DATABASE_IMPLICIT_INITIALIZER",
-      "line": 151,
-      "migration_status": "UNMIGRATED_BLOCKED",
-      "owner": "REPORT_SERVICE",
-      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
-      "resolution": "ALIAS_RESOLVED",
-      "risk": "P1",
-      "root_ids": [
-        "INTERNAL-DIRECT"
-      ],
-      "source_sha256": "f61b9775939cdebfaf669b8f45031475c212b07c8bb3fdc0e0d605758b418f33",
-      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db",
-      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
-    },
-    {
-      "call_chain": [
-        "app.stage14.get_stage14_quality_by_question_ids"
-      ],
-      "callee": "app.database.connect_database",
-      "column": 9,
-      "detail": "legacy database gateway",
-      "end_column": 34,
-      "end_line": 154,
-      "entry_id": "WE-B5CA6FA2857D7577C2FF8E1A",
-      "file": "app/stage14.py",
-      "function": "app.stage14.get_stage14_quality_by_question_ids",
-      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
-      "kind": "DATABASE_GATEWAY",
-      "line": 154,
-      "migration_status": "UNMIGRATED_BLOCKED",
-      "owner": "REPORT_SERVICE",
-      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
-      "resolution": "ALIAS_RESOLVED",
-      "risk": "P1",
-      "root_ids": [
-        "INTERNAL-DIRECT"
-      ],
-      "source_sha256": "f61b9775939cdebfaf669b8f45031475c212b07c8bb3fdc0e0d605758b418f33",
-      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6",
-      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
-    },
-    {
-      "call_chain": [
-        "app.stage14.get_stage14_quality_by_question_ids"
-      ],
-      "callee": "app.database.connect_database().execute",
+      "callee": "app.database.connect_database_read_only().execute",
       "column": 15,
       "detail": "dynamic SQL is fail-closed because its effect cannot be proven",
       "end_column": 9,
-      "end_line": 162,
-      "entry_id": "WE-FC1D8BB3D8AF1266DA851D46",
+      "end_line": 161,
+      "entry_id": "WE-63FE8F186D22E978AFCD7427",
       "file": "app/stage14.py",
       "function": "app.stage14.get_stage14_quality_by_question_ids",
       "input_source": "DATABASE_CONNECTION_AND_CALLER_DATA",
       "kind": "SQLITE_DYNAMIC_SQL",
-      "line": 155,
+      "line": 154,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "REPORT_SERVICE",
       "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
@@ -448,7 +510,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "f61b9775939cdebfaf669b8f45031475c212b07c8bb3fdc0e0d605758b418f33",
+      "source_sha256": "4367a8097eefa0b32de35a90eeba8b02bcbe6d81e2a7cd5041e6dc9e1ee82981",
       "statement_fingerprint": "2dad9d7d0dbd136c313b63e4a61510dc96f007fa4d2f2e818149166b87646ac6",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     },
@@ -460,13 +522,13 @@
       "column": 8,
       "detail": "implicit schema/directory initialization",
       "end_column": 41,
-      "end_line": 198,
+      "end_line": 197,
       "entry_id": "WE-CA5030BE13838C414431F12C",
       "file": "app/stage14.py",
       "function": "app.stage14.Stage14QualityService.classify_queue",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "DATABASE_IMPLICIT_INITIALIZER",
-      "line": 198,
+      "line": 197,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "REPORT_SERVICE",
       "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
@@ -475,7 +537,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "f61b9775939cdebfaf669b8f45031475c212b07c8bb3fdc0e0d605758b418f33",
+      "source_sha256": "4367a8097eefa0b32de35a90eeba8b02bcbe6d81e2a7cd5041e6dc9e1ee82981",
       "statement_fingerprint": "fd5e65fec6c126443b7b26acdd25c79a688e8096a89a52e9dce945a71eaaf53e",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     },
@@ -487,13 +549,13 @@
       "column": 13,
       "detail": "legacy database gateway",
       "end_column": 43,
-      "end_line": 220,
+      "end_line": 219,
       "entry_id": "WE-820954C7256F0ED0B8CCDDE5",
       "file": "app/stage14.py",
       "function": "app.stage14.Stage14QualityService.classify_queue",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "DATABASE_GATEWAY",
-      "line": 220,
+      "line": 219,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "REPORT_SERVICE",
       "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
@@ -502,7 +564,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "f61b9775939cdebfaf669b8f45031475c212b07c8bb3fdc0e0d605758b418f33",
+      "source_sha256": "4367a8097eefa0b32de35a90eeba8b02bcbe6d81e2a7cd5041e6dc9e1ee82981",
       "statement_fingerprint": "196c8969b9ae12c0c2db078216eb4ba556d3b51e17241f26af6c3fcbb0fa2f1f",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     },
@@ -514,13 +576,13 @@
       "column": 16,
       "detail": "INSERT",
       "end_column": 17,
-      "end_line": 290,
+      "end_line": 289,
       "entry_id": "WE-E7C7E153966C66307F8FACBA",
       "file": "app/stage14.py",
       "function": "app.stage14.Stage14QualityService.classify_queue",
       "input_source": "DATABASE_CONNECTION_AND_CALLER_DATA",
       "kind": "SQLITE_MUTATION",
-      "line": 226,
+      "line": 225,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "REPORT_SERVICE",
       "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
@@ -529,7 +591,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "f61b9775939cdebfaf669b8f45031475c212b07c8bb3fdc0e0d605758b418f33",
+      "source_sha256": "4367a8097eefa0b32de35a90eeba8b02bcbe6d81e2a7cd5041e6dc9e1ee82981",
       "statement_fingerprint": "8aa8505e21798990550ae32fdca8bae8dd3ce335a585eb9733ff7c70ca1d2965",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     },
@@ -541,13 +603,13 @@
       "column": 12,
       "detail": "transaction commit",
       "end_column": 25,
-      "end_line": 293,
+      "end_line": 292,
       "entry_id": "WE-95FB8E3137DACCEB2E01442D",
       "file": "app/stage14.py",
       "function": "app.stage14.Stage14QualityService.classify_queue",
       "input_source": "DATABASE_CONNECTION_AND_CALLER_DATA",
       "kind": "SQLITE_TRANSACTION",
-      "line": 293,
+      "line": 292,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "REPORT_SERVICE",
       "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
@@ -556,7 +618,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "f61b9775939cdebfaf669b8f45031475c212b07c8bb3fdc0e0d605758b418f33",
+      "source_sha256": "4367a8097eefa0b32de35a90eeba8b02bcbe6d81e2a7cd5041e6dc9e1ee82981",
       "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     },
@@ -568,13 +630,13 @@
       "column": 8,
       "detail": "implicit schema/directory initialization",
       "end_column": 41,
-      "end_line": 311,
+      "end_line": 310,
       "entry_id": "WE-D491F6E3926467B778BFEB85",
       "file": "app/stage14.py",
       "function": "app.stage14.Stage14QualityService.audit_duplicate_anchor_pages",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "DATABASE_IMPLICIT_INITIALIZER",
-      "line": 311,
+      "line": 310,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "REPORT_SERVICE",
       "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
@@ -583,7 +645,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "f61b9775939cdebfaf669b8f45031475c212b07c8bb3fdc0e0d605758b418f33",
+      "source_sha256": "4367a8097eefa0b32de35a90eeba8b02bcbe6d81e2a7cd5041e6dc9e1ee82981",
       "statement_fingerprint": "fd5e65fec6c126443b7b26acdd25c79a688e8096a89a52e9dce945a71eaaf53e",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     },
@@ -595,13 +657,13 @@
       "column": 13,
       "detail": "legacy database gateway",
       "end_column": 43,
-      "end_line": 313,
+      "end_line": 312,
       "entry_id": "WE-4E48347BA751262022C4F0FD",
       "file": "app/stage14.py",
       "function": "app.stage14.Stage14QualityService.audit_duplicate_anchor_pages",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "DATABASE_GATEWAY",
-      "line": 313,
+      "line": 312,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "REPORT_SERVICE",
       "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
@@ -610,7 +672,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "f61b9775939cdebfaf669b8f45031475c212b07c8bb3fdc0e0d605758b418f33",
+      "source_sha256": "4367a8097eefa0b32de35a90eeba8b02bcbe6d81e2a7cd5041e6dc9e1ee82981",
       "statement_fingerprint": "196c8969b9ae12c0c2db078216eb4ba556d3b51e17241f26af6c3fcbb0fa2f1f",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     },
@@ -622,13 +684,13 @@
       "column": 13,
       "detail": "legacy database gateway",
       "end_column": 43,
-      "end_line": 337,
+      "end_line": 336,
       "entry_id": "WE-B2A550C634FEAAFEA2423562",
       "file": "app/stage14.py",
       "function": "app.stage14.Stage14QualityService.audit_duplicate_anchor_pages",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "DATABASE_GATEWAY",
-      "line": 337,
+      "line": 336,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "REPORT_SERVICE",
       "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
@@ -637,7 +699,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "f61b9775939cdebfaf669b8f45031475c212b07c8bb3fdc0e0d605758b418f33",
+      "source_sha256": "4367a8097eefa0b32de35a90eeba8b02bcbe6d81e2a7cd5041e6dc9e1ee82981",
       "statement_fingerprint": "196c8969b9ae12c0c2db078216eb4ba556d3b51e17241f26af6c3fcbb0fa2f1f",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     },
@@ -649,13 +711,13 @@
       "column": 16,
       "detail": "INSERT",
       "end_column": 17,
-      "end_line": 413,
+      "end_line": 412,
       "entry_id": "WE-CD9C0CD38981231DB75CCDF3",
       "file": "app/stage14.py",
       "function": "app.stage14.Stage14QualityService.audit_duplicate_anchor_pages",
       "input_source": "DATABASE_CONNECTION_AND_CALLER_DATA",
       "kind": "SQLITE_MUTATION",
-      "line": 362,
+      "line": 361,
       "migration_status": "UNMIGRATED_BLOCKED",
       "owner": "REPORT_SERVICE",
       "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
@@ -664,62 +726,8 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "f61b9775939cdebfaf669b8f45031475c212b07c8bb3fdc0e0d605758b418f33",
+      "source_sha256": "4367a8097eefa0b32de35a90eeba8b02bcbe6d81e2a7cd5041e6dc9e1ee82981",
       "statement_fingerprint": "96f07d03f8c3830a223ccb727f8cf3b0ed534726794d718710a54e5632e7278a",
-      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
-    },
-    {
-      "call_chain": [
-        "app.stage14.Stage14QualityService.audit_duplicate_anchor_pages"
-      ],
-      "callee": "app.database.connect_database().commit",
-      "column": 12,
-      "detail": "transaction commit",
-      "end_column": 25,
-      "end_line": 414,
-      "entry_id": "WE-2D0A57F3E55D6BDC882E6D82",
-      "file": "app/stage14.py",
-      "function": "app.stage14.Stage14QualityService.audit_duplicate_anchor_pages",
-      "input_source": "DATABASE_CONNECTION_AND_CALLER_DATA",
-      "kind": "SQLITE_TRANSACTION",
-      "line": 414,
-      "migration_status": "UNMIGRATED_BLOCKED",
-      "owner": "REPORT_SERVICE",
-      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
-      "resolution": "ALIAS_RESOLVED",
-      "risk": "P1",
-      "root_ids": [
-        "INTERNAL-DIRECT"
-      ],
-      "source_sha256": "f61b9775939cdebfaf669b8f45031475c212b07c8bb3fdc0e0d605758b418f33",
-      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976",
-      "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
-    },
-    {
-      "call_chain": [
-        "app.stage14.Stage14QualityService.audit_inferred_sources"
-      ],
-      "callee": "app.database.initialize_database",
-      "column": 8,
-      "detail": "implicit schema/directory initialization",
-      "end_column": 41,
-      "end_line": 424,
-      "entry_id": "WE-0EA181A5274AA88AD1649065",
-      "file": "app/stage14.py",
-      "function": "app.stage14.Stage14QualityService.audit_inferred_sources",
-      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
-      "kind": "DATABASE_IMPLICIT_INITIALIZER",
-      "line": 424,
-      "migration_status": "UNMIGRATED_BLOCKED",
-      "owner": "REPORT_SERVICE",
-      "required_control": "S3_DATABASE_LEASE_AND_TRANSACTION_GATE",
-      "resolution": "ALIAS_RESOLVED",
-      "risk": "P1",
-      "root_ids": [
-        "INTERNAL-DIRECT"
-      ],
-      "source_sha256": "f61b9775939cdebfaf669b8f45031475c212b07c8bb3fdc0e0d605758b418f33",
-      "statement_fingerprint": "fd5e65fec6c126443b7b26acdd25c79a688e8096a89a52e9dce945a71eaaf53e",
       "target_namespace": "LEGACY_CALLER_CONTROLLED_DATABASE_PATH"
     }
   ],

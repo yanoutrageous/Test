@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import json
 import re
-import shutil
 import time
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 from .config import PROJECT_ROOT, get_project_paths
-from .database import connect_database, initialize_database
+from .database import connect_database, connect_database_read_only, initialize_database
+from .database_backup import DatabaseBackupError, DatabaseBackupService
 from .page_ranges import PageRangeError, format_page_spec, parse_page_numbers
 from .pdf_import import DEFAULT_RENDER_DPI, import_pdf, relative_path
 from .pdf_scan import scan_pdf_pages
@@ -34,7 +34,7 @@ def _json(value: Any) -> str:
 
 
 def _now_label() -> str:
-    return datetime.now().strftime("%Y%m%d-%H%M%S")
+    return datetime.now().strftime("%Y%m%d-%H%M%S-%f")
 
 
 def parse_batch_pages(value: str | None) -> tuple[int, ...]:
@@ -159,8 +159,7 @@ def create_import_batch(
 
 
 def list_import_batches(*, db_path: Path | None = None) -> list[dict[str, Any]]:
-    initialize_database(db_path)
-    with connect_database(db_path) as conn:
+    with connect_database_read_only(db_path) as conn:
         rows = conn.execute(
             """
             SELECT b.*,
@@ -182,8 +181,7 @@ def get_import_batch(
     name: str | None = None,
     db_path: Path | None = None,
 ) -> dict[str, Any]:
-    initialize_database(db_path)
-    with connect_database(db_path) as conn:
+    with connect_database_read_only(db_path) as conn:
         batch = _load_batch(conn, batch_id=batch_id, name=name)
         if batch is None:
             raise ImportBatchError("Import batch not found.")
@@ -200,17 +198,31 @@ def get_import_batch(
     return batch
 
 
-def _copy_database_backup(
+def _create_database_backup(
     *,
     db_path: Path,
     project_root: Path,
     batch_code: str,
 ) -> str:
-    paths = get_project_paths(project_root)
-    paths.db_backups_dir.mkdir(parents=True, exist_ok=True)
-    output_path = paths.db_backups_dir / f"before-{_safe_code(batch_code).lower()}-{_now_label()}.sqlite3"
-    shutil.copy2(db_path, output_path)
-    return output_path.resolve().relative_to(project_root.resolve()).as_posix()
+    safe_batch = re.sub(r"[.-]+$", "", _safe_code(batch_code)[:64]) or "BATCH"
+    label = _now_label().upper()
+    backup_id = f"BACKUP-{safe_batch}-{label}"
+    job_id = f"JOB-IMPORT-BACKUP-{label}"
+    try:
+        service = DatabaseBackupService(project_root)
+        if db_path.resolve() != service.active_database_path.resolve():
+            raise ImportBatchError(
+                "Import backup only supports the fixed active project database."
+            )
+        receipt = service.create_backup(
+            backup_id=backup_id,
+            job_id=job_id,
+        )
+    except DatabaseBackupError as exc:
+        raise ImportBatchError(
+            f"Consistent SQLite backup failed: {exc.code.value}"
+        ) from exc
+    return receipt.snapshot_relative_path
 
 
 def _question_count_for_page(conn, *, source_paper_id: int | None, page_no: int) -> int:
@@ -535,7 +547,7 @@ def run_import_batch(
 
     try:
         if create_backup:
-            backup_path = _copy_database_backup(
+            backup_path = _create_database_backup(
                 db_path=resolved_db_path,
                 project_root=project_root,
                 batch_code=batch["batch_code"],

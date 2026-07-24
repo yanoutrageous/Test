@@ -25,14 +25,14 @@ python -m venv .venv
 
 当前约定：
 
-- 项目根目录：`D:\Test`
-- 资料目录：`D:\Test\Base`
-- 本地数据目录：`D:\Test\data`
-- SQLite 数据库：`D:\Test\data\db\question_bank.sqlite3`
-- 题目图片 assets：`D:\Test\data\assets\question_images`
-- 原卷页面 assets：`D:\Test\data\assets\paper_pages`
-- HTML 导出目录：`D:\Test\data\exports`
-- SQLite 运行前备份目录：`D:\Test\data\db\backups`
+- 项目根目录：由仓库内 `.exam-bank-root.json` 与当前模块位置共同验证的 `<PROJECT_ROOT>`，可整体迁移到其他本机 NTFS 盘符或普通父目录
+- 资料目录：`<PROJECT_ROOT>\Base`
+- 本地数据目录：`<PROJECT_ROOT>\data`
+- SQLite 数据库：`<PROJECT_ROOT>\data\db\question_bank.sqlite3`
+- 题目图片 assets：`<PROJECT_ROOT>\data\assets\question_images`
+- 原卷页面 assets：`<PROJECT_ROOT>\data\assets\paper_pages`
+- HTML 导出目录：`<PROJECT_ROOT>\data\exports`
+- SQLite 一致快照目录：`<PROJECT_ROOT>\backups\<BACKUP_ID>`
 
 数据库只保存结构化字段、JSON 文本和相对路径；图片、PDF、截图等二进制文件应放在文件系统中。
 
@@ -67,7 +67,7 @@ assets 记录分两类：
 data/db/question_bank.sqlite3
 ```
 
-该命令会幂等执行 `app/schema.sql`，并确保以下目录存在：
+该命令会校验 `app/schema.sql` 的已发布迁移哈希，按只追加版本幂等迁移数据库，并确保以下目录存在：
 
 ```text
 data/assets/question_images/
@@ -80,6 +80,13 @@ data/exports/
 ```powershell
 .\.venv\Scripts\python.exe -m app.cli init-db --db-path .\tmp\stage2.sqlite3
 ```
+
+数据库读取与写入已经分离：列表、详情、组卷预览、HTML 下载等 GET
+请求只会以 SQLite `mode=ro` 和 `query_only` 打开现有数据库，不会补建目录、
+初始化 schema 或刷新派生状态。首次使用必须先显式运行 `init-db`；来源归属、
+结构化内容、可用性和导出质量的生成继续由对应 CLI、导入流程或 POST 写操作完成。
+这样迁移电脑或只读检查时，不会因为“查看页面”悄悄改动数据库或产生
+WAL/SHM/journal 文件。
 
 ## 导入源 PDF 原貌页
 
@@ -304,7 +311,7 @@ http://127.0.0.1:5000/paper-preview
 .\.venv\Scripts\python.exe -m app.cli batch-run --name stage8-20-pages --pages 1100-1109
 ```
 
-运行批次会在执行前复制当前 SQLite 数据库到 `data/db/backups/`，并把相对备份路径写入 `import_batches.backup_path`。批次执行仍遵守现有保护：不覆盖 `reviewed` 或 `approved` 题，所有新切分题默认进入 `pending`，资产路径只保存相对路径。
+运行批次会在执行前通过 SQLite Backup API 建立一致快照，完成完整性、外键、业务不变量和实际读取验证后，按无覆盖方式发布到 `backups/<BACKUP_ID>/`；`import_batches.backup_path` 只记录项目相对快照路径。活动 WAL 数据库不再使用直接文件复制。批次执行仍遵守现有保护：不覆盖 `reviewed` 或 `approved` 题，所有新切分题默认进入 `pending`，资产路径只保存相对路径。
 
 生成阶段 8 质量报告：
 
@@ -532,7 +539,7 @@ Web 和导出：
 - `export_ready_visual` 必须来自 `visual_fallback`，并通过视觉质量门槛。
 - `export_candidate` 和 `export_blocked` 不进入正式导出。
 - 高风险 duplicate anchor 页不得进入 ready。
-- 保存后的 HTML 使用相对图片路径，不写入 `D:\` 这类绝对路径。
+- 保存后的 HTML 使用相对图片路径，不写入任何带盘符或根锚点的绝对路径。
 
 当前真实库阶段 12 结果：
 
@@ -581,7 +588,7 @@ Web 和导出：
 
 ## 阶段 14 质量收敛与可导出池压实
 
-阶段 14 只处理现有题库，不扩页、不新增 PDF、不运行 OCR/AI/向量检索，不自动覆盖 `reviewed`/`approved`，也不修改 `questions` 主表的题干、题号、状态、答案或解析。根目录入口仍固定为 `D:\Test\试卷系统.html`，不得新增其他根目录 HTML 入口。
+阶段 14 只处理现有题库，不扩页、不新增 PDF、不运行 OCR/AI/向量检索，不自动覆盖 `reviewed`/`approved`，也不修改 `questions` 主表的题干、题号、状态、答案或解析。根目录入口固定为 `<PROJECT_ROOT>\试卷系统.html`，不得依赖具体盘符或父目录，也不得新增其他根目录 HTML 入口。
 
 阶段 14 schema：
 

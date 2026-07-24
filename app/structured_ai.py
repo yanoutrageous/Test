@@ -268,10 +268,10 @@ def run_structured_ai_corrections(
     mock: bool = False,
     project_root: Path = PROJECT_ROOT,
 ) -> dict[str, Any]:
-    initialize_database(db_path)
-    initialize_structured_contents(db_path=db_path)
     if mock:
         _assert_mock_uses_non_default_database(db_path)
+    initialize_database(db_path)
+    initialize_structured_contents(db_path=db_path)
     provider = build_structured_correction_provider(mock=mock, project_root=project_root)
 
     with connect_database(db_path) as conn:
