@@ -1,6 +1,6 @@
 # 当前状态
 
-更新时间：2026-07-24 23:25 +08:00
+更新时间：2026-07-24 23:31 +08:00
 
 ## 目标已恢复（2026-07-24）
 
@@ -20,7 +20,8 @@
 - 079 的保护树前后均 4,741 项，活动 SQLite、runtime watcher、句柄围栏、run tree、不可变证据、80 个源码见证和进程树全部通过。独立只读复核重新计算 JUnit、19 个 inventory chunk 和 53 个`UTF8_LF_V1`源码哈希，差异为 0。
 - 最终 inventory preview 为`RUN-20260724-M0-S3H-INVENTORY-077`：53 个生产源、468 个入口、19 个分片、`UNKNOWN=0`；全部入口仍为`UNMIGRATED_BLOCKED`，production writer 与`m0_exit_allowed`均为 false。payload SHA-256 为`6f9624ecfa941e54cfb1e8f08015952d725785ae15bd1bd9a1a338e27d0d9d9a`。
 - 156 个旧测试运行和 4 个被替代的 inventory preview 已进入校验归档并可恢复地迁出热目录；`tmp/test_lab`只保留最终 079（约 104.2 MB），`tmp/inventory_preview`只保留 077（约 0.52 MB）。E 盘当前约 60.63 GiB 可用。
-- S3-H/S3 总门已经本地通过，精确 Git 检查点和远端核验正在执行；通过后下一切片为 M0-S4 SQLite migration/Backup API。完整证据见`Task/reports/M0/M0-S3-H-crash-race-inventory-freeze.md`。
+- S3-H/S3 总门检查点已作为`b38dd5e5399cc37dae3fa1086b29c7b5e1385477`显式提交并普通 push；本地 HEAD、origin、远端 refs 与 Draft PR #2 head 已核验一致，PR 为 OPEN/DRAFT/MERGEABLE。下一切片为 M0-S4 SQLite migration/Backup API。完整证据见`Task/reports/M0/M0-S3-H-crash-race-inventory-freeze.md`。
+- GitHub 应用可以只读核验 PR，但更新 PR 描述返回 integration 403；本机`gh`没有持久登录。未绕过权限，现有 Draft PR 描述仍是旧基线叙述，须在具备 PR metadata 写权限时更新；这不影响已推分支恢复点。
 
 ## S3-G 本地验收与门禁存储整理（2026-07-24）
 
@@ -36,7 +37,7 @@
 
 - 计划版本：1.1.0
 - 当前阶段：M0 入场审计完成，M0 尚未验收
-- 当前切片：S3-H 与 S3 总门已本地验收，精确 Git 检查点/远端核验正在执行；M0 总门尚未通过
+- 当前切片：S3-H 与 S3 总门已验收、提交、push 并远端核验；M0-S4 SQLite migration/Backup API 开始，M0 总门尚未通过
 - M0—M5 实现：M0 已开始；M1—M5 未开始
 - 本任务有效终点：按用户后续明确要求，连续完成修订后的 M0—M5，直到真实用户流程、恢复演练和客户交付包全部通过；不得把 M0 或代码完成误报为终局
 - 当前禁止：活动数据库迁移、题库导入、OCR、正式排版、批量资产、备份切换和业务文件清理
@@ -47,7 +48,7 @@
 - 生产根改为`PORTABLE_LOCAL_NTFS_V1`：受信任`app/project_root.py`位置与根`.exam-bank-root.json`精确内容共同授权；marker 不含盘符/用户名/绝对路径，cwd、环境变量、配置和调用者参数不能扩大根。
 - Python 3.12.13、Flask 3.1.3、PyMuPDF 1.28.0、pytest 9.1.1、SQLite 3.50.4 均已导入；现有`.venv`可继续验证，但`pyvenv.cfg`保留旧机创建命令，因此不作为未来迁移产物，后续电脑默认按`requirements.txt`重建。
 - 活动数据库 SHA-256 仍为`1505bf05bd8e385eada30642110596363c561c330da02a40a497072064ad1c94`，`integrity_check=ok`、外键违规 0，核心业务表仍为空；迁移重定根当前没有业务数据改写风险。
-- Git 分支`agent/m0-m5-local-v1`、本地 HEAD、origin 分支、远端 refs 与 Draft PR #2 head 已在 S3-G 核验时均为`a757e181a64aea9cbbc91669b7ad48b043bbafd6`；S3-G checkpoint 后工作区干净。
+- Git 分支`agent/m0-m5-local-v1`的 S3-H 检查点为`b38dd5e5399cc37dae3fa1086b29c7b5e1385477`；本地、origin、远端 refs 与 Draft PR #2 head 已核验一致，检查点后工作区干净。
 - 旧主机 writer lock（`DESKTOP-GU0STBA`/PID 283856）已确认失效；当前由本机 Codex 进程以`RUN-20260724-M0-S3H-COORD-060`持有 Git 忽略的单写者锁，没有业务 mutation。
 - `RUN-20260724-M0-PORTABLE-FULL-037`最终退出码 0：JUnit 961 passed，failure/error/skip 均为 0；保护树前后均 126,030 项且 digest 相同，活动数据库、运行树、immutable evidence、watcher、句柄围栏、进程树和 80 个登记合成来源均通过。RUN-025/031/034/036 作为失败收敛证据保留，不再代表当前功能状态。
 - `tmp/test_lab`现只保留最终 S3-TOTAL-079，约 104.2 MB；6 个便携归档约 617.1 MiB。156 个归档覆盖的旧测试运行已迁出热目录，保留规则与新电脑迁移规则见`Task/TEST_GATE_RETENTION.md`；完整保护树门仍保留，不降低外部零写入保证。
@@ -81,7 +82,7 @@
 
 - 用户已明确授权无交互继续完成交付；新电脑已通过 WinGet 用户范围安装 GitHub CLI 2.96.0。
 - 本机 Git 自身可访问远端；Git Credential Manager 中的 GitHub OAuth 凭据经临时`GH_TOKEN`环境桥接后，`gh api user`和`gh auth status`验证账号为`yanoutrageous`。令牌未写入命令、报告或仓库，也未降级保存为明文文件。
-- GitHub App 与 CLI 已确认仓库公开且未归档、当前账号具有 admin/push 权限、默认分支为`main`；S3-G 发布元数据后本地/origin head 为`ee783eaaf3002e969e71fa83d1daaeb302e01769`，S3-H 远端状态将在本次检查点后复核
+- GitHub App 已确认仓库公开且未归档、当前连接具备仓库 push/admin 权限、默认分支为`main`；Draft PR #2 为 OPEN/DRAFT/MERGEABLE，S3-H 检查点 head 为`b38dd5e5399cc37dae3fa1086b29c7b5e1385477`
 - 本仓库 Git 作者邮箱已改为 GitHub noreply 地址，未修改全局 Git 配置，避免公开提交暴露个人邮箱
 - 规划提交范围、隐私、二进制、大文件、忽略规则和远端同名分支已通过独立只读审计
 - 规划契约提交`522393d`及状态提交`bfd4d35`已普通 push 到`agent/long-run-execution-spec`
@@ -101,8 +102,8 @@
 2. M0-S3-E exact reservation、独立 operation chain、source-root no-replace publish、target rescan 与只追加恢复真值表已通过本地组合门和独立暂存审计，并作为`39586568a405124417d105d8e876d25ec94e06e6`完成普通 push；
 3. portable root 与 S3-F 合成 Copy/双 ledger 已由`RUN-20260724-M0-PORTABLE-FULL-037`验收，并作为`f9756df79d979ef10f54fc4634f15849857019da`完成精确暂存审计、checkpoint commit、普通 push 与远端核验；
 4. S3-G quarantine/retained restore 已由 CORE-053、INVENTORY-057、GATE-058 与清理后 POSTCLEAN-059 验收，并作为`a757e181a64aea9cbbc91669b7ad48b043bbafd6`完成精确提交、普通 push 与远端核验；
-5. S3-H 历史 operation resolver、完整 DAG、真实 crash/race 矩阵、最终 inventory 和 S3 总门已由 INVENTORY-GATE-078 与 S3-TOTAL-079 本地验收，正在形成精确 Git 检查点；
-6. 按长期终点继续完成 M0—M5；只有 M5 客户交付包、真实用户流程和恢复演练全部通过后才可结束，不得把 M0 checkpoint 当作终局。
+5. S3-H 历史 operation resolver、完整 DAG、真实 crash/race 矩阵、最终 inventory 和 S3 总门已由 INVENTORY-GATE-078 与 S3-TOTAL-079 验收，并作为`b38dd5e5399cc37dae3fa1086b29c7b5e1385477`完成精确提交、普通 push 与远端核验；
+6. 当前进入 M0-S4 SQLite migration/Backup API；按长期终点继续完成 M0—M5，只有 M5 客户交付包、真实用户流程和恢复演练全部通过后才可结束。
 
 ## 历史暂停检查点（已于 2026-07-24恢复）
 

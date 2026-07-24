@@ -1,9 +1,9 @@
 {
   "state_version": "1.1.0",
   "plan_version": "1.1.0",
-  "updated_at": "2026-07-24T23:25:00+08:00",
+  "updated_at": "2026-07-24T23:31:00+08:00",
   "current_milestone": "M0",
-  "current_slice": "M0_S3H_CRASH_RACE_INVENTORY_FREEZE",
+  "current_slice": "M0_S4_SQLITE_MIGRATION_BACKUP",
   "status": "RUNNING",
   "implementation_status": "IN_PROGRESS",
   "task_scope": {
@@ -245,7 +245,9 @@
     }
   },
   "s3h_freeze": {
-    "local_acceptance_status": "PASSED_AWAITING_EXPLICIT_GIT_CHECKPOINT",
+    "local_acceptance_status": "PUBLISHED_AND_VERIFIED",
+    "checkpoint_commit": "b38dd5e5399cc37dae3fa1086b29c7b5e1385477",
+    "remote_verification": "LOCAL_ORIGIN_REMOTE_REFS_DRAFT_PR_HEAD_EQUAL_OPEN_DRAFT_MERGEABLE",
     "operation_epoch_resolver": "PASSED_BOUNDED_NOFOLLOW_SAME_MUTEX_ALL_ACTIVATED_REVISIONS",
     "full_dag": "PASSED_AUDIT_TO_ALL_OPERATION_EPOCHS_TO_ALL_COPY_EPOCHS",
     "crash_race_truth_table_rows": 9,
@@ -393,19 +395,21 @@
     "base_commit": "bfd4d35973974a223f465cd08910f303518a8586",
     "remote": "https://github.com/yanoutrageous/Test.git",
     "planning_published_commit": "bfd4d35973974a223f465cd08910f303518a8586",
-    "publication_status": "M0_S3G_PUBLISHED_AND_VERIFIED",
-    "published_checkpoint": "a757e181a64aea9cbbc91669b7ad48b043bbafd6",
-    "verified_origin_head": "a757e181a64aea9cbbc91669b7ad48b043bbafd6",
-    "verified_draft_pr_head": "a757e181a64aea9cbbc91669b7ad48b043bbafd6",
+    "publication_status": "M0_S3H_PUBLISHED_AND_VERIFIED",
+    "published_checkpoint": "b38dd5e5399cc37dae3fa1086b29c7b5e1385477",
+    "verified_origin_head": "b38dd5e5399cc37dae3fa1086b29c7b5e1385477",
+    "verified_draft_pr_head": "b38dd5e5399cc37dae3fa1086b29c7b5e1385477",
+    "draft_pr_state": "OPEN_DRAFT_MERGEABLE",
+    "draft_pr_body_update": "NOT_APPLIED_GITHUB_APP_INTEGRATION_403_GH_NOT_PERSISTENTLY_AUTHENTICATED_NO_BYPASS_ATTEMPTED",
     "planning_pull_request": "https://github.com/yanoutrageous/Test/pull/1",
     "integration_pull_request": "https://github.com/yanoutrageous/Test/pull/2"
   },
-  "last_verified_checkpoint": "a757e181a64aea9cbbc91669b7ad48b043bbafd6",
+  "last_verified_checkpoint": "b38dd5e5399cc37dae3fa1086b29c7b5e1385477",
   "last_unverified_pause_checkpoint": "aec3d7413a06251e4865b601fd680090b466892e",
-  "active_job_id": "M0-S3H-CRASH-RACE-INVENTORY-FREEZE",
+  "active_job_id": "M0-S4-SQLITE-MIGRATION-BACKUP",
   "active_writer": {
     "owner": "/root",
-    "run_id": "RUN-20260724-M0-S3H-COORD-060",
+    "run_id": "RUN-20260724-M0-S4-COORD-080",
     "details": "Task/state/writer.lock (Git-ignored local state; status ACTIVE)"
   },
   "completed_actions": [
@@ -478,7 +482,8 @@
     "RUN-20260724-M0-S3H-INVENTORY-GATE-078 passed 34 tests and RUN-20260724-M0-S3H-S3-TOTAL-079 passed 997 tests with zero failures/errors/skips; protected tree, activity database, runtime watcher, handle fence, run tree, immutable evidence, 80 source witnesses, and process tree all passed",
     "production inventory V16 final preview RUN-20260724-M0-S3H-INVENTORY-077 matches tracked bytes at 53 sources, 468 entries, 19 chunks, UNKNOWN=0, all entries UNMIGRATED_BLOCKED, payload 6f9624ecfa941e54cfb1e8f08015952d725785ae15bd1bd9a1a338e27d0d9d9a",
     "independent PowerShell and .NET audit recomputed JUnit, every inventory chunk, and all 53 UTF8_LF_V1 source hashes with zero mismatches",
-    "156 superseded test runs and four superseded inventory previews are covered by verified relative-path archives and moved out of the hot E-drive tree; only final run 079 and preview 077 remain hot"
+    "156 superseded test runs and four superseded inventory previews are covered by verified relative-path archives and moved out of the hot E-drive tree; only final run 079 and preview 077 remain hot",
+    "M0-S3-H was explicitly staged as exactly 21 allowlisted files, committed as b38dd5e5399cc37dae3fa1086b29c7b5e1385477, ordinary-pushed, and verified identical at local HEAD, origin, remote refs, and Draft PR 2 head; PR remains open, draft, and mergeable"
   ],
   "not_started": [
     "database migration",
@@ -492,6 +497,6 @@
   "blockers": [
     "M0-SYMLINK-CAPABILITY-001: RUN-20260724-M0-SYMLINK-CAPABILITY-038 returned WinError 1314 when the ordinary account attempted to create a real directory symlink; all other safety gates in that run were clean, no privilege elevation or Developer Mode change is authorized, and independent M0 work may continue"
   ],
-  "next_required_action": "Create the exact S3-H Git checkpoint, ordinary-push it, verify local/origin/remote/Draft-PR head equality, then begin M0-S4 SQLite append-only migration and Backup API work.",
+  "next_required_action": "Implement M0-S4 append-only SQLite schema migration, SQLite Backup API, staging restore, integrity checks, interruption recovery, and rollback on database copies without touching the activity database.",
   "resume_rule": "Resume from the final S3-H gate RUN-20260724-M0-S3H-S3-TOTAL-079 and inventory preview 077. Never reuse a run ID or treat an old physical-root result as current. Keep production writer disconnected and real business data untouched through S4-S6 and the remaining M0 gates."
 }

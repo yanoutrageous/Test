@@ -2,7 +2,7 @@
 
 ## 结论
 
-M0-S3-H Test-local 候选和 S3 总门已在本机通过，可以形成 S3-H Git 检查点并进入 M0-S4。该结论只覆盖受信任仓库源码、协作式应用 writer 和当前声明的 Windows/NTFS 边界，不代表 M0 或 M0—M5 完成：
+M0-S3-H Test-local 候选和 S3 总门已在本机通过，并已形成 S3-H Git 检查点进入 M0-S4。该结论只覆盖受信任仓库源码、协作式应用 writer 和当前声明的 Windows/NTFS 边界，不代表 M0 或 M0—M5 完成：
 
 - production writer 仍为`writer_available=false`；
 - 468 个生产副作用入口仍全部`UNMIGRATED_BLOCKED`；
@@ -138,3 +138,11 @@ S3 已冻结，但以下事项继续阻断 M0：
 2. M0-S5：版本化领域对象、Question/Figure/Paper IR、金标 registry 和视觉阈值；
 3. M0-S6：真实 Test 外只读样本 Copy、fresh-state 用户流程、独立安全审计和恢复演练；
 4. production writer 和 468 个入口只有在对应后续门禁通过后才能逐步接线。
+
+## Git 检查点
+
+- 准入范围恰好 21 个显式路径；未使用`git add -A`或宽范围暂存。
+- staged 审计无额外/缺失/禁止路径，无删除、重命名、二进制、超过 1 MiB 文件、异常模式、秘密/PII、新绝对路径或`diff --check`问题。
+- S3-H 检查点提交：`b38dd5e5399cc37dae3fa1086b29c7b5e1385477`。
+- 已普通 push 到`agent/m0-m5-local-v1`；本地、origin、远端 refs 与 Draft PR #2 head 核验一致。
+- Draft PR #2 保持 OPEN/DRAFT/MERGEABLE，没有合并、改为 Ready、force push 或改写历史。
