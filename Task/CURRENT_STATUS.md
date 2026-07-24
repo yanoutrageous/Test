@@ -1,12 +1,21 @@
 # 当前状态
 
-更新时间：2026-07-24 12:29 +08:00
+更新时间：2026-07-24 13:21 +08:00
+
+## 目标暂停（2026-07-24）
+
+- 用户已要求在最小可恢复点暂停；当前长期目标状态为`PAUSED`，收到用户新的明确回复前不继续实现、测试或进入下一切片。
+- 当前停在`M0-S3-G quarantine / retained restore / conflict-safe recovery`的未验收候选阶段。候选代码已固化为 WIP 检查点`aec3d7413a06251e4865b601fd680090b466892e`（tree`868ebdfc0c996cead017741e0c73ae8d08b46d8d`），仅通过`py_compile`与`git diff --check`，不得视为 S3-G 完成或可交付实现。
+- 暂停前已确认没有活动的仓库 Python、pytest 或 Git 进程，没有业务 mutation，production writer 仍断开；活动 SQLite SHA-256 仍为`1505BF05BD8E385EADA30642110596363C561C330DA02A40A497072064AD1C94`。
+- `RUN-20260724-M0-S3G-S3E-039`因调用方 stdout 管道关闭而以 120 退出，但保护树、数据库、watcher、句柄围栏、run tree 与 source witness 均保持安全；`RUN-20260724-M0-S3G-CORE-040`因重定向日志句柄位于受保护`tmp`而在 pytest 前安全停止。两个编号均不得复用。
+- 恢复后的第一步不是推进 S3-H，而是修复 safe launcher 的子进程输出捕获，使日志句柄只位于排除的 run root；随后以新唯一 run ID 运行`s3g_core`，再完成失败修复、quarantine 日期分区、静态 inventory 和 S3-G 验收。
+- 完整恢复清单与候选文件哈希见`Task/reports/M0/M0-S3-G-pause-20260724.md`。下方其他章节保留为此前基线；如与本节冲突，以本节和`Task/RUN_STATE.json`的最新暂停记录为准。
 
 ## 长期执行状态
 
 - 计划版本：1.1.0
 - 当前阶段：M0 入场审计完成，M0 尚未验收
-- 当前切片：portable root 与`M0-S3-F synthetic Copy + dual ledgers`已作为`f9756df79d979ef10f54fc4634f15849857019da`完成显式提交、普通 push 和远端核验；当前进入 S3-G quarantine、保留式 restore 与冲突恢复，S3 与 M0 总门仍未通过
+- 当前切片：portable root 与`M0-S3-F synthetic Copy + dual ledgers`已作为`f9756df79d979ef10f54fc4634f15849857019da`完成显式提交、普通 push 和远端核验；S3-G 候选现按用户要求暂停，S3-G、S3 与 M0 总门均未通过
 - M0—M5 实现：M0 已开始；M1—M5 未开始
 - 本任务有效终点：按用户后续明确要求，连续完成修订后的 M0—M5，直到真实用户流程、恢复演练和客户交付包全部通过；不得把 M0 或代码完成误报为终局
 - 当前禁止：活动数据库迁移、题库导入、OCR、正式排版、批量资产、备份切换和业务文件清理

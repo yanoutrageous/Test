@@ -1,11 +1,11 @@
 {
   "state_version": "1.1.0",
   "plan_version": "1.1.0",
-  "updated_at": "2026-07-24T12:29:00+08:00",
+  "updated_at": "2026-07-24T13:21:17+08:00",
   "current_milestone": "M0",
   "current_slice": "M0_S3G_QUARANTINE_RETAINED_RESTORE",
-  "status": "IN_PROGRESS",
-  "implementation_status": "IN_PROGRESS",
+  "status": "PAUSED",
+  "implementation_status": "PAUSED_WITH_UNVERIFIED_WIP_CHECKPOINT",
   "task_scope": {
     "effective_terminal_gate": "M5_CUSTOMER_DELIVERY_ACCEPTED",
     "stop_after_m0": false,
@@ -20,26 +20,54 @@
       "resumed_at": "2026-07-13T13:22:55+08:00",
       "resume_verified_head": "26fdf8794b9fc90c4ea8702bb9e91877fe4e5600",
       "resume_audit_result": "PASS_LOCAL_ORIGIN_PR_HEAD_CLEAN_TREE_NO_ACTIVE_WRITER_DATABASE_HASH_UNCHANGED"
+    },
+    {
+      "paused_at": "2026-07-13T22:00:02+08:00",
+      "reason": "USER_REQUESTED_NEAREST_SAFE_CHECKPOINT",
+      "resumed_at": "2026-07-24T01:28:58+08:00",
+      "resume_verified_head": "6e225c8e4ba06332a197a1acdcbd1f86edce4d99",
+      "resolution": "RESOLVED_BY_RUN_20260724_M0_PORTABLE_FULL_037_AND_S3F_CHECKPOINT_F9756DF79D979EF10F54FC4634F15849857019DA"
     }
   ],
   "pause": {
-    "paused_at": "2026-07-13T22:00:02+08:00",
-    "reason": "USER_REQUESTED_NEAREST_SAFE_CHECKPOINT",
-    "status": "RESOLVED_BY_RUN_20260724_M0_PORTABLE_FULL_037",
-    "verified_head_before_pause_record": "01cfbb12012040b03e82745e828cf3ff85dc1bf1",
-    "verified_origin_head_before_pause_record": "01cfbb12012040b03e82745e828cf3ff85dc1bf1",
-    "worktree_was_clean_before_pause_record": false,
-    "worktree_before_pause_record": "36_TRACKED_MODIFIED_7_UNTRACKED_S3F_IMPLEMENTATION_FILES",
+    "paused_at": "2026-07-24T13:21:17+08:00",
+    "reason": "USER_REQUESTED_GOAL_PAUSE_AT_MINIMUM_RESUMABLE_CHECKPOINT",
+    "status": "PAUSED",
+    "goal_status": "PAUSED_BY_USER",
+    "current_slice": "M0_S3G_QUARANTINE_RETAINED_RESTORE",
+    "verified_base_head_before_candidate_checkpoint": "d9f047734b6715110e10479801798864a878a184",
+    "verified_origin_head_before_candidate_checkpoint": "d9f047734b6715110e10479801798864a878a184",
+    "candidate_checkpoint_commit": "aec3d7413a06251e4865b601fd680090b466892e",
+    "candidate_checkpoint_tree": "868ebdfc0c996cead017741e0c73ae8d08b46d8d",
+    "candidate_checkpoint_status": "UNVERIFIED_WIP_SYNTAX_AND_DIFF_CHECK_ONLY",
+    "candidate_snapshot_sha256_before_pause_metadata": "41b4b7cbef58a115e3237d05d6b3cb7eb6c286b1f9c6b8fdbf0cc2377a787beb",
+    "worktree_clean_after_candidate_checkpoint": true,
     "business_mutation_in_progress": false,
     "real_business_data_touched": false,
     "safe_launcher_active": false,
+    "production_writer_connected": false,
     "activity_database_sha256": "1505BF05BD8E385EADA30642110596363C561C330DA02A40A497072064AD1C94",
-    "reserved_run_ids_confirmed_unused": [
-      "RUN-20260713-M0-S3F-INTEGRATION-021",
-      "RUN-20260713-M0-S3F-LAUNCHER-022",
-      "RUN-20260713-M0-S3F-COMBINED-023"
+    "diagnostic_runs": [
+      {
+        "run_id": "RUN-20260724-M0-S3G-S3E-039",
+        "status": "FAILED_RETRYABLE_CALLER_OUTPUT_PIPE",
+        "effective_exit_code": 120,
+        "protected_tree_unchanged": true,
+        "activity_database_unchanged": true
+      },
+      {
+        "run_id": "RUN-20260724-M0-S3G-CORE-040",
+        "status": "SAFETY_STOP_BEFORE_PYTEST",
+        "cause": "REDIRECTED_LOG_HANDLE_WAS_OPEN_UNDER_PROTECTED_TMP_OUTSIDE_EXCLUDED_RUN_ROOT"
+      }
     ],
-    "resume_from": "Keep the dirty S3-F implementation intact. Re-read the pause report, verify local/origin head, dirty-file set, no active safe launcher, database SHA-256, and unused run IDs. Finish the interrupted exception-boundary documentation re-audit, then run the three reserved safe regressions. Do not enter S3-G before S3-F acceptance."
+    "known_incomplete": [
+      "S3-G functional tests have not completed",
+      "quarantine date partition creation is not implemented",
+      "static audit and inventory are not updated",
+      "S3-G acceptance and S3-H have not started"
+    ],
+    "resume_from": "Re-read AGENTS.md, Base/Base.md, Task/CURRENT_STATUS.md, Task/RUN_STATE.json, and Task/reports/M0/M0-S3-G-pause-20260724.md. Verify the pause checkpoint, clean worktree, local/origin equality, no active launcher or business mutation, and unchanged database hash. First fix safe-launcher child output capture so redirected handles live only under the excluded run root, then use a new unique run ID for s3g_core. Complete S3-G tests, date partition behavior, static inventory, and acceptance before S3-H."
   },
   "relocation_rebase": {
     "resumed_at": "2026-07-24T01:28:58+08:00",
@@ -125,16 +153,17 @@
     "base_commit": "bfd4d35973974a223f465cd08910f303518a8586",
     "remote": "https://github.com/yanoutrageous/Test.git",
     "planning_published_commit": "bfd4d35973974a223f465cd08910f303518a8586",
-    "publication_status": "M0_S3F_PUSHED_DRAFT_PR_OPEN",
+    "publication_status": "M0_S3G_WIP_PAUSE_CHECKPOINT_AND_PAUSE_RECORD",
     "planning_pull_request": "https://github.com/yanoutrageous/Test/pull/1",
     "integration_pull_request": "https://github.com/yanoutrageous/Test/pull/2"
   },
   "last_verified_checkpoint": "f9756df79d979ef10f54fc4634f15849857019da",
+  "last_unverified_pause_checkpoint": "aec3d7413a06251e4865b601fd680090b466892e",
   "active_job_id": "M0-S3G-QUARANTINE-RETAINED-RESTORE",
   "active_writer": {
     "owner": "/root",
     "run_id": "RUN-20260724-M0-PORTABLE-ROOT-024",
-    "details": "Task/state/writer.lock (Git-ignored local state)"
+    "details": "Task/state/writer.lock (Git-ignored local state; status PAUSED)"
   },
   "completed_actions": [
     "read-only repository and reference-corpus review",
@@ -207,6 +236,6 @@
   "blockers": [
     "M0-SYMLINK-CAPABILITY-001: RUN-20260724-M0-SYMLINK-CAPABILITY-038 returned WinError 1314 when the ordinary account attempted to create a real directory symlink; all other safety gates in that run were clean, no privilege elevation or Developer Mode change is authorized, and independent M0 work may continue"
   ],
-  "next_required_action": "Implement M0-S3-G Test-local quarantine, retained restore, conflict-safe recovery, independent durable evidence, attack/failure matrix, static inventory update, and safe-launcher acceptance without connecting production writer or touching real business data.",
-  "resume_rule": "Read AGENTS.md, Base/Base.md, execution_contract.json, all normative Task documents, CURRENT_STATUS, RUN_STATE, the portable-root ADR/report, and the historical S3-F pause report. Discover the root from the trusted module plus marker; never reuse a recorded run ID or treat an old physical-root safety result as current. Verify Git, writer/launcher state, database integrity/hash, disk budget, local reference mapping, and dependency imports before continuing through M0-M5."
+  "next_required_action": "PAUSED_BY_USER. Do not continue until the user replies. On resume, repair safe-launcher output capture inside the excluded run root and rerun S3-G core with a new unique run ID before any further implementation.",
+  "resume_rule": "Wait for an explicit user reply. Then read AGENTS.md, Base/Base.md, execution_contract.json, all normative Task documents, CURRENT_STATUS, RUN_STATE, the portable-root ADR/report, and the S3-G pause report. Discover the root from the trusted module plus marker; never reuse a recorded run ID or treat an old physical-root safety result as current. Verify Git, writer/launcher state, database integrity/hash, disk budget, local reference mapping, and dependency imports before resuming S3-G."
 }
