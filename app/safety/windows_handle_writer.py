@@ -1389,6 +1389,37 @@ class _WindowsApi:
             post_success_code=HandleWriterCode.HANDLE_OPEN_FAILED,
         )
 
+    def open_relative_directory_for_move(
+        self,
+        parent_handle: int,
+        name: str,
+    ) -> int:
+        """Open one existing directory root with no-replace rename authority."""
+
+        return self._nt_create_relative(
+            parent_handle,
+            name,
+            desired_access=(
+                self.FILE_LIST_DIRECTORY
+                | self.FILE_TRAVERSE
+                | self.FILE_READ_ATTRIBUTES
+                | self.DELETE
+                | self.SYNCHRONIZE
+            ),
+            # Deny concurrent write/delete opens while the complete tree is
+            # observed and while the root rename is authorized.
+            share_access=self.FILE_SHARE_READ,
+            create_disposition=self.NT_FILE_OPEN,
+            create_options=(
+                self.FILE_DIRECTORY_FILE
+                | self.FILE_SYNCHRONOUS_IO_NONALERT
+                | self.NT_FILE_OPEN_REPARSE_POINT
+            ),
+            expected_information=self.FILE_OPENED,
+            conflict_code=HandleWriterCode.HANDLE_OPEN_FAILED,
+            post_success_code=HandleWriterCode.HANDLE_OPEN_FAILED,
+        )
+
     def open_handle(
         self,
         path: Path,
@@ -2990,22 +3021,17 @@ class _WindowsHandleWriter:
             self._close_all([node[1] for node in nodes])
             raise
 
-    def _observe_existing_tree_snapshot(
+    def _open_existing_tree_for_read(
         self,
         relative_path: str | os.PathLike[str],
         budget: TreeScanBudget,
-    ) -> tuple[_TreeSnapshot, _ObservedHandle]:
-        """Return detached recovery evidence after a complete handle scan.
-
-        The returned tuple is evidence only, never mutation authority.  Every
-        handle and Guard ticket is consumed before return; callers must perform
-        a new scan for each recovery decision.
-        """
+    ) -> tuple[DirectoryHandleLease, _ObservedTreeLease]:
+        """Hold a complete existing tree under read-only deny-write handles."""
 
         if type(budget) is not TreeScanBudget:
             raise HandleWriterError(
                 HandleWriterCode.INVALID_REQUEST,
-                "existing tree recovery scan requires an exact budget",
+                "existing tree read requires an exact budget",
             )
         ticket = self._authorize(
             relative_path,
@@ -3014,11 +3040,17 @@ class _WindowsHandleWriter:
         )
         root_lease: DirectoryHandleLease | None = None
         tree_lease: _ObservedTreeLease | None = None
-        with self._reserved(ticket, PathIntent.EXISTING_READ, ExpectedKind.DIRECTORY):
-            self._revalidate(ticket)
-            fences = self._fence_snapshot(ticket, omit_final=True)
-            root_handle = 0
-            try:
+        fences: list[int] = []
+        root_handle = 0
+        succeeded = False
+        try:
+            with self._reserved(
+                ticket,
+                PathIntent.EXISTING_READ,
+                ExpectedKind.DIRECTORY,
+            ):
+                self._revalidate(ticket)
+                fences = self._fence_snapshot(ticket, omit_final=True)
                 root_handle = self._api.open_handle(
                     ticket.path,
                     access=(
@@ -3038,7 +3070,7 @@ class _WindowsHandleWriter:
                 if not root_observed.is_directory:
                     raise HandleWriterError(
                         HandleWriterCode.TYPE_MISMATCH,
-                        "existing recovery object is not a directory",
+                        "existing read object is not a directory",
                     )
                 self._require_default_stream_only(root_handle, directory=True)
                 self._verify_identity(ticket.chain_snapshot[-1], root_observed)
@@ -3056,9 +3088,11 @@ class _WindowsHandleWriter:
                 fences = []
                 root_lease._sealed_for_observation = True
                 tree_lease = self.observe_tree(root_lease, budget)
-                snapshot = tree_lease.revalidate()
-                return snapshot, root_observed
-            finally:
+                tree_lease.revalidate()
+                succeeded = True
+                return root_lease, tree_lease
+        finally:
+            if not succeeded:
                 close_error: HandleWriterError | None = None
                 if tree_lease is not None and not tree_lease._closed:
                     try:
@@ -3082,6 +3116,218 @@ class _WindowsHandleWriter:
                 if close_error is not None:
                     self._seal(HandleWriterCode.HANDLE_CLOSE_FAILED)
                     raise close_error
+
+    def _open_existing_tree_for_quarantine(
+        self,
+        relative_path: str | os.PathLike[str],
+        budget: TreeScanBudget,
+    ) -> tuple[DirectoryHandleLease, DirectoryHandleLease, _ObservedTreeLease]:
+        """Hold one existing directory tree and its direct parent for quarantine."""
+
+        if type(budget) is not TreeScanBudget:
+            raise HandleWriterError(
+                HandleWriterCode.INVALID_REQUEST,
+                "quarantine tree observation requires an exact budget",
+            )
+        ticket = self._authorize(
+            relative_path,
+            intent=PathIntent.QUARANTINE_SOURCE,
+            expected_kind=ExpectedKind.DIRECTORY,
+        )
+        parent_lease: DirectoryHandleLease | None = None
+        root_lease: DirectoryHandleLease | None = None
+        tree_lease: _ObservedTreeLease | None = None
+        fences: list[int] = []
+        root_handle = 0
+        succeeded = False
+        try:
+            with self._reserved(
+                ticket,
+                PathIntent.QUARANTINE_SOURCE,
+                ExpectedKind.DIRECTORY,
+            ):
+                self._revalidate(ticket)
+                if (
+                    len(ticket.chain_snapshot) < 2
+                    or ticket.chain_snapshot[-2].path != ticket.path.parent
+                ):
+                    raise HandleWriterError(
+                        HandleWriterCode.PRECONDITION_FAILED,
+                        "quarantine source lacks an exact existing direct parent",
+                    )
+                fences = self._fence_snapshot(ticket, omit_final=True)
+                if not fences:
+                    raise HandleWriterError(
+                        HandleWriterCode.PRECONDITION_FAILED,
+                        "quarantine source lacks a verified parent fence",
+                    )
+                parent_handle = fences.pop()
+                parent_observed = self._observe_identity(parent_handle)
+                self._verify_identity(ticket.chain_snapshot[-2], parent_observed)
+                self._verify_final_path(parent_handle, ticket.path.parent)
+                self._verify_path_matches_handle(
+                    ticket.path.parent,
+                    parent_observed,
+                )
+                parent_lease = DirectoryHandleLease(
+                    self,
+                    parent_handle,
+                    ticket.path.parent,
+                    parent_observed,
+                    fence_handles=tuple(fences),
+                    _constructor=_DIRECTORY_LEASE_CONSTRUCTOR,
+                )
+                fences = []
+                root_handle = self._api.open_relative_directory_for_move(
+                    parent_lease._handle,
+                    ticket.path.name,
+                )
+                root_observed = self._observe_identity(root_handle)
+                if not root_observed.is_directory:
+                    raise HandleWriterError(
+                        HandleWriterCode.TYPE_MISMATCH,
+                        "quarantine source is not a directory",
+                    )
+                self._require_default_stream_only(root_handle, directory=True)
+                self._verify_identity(ticket.chain_snapshot[-1], root_observed)
+                self._verify_final_path(root_handle, ticket.path)
+                self._verify_path_matches_handle(ticket.path, root_observed)
+                root_lease = DirectoryHandleLease(
+                    self,
+                    root_handle,
+                    ticket.path,
+                    root_observed,
+                    parent_lease=parent_lease,
+                    _constructor=_DIRECTORY_LEASE_CONSTRUCTOR,
+                )
+                root_handle = 0
+                self.seal_directory_lease_for_observation(root_lease)
+                tree_lease = self.observe_tree(root_lease, budget)
+                tree_lease.revalidate()
+                succeeded = True
+                return parent_lease, root_lease, tree_lease
+        finally:
+            if not succeeded:
+                close_error: HandleWriterError | None = None
+                if tree_lease is not None and not tree_lease._closed:
+                    try:
+                        tree_lease.close()
+                    except HandleWriterError as exc:
+                        close_error = exc
+                if root_lease is not None and not root_lease._closed:
+                    try:
+                        root_lease.close()
+                    except HandleWriterError as exc:
+                        close_error = close_error or exc
+                if root_handle:
+                    try:
+                        self._api.close(root_handle)
+                    except HandleWriterError as exc:
+                        close_error = close_error or exc
+                if parent_lease is not None and not parent_lease._closed:
+                    try:
+                        parent_lease.close()
+                    except HandleWriterError as exc:
+                        close_error = close_error or exc
+                try:
+                    self._close_all(fences)
+                except HandleWriterError as exc:
+                    close_error = close_error or exc
+                if close_error is not None:
+                    self._seal(HandleWriterCode.HANDLE_CLOSE_FAILED)
+                    raise close_error
+
+    def _read_observed_tree_payloads(
+        self,
+        observed_tree: _ObservedTreeLease,
+    ) -> tuple[_TreeSnapshot, tuple[tuple[str, bytes], ...]]:
+        """Read exact file payloads while the complete observed tree stays live."""
+
+        if type(observed_tree) is not _ObservedTreeLease:
+            raise HandleWriterError(
+                HandleWriterCode.INVALID_REQUEST,
+                "tree payload read requires an exact observed tree lease",
+            )
+        observed_tree._assert_live_owner(self)
+        snapshot = observed_tree.revalidate()
+        nodes = {
+            relative_path: (handle, observed, kind)
+            for relative_path, handle, observed, kind in observed_tree._nodes
+        }
+        payloads: list[tuple[str, bytes]] = []
+        for row in snapshot.rows:
+            if row.kind is not TreeEntryKind.FILE:
+                continue
+            node = nodes.get(row.relative_path)
+            if node is None or node[2] is not TreeEntryKind.FILE:
+                raise HandleWriterError(
+                    HandleWriterCode.TREE_MISMATCH,
+                    "observed tree lost a declared file handle",
+                )
+            handle, before, _kind = node
+            current = self._observe_identity(handle)
+            if not self._same_object(before, current):
+                raise HandleWriterError(
+                    HandleWriterCode.HANDLE_IDENTITY_MISMATCH,
+                    "observed tree file identity changed before retained read",
+                )
+            payload = self._read_bounded_handle(
+                handle,
+                observed_tree._budget.maximum_file_bytes,
+            )
+            after = self._observe_identity(handle)
+            if (
+                not self._same_object(before, after)
+                or len(payload) != row.size_bytes
+                or hashlib.sha256(payload).hexdigest() != row.sha256
+            ):
+                raise HandleWriterError(
+                    HandleWriterCode.TREE_MISMATCH,
+                    "retained tree payload differs from its observed manifest",
+                )
+            payloads.append((row.relative_path, payload))
+        if observed_tree.revalidate() != snapshot:
+            raise HandleWriterError(
+                HandleWriterCode.DIRECTORY_CHANGED,
+                "retained source changed while payloads were read",
+            )
+        return snapshot, tuple(payloads)
+
+    def _observe_existing_tree_snapshot(
+        self,
+        relative_path: str | os.PathLike[str],
+        budget: TreeScanBudget,
+    ) -> tuple[_TreeSnapshot, _ObservedHandle]:
+        """Return detached recovery evidence after a complete handle scan.
+
+        The returned tuple is evidence only, never mutation authority. Every
+        handle and Guard ticket is consumed before return; callers must perform
+        a new scan for each recovery decision.
+        """
+
+        root_lease: DirectoryHandleLease | None = None
+        tree_lease: _ObservedTreeLease | None = None
+        try:
+            root_lease, tree_lease = self._open_existing_tree_for_read(
+                relative_path,
+                budget,
+            )
+            return tree_lease.revalidate(), root_lease._observed
+        finally:
+            close_error: HandleWriterError | None = None
+            if tree_lease is not None and not tree_lease._closed:
+                try:
+                    tree_lease.close()
+                except HandleWriterError as exc:
+                    close_error = exc
+            if root_lease is not None and not root_lease._closed:
+                try:
+                    root_lease.close()
+                except HandleWriterError as exc:
+                    close_error = close_error or exc
+            if close_error is not None:
+                self._seal(HandleWriterCode.HANDLE_CLOSE_FAILED)
+                raise close_error
 
     def _revalidate_immutable_file_lease(
         self,
@@ -3577,10 +3823,12 @@ class _WindowsHandleWriter:
         observed_tree: _ObservedTreeLease,
         target_relative_path: str | os.PathLike[str],
         journal: Any,
+        *,
+        quarantine: bool = False,
     ) -> DirectoryPublishReceipt:
-        """Publish one observed directory root through its existing DELETE handle.
+        """Move one observed directory root through its existing DELETE handle.
 
-        This private S3-E primitive is callable only from the fixed job
+        This private S3-E/S3-G primitive is callable only from the fixed job
         operation.  The journal owns PREPARED/MUTATED/POSTCONDITION/COMMITTED
         durability; the writer owns handle identity, no-replace rename and the
         independent target rescan.  It intentionally does not claim to freeze
@@ -3598,11 +3846,12 @@ class _WindowsHandleWriter:
         if (
             type(observed_tree) is not _ObservedTreeLease
             or type(permit) is not _DirectoryPublishJournalPermit
+            or type(quarantine) is not bool
             or any(not callable(getattr(journal, name, None)) for name in required_callbacks)
         ):
             raise HandleWriterError(
                 HandleWriterCode.INVALID_REQUEST,
-                "directory publish requires an exact observed tree and journal",
+                "directory move requires an exact observed tree, journal, and mode",
             )
         permit._consume(self, observed_tree, journal)
         observed_tree._assert_live_owner(self)
@@ -3621,13 +3870,21 @@ class _WindowsHandleWriter:
             ) from None
         source = self._authorize(
             source_relative,
-            intent=PathIntent.MOVE_SOURCE,
+            intent=(
+                PathIntent.QUARANTINE_SOURCE
+                if quarantine
+                else PathIntent.MOVE_SOURCE
+            ),
             expected_kind=ExpectedKind.DIRECTORY,
         )
         try:
             target = self._authorize(
                 target_relative_path,
-                intent=PathIntent.MOVE_TARGET,
+                intent=(
+                    PathIntent.QUARANTINE_TARGET
+                    if quarantine
+                    else PathIntent.MOVE_TARGET
+                ),
                 expected_kind=ExpectedKind.DIRECTORY,
             )
         except BaseException:
@@ -3700,8 +3957,24 @@ class _WindowsHandleWriter:
             # until that reservation has released both Guard tickets.
             with self._reserved_group(
                 (
-                    (source, PathIntent.MOVE_SOURCE, ExpectedKind.DIRECTORY),
-                    (target, PathIntent.MOVE_TARGET, ExpectedKind.DIRECTORY),
+                    (
+                        source,
+                        (
+                            PathIntent.QUARANTINE_SOURCE
+                            if quarantine
+                            else PathIntent.MOVE_SOURCE
+                        ),
+                        ExpectedKind.DIRECTORY,
+                    ),
+                    (
+                        target,
+                        (
+                            PathIntent.QUARANTINE_TARGET
+                            if quarantine
+                            else PathIntent.MOVE_TARGET
+                        ),
+                        ExpectedKind.DIRECTORY,
+                    ),
                 )
             ):
                 capabilities_consumed = True

@@ -1913,6 +1913,42 @@ class _BoundaryCore:
             raise ProductionBoundaryError(
                 BoundaryErrorCode.BOUNDARY_STATE_CHANGED,
                 "job pair issuance returned a changed capability type",
+        )
+        return result
+
+    def issue_quarantine_pair_for_job(
+        self,
+        source_path: str | os.PathLike[str],
+        *,
+        evidence: PairEvidence,
+        context: OperationContext,
+        context_pin: _JobContextPin,
+        context_binding: str,
+        runtime_mutex_lease: RuntimeMutexLease,
+    ) -> QuarantinePairCandidate:
+        validated = self.validate_test_job_context_pin(
+            context,
+            context_pin,
+            context_binding,
+        )
+        if validated != context.digest:
+            raise ProductionBoundaryError(
+                BoundaryErrorCode.INVALID_CONTEXT,
+                "job quarantine issuance lost its exact context pin",
+                operation_reference=_public_operation_reference(context),
+            )
+        result = self._issue_pair(
+            kind=PairKind.QUARANTINE,
+            source_path=source_path,
+            target_path=None,
+            evidence=evidence,
+            context=context,
+            runtime_mutex_lease=runtime_mutex_lease,
+        )
+        if type(result) is not QuarantinePairCandidate:
+            raise ProductionBoundaryError(
+                BoundaryErrorCode.BOUNDARY_STATE_CHANGED,
+                "job quarantine issuance returned a changed capability type",
             )
         return result
 
@@ -1937,6 +1973,40 @@ class _BoundaryCore:
                 raise ProductionBoundaryError(
                     BoundaryErrorCode.PAIR_MEMBER_MISMATCH,
                     "job publish requires a publish pair capability",
+                    operation_reference=_public_operation_reference(context),
+                )
+            view = self._revalidate_reserved_pair(
+                reservation,
+                context,
+                runtime_mutex_lease=runtime_mutex_lease,
+            )
+            return reservation, view
+        except Exception:
+            if reservation is not None and not reservation._closed:
+                self._finish_pair(reservation, CapabilityLifecycle.FAILED)
+            raise
+
+    def reserve_quarantine_pair_for_job(
+        self,
+        token: QuarantinePairCandidate,
+        *,
+        context: OperationContext,
+        context_pin: _JobContextPin,
+        context_binding: str,
+        runtime_mutex_lease: RuntimeMutexLease,
+    ) -> tuple[_ReservedPairLease, _ReservedPairView]:
+        reservation: _ReservedPairLease | None = None
+        try:
+            reservation = self._reserve_pair(
+                token,
+                context,
+                context_pin=context_pin,
+                context_binding=context_binding,
+            )
+            if reservation._pair.kind is not PairKind.QUARANTINE:
+                raise ProductionBoundaryError(
+                    BoundaryErrorCode.PAIR_MEMBER_MISMATCH,
+                    "job quarantine requires a quarantine pair capability",
                     operation_reference=_public_operation_reference(context),
                 )
             view = self._revalidate_reserved_pair(
@@ -2114,7 +2184,8 @@ class _BoundaryCore:
                 pair_id=pair_id,
                 evidence_digest=evidence.digest,
             )
-            self._validate_staging_source(source_decision, evidence)
+            if kind is PairKind.PUBLISH:
+                self._validate_staging_source(source_decision, evidence)
             self._validate_classification_flow(
                 context,
                 source_decision,
@@ -3872,6 +3943,39 @@ class _TestWorkspaceBoundary:
             runtime_mutex_lease=runtime_mutex_lease,
         )
 
+    def _issue_quarantine_pair_for_job(
+        self,
+        source_path: str | os.PathLike[str],
+        *,
+        manifest_id: str,
+        manifest_sha256: str,
+        source_tree_sha256: str,
+        entry_count: int,
+        total_bytes: int,
+        checkpoint_id: str,
+        checkpoint_manifest_sha256: str,
+        context: OperationContext,
+        pin: _JobContextPin,
+        binding_sha256: str,
+        runtime_mutex_lease: RuntimeMutexLease,
+    ) -> QuarantinePairCandidate:
+        return self.__core.issue_quarantine_pair_for_job(
+            source_path,
+            evidence=PairEvidence(
+                manifest_id=manifest_id,
+                manifest_sha256=manifest_sha256,
+                source_tree_sha256=source_tree_sha256,
+                entry_count=entry_count,
+                total_bytes=total_bytes,
+                checkpoint_id=checkpoint_id,
+                checkpoint_manifest_sha256=checkpoint_manifest_sha256,
+            ),
+            context=context,
+            context_pin=pin,
+            context_binding=binding_sha256,
+            runtime_mutex_lease=runtime_mutex_lease,
+        )
+
     def _reserve_publish_pair_for_job(
         self,
         token: MovePairCandidate,
@@ -3882,6 +3986,23 @@ class _TestWorkspaceBoundary:
         runtime_mutex_lease: RuntimeMutexLease,
     ) -> tuple[_ReservedPairLease, _ReservedPairView]:
         return self.__core.reserve_publish_pair_for_job(
+            token,
+            context=context,
+            context_pin=pin,
+            context_binding=binding_sha256,
+            runtime_mutex_lease=runtime_mutex_lease,
+        )
+
+    def _reserve_quarantine_pair_for_job(
+        self,
+        token: QuarantinePairCandidate,
+        *,
+        context: OperationContext,
+        pin: _JobContextPin,
+        binding_sha256: str,
+        runtime_mutex_lease: RuntimeMutexLease,
+    ) -> tuple[_ReservedPairLease, _ReservedPairView]:
+        return self.__core.reserve_quarantine_pair_for_job(
             token,
             context=context,
             context_pin=pin,

@@ -54,6 +54,9 @@ _JOB_RUNTIME_CONSTRUCTOR = object()
 _OPERATION_LEASE_CONSTRUCTOR = object()
 _STAGING_LEASE_CONSTRUCTOR = object()
 _OBSERVED_JOB_TREE_CONSTRUCTOR = object()
+_OBSERVED_QUARANTINE_TREE_CONSTRUCTOR = object()
+_RETAINED_RESTORE_SOURCE_CONSTRUCTOR = object()
+_PREPARED_RETAINED_RESTORE_CONSTRUCTOR = object()
 _PUBLISH_JOURNAL_CONSTRUCTOR = object()
 
 
@@ -125,6 +128,18 @@ class _ContextAuthority(Protocol):
     ) -> Any: ...
 
     def _reserve_publish_pair_for_job(
+        self,
+        token: Any,
+        **kwargs: Any,
+    ) -> tuple[Any, Any]: ...
+
+    def _issue_quarantine_pair_for_job(
+        self,
+        source_path: str | Path,
+        **kwargs: Any,
+    ) -> Any: ...
+
+    def _reserve_quarantine_pair_for_job(
         self,
         token: Any,
         **kwargs: Any,
@@ -388,6 +403,94 @@ class PublishOperationReceipt:
         raise TypeError("publish operation receipts cannot be serialized")
 
 
+@dataclass(frozen=True, slots=True)
+class QuarantineOperationReceipt:
+    transaction_id: str
+    pair_id: str
+    quarantine_locator: str
+    completion_kind: OperationCompletionKind
+    native_directory_receipt_sha256: str | None
+    recovery_observation_receipt_sha256: str | None
+    recovery_guarantee_scope: str | None
+    committed_segment_sha256: str
+    committed_sequence: int
+    quarantine_identity_hmac_sha256: str
+    locator_mode: OperationLocatorMode
+    classification: DataClassification
+    capability_state: str = "TEST_LOCAL_DURABLE_QUARANTINE_MOVE"
+
+    def __post_init__(self) -> None:
+        if (
+            type(self.locator_mode) is not OperationLocatorMode
+            or type(self.classification) is not DataClassification
+            or not _is_sha256(self.quarantine_identity_hmac_sha256)
+            or (
+                self.classification is DataClassification.RESTRICTED
+                and (
+                    self.locator_mode is not OperationLocatorMode.HMAC_ONLY
+                    or not _is_sha256(self.quarantine_locator)
+                )
+            )
+            or (
+                self.classification is DataClassification.INTERNAL
+                and self.locator_mode is not OperationLocatorMode.SAFE_RELATIVE
+            )
+        ):
+            raise TypeError("quarantine receipt locator classification is invalid")
+
+    def __repr__(self) -> str:
+        return (
+            "QuarantineOperationReceipt(transaction_id='<redacted>', "
+            "pair_id='<redacted>', "
+            f"committed_sequence={self.committed_sequence}, "
+            "quarantine='<redacted>')"
+        )
+
+    def __reduce__(self) -> Any:
+        raise TypeError("quarantine operation receipts cannot be serialized")
+
+
+@dataclass(frozen=True, slots=True)
+class RetainedRestoreOperationReceipt:
+    publish_receipt: PublishOperationReceipt
+    retained_source_locator: str
+    retained_source_identity_hmac_sha256: str
+    retained_source_manifest_sha256: str
+    locator_mode: OperationLocatorMode
+    classification: DataClassification
+    capability_state: str = "TEST_LOCAL_RETAINED_RESTORE"
+
+    def __post_init__(self) -> None:
+        if (
+            type(self.publish_receipt) is not PublishOperationReceipt
+            or type(self.locator_mode) is not OperationLocatorMode
+            or type(self.classification) is not DataClassification
+            or not _is_sha256(self.retained_source_identity_hmac_sha256)
+            or not _is_sha256(self.retained_source_manifest_sha256)
+            or (
+                self.classification is DataClassification.RESTRICTED
+                and (
+                    self.locator_mode is not OperationLocatorMode.HMAC_ONLY
+                    or not _is_sha256(self.retained_source_locator)
+                )
+            )
+            or (
+                self.classification is DataClassification.INTERNAL
+                and self.locator_mode is not OperationLocatorMode.SAFE_RELATIVE
+            )
+        ):
+            raise TypeError("retained restore receipt binding is invalid")
+
+    def __repr__(self) -> str:
+        return (
+            "RetainedRestoreOperationReceipt("
+            "publish_receipt='<redacted>', retained_source='<redacted>')"
+        )
+
+    def __reduce__(self) -> Any:
+        raise TypeError("retained restore receipts cannot be serialized")
+
+
 def _receipt_from_authenticated_terminal(
     transition: OperationTransition,
     receipt: OperationSegmentReceipt,
@@ -429,6 +532,52 @@ def _receipt_from_authenticated_terminal(
         committed_segment_sha256=receipt.segment_sha256,
         committed_sequence=receipt.sequence,
         target_identity_hmac_sha256=(
+            transition.target_evidence.durable_identity_sha256
+        ),
+        locator_mode=transition.locator_mode,
+        classification=transition.classification,
+    )
+
+
+def _quarantine_receipt_from_authenticated_terminal(
+    transition: OperationTransition,
+    receipt: OperationSegmentReceipt,
+) -> QuarantineOperationReceipt:
+    if (
+        type(transition) is not OperationTransition
+        or type(receipt) is not OperationSegmentReceipt
+        or receipt.transition_id != transition.transition_id
+        or receipt.transaction_id != transition.transaction_id
+        or receipt.state is not transition.next_state
+        or transition.next_state
+        not in {OperationState.COMMITTED, OperationState.RECOVERED_COMMIT}
+        or transition.completion_kind
+        not in {
+            OperationCompletionKind.NATIVE_COMMIT,
+            OperationCompletionKind.RECOVERED_COMMIT_WITH_NATIVE_MUTATION,
+            OperationCompletionKind.RECOVERED_COMMIT_OBSERVATION_ONLY,
+        }
+        or transition.target_evidence is None
+    ):
+        raise JobOperationError(
+            JobOperationCode.OPERATION_LEDGER_FAILED,
+            "quarantine receipt requires an exact authenticated terminal",
+        )
+    return QuarantineOperationReceipt(
+        transaction_id=transition.transaction_id,
+        pair_id=transition.pair_id,
+        quarantine_locator=transition.target_locator,
+        completion_kind=transition.completion_kind,
+        native_directory_receipt_sha256=(
+            transition.native_mutation_receipt_sha256
+        ),
+        recovery_observation_receipt_sha256=(
+            transition.recovery_observation_receipt_sha256
+        ),
+        recovery_guarantee_scope=transition.recovery_guarantee_scope,
+        committed_segment_sha256=receipt.segment_sha256,
+        committed_sequence=receipt.sequence,
+        quarantine_identity_hmac_sha256=(
             transition.target_evidence.durable_identity_sha256
         ),
         locator_mode=transition.locator_mode,
@@ -515,6 +664,7 @@ class _TestJobRuntime:
                 if (
                     transition.next_state
                     not in {OperationState.COMMITTED, OperationState.RECOVERED_COMMIT}
+                    or context.purpose is Purpose.QUARANTINE
                     or transition.context_binding_sha256 != binding
                     or transition.manifest_sha256 != manifest.manifest_sha256
                     or transition.budget_sha256 != budget.digest
@@ -536,6 +686,71 @@ class _TestJobRuntime:
             raise JobOperationError(
                 JobOperationCode.OPERATION_LEDGER_FAILED,
                 "durable publish replay failed safely",
+            ) from None
+
+    def replay_committed_quarantine(
+        self,
+        context: OperationContext,
+        manifest: DeclaredTreeManifest,
+        budget: JobResourceBudget,
+    ) -> QuarantineOperationReceipt:
+        """Return one durable quarantine terminal without attempting another move."""
+
+        if self._operation_ledger is None:
+            raise JobOperationError(
+                JobOperationCode.PUBLISH_UNAVAILABLE,
+                "quarantine replay requires the durable operation ledger",
+            )
+        binding = self._validate_context_and_manifest(context, manifest, budget)
+        if context.purpose is not Purpose.QUARANTINE:
+            raise JobOperationError(
+                JobOperationCode.INVALID_CONTEXT,
+                "quarantine replay requires an exact quarantine context",
+            )
+        try:
+            with self._writer.acquire_runtime_mutex() as lease:
+                self._ledger._rescan_under_existing_mutex(lease)
+                self._validate_operation_audit_bindings(lease)
+                result = self._operation_ledger.operation_result_under_existing_mutex(
+                    lease,
+                    self._operation_ledger.operation_reference(
+                        context.operation_id,
+                        context.classification,
+                    ),
+                )
+                if result is None:
+                    raise JobOperationError(
+                        JobOperationCode.PUBLISH_UNAVAILABLE,
+                        "operation has no durable quarantine result",
+                    )
+                transition, receipt = result
+                if (
+                    transition.next_state
+                    not in {OperationState.COMMITTED, OperationState.RECOVERED_COMMIT}
+                    or transition.context_binding_sha256 != binding
+                    or transition.manifest_sha256 != manifest.manifest_sha256
+                    or transition.budget_sha256 != budget.digest
+                    or transition.completion_kind
+                    not in {
+                        OperationCompletionKind.NATIVE_COMMIT,
+                        OperationCompletionKind.RECOVERED_COMMIT_WITH_NATIVE_MUTATION,
+                        OperationCompletionKind.RECOVERED_COMMIT_OBSERVATION_ONLY,
+                    }
+                ):
+                    raise JobOperationError(
+                        JobOperationCode.PUBLISH_UNAVAILABLE,
+                        "operation is not an exact committed quarantine replay",
+                    )
+                return _quarantine_receipt_from_authenticated_terminal(
+                    transition,
+                    receipt,
+                )
+        except JobOperationError:
+            raise
+        except Exception:
+            raise JobOperationError(
+                JobOperationCode.OPERATION_LEDGER_FAILED,
+                "durable quarantine replay failed safely",
             ) from None
 
     def begin_operation(
@@ -688,6 +903,15 @@ class _TestJobRuntime:
             (Caller.BACKUP_SERVICE, Purpose.BACKUP),
             (Caller.BACKUP_SERVICE, Purpose.RESTORE),
         }
+        quarantine_actors = {
+            (Caller.DATABASE_SERVICE, Purpose.QUARANTINE),
+            (Caller.IMPORT_SERVICE, Purpose.QUARANTINE),
+            (Caller.ASSET_SERVICE, Purpose.QUARANTINE),
+            (Caller.EXPORT_SERVICE, Purpose.QUARANTINE),
+            (Caller.REPORT_SERVICE, Purpose.QUARANTINE),
+            (Caller.BACKUP_SERVICE, Purpose.QUARANTINE),
+            (Caller.TEST_LAB, Purpose.QUARANTINE),
+        }
         allowed_actor = (
             context.classification is DataClassification.INTERNAL
             and (context.caller, context.purpose) in internal_job_actors
@@ -695,6 +919,10 @@ class _TestJobRuntime:
             context.caller is Caller.IMPORT_SERVICE
             and context.purpose is Purpose.COPY_SOURCE
             and context.classification is DataClassification.RESTRICTED
+        ) or (
+            (context.caller, context.purpose) in quarantine_actors
+            and context.classification
+            in {DataClassification.INTERNAL, DataClassification.RESTRICTED}
         )
         if not allowed_actor:
             raise JobOperationError(
@@ -762,11 +990,15 @@ class _OperationLease:
         "_owner_thread",
         "_started_at",
         "_staging",
+        "_quarantine_source",
+        "_retained_restore",
         "_reserved_pair",
         "_pair_token",
         "_pair_view",
         "_transaction_id",
         "_publish_receipt",
+        "_quarantine_receipt",
+        "_retained_restore_receipt",
         "_state",
         "_closed",
         "_close_had_secondary_error",
@@ -798,11 +1030,15 @@ class _OperationLease:
         self._owner_thread = threading.get_ident()
         self._started_at = time.monotonic()
         self._staging: _JobStagingLease | None = None
+        self._quarantine_source: _ObservedQuarantineTreeLease | None = None
+        self._retained_restore: _PreparedRetainedRestore | None = None
         self._reserved_pair: Any | None = None
         self._pair_token: Any | None = None
         self._pair_view: Any | None = None
         self._transaction_id: str | None = None
         self._publish_receipt: PublishOperationReceipt | None = None
+        self._quarantine_receipt: QuarantineOperationReceipt | None = None
+        self._retained_restore_receipt: RetainedRestoreOperationReceipt | None = None
         self._state = "ACTIVE"
         self._closed = False
         self._close_had_secondary_error = False
@@ -876,6 +1112,180 @@ class _OperationLease:
             if cleanup_error is not None:
                 self._runtime._writer.seal_after_indeterminate_mutation()
                 raise cleanup_error from None
+            raise
+
+    def observe_quarantine_source(
+        self,
+        source_relative_path: str | Path,
+    ) -> _ObservedQuarantineTreeLease:
+        """Bind one existing business object tree to a live quarantine lease."""
+
+        self._assert_live()
+        if (
+            self._runtime._operation_ledger is None
+            or self._context.purpose is not Purpose.QUARANTINE
+            or self._state != "ACTIVE"
+            or self._staging is not None
+            or self._quarantine_source is not None
+        ):
+            raise JobOperationError(
+                JobOperationCode.INVALID_LEASE,
+                "quarantine observation requires one fresh quarantine operation",
+            )
+        parent: DirectoryHandleLease | None = None
+        root: DirectoryHandleLease | None = None
+        low_level: _ObservedTreeLease | None = None
+        try:
+            parent, root, low_level = (
+                self._runtime._writer._open_existing_tree_for_quarantine(
+                    source_relative_path,
+                    self._budget.tree_budget,
+                )
+            )
+            snapshot = low_level.revalidate()
+            _require_manifest_snapshot(self._manifest, snapshot)
+            head = self._runtime._ledger._rescan_under_existing_mutex(self._mutex)
+            if head != self._ledger_head:
+                raise JobOperationError(
+                    JobOperationCode.LEDGER_CHANGED,
+                    "audit ledger changed during quarantine source observation",
+                )
+            self._check_runtime_budget()
+            observed = _ObservedQuarantineTreeLease(
+                self,
+                Path(source_relative_path),
+                parent,
+                root,
+                low_level,
+                _evidence_from_snapshot(snapshot, self._budget, head),
+                _constructor=_OBSERVED_QUARANTINE_TREE_CONSTRUCTOR,
+            )
+            parent = None
+            root = None
+            low_level = None
+            self._quarantine_source = observed
+            self._state = "QUARANTINE_TREE_OBSERVED"
+            return observed
+        except BaseException:
+            self._state = "QUARANTINE_OBSERVATION_FAILED_NO_MUTATION"
+            close_error: BaseException | None = None
+            if low_level is not None and not low_level._closed:
+                try:
+                    low_level.close()
+                except BaseException as exc:
+                    close_error = exc
+            if root is not None and not root._closed:
+                try:
+                    root.close()
+                except BaseException as exc:
+                    close_error = close_error or exc
+            if parent is not None and not parent._closed:
+                try:
+                    parent.close()
+                except BaseException as exc:
+                    close_error = close_error or exc
+            if close_error is not None:
+                self._runtime._writer.seal_after_indeterminate_mutation()
+                raise close_error from None
+            raise
+
+    def prepare_retained_restore(
+        self,
+        quarantine_relative_path: str | Path,
+    ) -> _PreparedRetainedRestore:
+        """Clone an immutable quarantine tree into staging while retaining it."""
+
+        self._assert_live()
+        canonical_source = _validate_internal_quarantine_object_path(
+            quarantine_relative_path
+        )
+        if (
+            self._runtime._operation_ledger is None
+            or self._context.classification is not DataClassification.INTERNAL
+            or self._context.caller is not Caller.BACKUP_SERVICE
+            or self._context.purpose is not Purpose.RESTORE
+            or self._state != "ACTIVE"
+            or self._staging is not None
+            or self._retained_restore is not None
+        ):
+            raise JobOperationError(
+                JobOperationCode.INVALID_LEASE,
+                "retained restore requires one fresh internal restore operation",
+            )
+        source_root: DirectoryHandleLease | None = None
+        source_tree: _ObservedTreeLease | None = None
+        source: _RetainedRestoreSourceLease | None = None
+        try:
+            source_root, source_tree = (
+                self._runtime._writer._open_existing_tree_for_read(
+                    canonical_source,
+                    self._budget.tree_budget,
+                )
+            )
+            snapshot, payload_rows = (
+                self._runtime._writer._read_observed_tree_payloads(source_tree)
+            )
+            _require_manifest_snapshot(self._manifest, snapshot)
+            head = self._runtime._ledger._rescan_under_existing_mutex(self._mutex)
+            if head != self._ledger_head:
+                raise JobOperationError(
+                    JobOperationCode.LEDGER_CHANGED,
+                    "audit ledger changed during retained restore observation",
+                )
+            source = _RetainedRestoreSourceLease(
+                self,
+                canonical_source,
+                source_root,
+                source_tree,
+                snapshot,
+                _constructor=_RETAINED_RESTORE_SOURCE_CONSTRUCTOR,
+            )
+            source_root = None
+            source_tree = None
+            staging = self.create_fixed_staging()
+            payloads = dict(payload_rows)
+            for entry in self._manifest.entries:
+                if entry.kind is TreeEntryKind.DIRECTORY:
+                    staging.create_declared_directory(entry.relative_path)
+                else:
+                    payload = payloads.get(entry.relative_path)
+                    if payload is None:
+                        raise JobOperationError(
+                            JobOperationCode.TREE_MISMATCH,
+                            "retained source lost a declared file payload",
+                        )
+                    staging.create_declared_file(entry.relative_path, payload)
+            observed = staging.seal_and_observe()
+            source.revalidate()
+            prepared = _PreparedRetainedRestore(
+                self,
+                source,
+                observed,
+                _constructor=_PREPARED_RETAINED_RESTORE_CONSTRUCTOR,
+            )
+            self._retained_restore = prepared
+            return prepared
+        except BaseException:
+            self._state = "RETAINED_RESTORE_PREPARE_FAILED_RESIDUE_RETAINED"
+            close_error: BaseException | None = None
+            if source is not None and not source._closed:
+                try:
+                    source.close()
+                except BaseException as exc:
+                    close_error = exc
+            if source_tree is not None and not source_tree._closed:
+                try:
+                    source_tree.close()
+                except BaseException as exc:
+                    close_error = close_error or exc
+            if source_root is not None and not source_root._closed:
+                try:
+                    source_root.close()
+                except BaseException as exc:
+                    close_error = close_error or exc
+            if close_error is not None:
+                self._runtime._writer.seal_after_indeterminate_mutation()
+                raise close_error from None
             raise
 
     def authorize_publish(
@@ -993,6 +1403,147 @@ class _OperationLease:
                     self._runtime._writer.seal_after_indeterminate_mutation()
             self._state = "PAIR_AUTHORIZATION_FAILED_RESIDUE_RETAINED"
             raise
+
+    def authorize_quarantine(
+        self,
+        observed: _ObservedQuarantineTreeLease,
+        *,
+        checkpoint_manifest_sha256: str,
+    ) -> Any:
+        """Issue and reserve one exact quarantine pair under the live mutex."""
+
+        self._assert_live()
+        if (
+            self._runtime._operation_ledger is None
+            or self._state != "QUARANTINE_TREE_OBSERVED"
+            or type(observed) is not _ObservedQuarantineTreeLease
+            or observed is not self._quarantine_source
+            or self._reserved_pair is not None
+            or not _is_sha256(checkpoint_manifest_sha256)
+        ):
+            raise JobOperationError(
+                JobOperationCode.PUBLISH_UNAVAILABLE,
+                "quarantine authorization requires one exact observed source",
+            )
+        evidence = observed.revalidate()
+        checkpoint_id = self._context.scope_value(ScopeKind.CHECKPOINT_ID)
+        if checkpoint_id is None:
+            raise JobOperationError(
+                JobOperationCode.INVALID_CONTEXT,
+                "quarantine authorization requires the checkpoint scope",
+            )
+        token: Any | None = None
+        reservation: Any | None = None
+        try:
+            token = self._runtime._boundary._issue_quarantine_pair_for_job(
+                observed._source_relative_path,
+                manifest_id=self._manifest.manifest_id,
+                manifest_sha256=evidence.manifest_sha256,
+                source_tree_sha256=evidence.source_tree_sha256,
+                entry_count=evidence.entry_count,
+                total_bytes=evidence.total_bytes,
+                checkpoint_id=checkpoint_id,
+                checkpoint_manifest_sha256=checkpoint_manifest_sha256,
+                context=self._context,
+                pin=self._context_pin,
+                binding_sha256=self._context_binding,
+                runtime_mutex_lease=self._mutex,
+            )
+            reservation, view = (
+                self._runtime._boundary._reserve_quarantine_pair_for_job(
+                    token,
+                    context=self._context,
+                    pin=self._context_pin,
+                    binding_sha256=self._context_binding,
+                    runtime_mutex_lease=self._mutex,
+                )
+            )
+            declared = view.evidence
+            if (
+                view.source_relative_path != observed._source_relative_path
+                or getattr(view.kind, "value", None) != "QUARANTINE"
+                or declared.manifest_sha256 != evidence.manifest_sha256
+                or declared.source_tree_sha256 != evidence.source_tree_sha256
+                or declared.entry_count != evidence.entry_count
+                or declared.total_bytes != evidence.total_bytes
+            ):
+                raise JobOperationError(
+                    JobOperationCode.TREE_MISMATCH,
+                    "reserved quarantine declaration differs from the live source",
+                )
+            previous_head = self._ledger_head
+            new_head = self._runtime._ledger._rescan_under_existing_mutex(self._mutex)
+            if (
+                new_head.epoch_id != previous_head.epoch_id
+                or new_head.active_revision_id != previous_head.active_revision_id
+                or new_head.active_revision_sequence
+                != previous_head.active_revision_sequence
+                or new_head.last_sequence != previous_head.last_sequence + 2
+                or new_head.segment_count != previous_head.segment_count + 2
+            ):
+                raise JobOperationError(
+                    JobOperationCode.LEDGER_CHANGED,
+                    "quarantine pair audit did not advance the expected ledger head",
+                )
+            observed._assert_local_live()
+            snapshot = observed._low_level.revalidate()
+            observed._compare_snapshot(snapshot)
+            self._ledger_head = new_head
+            observed._evidence = _evidence_from_snapshot(
+                snapshot,
+                self._budget,
+                new_head,
+            )
+            transaction_digest = hashlib.sha256(
+                b"M0-QUARANTINE-TRANSACTION-ID-V1\0"
+                + self._context.digest.encode("ascii")
+                + view.pair_id.encode("ascii")
+            ).hexdigest().upper()
+            self._reserved_pair = reservation
+            self._pair_token = token
+            self._pair_view = view
+            self._transaction_id = f"TXN-{transaction_digest[:32]}"
+            self._state = "QUARANTINE_PAIR_RESERVED"
+            return token
+        except BaseException:
+            if reservation is not None and not getattr(reservation, "_closed", True):
+                try:
+                    self._runtime._boundary._finish_reserved_pair_for_job(
+                        reservation,
+                        context=self._context,
+                        pin=self._context_pin,
+                        binding_sha256=self._context_binding,
+                        lifecycle="FAILED",
+                    )
+                except BaseException:
+                    self._runtime._writer.seal_after_indeterminate_mutation()
+            self._state = "QUARANTINE_AUTHORIZATION_FAILED_SOURCE_RETAINED"
+            raise
+
+    def authorize_retained_restore(
+        self,
+        prepared: _PreparedRetainedRestore,
+        target_relative_path: str | Path,
+        *,
+        checkpoint_manifest_sha256: str,
+    ) -> Any:
+        self._assert_live()
+        if (
+            type(prepared) is not _PreparedRetainedRestore
+            or prepared is not self._retained_restore
+            or prepared._operation is not self
+            or self._context.purpose is not Purpose.RESTORE
+        ):
+            raise JobOperationError(
+                JobOperationCode.INVALID_LEASE,
+                "retained restore authorization requires its exact prepared lease",
+            )
+        prepared._assert_live()
+        return self.authorize_publish(
+            prepared._observed,
+            target_relative_path,
+            checkpoint_manifest_sha256=checkpoint_manifest_sha256,
+        )
 
     def execute_publish_pair(
         self,
@@ -1160,6 +1711,215 @@ class _OperationLease:
                 "handle-bound publish failed; residue was retained for reconciliation",
             ) from None
 
+    def execute_quarantine_pair(
+        self,
+        token: Any,
+        observed: _ObservedQuarantineTreeLease,
+    ) -> QuarantineOperationReceipt:
+        """The sole S3-G entry that may move an observed tree into quarantine."""
+
+        self._assert_live()
+        if (
+            self._runtime._operation_ledger is None
+            or self._state != "QUARANTINE_PAIR_RESERVED"
+            or token is not self._pair_token
+            or type(observed) is not _ObservedQuarantineTreeLease
+            or observed is not self._quarantine_source
+            or self._reserved_pair is None
+            or self._pair_view is None
+            or getattr(self._pair_view.kind, "value", None) != "QUARANTINE"
+            or self._transaction_id is None
+        ):
+            raise JobOperationError(
+                JobOperationCode.PUBLISH_UNAVAILABLE,
+                "quarantine execution requires its exact reserved pair and source",
+            )
+        observed.revalidate()
+        previous_head = self._ledger_head
+        validated_view = self._runtime._boundary._validate_reserved_pair_for_job(
+            self._reserved_pair,
+            context=self._context,
+            pin=self._context_pin,
+            binding_sha256=self._context_binding,
+            runtime_mutex_lease=self._mutex,
+        )
+        if validated_view != self._pair_view:
+            raise JobOperationError(
+                JobOperationCode.PUBLISH_UNAVAILABLE,
+                "reserved quarantine pair changed before the mutation boundary",
+            )
+        final_head = self._runtime._ledger._rescan_under_existing_mutex(self._mutex)
+        if (
+            final_head.epoch_id != previous_head.epoch_id
+            or final_head.active_revision_id != previous_head.active_revision_id
+            or final_head.active_revision_sequence
+            != previous_head.active_revision_sequence
+            or final_head.last_sequence != previous_head.last_sequence + 1
+            or final_head.segment_count != previous_head.segment_count + 1
+        ):
+            raise JobOperationError(
+                JobOperationCode.LEDGER_CHANGED,
+                "final quarantine revalidation did not advance the expected audit head",
+            )
+        observed._assert_local_live()
+        final_snapshot = observed._low_level.revalidate()
+        observed._compare_snapshot(final_snapshot)
+        self._ledger_head = final_head
+        observed._evidence = _evidence_from_snapshot(
+            final_snapshot,
+            self._budget,
+            final_head,
+        )
+        directory_publish_permit = (
+            self._runtime._writer._issue_directory_publish_journal_permit(
+                observed._low_level
+            )
+        )
+        journal = _PublishOperationJournal(
+            self,
+            observed,
+            directory_publish_permit=directory_publish_permit,
+            _constructor=_PUBLISH_JOURNAL_CONSTRUCTOR,
+        )
+        try:
+            directory_receipt = (
+                self._runtime._writer._publish_observed_directory_no_replace(
+                    observed._low_level,
+                    self._pair_view.target_relative_path,
+                    journal,
+                    quarantine=True,
+                )
+            )
+            committed = journal.committed_receipt
+            if (
+                type(directory_receipt) is not DirectoryPublishReceipt
+                or committed is None
+                or committed.state is not OperationState.COMMITTED
+                or committed.transaction_id != self._transaction_id
+            ):
+                raise JobOperationError(
+                    JobOperationCode.OPERATION_LEDGER_FAILED,
+                    "quarantine move returned without an exact committed terminal",
+                )
+            terminal_result = (
+                self._runtime._operation_ledger.transaction_result_under_existing_mutex(
+                    self._mutex,
+                    self._transaction_id,
+                )
+            )
+            if terminal_result is None:
+                raise JobOperationError(
+                    JobOperationCode.OPERATION_LEDGER_FAILED,
+                    "committed quarantine terminal is absent after authenticated rescan",
+                )
+            terminal, rescanned_receipt = terminal_result
+            if (
+                rescanned_receipt != committed
+                or terminal.native_mutation_receipt_sha256
+                != directory_receipt.receipt_sha256
+            ):
+                raise JobOperationError(
+                    JobOperationCode.OPERATION_LEDGER_FAILED,
+                    "committed quarantine terminal differs after authenticated rescan",
+                )
+            receipt = _quarantine_receipt_from_authenticated_terminal(
+                terminal,
+                rescanned_receipt,
+            )
+            self._runtime._boundary._finish_reserved_pair_for_job(
+                self._reserved_pair,
+                context=self._context,
+                pin=self._context_pin,
+                binding_sha256=self._context_binding,
+                lifecycle="CONSUMED",
+            )
+            observed.close()
+            self._quarantine_receipt = receipt
+            self._state = "QUARANTINE_COMMITTED"
+            return receipt
+        except BaseException as exc:
+            terminal_already_committed = journal.committed_receipt is not None
+            if not terminal_already_committed:
+                try:
+                    journal.record_failure(exc)
+                except BaseException:
+                    self._runtime._writer.seal_after_indeterminate_mutation()
+            if (
+                self._reserved_pair is not None
+                and not getattr(self._reserved_pair, "_closed", True)
+            ):
+                try:
+                    self._runtime._boundary._finish_reserved_pair_for_job(
+                        self._reserved_pair,
+                        context=self._context,
+                        pin=self._context_pin,
+                        binding_sha256=self._context_binding,
+                        lifecycle=("CONSUMED" if terminal_already_committed else "FAILED"),
+                    )
+                except BaseException:
+                    self._runtime._writer.seal_after_indeterminate_mutation()
+            if terminal_already_committed or journal.mutation_may_have_occurred:
+                self._runtime._writer.seal_after_indeterminate_mutation()
+            self._state = (
+                "QUARANTINE_COMMITTED_CLEANUP_FAILED"
+                if terminal_already_committed
+                else "QUARANTINE_FAILED_SOURCE_OR_TARGET_RETAINED"
+            )
+            if isinstance(exc, JobOperationError):
+                raise
+            raise JobOperationError(
+                JobOperationCode.PUBLISH_FAILED,
+                "handle-bound quarantine failed; evidence was retained for reconciliation",
+            ) from None
+
+    def execute_retained_restore_pair(
+        self,
+        token: Any,
+        prepared: _PreparedRetainedRestore,
+    ) -> RetainedRestoreOperationReceipt:
+        """Publish the cloned tree and prove the quarantine source stayed intact."""
+
+        self._assert_live()
+        if (
+            type(prepared) is not _PreparedRetainedRestore
+            or prepared is not self._retained_restore
+            or prepared._operation is not self
+            or self._context.purpose is not Purpose.RESTORE
+        ):
+            raise JobOperationError(
+                JobOperationCode.INVALID_LEASE,
+                "retained restore execution requires its exact prepared lease",
+            )
+        prepared._assert_live()
+        publish_receipt = self.execute_publish_pair(token, prepared._observed)
+        try:
+            retained_evidence = prepared._source.operation_tree_evidence()
+            prepared._source.close()
+            receipt = RetainedRestoreOperationReceipt(
+                publish_receipt=publish_receipt,
+                retained_source_locator=(
+                    prepared._source._source_relative_path.as_posix()
+                ),
+                retained_source_identity_hmac_sha256=(
+                    retained_evidence.durable_identity_sha256
+                ),
+                retained_source_manifest_sha256=(
+                    retained_evidence.manifest_sha256
+                ),
+                locator_mode=OperationLocatorMode.SAFE_RELATIVE,
+                classification=DataClassification.INTERNAL,
+            )
+            self._retained_restore_receipt = receipt
+            self._state = "RETAINED_RESTORE_COMMITTED"
+            return receipt
+        except BaseException:
+            self._runtime._writer.seal_after_indeterminate_mutation()
+            self._state = "RETAINED_RESTORE_COMMITTED_RETENTION_CHECK_FAILED"
+            raise JobOperationError(
+                JobOperationCode.OPERATION_FAILED,
+                "restore target committed but retained-source verification failed",
+            ) from None
+
     def _job_contract_bytes(self) -> bytes:
         head = self._ledger_head
         if head.last_segment_sha256 is None:
@@ -1275,6 +2035,21 @@ class _OperationLease:
             except BaseException as exc:
                 self._close_had_secondary_error = True
                 close_error = exc
+        if self._quarantine_source is not None and not self._quarantine_source._closed:
+            try:
+                self._quarantine_source.close()
+            except BaseException as exc:
+                self._close_had_secondary_error = True
+                close_error = close_error or exc
+        if (
+            self._retained_restore is not None
+            and not self._retained_restore._source._closed
+        ):
+            try:
+                self._retained_restore._source.close()
+            except BaseException as exc:
+                self._close_had_secondary_error = True
+                close_error = close_error or exc
         if (
             self._reserved_pair is not None
             and not getattr(self._reserved_pair, "_closed", True)
@@ -1337,8 +2112,12 @@ class _OperationLease:
                 close_error = close_error or exc
         self._closed = True
         self._state = (
-            "CLOSED_PUBLISH_COMMITTED"
-            if self._publish_receipt is not None
+            "CLOSED_COMMITTED"
+            if (
+                self._publish_receipt is not None
+                or self._quarantine_receipt is not None
+                or self._retained_restore_receipt is not None
+            )
             else "CLOSED_NO_COMMITTED_BUSINESS_MUTATION"
         )
         if close_error is not None:
@@ -1709,6 +2488,299 @@ class _ObservedJobTreeLease:
         raise TypeError("observed job tree leases cannot be serialized")
 
 
+class _ObservedQuarantineTreeLease:
+    __slots__ = (
+        "_operation",
+        "_source_relative_path",
+        "_parent",
+        "_root",
+        "_low_level",
+        "_evidence",
+        "_owner_thread",
+        "_invalidated",
+        "_closed",
+    )
+
+    def __init__(
+        self,
+        operation: _OperationLease,
+        source_relative_path: Path,
+        parent: DirectoryHandleLease,
+        root: DirectoryHandleLease,
+        low_level: _ObservedTreeLease,
+        evidence: ObservedTreeEvidence,
+        *,
+        _constructor: object,
+    ) -> None:
+        if (
+            _constructor is not _OBSERVED_QUARANTINE_TREE_CONSTRUCTOR
+            or type(parent) is not DirectoryHandleLease
+            or type(root) is not DirectoryHandleLease
+            or type(low_level) is not _ObservedTreeLease
+            or type(evidence) is not ObservedTreeEvidence
+            or root._parent_lease is not parent
+            or low_level._root is not root
+        ):
+            raise TypeError("quarantine tree leases require exact handle authority")
+        self._operation = operation
+        self._source_relative_path = source_relative_path
+        self._parent = parent
+        self._root = root
+        self._low_level = low_level
+        self._evidence = evidence
+        self._owner_thread = threading.get_ident()
+        self._invalidated = False
+        self._closed = False
+
+    @property
+    def evidence(self) -> ObservedTreeEvidence:
+        return self.revalidate()
+
+    def _compare_snapshot(self, snapshot: _TreeSnapshot) -> None:
+        _require_manifest_snapshot(self._operation._manifest, snapshot)
+
+    def revalidate(self) -> ObservedTreeEvidence:
+        self._assert_local_live()
+        try:
+            self._operation._assert_live()
+            snapshot = self._low_level.revalidate()
+            self._compare_snapshot(snapshot)
+            head = self._operation._runtime._ledger._rescan_under_existing_mutex(
+                self._operation._mutex
+            )
+            if head != self._operation._ledger_head:
+                raise JobOperationError(
+                    JobOperationCode.LEDGER_CHANGED,
+                    "audit ledger changed during quarantine observation",
+                )
+            current = _evidence_from_snapshot(
+                snapshot,
+                self._operation._budget,
+                head,
+            )
+            if current != self._evidence:
+                raise JobOperationError(
+                    JobOperationCode.TREE_MISMATCH,
+                    "quarantine source evidence changed after observation",
+                )
+            self._operation._check_runtime_budget()
+            return current
+        except BaseException:
+            self._invalidated = True
+            self._operation._state = "QUARANTINE_TREE_INVALIDATED_SOURCE_RETAINED"
+            raise
+
+    def _assert_local_live(self) -> None:
+        if self._closed or self._invalidated or self._owner_thread != threading.get_ident():
+            raise JobOperationError(
+                JobOperationCode.INVALID_LEASE,
+                "quarantine tree lease is closed, invalidated, or cross-thread",
+            )
+
+    def close(self) -> None:
+        if self._closed:
+            return
+        if self._owner_thread != threading.get_ident():
+            raise JobOperationError(
+                JobOperationCode.INVALID_LEASE,
+                "quarantine tree lease must be closed by its owning thread",
+            )
+        close_error: BaseException | None = None
+        if not self._low_level._closed:
+            try:
+                self._low_level.close()
+            except BaseException as exc:
+                close_error = exc
+        if not self._root._closed:
+            try:
+                self._root.close()
+            except BaseException as exc:
+                close_error = close_error or exc
+        if not self._parent._closed:
+            try:
+                self._parent.close()
+            except BaseException as exc:
+                close_error = close_error or exc
+        self._closed = True
+        if close_error is not None:
+            raise close_error
+
+    def __repr__(self) -> str:
+        state = "CLOSED" if self._closed else "INVALIDATED" if self._invalidated else "LIVE"
+        return f"_ObservedQuarantineTreeLease(state='{state}', source='<redacted>')"
+
+    def __reduce__(self) -> Any:
+        raise TypeError("quarantine tree leases cannot be serialized")
+
+
+class _RetainedRestoreSourceLease:
+    __slots__ = (
+        "_operation",
+        "_source_relative_path",
+        "_root",
+        "_low_level",
+        "_snapshot",
+        "_owner_thread",
+        "_invalidated",
+        "_closed",
+    )
+
+    def __init__(
+        self,
+        operation: _OperationLease,
+        source_relative_path: Path,
+        root: DirectoryHandleLease,
+        low_level: _ObservedTreeLease,
+        snapshot: _TreeSnapshot,
+        *,
+        _constructor: object,
+    ) -> None:
+        if (
+            _constructor is not _RETAINED_RESTORE_SOURCE_CONSTRUCTOR
+            or type(root) is not DirectoryHandleLease
+            or type(low_level) is not _ObservedTreeLease
+            or type(snapshot) is not _TreeSnapshot
+            or low_level._root is not root
+        ):
+            raise TypeError("retained restore sources require exact read handles")
+        self._operation = operation
+        self._source_relative_path = source_relative_path
+        self._root = root
+        self._low_level = low_level
+        self._snapshot = snapshot
+        self._owner_thread = threading.get_ident()
+        self._invalidated = False
+        self._closed = False
+
+    def revalidate(self) -> _TreeSnapshot:
+        self._assert_local_live()
+        try:
+            self._operation._assert_live()
+            snapshot = self._low_level.revalidate()
+            _require_manifest_snapshot(self._operation._manifest, snapshot)
+            if snapshot != self._snapshot:
+                raise JobOperationError(
+                    JobOperationCode.TREE_MISMATCH,
+                    "retained quarantine source changed during restore",
+                )
+            return snapshot
+        except BaseException:
+            self._invalidated = True
+            raise
+
+    def operation_tree_evidence(self) -> OperationTreeEvidence:
+        snapshot = self.revalidate()
+        ledger = self._operation._runtime._operation_ledger
+        if type(ledger) is not DurableOperationLedger:
+            raise JobOperationError(
+                JobOperationCode.OPERATION_LEDGER_FAILED,
+                "retained source evidence requires the operation ledger",
+            )
+        root = self._operation._runtime._writer._observe_identity(
+            self._root._handle
+        )
+        if not self._operation._runtime._writer._same_object(
+            self._root._observed,
+            root,
+        ):
+            raise JobOperationError(
+                JobOperationCode.TREE_MISMATCH,
+                "retained source root identity changed",
+            )
+        return OperationTreeEvidence(
+            manifest_sha256=snapshot.manifest_sha256,
+            source_tree_sha256=snapshot.source_tree_sha256,
+            topology_sha256=snapshot.topology_sha256,
+            durable_identity_sha256=(
+                ledger.durable_tree_evidence_identity_digest(
+                    root.volume_serial,
+                    root.file_id,
+                    snapshot.tree_identity_material,
+                )
+            ),
+            entry_count=snapshot.entry_count,
+            total_bytes=snapshot.total_bytes,
+        )
+
+    def _assert_local_live(self) -> None:
+        if self._closed or self._invalidated or self._owner_thread != threading.get_ident():
+            raise JobOperationError(
+                JobOperationCode.INVALID_LEASE,
+                "retained restore source is closed, invalidated, or cross-thread",
+            )
+
+    def close(self) -> None:
+        if self._closed:
+            return
+        if self._owner_thread != threading.get_ident():
+            raise JobOperationError(
+                JobOperationCode.INVALID_LEASE,
+                "retained restore source must be closed by its owning thread",
+            )
+        close_error: BaseException | None = None
+        if not self._low_level._closed:
+            try:
+                self._low_level.close()
+            except BaseException as exc:
+                close_error = exc
+        if not self._root._closed:
+            try:
+                self._root.close()
+            except BaseException as exc:
+                close_error = close_error or exc
+        self._closed = True
+        if close_error is not None:
+            raise close_error
+
+    def __repr__(self) -> str:
+        state = "CLOSED" if self._closed else "INVALIDATED" if self._invalidated else "LIVE"
+        return f"_RetainedRestoreSourceLease(state='{state}', source='<redacted>')"
+
+    def __reduce__(self) -> Any:
+        raise TypeError("retained restore source leases cannot be serialized")
+
+
+class _PreparedRetainedRestore:
+    __slots__ = ("_operation", "_source", "_observed", "_owner_thread")
+
+    def __init__(
+        self,
+        operation: _OperationLease,
+        source: _RetainedRestoreSourceLease,
+        observed: _ObservedJobTreeLease,
+        *,
+        _constructor: object,
+    ) -> None:
+        if (
+            _constructor is not _PREPARED_RETAINED_RESTORE_CONSTRUCTOR
+            or type(source) is not _RetainedRestoreSourceLease
+            or type(observed) is not _ObservedJobTreeLease
+            or source._operation is not operation
+            or observed._staging._operation is not operation
+        ):
+            raise TypeError("prepared retained restores require exact source and staging")
+        self._operation = operation
+        self._source = source
+        self._observed = observed
+        self._owner_thread = threading.get_ident()
+
+    def _assert_live(self) -> None:
+        if self._owner_thread != threading.get_ident():
+            raise JobOperationError(
+                JobOperationCode.INVALID_LEASE,
+                "prepared retained restore cannot cross threads",
+            )
+        self._operation._assert_live()
+        self._source.revalidate()
+        self._observed._assert_local_live()
+
+    def __repr__(self) -> str:
+        return "_PreparedRetainedRestore(source='<redacted>', staging='<redacted>')"
+
+    def __reduce__(self) -> Any:
+        raise TypeError("prepared retained restores cannot be serialized")
+
+
 class _PublishOperationJournal:
     __slots__ = (
         "_operation",
@@ -1727,7 +2799,7 @@ class _PublishOperationJournal:
     def __init__(
         self,
         operation: _OperationLease,
-        observed: _ObservedJobTreeLease,
+        observed: _ObservedJobTreeLease | _ObservedQuarantineTreeLease,
         *,
         directory_publish_permit: _DirectoryPublishJournalPermit,
         _constructor: object,
@@ -1736,7 +2808,16 @@ class _PublishOperationJournal:
         if (
             _constructor is not _PUBLISH_JOURNAL_CONSTRUCTOR
             or type(ledger) is not DurableOperationLedger
-            or observed._staging._operation is not operation
+            or type(observed)
+            not in {_ObservedJobTreeLease, _ObservedQuarantineTreeLease}
+            or (
+                type(observed) is _ObservedJobTreeLease
+                and observed._staging._operation is not operation
+            )
+            or (
+                type(observed) is _ObservedQuarantineTreeLease
+                and observed._operation is not operation
+            )
             or type(directory_publish_permit) is not _DirectoryPublishJournalPermit
         ):
             raise TypeError("publish journals require the exact operation authority")
@@ -2072,6 +3153,69 @@ def _evidence_from_snapshot(
         b"OBSERVED-TREE-EVIDENCE-V1\0" + _canonical_json_bytes(body)
     ).hexdigest()
     return ObservedTreeEvidence(**body, evidence_digest=digest)
+
+
+def _require_manifest_snapshot(
+    manifest: DeclaredTreeManifest,
+    snapshot: _TreeSnapshot,
+) -> None:
+    if type(manifest) is not DeclaredTreeManifest or type(snapshot) is not _TreeSnapshot:
+        raise JobOperationError(
+            JobOperationCode.TREE_MISMATCH,
+            "tree comparison requires exact manifest and snapshot values",
+        )
+    expected = tuple(
+        _TreeLogicalRow(
+            relative_path=entry.relative_path,
+            kind=entry.kind,
+            size_bytes=entry.size_bytes,
+            sha256=entry.sha256,
+        )
+        for entry in manifest.entries
+    )
+    if snapshot.rows != expected or snapshot.manifest_sha256 != manifest.manifest_sha256:
+        raise JobOperationError(
+            JobOperationCode.TREE_MISMATCH,
+            "observed tree differs from the exact declared manifest",
+        )
+
+
+def _validate_internal_quarantine_object_path(
+    value: str | Path,
+) -> Path:
+    try:
+        path = Path(value)
+    except (TypeError, ValueError):
+        raise JobOperationError(
+            JobOperationCode.INVALID_REQUEST,
+            "retained restore source path is invalid",
+        ) from None
+    if (
+        path.is_absolute()
+        or len(path.parts) != 5
+        or path.parts[:3] != ("data", "quarantine", "INTERNAL")
+        or any(part in {"", ".", ".."} for part in path.parts)
+        or len(path.parts[4]) != 32
+        or path.parts[4] != path.parts[4].upper()
+        or any(character not in "0123456789ABCDEF" for character in path.parts[4])
+    ):
+        raise JobOperationError(
+            JobOperationCode.INVALID_REQUEST,
+            "retained restore requires one exact internal quarantine object root",
+        )
+    try:
+        parsed = time.strptime(path.parts[3], "%Y-%m-%d")
+    except (TypeError, ValueError):
+        raise JobOperationError(
+            JobOperationCode.INVALID_REQUEST,
+            "retained restore quarantine date is invalid",
+        ) from None
+    if time.strftime("%Y-%m-%d", parsed) != path.parts[3]:
+        raise JobOperationError(
+            JobOperationCode.INVALID_REQUEST,
+            "retained restore quarantine date is non-canonical",
+        )
+    return path
 
 
 def _logical_manifest_bytes(entries: tuple[DeclaredTreeEntry, ...]) -> bytes:

@@ -582,9 +582,22 @@ def test_s3d_mode_has_a_fixed_non_injectable_selection(tmp_path: Path) -> None:
                 "tests/test_write_entry_inventory.py",
             ],
         ),
+        ("s3g_core", ["tests/test_quarantine_restore_operation.py"]),
+        (
+            "s3g",
+            [
+                "tests/test_quarantine_restore_operation.py",
+                "tests/test_publish_operation.py",
+                "tests/test_job_operation.py",
+                "tests/test_windows_handle_writer.py",
+                "tests/test_segment_ledger.py",
+                "tests/test_workspace_policy.py",
+                "tests/test_write_entry_inventory.py",
+            ],
+        ),
     ),
 )
-def test_s3e_and_s3f_modes_have_exact_non_injectable_selections(
+def test_s3e_through_s3g_modes_have_exact_non_injectable_selections(
     tmp_path: Path,
     mode: str,
     selection: list[str],
@@ -1488,6 +1501,8 @@ def test_only_copy_bearing_modes_require_a_registered_source_witness() -> None:
         "s3d",
         "s3e",
         "s3e_core",
+        "s3g",
+        "s3g_core",
         "launcher",
         "symlink",
     }.isdisjoint(SOURCE_REGISTRATION_REQUIRED_MODES)
@@ -1517,6 +1532,8 @@ def test_only_copy_bearing_modes_require_a_registered_source_witness() -> None:
         "s3d",
         "s3e",
         "s3e_core",
+        "s3g",
+        "s3g_core",
         "launcher",
         "symlink",
     }:

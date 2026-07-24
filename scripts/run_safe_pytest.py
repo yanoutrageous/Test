@@ -1689,6 +1689,18 @@ def _build_command(
             "tests/test_policy_epoch_compatibility.py",
             "tests/test_external_source.py",
         ]
+    elif mode == "s3g":
+        selection = [
+            "tests/test_quarantine_restore_operation.py",
+            "tests/test_publish_operation.py",
+            "tests/test_job_operation.py",
+            "tests/test_windows_handle_writer.py",
+            "tests/test_segment_ledger.py",
+            "tests/test_workspace_policy.py",
+            "tests/test_write_entry_inventory.py",
+        ]
+    elif mode == "s3g_core":
+        selection = ["tests/test_quarantine_restore_operation.py"]
     elif mode == "launcher":
         selection = ["tests/test_safe_pytest_launcher.py"]
     elif mode == "symlink":
@@ -1736,6 +1748,8 @@ def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
             "s3e_core",
             "s3f",
             "s3f_core",
+            "s3g",
+            "s3g_core",
             "launcher",
             "symlink",
         ),
