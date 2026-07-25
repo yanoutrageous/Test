@@ -62,11 +62,13 @@ ABSOLUTE_PATH_PATTERN = re.compile(rb"(?i)(?:[A-Z]:\\|file://|\\\\\?\\)")
 EMAIL_PATTERN = re.compile(
     rb"(?i)(?<![A-Z0-9._%+-])[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}(?![A-Z0-9.-])"
 )
-MAINLAND_MOBILE_PATTERN = re.compile(rb"(?<![0-9])1[3-9][0-9]{9}(?![0-9])")
+MAINLAND_MOBILE_PATTERN = re.compile(
+    rb"(?<![0-9.])1[3-9][0-9]{9}(?![0-9.])"
+)
 LABELED_IDENTIFIER_PATTERN = re.compile(
     (
         r"(?i)(?:学号|身份证号|证件号|QQ(?:号)?)"
-        r"\s*[:：]?\s*[A-Z0-9][A-Z0-9_-]{5,23}"
+        r"(?:\s*[:：]\s*|\s+)[A-Z0-9][A-Z0-9_-]{5,23}"
     ).encode("utf-8")
 )
 IPV4_PATTERN = re.compile(
