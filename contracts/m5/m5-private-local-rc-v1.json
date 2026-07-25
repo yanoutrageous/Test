@@ -1,0 +1,152 @@
+{
+  "schema_version": "1.0",
+  "contract_id": "M5-PRIVATE-LOCAL-RC1-ACCEPTANCE-V1",
+  "decision": "ACCEPTED_SUPPORTED_PRIVATE_RC_SCOPE",
+  "strict_m5_decision": "BLOCKED_DISCLOSED",
+  "release": {
+    "release_id": "LOCAL-EXAM-BANK-1.0.0-RC1",
+    "release_root": "output/releases/LOCAL-EXAM-BANK-1.0.0-RC1",
+    "source_commit": "a4c153cb6ee4be68832dfc6f7a7fd06bf00a8b9f",
+    "distribution_scope": "SOURCE_OWNER_PRIVATE_LOCAL_USE_ONLY",
+    "file_count": 231,
+    "bytes": 45797102,
+    "manifest_sha256": "97652f875c46b7f3ab058ce49b3d1a9e262947904d1c6f186defbd2e77ef574e",
+    "tree_sha256": "92aac135916e0347a21d75325bbe5899e3eb24bccfc7f1b8327d4346d7db60ee",
+    "runtime_archive_bytes": 32220167,
+    "runtime_archive_sha256": "c433356069ef7e5b26fcb7fd32568ee3eb5a431ca7741cec36c4e39474e7662c",
+    "launcher": "launcher/start.cmd",
+    "verifier": "launcher/verify.cmd"
+  },
+  "checks": {
+    "full_release_manifest_status": "PASS",
+    "fresh_user_status": "PASS_SUPPORTED_PRIVATE_RC_SCOPE",
+    "fresh_user_journey_count": 50,
+    "fresh_user_journey_failure_count": 0,
+    "outside_write_count": 0,
+    "non_loopback_success_count": 0,
+    "external_html_reference_count": 0,
+    "source_guard_status": "UNCHANGED",
+    "source_guard_file_count_before_and_after": 812,
+    "source_guard_tree_sha256_before_and_after": "95ed2e9e67f78407ec7ef47589455e2005da31b5daea704d17b9723c9dcb80ce",
+    "privacy_scan_status": "PASS",
+    "privacy_absolute_path_findings": 0,
+    "privacy_host_identity_findings": 0,
+    "privacy_pii_findings": 0,
+    "privacy_secret_pattern_findings": 0,
+    "privacy_scanned_pdf_count": 10,
+    "five_pdf_unembedded_font_count": 0,
+    "backup_restore_activate_restart_status": "PASS",
+    "browser_console_warning_or_error_count": 0
+  },
+  "documents": {
+    "student": {
+      "pages": 4,
+      "bytes": 384634,
+      "sha256": "f7b374c5afe4adf86d285a6f7d20b6d74a0a2ec3f31850186273148aa17cc7aa"
+    },
+    "teacher": {
+      "pages": 15,
+      "bytes": 1087404,
+      "sha256": "995aad0a326e15e96bb27032e5b83e9d1bf2182dd2cbcd217cb8b511491daf69"
+    },
+    "answer": {
+      "pages": 11,
+      "bytes": 743743,
+      "sha256": "cccf4751dd426092a49faa65d965085c1b54568fc880092989a74d65fdead9f5"
+    },
+    "detailed_solution": {
+      "pages": 63,
+      "bytes": 2308349,
+      "sha256": "3a92ad698a63e5ecabed217bb27119017af4d5bdf7137adfe4b407f43f2362f5"
+    },
+    "answer_sheet": {
+      "pages": 6,
+      "bytes": 249511,
+      "sha256": "999d9a8bcad62c6c00c93b1bf77d7e79d00645ee61ef7be4080a3f943e3f133a"
+    },
+    "restart_hashes_match_first_run": true
+  },
+  "evidence": {
+    "fresh_user": {
+      "run_id": "RUN-20260726-M5-FRESH-R2-196",
+      "report_path": "tmp/acceptance/fresh-user/RUN-20260726-M5-FRESH-R2-196/evidence/m5-fresh-user-detailed.json",
+      "report_sha256": "433b72f9e24d4996b48eb953b215da66aa59914179743e8d5384d92efa506e1e",
+      "publish_authorization_path": "tmp/acceptance/fresh-user/RUN-20260726-M5-FRESH-R2-196/evidence/m5-publish-authorization.json",
+      "publish_authorization_sha256": "061aea4bee018d2a2e2bb075252d739fe73ca0ddc6ee90cd9c5eb418e04b0358"
+    },
+    "core_gate": {
+      "run_id": "RUN-20260726-M5-CORE-R6-195",
+      "passed": 74,
+      "run_result_sha256": "f62a8963b82e66b9d909adf9097250ff2095bed411c3bc1c0324c2ea37379673",
+      "junit_sha256": "89c621725b414513ffc95f6729bd5f9b39e375f0747ad1e0d2e81dc27606eebc",
+      "storage": "RECOVERABLY_RELOCATED_AFTER_FINAL_GATE"
+    },
+    "final_gate": {
+      "run_id": "RUN-20260726-M5-FINAL-R1-197",
+      "passed": 581,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "run_result_path": "tmp/test_lab/RUN-20260726-M5-FINAL-R1-197/run-result.json",
+      "run_result_sha256": "a872124a8c3e5b595a327c2457ae1e1e38af0d58d419f4e0c64c3833f1bc28fd",
+      "junit_sha256": "8e052386b5b1d86e0da7266898cb528487352f2ccc421a1eb4a87e9645ae9102",
+      "activity_database_sha256_before_and_after": "1505bf05bd8e385eada30642110596363c561c330da02a40a497072064ad1c94",
+      "protected_tree_entry_count_before_and_after": 11368,
+      "protected_tree_digest_before_and_after": "c4cec7960602d09ce4022c4ca2d2adf6e1cdfe8fc1754cc90a888f1ce3f2752c",
+      "registered_source_count": 2,
+      "registered_source_final_state_matches": true
+    },
+    "write_inventory": {
+      "path": "Task/reports/M0/M0-write-entry-inventory.json",
+      "file_sha256": "36416a79d9981cc6406af4a53dd3684325efcfb04247496141a048dfb65bfee2",
+      "production_source_count": 65,
+      "entry_count": 446,
+      "unknown_dynamic_count": 0,
+      "unmigrated_count": 0,
+      "inventory_digest_sha256": "c4b74e7a89eccaeb439b2c31cbee628194f726cacc22adc0bc86e871db708157",
+      "entries_digest_sha256": "eeacd235c24a485869854d0454c05e04830ff021cc73324ba46df8f27c044ff5"
+    },
+    "browser_visual_review": {
+      "status": "PASS_WITH_BROWSER_CLIENT_PATH_LIMITATION_DISCLOSED",
+      "pages_inspected": [
+        "/",
+        "/library/questions?status=all",
+        "/planner/blueprints",
+        "/workbench/",
+        "/documents"
+      ],
+      "browser_console_warning_or_error_count": 0,
+      "browser_client_blocked_direct_paths": [
+        "/workbench/search",
+        "/status.json"
+      ],
+      "application_http_coverage_for_blocked_paths": "PASS_IN_FRESH_USER_ACCEPTANCE"
+    }
+  },
+  "storage_cleanup": {
+    "status": "COMPLETED_RECOVERABLE_RELOCATION",
+    "recovery_root": "${USERPROFILE}/Codex-Recovery/Test-M5-20260726/post-acceptance-cleanup",
+    "relocated_directory_count": 13,
+    "relocated_file_count": 2785,
+    "relocated_bytes": 331726797,
+    "recovery_target_count": 13,
+    "post_move_file_manifest_digest_sha256": "79feb47763191d8bc1ab9b2db75916b0bb9bc8633f7ab143faecf37f6f177e28",
+    "retained_hot_test_run": "RUN-20260726-M5-FINAL-R1-197",
+    "retained_release_bytes": 45797102,
+    "e_drive_free_bytes_after_cleanup": 114989887488
+  },
+  "strict_m5_blockers": [
+    "2020—2025 target corpus is not fully imported and human-reviewed",
+    "source-derived content and embedded source fonts are not cleared for third-party redistribution",
+    "real printer operation is outside the current Test-only write authority",
+    "fresh-user import of an external real PDF is excluded from this source-owner private package"
+  ],
+  "limitations": [
+    "The accepted data scope is one complete reviewed 19-question, 150-point representative paper.",
+    "The NEW9 visual reference has no useful text layer and V1 does not include OCR.",
+    "Embedded source fonts are user-provided and redistributable=false.",
+    "PyMuPDF and source-content distribution require a separate legal/licensing decision before third-party distribution.",
+    "Backups on the same product volume do not protect against loss of the whole volume.",
+    "Automated acceptance validates print-ready PDFs and preview rendering, not a physical printer."
+  ]
+}

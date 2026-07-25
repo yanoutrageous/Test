@@ -1,11 +1,11 @@
 {
   "state_version": "1.1.0",
   "plan_version": "1.1.0",
-  "updated_at": "2026-07-25T23:27:00+08:00",
+  "updated_at": "2026-07-26T01:25:05+08:00",
   "current_milestone": "M5",
-  "current_slice": "M5_PORTABLE_OFFLINE_RELEASE_AND_FRESH_USER_ACCEPTANCE",
-  "status": "RUNNING",
-  "implementation_status": "IN_PROGRESS",
+  "current_slice": "M5_PRIVATE_LOCAL_RC1_DELIVERED_STRICT_TARGET_SET_BLOCKED",
+  "status": "BLOCKED_DISCLOSED",
+  "implementation_status": "PRIVATE_LOCAL_RC_DELIVERED_STRICT_M5_BLOCKED",
   "task_scope": {
     "effective_terminal_gate": "M5_CUSTOMER_DELIVERY_ACCEPTED",
     "stop_after_m0": false,
@@ -1010,12 +1010,62 @@
       "e_drive_free_bytes_after_cleanup": 115833139200
     }
   },
+  "m5_private_local_rc_checkpoint": {
+    "status": "ACCEPTED_SUPPORTED_PRIVATE_RC_SCOPE",
+    "strict_m5_status": "BLOCKED_DISCLOSED",
+    "release_id": "LOCAL-EXAM-BANK-1.0.0-RC1",
+    "release_root": "output/releases/LOCAL-EXAM-BANK-1.0.0-RC1",
+    "source_commit": "a4c153cb6ee4be68832dfc6f7a7fd06bf00a8b9f",
+    "remote_verification": "LOCAL_ORIGIN_TRACKING_AND_LS_REMOTE_EQUAL",
+    "release_file_count": 231,
+    "release_bytes": 45797102,
+    "release_manifest_sha256": "97652f875c46b7f3ab058ce49b3d1a9e262947904d1c6f186defbd2e77ef574e",
+    "release_tree_sha256": "92aac135916e0347a21d75325bbe5899e3eb24bccfc7f1b8327d4346d7db60ee",
+    "runtime_archive_bytes": 32220167,
+    "runtime_archive_sha256": "c433356069ef7e5b26fcb7fd32568ee3eb5a431ca7741cec36c4e39474e7662c",
+    "fresh_user_run_id": "RUN-20260726-M5-FRESH-R2-196",
+    "fresh_user_status": "PASS_SUPPORTED_PRIVATE_RC_SCOPE",
+    "fresh_user_journey_count": 50,
+    "fresh_user_journey_failure_count": 0,
+    "fresh_user_report_sha256": "433b72f9e24d4996b48eb953b215da66aa59914179743e8d5384d92efa506e1e",
+    "publish_authorization_sha256": "061aea4bee018d2a2e2bb075252d739fe73ca0ddc6ee90cd9c5eb418e04b0358",
+    "outside_write_count": 0,
+    "non_loopback_success_count": 0,
+    "external_html_reference_count": 0,
+    "final_gate_run_id": "RUN-20260726-M5-FINAL-R1-197",
+    "final_gate_passed": 581,
+    "final_gate_failures": 0,
+    "final_gate_errors": 0,
+    "final_gate_skipped": 0,
+    "final_gate_run_result_sha256": "a872124a8c3e5b595a327c2457ae1e1e38af0d58d419f4e0c64c3833f1bc28fd",
+    "final_gate_junit_sha256": "8e052386b5b1d86e0da7266898cb528487352f2ccc421a1eb4a87e9645ae9102",
+    "contract": "contracts/m5/m5-private-local-rc-v1.json",
+    "exit_report": "Task/reports/M5/M5-private-local-rc-exit.md",
+    "cleanup_after_acceptance": {
+      "status": "COMPLETED_RECOVERABLE_RELOCATION",
+      "recovery_root": "${USERPROFILE}/Codex-Recovery/Test-M5-20260726/post-acceptance-cleanup",
+      "relocated_directory_count": 13,
+      "relocated_file_count": 2785,
+      "relocated_bytes": 331726797,
+      "post_move_file_manifest_digest_sha256": "79feb47763191d8bc1ab9b2db75916b0bb9bc8633f7ab143faecf37f6f177e28",
+      "retained_hot_test_run": "RUN-20260726-M5-FINAL-R1-197",
+      "retained_fresh_user_evidence": "tmp/acceptance/fresh-user/RUN-20260726-M5-FRESH-R2-196/evidence",
+      "e_drive_free_bytes_after_cleanup": 114989887488
+    }
+  },
   "not_started": [
-    "M5 target-set production, offline delivery package, and customer acceptance"
+    "M5 2020-2025 target-set production and human review",
+    "M5 third-party redistribution clearance",
+    "M5 real-printer validation under separately authorized system writes",
+    "M5 fresh-user import of a separately authorized external real PDF"
   ],
   "blockers": [
-    "M0-SYMLINK-CAPABILITY-001: RUN-20260724-M0-SYMLINK-CAPABILITY-038 returned WinError 1314 when the ordinary account attempted to create a real directory symlink; all other safety gates in that run were clean, no privilege elevation or Developer Mode change is authorized, and independent M0 work may continue"
+    "M5-TARGET-CORPUS-001: the 2020-2025 target corpus is not fully imported and human-reviewed",
+    "M5-DISTRIBUTION-RIGHTS-001: source-derived content and embedded source fonts are private-local-use only and not cleared for third-party redistribution",
+    "M5-REAL-PRINTER-001: real printer operation is outside the current Test-only write authority",
+    "M5-EXTERNAL-IMPORT-001: fresh-user import of an external real PDF requires a separately authorized local source",
+    "M0-SYMLINK-CAPABILITY-001: the ordinary Windows account cannot create a real directory symlink (WinError 1314); existing Reparse Points are still rejected and no privilege change is authorized"
   ],
-  "next_required_action": "Build the M5 portable offline release candidate, run fresh-user customer journeys, audit licenses, fonts, privacy and SBOM, and publish a verifiable release manifest without packaging machine-local paths or caches.",
-  "resume_rule": "Resume from the accepted M1/M2/M3/M4 checkpoints and the M4 full, incremental, restored-state, activation, rollback, core-gate, full-gate and inventory evidence recorded above. Never reuse a run ID. Preserve the active-state pointer and its retained rescue backup while building the M5 candidate."
+  "next_required_action": "The source owner can use or migrate LOCAL-EXAM-BANK-1.0.0-RC1 directly. Strict M5 resumes only when the multi-year corpus, human review decisions, redistribution rights and any real-printer/external-import authority are available.",
+  "resume_rule": "Resume from the published private-local RC1 and RUN-20260726-M5-FINAL-R1-197. Never reuse a run ID, never repeat the full gate for report-only changes, preserve the final release and active-state pointer, and do not claim strict M5 completion until every disclosed blocker is independently closed."
 }
