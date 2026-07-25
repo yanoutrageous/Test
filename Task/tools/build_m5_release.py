@@ -454,7 +454,7 @@ def _privacy_scan_payload(relative: str, payload: bytes) -> bytes:
         raise RuntimeError(
             f"release privacy scan could not parse PDF: {relative}"
         ) from exc
-    return payload + b"\n" + extracted.encode("utf-8")
+    return extracted.encode("utf-8")
 
 
 def _pii_reasons(payload: bytes) -> set[str]:

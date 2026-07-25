@@ -9,7 +9,11 @@ import pytest
 from werkzeug.test import Client
 from werkzeug.wrappers import Response
 
-from Task.tools.build_m5_release import START_PS1, _pii_reasons
+from Task.tools.build_m5_release import (
+    START_PS1,
+    _pii_reasons,
+    _privacy_scan_payload,
+)
 from app.m2_pipeline import (
     BlueprintUIState,
     M2PipelineConfig,
@@ -297,6 +301,21 @@ def test_release_builder_privacy_patterns_and_launcher_are_portable() -> None:
     assert _pii_reasons("数学变量 qq15uunn".encode("utf-8")) == set()
     assert "Push-Location -LiteralPath $productRoot" in START_PS1
     assert "-m app.m5_release verify --quick" not in START_PS1
+
+
+def test_release_privacy_scan_uses_visible_pdf_text_not_stream_bytes() -> None:
+    import fitz
+
+    document = fitz.open()
+    page = document.new_page()
+    page.insert_text((72, 72), "safe visible text")
+    payload = document.tobytes()
+    document.close()
+
+    scanned = _privacy_scan_payload("sample.pdf", payload)
+
+    assert b"safe visible text" in scanned
+    assert b"endstream" not in scanned
 
 
 def test_m4_assigns_persisted_m5_state_a_distinct_backup_role() -> None:
