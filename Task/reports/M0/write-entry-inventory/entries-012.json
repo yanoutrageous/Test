@@ -1,7 +1,63 @@
 {
-  "chunk_digest_sha256": "38618b678cc4ae99eb24f0063193a8bdee1bc2b2d7ab19fb243648b72ec97a5c",
+  "chunk_digest_sha256": "dcb00f911067015c356fcd855af90a661e323f55aee60775c27cb945be47a562",
   "chunk_index": 12,
   "entries": [
+    {
+      "call_chain": [
+        "<sql-script>"
+      ],
+      "callee": "SQL:BEGIN",
+      "column": 0,
+      "control_binding_id": "WE-D2A879691A6970940E9CAD6D",
+      "detail": "schema statement BEGIN",
+      "end_column": 5,
+      "end_line": 700,
+      "entry_id": "WE-D2A879691A6970940E9CAD6D",
+      "file": "app/schema.sql",
+      "function": "<sql-script>",
+      "input_source": "DATABASE_CONNECTION_AND_CALLER_DATA",
+      "kind": "SQLITE_TRANSACTION",
+      "line": 700,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "MODULE-LOAD"
+      ],
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "559daad67cd8f307a09d008eed48b399745ff0b63056dd920c2a013e94c5a34d",
+      "target_namespace": "STATIC_SCHEMA_CATALOG"
+    },
+    {
+      "call_chain": [
+        "<sql-script>"
+      ],
+      "callee": "SQL:INSERT",
+      "column": 0,
+      "control_binding_id": "WE-A970DBE8141D015831BE2382",
+      "detail": "schema statement INSERT",
+      "end_column": 6,
+      "end_line": 701,
+      "entry_id": "WE-A970DBE8141D015831BE2382",
+      "file": "app/schema.sql",
+      "function": "<sql-script>",
+      "input_source": "STATIC_SOURCE_DECLARATION",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "line": 701,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "MODULE-LOAD"
+      ],
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "8e359ff58fae6c94207ab58d40b73489e19f2d903e709e1981ca884165052f35",
+      "target_namespace": "STATIC_SCHEMA_CATALOG"
+    },
     {
       "call_chain": [
         "<sql-script>"
@@ -650,64 +706,6 @@
       ],
       "source_sha256": "228c11f0f9508d37dec6b6f601a24eae0b7f285faf3bd9dda46e3768758c7682",
       "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976",
-      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
-    },
-    {
-      "call_chain": [
-        "app.cli.main",
-        "app.stage10.register_stage10_baseline"
-      ],
-      "callee": "app.database.initialize_database",
-      "column": 4,
-      "control_binding_id": "WE-EC941925187D4A82D3B6671A",
-      "detail": "implicit schema/directory initialization",
-      "end_column": 32,
-      "end_line": 82,
-      "entry_id": "WE-EC941925187D4A82D3B6671A",
-      "file": "app/stage10.py",
-      "function": "app.stage10.register_stage10_baseline",
-      "input_source": "CLI_ARGUMENT_OR_CONFIG",
-      "kind": "DATABASE_IMPLICIT_INITIALIZER",
-      "line": 82,
-      "migration_status": "MIGRATED_GUARDED",
-      "owner": "REPORT_SERVICE",
-      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
-      "resolution": "ALIAS_RESOLVED",
-      "risk": "P1",
-      "root_ids": [
-        "CLI:MAIN"
-      ],
-      "source_sha256": "ad6a6ef8c0c1f020d573e00299d5b1d144950569ffdb8d302577ee392a9e66f6",
-      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db",
-      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
-    },
-    {
-      "call_chain": [
-        "app.cli.main",
-        "app.stage10.register_stage10_baseline"
-      ],
-      "callee": "app.database.connect_database",
-      "column": 9,
-      "control_binding_id": "WE-ECDC4EC9C1F89B31B3F9A1EB",
-      "detail": "legacy database gateway",
-      "end_column": 34,
-      "end_line": 86,
-      "entry_id": "WE-ECDC4EC9C1F89B31B3F9A1EB",
-      "file": "app/stage10.py",
-      "function": "app.stage10.register_stage10_baseline",
-      "input_source": "CLI_ARGUMENT_OR_CONFIG",
-      "kind": "DATABASE_GATEWAY",
-      "line": 86,
-      "migration_status": "MIGRATED_GUARDED",
-      "owner": "REPORT_SERVICE",
-      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
-      "resolution": "ALIAS_RESOLVED",
-      "risk": "P1",
-      "root_ids": [
-        "CLI:MAIN"
-      ],
-      "source_sha256": "ad6a6ef8c0c1f020d573e00299d5b1d144950569ffdb8d302577ee392a9e66f6",
-      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6",
       "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
     }
   ],

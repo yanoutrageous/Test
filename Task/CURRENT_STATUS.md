@@ -1,6 +1,36 @@
 # 当前状态
 
-更新时间：2026-07-25 21:16 +08:00
+更新时间：2026-07-25 23:27 +08:00
+
+## M4 备份、恢复、活动状态与回滚验收（2026-07-25）
+
+- M4 已以 `BACKUP-M4-YANYAN-FULL-20260725`、
+  `BACKUP-M4-YANYAN-INCREMENTAL-20260725` 和
+  `STATE-M4-YANYAN-RESTORED-20260725` 达到 `ACCEPTED`。
+- 全量备份覆盖 154 个逻辑文件、14,120,090 bytes，内容寻址后实际存储
+  10,132,126 bytes；增量备份 154/154 复用，新 blob 和新增内容均为 0。
+- 恢复先进入 staging，验证 SQLite、M1/M2/M3 manifest、154 个文件以及首页、搜索、
+  题目、组卷篮、图形和导出 6 步公开旅程后才允许激活。
+- UJ-060—067 共 8 条真实流程通过；6 类恶意备份被拒绝，备份/恢复取消续跑、低空间
+  预检、切换前/后中断自动回退、显式回滚、重启和重新激活全部通过。
+- 最终活动指针为 `data/db/active-state.json` generation 5，SHA-256 为
+  `a69d77bb8f53568dc94c415938b84ca6a9b206f75c1c9d3a5cd0b63251825ca7`；
+  当前运行根使用恢复状态的项目相对路径。
+- 旧活动 SQLite 没有被覆盖，SHA-256 仍为
+  `1505bf05bd8e385eada30642110596363c561c330da02a40a497072064ad1c94`。
+- 真实流程 `RUN-20260725-M4-REAL-PIPELINE-R1-181`、核心门
+  `RUN-20260725-M4-CORE-R2-184`（149/149）和完整门
+  `RUN-20260725-M4-FULL-R1-185`（561/561）全部通过；failure/error/skip 均为 0。
+- 当前 inventory 为 64 个生产源、446 个精确绑定入口、18 个分片，
+  unknown/unmigrated/invalid 均为 0。两处活动指针原子替换只绑定固定
+  `M4_ACTIVE_STATE_POINTER_ATOMIC_GATE_V1`。
+- 阶段收尾把 33 个被替代目录、393 个文件、79,302,417 bytes 可恢复地迁到 C 盘
+  `m4-cleanup-20260725` relief；正式 full/incremental、当前 rescue、正式恢复状态、
+  184/185、inventory 183 和真实流程证据继续留在 E 盘。
+- 当前备份位于产品根所在卷，只防误操作和逻辑损坏，不宣称防整卷故障；异卷灾备仍需
+  用户另行授权。完整事实见 `Task/reports/M4/M4-backup-restore-exit.md`。
+- 当前进入 M5 离线发布候选、fresh-user 客户流程、许可/SBOM/隐私、release manifest
+  和客户验收；M4 `ACCEPTED` 仍不是最终客户交付。
 
 ## M3 图形、标签检索与模板闭环验收（2026-07-25）
 
@@ -165,12 +195,13 @@
 ## 长期执行状态
 
 - 计划版本：1.1.0
-- 当前阶段：M0、M1、M2、M3 已验收；正在进入 M4
-- 当前切片：M4 独立备份、恢复、显式激活与回滚闭环
-- M0—M5 实现：M0—M3 已验收；M4—M5 未完成
+- 当前阶段：M0、M1、M2、M3、M4 已验收；正在进入 M5
+- 当前切片：M5 可迁移离线发布候选与 fresh-user 客户验收
+- M0—M5 实现：M0—M4 已验收；M5 未完成
 - 本任务有效终点：按用户后续明确要求，连续完成修订后的 M0—M5，直到真实用户流程、恢复演练和客户交付包全部通过；不得把 M0 或代码完成误报为终局
-- 当前禁止：未经 M4 独立备份/恢复门的活动数据库切换、OCR、云同步、未审核标签直接进入
-  正式检索，以及清理已接受 revision 或未归档证据
+- 当前禁止：把 `.venv`、缓存、绝对路径或未授权资料塞入交付包，跳过 M5 fresh-user
+  断网客户旅程，OCR、云同步、未审核标签直接进入正式检索，以及清理已接受 revision
+  或未归档证据
 
 ## 2026-07-24 新电脑恢复与可迁移根基线
 
@@ -202,7 +233,7 @@
 - 目标 NEW9 PDF 已在 Test 内，但其正文无可提取文字层；视觉回归必须包含整页像素/锚点检查
 - 活动 SQLite SHA-256 为`1505bf05...ad1c94`，`integrity_check=ok`、外键违规 0、`user_version=0`，19 个业务表均为 0 行
 - 历史“1123 题/阶段 14”报告不是当前可复现事实
-- 生产静态 inventory V21 覆盖`app/`和`scripts/`的63个源文件、444个副作用入口和
+- 生产静态 inventory V21 覆盖`app/`和`scripts/`的64个源文件、446个副作用入口和
   18个分片；`UNKNOWN=0`、未迁移入口0、无效绑定0
 - production boundary固定portable root并提供handle writer；
   `production_writer_connected=true`、`m0_exit_allowed=true`、`M0_EXIT_ACCEPTED`
@@ -259,7 +290,7 @@
 - 当前备份只能位于`PROJECT_ROOT`内：不具备异卷灾备能力，不能对客户宣称可抵御整个产品根所在卷故障。
 - 固定权限但物理路径可迁移的 production boundary、Policy V7、Test-only 句柄 writer、
   audit/全部历史 operation epoch/Copy 双账本和 publish/copy/quarantine/recovery 已通过
-  当前新机门禁；63 个生产源的 444 个入口均已精确绑定，未知和未迁移入口均为 0。
+  当前新机门禁；64 个生产源的 446 个入口均已精确绑定，未知和未迁移入口均为 0。
 - S2 `PairEvidence`仍只是候选声明；S3-E 实际 mutation 只在 exact `_ReservedPairLease`和 live observed lease 内执行，声明或 detached 摘要都不能授权 rename。
 - audit key revision 位于 Test 内、Git 忽略的本地明文存储；不能抵御已取得 Test 读取权的恶意本机用户；没有外部 witness 时也不能证明完整账本尾部未被一致回滚。
 - Test-only writer 的 spent-ticket 记忆和诊断缓存已固定上限；ReFS/128-bit File ID 高位非零兼容、硬件断电语义和业务 operation recovery 仍未声明通过。

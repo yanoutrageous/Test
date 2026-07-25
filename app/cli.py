@@ -32,6 +32,7 @@ from .import_batches import (
     register_baseline_batch,
     run_import_batch,
 )
+from .m4_backup import M4BackupService, M4Error
 from .page_ranges import PageRangeError, parse_page_numbers
 from .pdf_import import PdfImportError, import_pdf, parse_pages
 from .pdf_scan import scan_pdf_pages
@@ -83,6 +84,48 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m app.cli")
     subparsers = parser.add_subparsers(dest="command")
     subparsers.add_parser("health", help="Run local environment and project health checks.")
+    backup_create_parser = subparsers.add_parser(
+        "backup-create",
+        help="Create and verify a full, incremental, or rescue M4 backup.",
+    )
+    backup_create_parser.add_argument("--backup-id", required=True)
+    backup_create_parser.add_argument("--job-id", required=True)
+    backup_create_parser.add_argument(
+        "--kind",
+        choices=("full", "incremental", "rescue"),
+        default="full",
+    )
+    backup_create_parser.add_argument("--parent-backup-id", default=None)
+    subparsers.add_parser(
+        "backup-list",
+        help="List only valid selectable M4 backups and rejected candidate counts.",
+    )
+    backup_validate_parser = subparsers.add_parser(
+        "backup-validate",
+        help="Recompute the complete manifest and blob validation for one backup.",
+    )
+    backup_validate_parser.add_argument("--backup-id", required=True)
+    backup_restore_parser = subparsers.add_parser(
+        "backup-restore",
+        help="Restore a valid backup to a new staging-verified state.",
+    )
+    backup_restore_parser.add_argument("--backup-id", required=True)
+    backup_restore_parser.add_argument("--state-id", required=True)
+    backup_restore_parser.add_argument("--job-id", required=True)
+    state_activate_parser = subparsers.add_parser(
+        "state-activate",
+        help="Create a rescue backup and atomically activate a verified restored state.",
+    )
+    state_activate_parser.add_argument("--state-id", required=True)
+    state_activate_parser.add_argument("--job-id", required=True)
+    state_activate_parser.add_argument("--rescue-backup-id", required=True)
+    state_activate_parser.add_argument("--parent-backup-id", required=True)
+    state_rollback_parser = subparsers.add_parser(
+        "state-rollback",
+        help="Create a rescue backup and atomically return to the predecessor state.",
+    )
+    state_rollback_parser.add_argument("--job-id", required=True)
+    state_rollback_parser.add_argument("--rescue-backup-id", required=True)
     init_db_parser = subparsers.add_parser("init-db", help="Initialize the local SQLite database.")
     init_db_parser.add_argument(
         "--db-path",
@@ -775,6 +818,68 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
 
     args = parser.parse_args(argv)
+
+    if args.command in {
+        "backup-create",
+        "backup-list",
+        "backup-validate",
+        "backup-restore",
+        "state-activate",
+        "state-rollback",
+    }:
+        try:
+            service = M4BackupService()
+            if args.command == "backup-create":
+                result = service.create_backup(
+                    backup_id=args.backup_id,
+                    job_id=args.job_id,
+                    backup_kind=args.kind,
+                    parent_backup_id=args.parent_backup_id,
+                ).to_dict()
+            elif args.command == "backup-list":
+                result = service.list_backups()
+            elif args.command == "backup-validate":
+                result = service.validate_backup(args.backup_id).to_dict()
+            elif args.command == "backup-restore":
+                result = service.restore_backup(
+                    backup_id=args.backup_id,
+                    state_id=args.state_id,
+                    job_id=args.job_id,
+                ).to_dict()
+            elif args.command == "state-activate":
+                result = service.activate_state(
+                    state_id=args.state_id,
+                    job_id=args.job_id,
+                    rescue_backup_id=args.rescue_backup_id,
+                    parent_backup_id=args.parent_backup_id,
+                )
+            else:
+                result = service.rollback_active_state(
+                    job_id=args.job_id,
+                    rescue_backup_id=args.rescue_backup_id,
+                )
+        except M4Error as exc:
+            print(
+                json.dumps(
+                    {
+                        "code": exc.code.value,
+                        "message": exc.message,
+                        "status": "error",
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                ),
+                file=sys.stderr,
+            )
+            return 1
+        print(
+            json.dumps(
+                {"status": "ok", "result": result},
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
+        return 0
 
     if args.command == "init-db":
         result = initialize_database(args.db_path)

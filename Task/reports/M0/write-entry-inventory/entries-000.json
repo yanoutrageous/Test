@@ -1,5 +1,5 @@
 {
-  "chunk_digest_sha256": "e02aec99b3d0c6d1298c0d89e3f8bd5a06e763fcc8f7a5235164454c2a37fa90",
+  "chunk_digest_sha256": "79310da9236cd3b60ba8ffad607cd0c6f3b37e72c2c585f5b585571b6247fcd1",
   "chunk_index": 0,
   "entries": [
     {
@@ -465,13 +465,13 @@
       "control_binding_id": "WE-5801FFE08E6C9A773FD5A242",
       "detail": "implicit schema/directory initialization",
       "end_column": 50,
-      "end_line": 780,
+      "end_line": 885,
       "entry_id": "WE-5801FFE08E6C9A773FD5A242",
       "file": "app/cli.py",
       "function": "app.cli.main",
       "input_source": "CLI_ARGUMENT_OR_CONFIG",
       "kind": "DATABASE_IMPLICIT_INITIALIZER",
-      "line": 780,
+      "line": 885,
       "migration_status": "MIGRATED_GUARDED",
       "owner": "CLI_ADAPTER",
       "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
@@ -480,7 +480,7 @@
       "root_ids": [
         "CLI:MAIN"
       ],
-      "source_sha256": "9a736351b51153af78155dfdfb49635e758854ee6a8b818e06b14ce74ced8514",
+      "source_sha256": "d5983902117c4c9e254e2a7107174c3b437b2878211aab37993f2f14bca2ce14",
       "statement_fingerprint": "4288cb39cb515e0bc0356ff387471f12ee0bfaa6f4cc7f1badd05f80439928dd",
       "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
     },

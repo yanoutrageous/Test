@@ -1,6 +1,6 @@
 {
   "binding_contract": "M0-WRITE-CONTROL-BINDINGS-V1",
-  "binding_count": 444,
+  "binding_count": 446,
   "bindings": [
     {
       "control_id": "M0_LOOPBACK_NETWORK_ALLOWLIST_V1",
@@ -143,7 +143,7 @@
       "file": "app/cli.py",
       "kind": "DATABASE_IMPLICIT_INITIALIZER",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "9a736351b51153af78155dfdfb49635e758854ee6a8b818e06b14ce74ced8514",
+      "source_sha256": "d5983902117c4c9e254e2a7107174c3b437b2878211aab37993f2f14bca2ce14",
       "statement_fingerprint": "4288cb39cb515e0bc0356ff387471f12ee0bfaa6f4cc7f1badd05f80439928dd"
     },
     {
@@ -1216,6 +1216,24 @@
       "migration_status": "MIGRATED_GUARDED",
       "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
       "statement_fingerprint": "eb4804ad388a14f17b8929209373b15aae0675e3fa2d15b60e169d6e4ebddec4"
+    },
+    {
+      "control_id": "M4_ACTIVE_STATE_POINTER_ATOMIC_GATE_V1",
+      "entry_id": "WE-097C4346D94B8ABEDB252EB4",
+      "file": "app/m4_backup.py",
+      "kind": "FILESYSTEM_MOVE_OR_REPLACE",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "405b3a0bc724ab8b5d9257ee6119918f6c56ba8b9ca99cfb5086ddd5dd4dfcb7",
+      "statement_fingerprint": "a08948b196ba3e2ead4ee899b46e412c1e1b28592719d4805eb1571d606fb143"
+    },
+    {
+      "control_id": "M4_ACTIVE_STATE_POINTER_ATOMIC_GATE_V1",
+      "entry_id": "WE-943AE3EB07DA981247CEBA84",
+      "file": "app/m4_backup.py",
+      "kind": "FILESYSTEM_MOVE_OR_REPLACE",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "405b3a0bc724ab8b5d9257ee6119918f6c56ba8b9ca99cfb5086ddd5dd4dfcb7",
+      "statement_fingerprint": "5508ab373e1ebaf48e10c3bb5cdf7591dad67f8873d27aa0d5984115e8d14294"
     },
     {
       "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
@@ -3743,7 +3761,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "NATIVE_API_BINDING",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "43334d7c0f7d38a0612ac484944b01420d21a98642149378cc1b626b0cb5f84e",
+      "source_sha256": "1de8e8bad1482ce08b3599d8f5d813703d7b2e8dfdb04ea34cfdcd276f656689",
       "statement_fingerprint": "3474f55c4f2c4ff899bf534b507dc606ac6ca48c4335543ec7104e00d9f58fff"
     },
     {
@@ -3752,7 +3770,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "EXTERNAL_PROCESS",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "43334d7c0f7d38a0612ac484944b01420d21a98642149378cc1b626b0cb5f84e",
+      "source_sha256": "1de8e8bad1482ce08b3599d8f5d813703d7b2e8dfdb04ea34cfdcd276f656689",
       "statement_fingerprint": "3bae3dc169ca6f62e914ee9e23e5e96473cdab49dfb58fd9402aa70921a5a7ab"
     },
     {
@@ -3761,7 +3779,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "EXTERNAL_PROCESS",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "43334d7c0f7d38a0612ac484944b01420d21a98642149378cc1b626b0cb5f84e",
+      "source_sha256": "1de8e8bad1482ce08b3599d8f5d813703d7b2e8dfdb04ea34cfdcd276f656689",
       "statement_fingerprint": "c6083b9fc5d56593852805263998f951047036e3aceeaad14e38dd86cad70fec"
     },
     {
@@ -3770,7 +3788,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "EXTERNAL_PROCESS",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "43334d7c0f7d38a0612ac484944b01420d21a98642149378cc1b626b0cb5f84e",
+      "source_sha256": "1de8e8bad1482ce08b3599d8f5d813703d7b2e8dfdb04ea34cfdcd276f656689",
       "statement_fingerprint": "7dd9222051d8d2f4cd1b2700fe9c7e2eb6fbb34fa87670438efe9a6ac7dbea73"
     },
     {
@@ -3779,7 +3797,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "EXTERNAL_PROCESS",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "43334d7c0f7d38a0612ac484944b01420d21a98642149378cc1b626b0cb5f84e",
+      "source_sha256": "1de8e8bad1482ce08b3599d8f5d813703d7b2e8dfdb04ea34cfdcd276f656689",
       "statement_fingerprint": "713f2b33010d6c8bc094fa6a54412e54dc5a1e45f3e89a87edb65dd4e363817d"
     },
     {
@@ -3788,7 +3806,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "EXTERNAL_PROCESS",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "43334d7c0f7d38a0612ac484944b01420d21a98642149378cc1b626b0cb5f84e",
+      "source_sha256": "1de8e8bad1482ce08b3599d8f5d813703d7b2e8dfdb04ea34cfdcd276f656689",
       "statement_fingerprint": "2cc7784b0a5e02e898c0632852598ebb4021ff2be70d7ebb38196afc46f42ee8"
     },
     {
@@ -3797,7 +3815,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "EXTERNAL_PROCESS",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "43334d7c0f7d38a0612ac484944b01420d21a98642149378cc1b626b0cb5f84e",
+      "source_sha256": "1de8e8bad1482ce08b3599d8f5d813703d7b2e8dfdb04ea34cfdcd276f656689",
       "statement_fingerprint": "7780013ca247acef940f6ad9307d1a12740d569665d56c15c68627898ebe3593"
     },
     {
@@ -3806,7 +3824,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "NATIVE_API_BINDING",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "43334d7c0f7d38a0612ac484944b01420d21a98642149378cc1b626b0cb5f84e",
+      "source_sha256": "1de8e8bad1482ce08b3599d8f5d813703d7b2e8dfdb04ea34cfdcd276f656689",
       "statement_fingerprint": "3474f55c4f2c4ff899bf534b507dc606ac6ca48c4335543ec7104e00d9f58fff"
     },
     {
@@ -3815,7 +3833,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "FILESYSTEM_FILE_WRITE",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "43334d7c0f7d38a0612ac484944b01420d21a98642149378cc1b626b0cb5f84e",
+      "source_sha256": "1de8e8bad1482ce08b3599d8f5d813703d7b2e8dfdb04ea34cfdcd276f656689",
       "statement_fingerprint": "b52e873c261d950f8af3d41eec4cb399d86171f37018497920074e905dd686c7"
     },
     {
@@ -3824,7 +3842,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "FILESYSTEM_FILE_WRITE",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "43334d7c0f7d38a0612ac484944b01420d21a98642149378cc1b626b0cb5f84e",
+      "source_sha256": "1de8e8bad1482ce08b3599d8f5d813703d7b2e8dfdb04ea34cfdcd276f656689",
       "statement_fingerprint": "e48d8030e1d5de7806bbe9ba0c309d02aa1fadb53729796d50f34eda70ca0f66"
     },
     {
@@ -3833,7 +3851,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "FILESYSTEM_FILE_WRITE",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "43334d7c0f7d38a0612ac484944b01420d21a98642149378cc1b626b0cb5f84e",
+      "source_sha256": "1de8e8bad1482ce08b3599d8f5d813703d7b2e8dfdb04ea34cfdcd276f656689",
       "statement_fingerprint": "04f901d0661301ce7fc0835272521ac5aacd94c087c142c5f7cbb85c241d6bd0"
     },
     {
@@ -3842,7 +3860,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "NATIVE_API_BINDING",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "43334d7c0f7d38a0612ac484944b01420d21a98642149378cc1b626b0cb5f84e",
+      "source_sha256": "1de8e8bad1482ce08b3599d8f5d813703d7b2e8dfdb04ea34cfdcd276f656689",
       "statement_fingerprint": "3474f55c4f2c4ff899bf534b507dc606ac6ca48c4335543ec7104e00d9f58fff"
     },
     {
@@ -3851,7 +3869,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "FILESYSTEM_FILE_WRITE",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "43334d7c0f7d38a0612ac484944b01420d21a98642149378cc1b626b0cb5f84e",
+      "source_sha256": "1de8e8bad1482ce08b3599d8f5d813703d7b2e8dfdb04ea34cfdcd276f656689",
       "statement_fingerprint": "54e7aba638d2603cb3e93eee4f0f9111afa705bf7ae1b3d32efef877299836b7"
     },
     {
@@ -3860,7 +3878,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "NATIVE_API_BINDING",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "43334d7c0f7d38a0612ac484944b01420d21a98642149378cc1b626b0cb5f84e",
+      "source_sha256": "1de8e8bad1482ce08b3599d8f5d813703d7b2e8dfdb04ea34cfdcd276f656689",
       "statement_fingerprint": "3474f55c4f2c4ff899bf534b507dc606ac6ca48c4335543ec7104e00d9f58fff"
     },
     {
@@ -3869,7 +3887,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "FILESYSTEM_FILE_WRITE",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "43334d7c0f7d38a0612ac484944b01420d21a98642149378cc1b626b0cb5f84e",
+      "source_sha256": "1de8e8bad1482ce08b3599d8f5d813703d7b2e8dfdb04ea34cfdcd276f656689",
       "statement_fingerprint": "dd167905a49b370b62e99e3239bfc60d15f3c481c309a45adeab51b077931f1a"
     },
     {
@@ -3878,7 +3896,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "FILESYSTEM_FILE_WRITE",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "43334d7c0f7d38a0612ac484944b01420d21a98642149378cc1b626b0cb5f84e",
+      "source_sha256": "1de8e8bad1482ce08b3599d8f5d813703d7b2e8dfdb04ea34cfdcd276f656689",
       "statement_fingerprint": "e44de1e95baf974631b5a28ab7851f3a9256a2b5159eba26d5e1efa1bb764c00"
     },
     {
@@ -3887,7 +3905,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "FILESYSTEM_FILE_WRITE",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "43334d7c0f7d38a0612ac484944b01420d21a98642149378cc1b626b0cb5f84e",
+      "source_sha256": "1de8e8bad1482ce08b3599d8f5d813703d7b2e8dfdb04ea34cfdcd276f656689",
       "statement_fingerprint": "c08e0eaaa509384f20cdefa40e74244fd4ff647f5d7a398a28a5099a8f9fc9ab"
     },
     {
@@ -3896,7 +3914,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "FILESYSTEM_FILE_WRITE",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "43334d7c0f7d38a0612ac484944b01420d21a98642149378cc1b626b0cb5f84e",
+      "source_sha256": "1de8e8bad1482ce08b3599d8f5d813703d7b2e8dfdb04ea34cfdcd276f656689",
       "statement_fingerprint": "54dea0061a31634a25398b4c2ea17ae98546d3118c53394b4fcdba388c2fbf2c"
     },
     {
@@ -3905,7 +3923,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "FILESYSTEM_FILE_WRITE",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "43334d7c0f7d38a0612ac484944b01420d21a98642149378cc1b626b0cb5f84e",
+      "source_sha256": "1de8e8bad1482ce08b3599d8f5d813703d7b2e8dfdb04ea34cfdcd276f656689",
       "statement_fingerprint": "65146e1ad0de15c07406bb37e3cd62e2470db610113b13ea2c5f7462cabda0ab"
     },
     {
@@ -3914,7 +3932,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "FILESYSTEM_FILE_WRITE",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "43334d7c0f7d38a0612ac484944b01420d21a98642149378cc1b626b0cb5f84e",
+      "source_sha256": "1de8e8bad1482ce08b3599d8f5d813703d7b2e8dfdb04ea34cfdcd276f656689",
       "statement_fingerprint": "cc2d420e2d33e95af54fb7647559f93c5d71fc8d2949e4b67e5495226ead1c9f"
     },
     {
@@ -3923,7 +3941,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "FILESYSTEM_FILE_WRITE",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "43334d7c0f7d38a0612ac484944b01420d21a98642149378cc1b626b0cb5f84e",
+      "source_sha256": "1de8e8bad1482ce08b3599d8f5d813703d7b2e8dfdb04ea34cfdcd276f656689",
       "statement_fingerprint": "7e64ca07120243d21cb9ad0e836c566965cfde1adcf2f29c072ed36bc9e49df5"
     },
     {
@@ -3932,7 +3950,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "EXTERNAL_PROCESS",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "43334d7c0f7d38a0612ac484944b01420d21a98642149378cc1b626b0cb5f84e",
+      "source_sha256": "1de8e8bad1482ce08b3599d8f5d813703d7b2e8dfdb04ea34cfdcd276f656689",
       "statement_fingerprint": "66f3a7bba0b6feef64c69e339fbfbca3e0ea8dc01b54b97847247c87457bd33e"
     },
     {
@@ -3941,7 +3959,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "FILESYSTEM_DIRECTORY_CREATE",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "43334d7c0f7d38a0612ac484944b01420d21a98642149378cc1b626b0cb5f84e",
+      "source_sha256": "1de8e8bad1482ce08b3599d8f5d813703d7b2e8dfdb04ea34cfdcd276f656689",
       "statement_fingerprint": "4258319616e9c4b20dbb6e8f951ca7c29563ab46b47f42380aed4b6228cd75d3"
     },
     {
@@ -3950,7 +3968,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "FILESYSTEM_DIRECTORY_CREATE",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "43334d7c0f7d38a0612ac484944b01420d21a98642149378cc1b626b0cb5f84e",
+      "source_sha256": "1de8e8bad1482ce08b3599d8f5d813703d7b2e8dfdb04ea34cfdcd276f656689",
       "statement_fingerprint": "d76fa67834f025e8ba1ea34a5a15038c09007f8bd789097f763c139a5ac87f20"
     },
     {
@@ -3959,7 +3977,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "FILESYSTEM_DIRECTORY_CREATE",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "43334d7c0f7d38a0612ac484944b01420d21a98642149378cc1b626b0cb5f84e",
+      "source_sha256": "1de8e8bad1482ce08b3599d8f5d813703d7b2e8dfdb04ea34cfdcd276f656689",
       "statement_fingerprint": "3102f577fe457871c6e93b649467cd741570c6e5695ab61120e0be7a8b36c316"
     },
     {
@@ -3968,7 +3986,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "FILESYSTEM_DIRECTORY_CREATE",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "43334d7c0f7d38a0612ac484944b01420d21a98642149378cc1b626b0cb5f84e",
+      "source_sha256": "1de8e8bad1482ce08b3599d8f5d813703d7b2e8dfdb04ea34cfdcd276f656689",
       "statement_fingerprint": "2936544fb8e87590fc4c946250f06759d40a5fa3ca655748ed4a2f5bb15b3a08"
     },
     {
@@ -3977,7 +3995,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "FILESYSTEM_DIRECTORY_CREATE",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "43334d7c0f7d38a0612ac484944b01420d21a98642149378cc1b626b0cb5f84e",
+      "source_sha256": "1de8e8bad1482ce08b3599d8f5d813703d7b2e8dfdb04ea34cfdcd276f656689",
       "statement_fingerprint": "ebfc35da1fcba9b218e25759adeb31427b05fcb1b535c559884234c0dd3c9e7c"
     },
     {
@@ -3986,7 +4004,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "FILESYSTEM_DIRECTORY_CREATE",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "43334d7c0f7d38a0612ac484944b01420d21a98642149378cc1b626b0cb5f84e",
+      "source_sha256": "1de8e8bad1482ce08b3599d8f5d813703d7b2e8dfdb04ea34cfdcd276f656689",
       "statement_fingerprint": "983185b355c549db0471769390c377bf2f8c85375cab5de31e860d2a3f2c7ccf"
     },
     {
@@ -3995,11 +4013,11 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "FILESYSTEM_DIRECTORY_CREATE",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "43334d7c0f7d38a0612ac484944b01420d21a98642149378cc1b626b0cb5f84e",
+      "source_sha256": "1de8e8bad1482ce08b3599d8f5d813703d7b2e8dfdb04ea34cfdcd276f656689",
       "statement_fingerprint": "63e777f1078a305b568ea180d1004bd9d2712391705c7d94f8e952fdce697c62"
     }
   ],
-  "bindings_digest_sha256": "24feb242366747a55c98abf41d13b6c73a200a6888ae77c7131a6c3a28646830",
+  "bindings_digest_sha256": "17afd028266befd85923549cb484e6e51a1b2bc394989c681486f3be10406d2d",
   "scanner_version": "M0-S6-STATIC-AUDIT-V21",
   "schema_version": "1.0"
 }

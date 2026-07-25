@@ -1,7 +1,69 @@
 {
-  "chunk_digest_sha256": "1dc96035de7364408535e46178c6c67e35e12d3f3d2ccb870421a796915ed3df",
+  "chunk_digest_sha256": "2d5ef3f974b742a07920a6bf6c37dbf6ae0c968b94d59d0f01c4b8f2bbaf2b1b",
   "chunk_index": 6,
   "entries": [
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.question_assets.crop_question_assets"
+      ],
+      "callee": "app.database.connect_database().commit",
+      "column": 8,
+      "control_binding_id": "WE-334C41D0FE74A00D16DC2254",
+      "detail": "transaction commit",
+      "end_column": 21,
+      "end_line": 248,
+      "entry_id": "WE-334C41D0FE74A00D16DC2254",
+      "file": "app/question_assets.py",
+      "function": "app.question_assets.crop_question_assets",
+      "input_source": "CLI_ARGUMENT_OR_CONFIG",
+      "kind": "SQLITE_TRANSACTION",
+      "line": 248,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "IMPORT_SERVICE",
+      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "resolution": "ALIAS_RESOLVED",
+      "risk": "P1",
+      "root_ids": [
+        "CLI:MAIN"
+      ],
+      "source_sha256": "b188dc568640d54e781f0316db4eb8f4e9c0ef684d9209956832ec122904f327",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976",
+      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
+    },
+    {
+      "call_chain": [
+        "app.web.create_app",
+        "app.question_repository.list_questions"
+      ],
+      "callee": "app.database.connect_database_read_only().execute",
+      "column": 23,
+      "control_binding_id": "WE-D4D18DB1A2461850DB8C28E4",
+      "detail": "dynamic SQL is fail-closed because its effect cannot be proven",
+      "end_column": 17,
+      "end_line": 206,
+      "entry_id": "WE-D4D18DB1A2461850DB8C28E4",
+      "file": "app/question_repository.py",
+      "function": "app.question_repository.list_questions",
+      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "line": 178,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "resolution": "DYNAMIC",
+      "risk": "P0",
+      "root_ids": [
+        "FACTORY:CREATE_APP",
+        "MODULE:APP",
+        "WEB:GET /questions",
+        "WEB:GET /questions/<int:question_id>",
+        "WEB:POST /questions/<int:question_id>"
+      ],
+      "source_sha256": "d51d74a675c89e01fa2fb82b5869c1fd53067255d8a29723af8b065bd59867cb",
+      "statement_fingerprint": "e73cd172adef3d5b7203850801220a18d30d9aeaf35809b7914bcf9bb8c76ca9",
+      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
+    },
     {
       "call_chain": [
         "app.web.create_app",
@@ -699,62 +761,6 @@
       ],
       "source_sha256": "6fc50d53cb6a8adabc48f17ed04194f91898ece41f67d8f89574432818cb1075",
       "statement_fingerprint": "3474f55c4f2c4ff899bf534b507dc606ac6ca48c4335543ec7104e00d9f58fff",
-      "target_namespace": "NATIVE_FIXED_LIBRARY_AND_SYMBOL_ALLOWLIST"
-    },
-    {
-      "call_chain": [
-        "app.safety.windows_handle_writer._WindowsApi.__init__"
-      ],
-      "callee": "ctypes.WinDLL",
-      "column": 16,
-      "control_binding_id": "WE-CC595153C73A7991DB29971B",
-      "detail": "native library binding requires an audited symbol allowlist",
-      "end_column": 38,
-      "end_line": 1193,
-      "entry_id": "WE-CC595153C73A7991DB29971B",
-      "file": "app/safety/windows_handle_writer.py",
-      "function": "app.safety.windows_handle_writer._WindowsApi.__init__",
-      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
-      "kind": "NATIVE_API_BINDING",
-      "line": 1193,
-      "migration_status": "MIGRATED_GUARDED",
-      "owner": "SAFETY_SERVICE",
-      "required_control": "M0_NATIVE_FIXED_ALLOWLIST_V1",
-      "resolution": "CONSERVATIVE",
-      "risk": "P0",
-      "root_ids": [
-        "INTERNAL-DIRECT"
-      ],
-      "source_sha256": "6fc50d53cb6a8adabc48f17ed04194f91898ece41f67d8f89574432818cb1075",
-      "statement_fingerprint": "9d0cbfb70dc163dc4a1b455de8cdd4f40b2442a052e3db37be6335e49b08279f",
-      "target_namespace": "NATIVE_FIXED_LIBRARY_AND_SYMBOL_ALLOWLIST"
-    },
-    {
-      "call_chain": [
-        "app.safety.windows_handle_writer._WindowsApi._nt_create_relative"
-      ],
-      "callee": "ctypes.cast",
-      "column": 30,
-      "control_binding_id": "WE-4D64068530382C14746E3587",
-      "detail": "native library binding requires an audited symbol allowlist",
-      "end_column": 72,
-      "end_line": 1272,
-      "entry_id": "WE-4D64068530382C14746E3587",
-      "file": "app/safety/windows_handle_writer.py",
-      "function": "app.safety.windows_handle_writer._WindowsApi._nt_create_relative",
-      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
-      "kind": "NATIVE_API_BINDING",
-      "line": 1272,
-      "migration_status": "MIGRATED_GUARDED",
-      "owner": "SAFETY_SERVICE",
-      "required_control": "M0_NATIVE_FIXED_ALLOWLIST_V1",
-      "resolution": "CONSERVATIVE",
-      "risk": "P0",
-      "root_ids": [
-        "INTERNAL-DIRECT"
-      ],
-      "source_sha256": "6fc50d53cb6a8adabc48f17ed04194f91898ece41f67d8f89574432818cb1075",
-      "statement_fingerprint": "301500c98429488ff9401a91a56ee0ff18f5e8176b45c12aa4fe789d44902b5e",
       "target_namespace": "NATIVE_FIXED_LIBRARY_AND_SYMBOL_ALLOWLIST"
     }
   ],

@@ -63,6 +63,7 @@ class M3PipelineConfig:
     m1_state_id: str = "STATE-M1-YANYAN-REV-002"
     m1_paper_object_id: str = "PAPER-YANYAN-202605"
     m1_paper_revision: str = "REV-002"
+    data_source_root_relative: str = "."
 
     def __post_init__(self) -> None:
         for field_name in (
@@ -74,6 +75,34 @@ class M3PipelineConfig:
             "m1_paper_revision",
         ):
             validate_safe_id(str(getattr(self, field_name)), field_name=field_name)
+        source_root = PurePosixPath(self.data_source_root_relative)
+        if (
+            self.data_source_root_relative == "."
+            or (
+                not source_root.is_absolute()
+                and "\\" not in self.data_source_root_relative
+                and len(source_root.parts) >= 4
+                and source_root.parts[0] in {"data", "tmp"}
+                and (
+                    source_root.parts[:2] == ("data", "snapshots")
+                    or source_root.parts[:3] == ("tmp", "jobs", "INTERNAL")
+                )
+                and all(part not in {"", ".", ".."} for part in source_root.parts)
+            )
+        ):
+            return
+        raise M3PipelineError(
+            "M3 data source root must be the project root, a restored snapshot, "
+            "or an INTERNAL restore staging root"
+        )
+
+    @property
+    def data_source_root(self) -> Path:
+        if self.data_source_root_relative == ".":
+            return PROJECT_ROOT
+        return PROJECT_ROOT.joinpath(
+            *PurePosixPath(self.data_source_root_relative).parts
+        )
 
     @property
     def job_root(self) -> Path:
@@ -96,7 +125,7 @@ class M3PipelineConfig:
     @property
     def m1_database_path(self) -> Path:
         return (
-            PROJECT_ROOT
+            self.data_source_root
             / "data"
             / "db"
             / "versions"
@@ -107,7 +136,7 @@ class M3PipelineConfig:
     @property
     def m1_derived_root(self) -> Path:
         return (
-            PROJECT_ROOT
+            self.data_source_root
             / "data"
             / "derived"
             / "papers"

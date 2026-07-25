@@ -289,6 +289,9 @@ _AUDITED_CAPABILITY_STORES = frozenset(
 
 _AUDITED_PARAMETER_CALLS = frozenset(
     {
+        # M4 reports bounded in-memory progress dictionaries to an optional
+        # caller callback.  This exact callsite carries no path or capability.
+        ("app/m4_backup.py", "app.m4_backup._emit_progress", "fd31a791a47168017082865001ce180f75ed54a54006d7cbc38636bc81e82899"),
         ("app/question_split.py", "app.question_split._visual_text_lines", "dfdb435bb749ff91311d7215ef9d7259bb12bd57ea5cbed71804c3219f7c34b5"),
         ("app/workspace_guard.py", "app.workspace_guard._coerce_path", "1fd0cd7c0f714054724e7666ad0930fe334dc10a1397ad8384ebd1b251ead795"),
         ("app/workspace_guard.py", "app.workspace_guard._coerce_path", "e1bd4ec60fd3b48342eb2295dd720a68b477d2b22f08640bb0007adc247706c9"),
@@ -421,6 +424,7 @@ class MigrationStatus(StrEnum):
 
 CONTROL_DATABASE = "M0_DATABASE_LEASE_AND_TRANSACTION_V1"
 CONTROL_DATABASE_BACKUP = "M0_DATABASE_BACKUP_SNAPSHOT_V1"
+CONTROL_ACTIVE_STATE_POINTER = "M4_ACTIVE_STATE_POINTER_ATOMIC_GATE_V1"
 CONTROL_DURABLE_LEDGER = "M0_DURABLE_LEDGER_GATE_V1"
 CONTROL_HANDLE_WRITER = "M0_FIXED_ROOT_HANDLE_WRITER_V1"
 CONTROL_LOOPBACK_NETWORK = "M0_LOOPBACK_NETWORK_ALLOWLIST_V1"
@@ -3306,6 +3310,11 @@ def _production_writer_contract_connected(
         "app/database_migrations.py": (
             "get_workspace_io().database_mutation_lease",
         ),
+        "app/m4_backup.py": (
+            'return self._root / "data" / "db" / "active-state.json"',
+            "def _replace_active_pointer(self, candidate: Path) -> None:",
+            "os.replace(candidate, self.active_pointer_path)",
+        ),
     }
     if any(
         file not in sources
@@ -3316,6 +3325,7 @@ def _production_writer_contract_connected(
     required_controls = {
         CONTROL_DATABASE,
         CONTROL_DATABASE_BACKUP,
+        CONTROL_ACTIVE_STATE_POINTER,
         CONTROL_DURABLE_LEDGER,
         CONTROL_HANDLE_WRITER,
         CONTROL_LOOPBACK_NETWORK,
@@ -5828,6 +5838,8 @@ def _owner_for(file: str) -> str:
     name = Path(file).name
     if file.startswith("scripts/"):
         return "TEST_INFRASTRUCTURE"
+    if name == "m4_backup.py":
+        return "BACKUP_SERVICE"
     if file.startswith("app/safety/") or name == "workspace_guard.py":
         return "SAFETY_SERVICE"
     if name in {"database.py", "search_index.py"}:
@@ -5952,6 +5964,17 @@ def _control_recommendation(
         and function == "app.database_backup._sqlite_backup"
     ):
         return CONTROL_DATABASE_BACKUP, MigrationStatus.MIGRATED_GUARDED
+    if (
+        file == "app/m4_backup.py"
+        and kind is WritePrimitiveKind.FILESYSTEM_MOVE_OR_REPLACE
+        and callee == "os.replace"
+        and function
+        in {
+            "app.m4_backup.M4BackupService._replace_active_pointer",
+            "app.m4_backup.M4BackupService._restore_pointer_after_failure",
+        }
+    ):
+        return CONTROL_ACTIVE_STATE_POINTER, MigrationStatus.MIGRATED_GUARDED
     if kind is WritePrimitiveKind.SQLITE_RAW_CONNECT:
         if (
             file == "app/database.py"
@@ -6001,6 +6024,7 @@ def _target_namespace(
         namespaces = {
             CONTROL_DATABASE: "FIXED_PROJECT_SQLITE_GATE",
             CONTROL_DATABASE_BACKUP: "FIXED_PROJECT_BACKUP_SNAPSHOT_GATE",
+            CONTROL_ACTIVE_STATE_POINTER: "FIXED_ACTIVE_STATE_POINTER",
             CONTROL_DURABLE_LEDGER: "FIXED_DURABLE_LEDGER_STORE",
             CONTROL_HANDLE_WRITER: "FIXED_CONTRACT_PROJECT_ROOT",
             CONTROL_LOOPBACK_NETWORK: "LOOPBACK_NETWORK_ONLY",

@@ -1,7 +1,66 @@
 {
-  "chunk_digest_sha256": "da75cf4930d6979ea95c14f348a40e9d6f3681f2d572612dbc8f45f9f3bb160d",
+  "chunk_digest_sha256": "30577862bf74cc8ad52370a05a90106d69e1b497302005b980208ce12ed9ef43",
   "chunk_index": 16,
   "entries": [
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.structured_ai.run_structured_ai_corrections"
+      ],
+      "callee": "app.database.connect_database().commit",
+      "column": 8,
+      "control_binding_id": "WE-8C35382C9B893B20A8FB4AC3",
+      "detail": "transaction commit",
+      "end_column": 21,
+      "end_line": 310,
+      "entry_id": "WE-8C35382C9B893B20A8FB4AC3",
+      "file": "app/structured_ai.py",
+      "function": "app.structured_ai.run_structured_ai_corrections",
+      "input_source": "CLI_ARGUMENT_OR_CONFIG",
+      "kind": "SQLITE_TRANSACTION",
+      "line": 310,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "resolution": "ALIAS_RESOLVED",
+      "risk": "P1",
+      "root_ids": [
+        "CLI:MAIN"
+      ],
+      "source_sha256": "4f55559b7e63d78456098a7b598be63bb24d48a0bbe0d3056ca09a6d4cfd132c",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976",
+      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
+    },
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.structured_ai.run_structured_ai_corrections",
+        "app.structured_ai._load_correction_rows"
+      ],
+      "callee": "conn.execute",
+      "column": 11,
+      "control_binding_id": "WE-7ED15A664A4B16F99021C6A5",
+      "detail": "dynamic SQL is fail-closed because its effect cannot be proven",
+      "end_column": 5,
+      "end_line": 410,
+      "entry_id": "WE-7ED15A664A4B16F99021C6A5",
+      "file": "app/structured_ai.py",
+      "function": "app.structured_ai._load_correction_rows",
+      "input_source": "CLI_ARGUMENT_OR_CONFIG",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "line": 373,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "resolution": "DYNAMIC",
+      "risk": "P0",
+      "root_ids": [
+        "CLI:MAIN"
+      ],
+      "source_sha256": "4f55559b7e63d78456098a7b598be63bb24d48a0bbe0d3056ca09a6d4cfd132c",
+      "statement_fingerprint": "74fa55252452be8de92a775553381e1f1d44bd762f52f8ee4c92aa1c08fa21d6",
+      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
+    },
     {
       "call_chain": [
         "app.cli.main",
@@ -486,7 +545,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "43334d7c0f7d38a0612ac484944b01420d21a98642149378cc1b626b0cb5f84e",
+      "source_sha256": "1de8e8bad1482ce08b3599d8f5d813703d7b2e8dfdb04ea34cfdcd276f656689",
       "statement_fingerprint": "3474f55c4f2c4ff899bf534b507dc606ac6ca48c4335543ec7104e00d9f58fff",
       "target_namespace": "FIXED_TEST_LAB_RUNTIME"
     },
@@ -514,7 +573,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "43334d7c0f7d38a0612ac484944b01420d21a98642149378cc1b626b0cb5f84e",
+      "source_sha256": "1de8e8bad1482ce08b3599d8f5d813703d7b2e8dfdb04ea34cfdcd276f656689",
       "statement_fingerprint": "3bae3dc169ca6f62e914ee9e23e5e96473cdab49dfb58fd9402aa70921a5a7ab",
       "target_namespace": "FIXED_TEST_LAB_RUNTIME"
     },
@@ -542,7 +601,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "43334d7c0f7d38a0612ac484944b01420d21a98642149378cc1b626b0cb5f84e",
+      "source_sha256": "1de8e8bad1482ce08b3599d8f5d813703d7b2e8dfdb04ea34cfdcd276f656689",
       "statement_fingerprint": "c6083b9fc5d56593852805263998f951047036e3aceeaad14e38dd86cad70fec",
       "target_namespace": "FIXED_TEST_LAB_RUNTIME"
     },
@@ -570,7 +629,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "43334d7c0f7d38a0612ac484944b01420d21a98642149378cc1b626b0cb5f84e",
+      "source_sha256": "1de8e8bad1482ce08b3599d8f5d813703d7b2e8dfdb04ea34cfdcd276f656689",
       "statement_fingerprint": "7dd9222051d8d2f4cd1b2700fe9c7e2eb6fbb34fa87670438efe9a6ac7dbea73",
       "target_namespace": "FIXED_TEST_LAB_RUNTIME"
     },
@@ -598,7 +657,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "43334d7c0f7d38a0612ac484944b01420d21a98642149378cc1b626b0cb5f84e",
+      "source_sha256": "1de8e8bad1482ce08b3599d8f5d813703d7b2e8dfdb04ea34cfdcd276f656689",
       "statement_fingerprint": "713f2b33010d6c8bc094fa6a54412e54dc5a1e45f3e89a87edb65dd4e363817d",
       "target_namespace": "FIXED_TEST_LAB_RUNTIME"
     },
@@ -626,7 +685,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "43334d7c0f7d38a0612ac484944b01420d21a98642149378cc1b626b0cb5f84e",
+      "source_sha256": "1de8e8bad1482ce08b3599d8f5d813703d7b2e8dfdb04ea34cfdcd276f656689",
       "statement_fingerprint": "2cc7784b0a5e02e898c0632852598ebb4021ff2be70d7ebb38196afc46f42ee8",
       "target_namespace": "FIXED_TEST_LAB_RUNTIME"
     },
@@ -654,7 +713,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "43334d7c0f7d38a0612ac484944b01420d21a98642149378cc1b626b0cb5f84e",
+      "source_sha256": "1de8e8bad1482ce08b3599d8f5d813703d7b2e8dfdb04ea34cfdcd276f656689",
       "statement_fingerprint": "7780013ca247acef940f6ad9307d1a12740d569665d56c15c68627898ebe3593",
       "target_namespace": "FIXED_TEST_LAB_RUNTIME"
     },
@@ -682,64 +741,8 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "43334d7c0f7d38a0612ac484944b01420d21a98642149378cc1b626b0cb5f84e",
+      "source_sha256": "1de8e8bad1482ce08b3599d8f5d813703d7b2e8dfdb04ea34cfdcd276f656689",
       "statement_fingerprint": "3474f55c4f2c4ff899bf534b507dc606ac6ca48c4335543ec7104e00d9f58fff",
-      "target_namespace": "FIXED_TEST_LAB_RUNTIME"
-    },
-    {
-      "call_chain": [
-        "scripts.run_safe_pytest._WindowsProtectedTreeWatcher.__init__"
-      ],
-      "callee": "ctypes.WinDLL().CreateFileW",
-      "column": 17,
-      "control_binding_id": "WE-332C8A7D64369CB7B4A44B7D",
-      "detail": "Win32 file mutation or durability primitive",
-      "end_column": 9,
-      "end_line": 402,
-      "entry_id": "WE-332C8A7D64369CB7B4A44B7D",
-      "file": "scripts/run_safe_pytest.py",
-      "function": "scripts.run_safe_pytest._WindowsProtectedTreeWatcher.__init__",
-      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
-      "kind": "FILESYSTEM_FILE_WRITE",
-      "line": 394,
-      "migration_status": "MIGRATED_GUARDED",
-      "owner": "TEST_INFRASTRUCTURE",
-      "required_control": "M0_SAFE_TEST_LAUNCHER_V1",
-      "resolution": "CONSERVATIVE",
-      "risk": "P1",
-      "root_ids": [
-        "INTERNAL-DIRECT"
-      ],
-      "source_sha256": "43334d7c0f7d38a0612ac484944b01420d21a98642149378cc1b626b0cb5f84e",
-      "statement_fingerprint": "b52e873c261d950f8af3d41eec4cb399d86171f37018497920074e905dd686c7",
-      "target_namespace": "FIXED_TEST_LAB_RUNTIME"
-    },
-    {
-      "call_chain": [
-        "scripts.run_safe_pytest._WindowsProtectedTreeWatcher._write_marker"
-      ],
-      "callee": "os.open",
-      "column": 21,
-      "control_binding_id": "WE-2A47AFA1DA2BCE6A16808E1F",
-      "detail": "low-level open may write",
-      "end_column": 9,
-      "end_line": 447,
-      "entry_id": "WE-2A47AFA1DA2BCE6A16808E1F",
-      "file": "scripts/run_safe_pytest.py",
-      "function": "scripts.run_safe_pytest._WindowsProtectedTreeWatcher._write_marker",
-      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
-      "kind": "FILESYSTEM_FILE_WRITE",
-      "line": 443,
-      "migration_status": "MIGRATED_GUARDED",
-      "owner": "TEST_INFRASTRUCTURE",
-      "required_control": "M0_SAFE_TEST_LAUNCHER_V1",
-      "resolution": "EXACT",
-      "risk": "P1",
-      "root_ids": [
-        "INTERNAL-DIRECT"
-      ],
-      "source_sha256": "43334d7c0f7d38a0612ac484944b01420d21a98642149378cc1b626b0cb5f84e",
-      "statement_fingerprint": "e48d8030e1d5de7806bbe9ba0c309d02aa1fadb53729796d50f34eda70ca0f66",
       "target_namespace": "FIXED_TEST_LAB_RUNTIME"
     }
   ],

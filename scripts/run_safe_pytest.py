@@ -1940,6 +1940,36 @@ def _build_command(
             "tests/test_database.py",
             "tests/test_web.py",
         ]
+    elif mode == "m4":
+        selection = [
+            "tests/test_m4_backup.py",
+            "tests/test_m3_pipeline.py",
+            "tests/test_m2_pipeline.py",
+            "tests/test_m1_pipeline.py",
+            "tests/test_database_backup.py",
+            "tests/test_database_migrations.py",
+            "tests/test_domain_models.py",
+            "tests/test_ir_contracts.py",
+            "tests/test_database.py",
+            "tests/test_web.py",
+            "tests/test_workspace_io.py",
+            "tests/test_workspace_policy.py",
+            "tests/test_write_entry_inventory.py",
+            "tests/test_safe_pytest_launcher.py",
+        ]
+    elif mode == "m4_core":
+        selection = [
+            "tests/test_m4_backup.py",
+            "tests/test_m3_pipeline.py",
+            "tests/test_m2_pipeline.py",
+            "tests/test_m1_pipeline.py",
+            "tests/test_database_backup.py",
+            "tests/test_database_migrations.py",
+            "tests/test_domain_models.py",
+            "tests/test_ir_contracts.py",
+            "tests/test_database.py",
+            "tests/test_web.py",
+        ]
     elif mode == "launcher":
         selection = ["tests/test_safe_pytest_launcher.py"]
     elif mode == "symlink":
@@ -2007,6 +2037,8 @@ def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
             "m2_core",
             "m3",
             "m3_core",
+            "m4",
+            "m4_core",
             "launcher",
             "symlink",
         ),
