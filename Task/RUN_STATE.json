@@ -1,7 +1,7 @@
 {
   "state_version": "1.1.0",
   "plan_version": "1.1.0",
-  "updated_at": "2026-07-25T15:20:00+08:00",
+  "updated_at": "2026-07-25T15:23:00+08:00",
   "current_milestone": "M0",
   "current_slice": "M0_S6_REAL_FLOWS_AND_EXIT",
   "status": "RUNNING",
@@ -469,8 +469,9 @@
     }
   },
   "s5_checkpoint": {
-    "local_acceptance_status": "PASSED_ACCEPTANCE_PUBLICATION_PENDING",
+    "local_acceptance_status": "PUBLISHED_AND_VERIFIED_AT_ORIGIN",
     "functional_checkpoint_commit": "4a9512beb04546649214ad20560c88d784334d92",
+    "acceptance_checkpoint_commit": "ba36cbd1847345f35411164855cd24c5ecaf6188",
     "report": "Task/reports/M0/M0-S5-domain-ir-gold.md",
     "adr": "Task/adr/ADR-2026-006-versioned-domain-ir-gold-baseline.md",
     "high_risk_audit": "Task/audit/M0/S5-DOMAIN-IR-GOLD-20260725.md",
@@ -638,16 +639,16 @@
     "base_commit": "bfd4d35973974a223f465cd08910f303518a8586",
     "remote": "https://github.com/yanoutrageous/Test.git",
     "planning_published_commit": "bfd4d35973974a223f465cd08910f303518a8586",
-    "publication_status": "M0_S4_PUBLISHED_S5_LOCAL_ACCEPTANCE_PUBLICATION_PENDING",
-    "published_checkpoint": "29602bc1af5001e486e9df8b5568af1b51984d08",
-    "verified_origin_head": "445c7986ec65d1e71ea89d4382daf47f6ac86600",
+    "publication_status": "M0_S5_FUNCTIONAL_AND_ACCEPTANCE_CHECKPOINTS_PUBLISHED_AND_ORIGIN_VERIFIED",
+    "published_checkpoint": "4a9512beb04546649214ad20560c88d784334d92",
+    "verified_origin_head": "ba36cbd1847345f35411164855cd24c5ecaf6188",
     "verified_draft_pr_head": null,
     "draft_pr_state": "NOT_REVERIFIED_AFTER_S4_PUSH_LOCAL_GH_NOT_AUTHENTICATED",
     "draft_pr_body_update": "NOT_APPLIED_GITHUB_APP_INTEGRATION_403_GH_NOT_PERSISTENTLY_AUTHENTICATED_NO_BYPASS_ATTEMPTED",
     "planning_pull_request": "https://github.com/yanoutrageous/Test/pull/1",
     "integration_pull_request": "https://github.com/yanoutrageous/Test/pull/2"
   },
-  "last_verified_checkpoint": "445c7986ec65d1e71ea89d4382daf47f6ac86600",
+  "last_verified_checkpoint": "ba36cbd1847345f35411164855cd24c5ecaf6188",
   "last_unverified_pause_checkpoint": "aec3d7413a06251e4865b601fd680090b466892e",
   "active_job_id": "M0-S6-REAL-FLOWS-EXIT",
   "active_writer": {
@@ -740,7 +741,8 @@
     "M0-S5 visual thresholds freeze exact-reference pages, 0.01 mm representation tolerance, 0.5/1.0 mm major anchors, zero crop/overflow/silent font substitution, manual overlay, and diagnostic-only pixel metrics",
     "RUN-20260725-M0-S5-122 passed 460 tests and RUN-20260725-M0-S5-FULL-123 passed 1105 tests with zero failures/errors/skips; the activity database, 24859-entry protected tree, watcher, handle fence, run tree, immutable evidence, 80 source witnesses, and process tree all passed",
     "production inventory RUN-20260725-M0-S5-INVENTORY-118 matches tracked bytes at 58 sources, 462 entries, 19 chunks, UNKNOWN=0, all entries UNMIGRATED_BLOCKED, payload cc828c0925b2d83be7d17e831fa3370585cee8fa2376f4c4989b798f51389b0c",
-    "all 17 cold archives were rehashed and fully streamed at S5 freeze with 216332 members, 204 run roots, zero hash/member/path/duplicate differences; only final RUN-123 remains hot and superseded directories were moved recoverably to the existing C relief area"
+    "all 17 cold archives were rehashed and fully streamed at S5 freeze with 216332 members, 204 run roots, zero hash/member/path/duplicate differences; only final RUN-123 remains hot and superseded directories were moved recoverably to the existing C relief area",
+    "M0-S5 functional and acceptance-report commits were ordinary-pushed through ba36cbd1847345f35411164855cd24c5ecaf6188 and verified identical at local HEAD, origin, and ls-remote; PR metadata was not reverified and was not claimed"
   ],
   "not_started": [
     "activity database migration activation (intentionally deferred until a later authorized switch)",

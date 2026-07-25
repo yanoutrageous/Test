@@ -124,7 +124,8 @@
 
 ## 10. Git、发布和回滚
 
-- Commit/branch/push：功能提交`4a9512b`；验收文档提交和普通 push在本审计之后执行
+- Commit/branch/push：功能提交`4a9512b`、验收提交`ba36cbd`均已普通push；
+  本地、origin和ls-remote核验一致
 - 暂存隐私扫描：必须在提交前执行 fixed-path/secret/大文件检查
 - 是否回滚及结果：未触发；活动状态未改变
 - 最终结论与遗留风险：S5本地`ACCEPTED`；M0总门仍未通过，production writer和

@@ -131,6 +131,14 @@ RUN-123关键安全事实：
 - 真实视觉渲染、字体缺失模拟和人工叠图留给M1；FigureIR生成/安全SVG留给M3。
 - 2个许可未验证条目及PII为`internal/unknown`的条目不得进入客户包；M5必须再次审计。
 
+## Git 与远端
+
+- 功能检查点：`4a9512beb04546649214ad20560c88d784334d92`。
+- 验收检查点：`ba36cbd1847345f35411164855cd24c5ecaf6188`。
+- 两个提交均已普通push到`agent/m0-m5-local-v1`；本地HEAD、origin跟踪引用和
+  `git ls-remote`核验一致。
+- 没有强推、历史改写、main合并或原件/PII/大文件进入Git；PR元数据未在本轮冒充复核。
+
 ## 复核命令
 
 ```powershell
