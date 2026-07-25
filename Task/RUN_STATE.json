@@ -1,9 +1,9 @@
 {
   "state_version": "1.1.0",
   "plan_version": "1.1.0",
-  "updated_at": "2026-07-25T18:28:00+08:00",
-  "current_milestone": "M0",
-  "current_slice": "M0_S6_FREEZE_AND_PUBLISH",
+  "updated_at": "2026-07-25T18:31:00+08:00",
+  "current_milestone": "M1",
+  "current_slice": "M1_ENTRY_AUDIT_AND_FIRST_REAL_PAPER",
   "status": "RUNNING",
   "implementation_status": "IN_PROGRESS",
   "task_scope": {
@@ -628,7 +628,9 @@
     }
   },
   "s6_checkpoint": {
-    "local_acceptance_status": "M0_EXIT_ACCEPTED_PENDING_GIT_CHECKPOINT",
+    "local_acceptance_status": "M0_EXIT_ACCEPTED_AND_PUBLISHED",
+    "checkpoint_commit": "fc087f68937479a898af8b093545e9c7e56fbae2",
+    "remote_verification": "LOCAL_ORIGIN_AND_LS_REMOTE_EQUAL",
     "report": "Task/reports/M0/M0-S6-real-flows-production-writer-exit.md",
     "machine_exit_evidence": "contracts/m0/m0-exit-evidence-v1.json",
     "production_boundary": {
@@ -733,18 +735,18 @@
     "base_commit": "bfd4d35973974a223f465cd08910f303518a8586",
     "remote": "https://github.com/yanoutrageous/Test.git",
     "planning_published_commit": "bfd4d35973974a223f465cd08910f303518a8586",
-    "publication_status": "M0_S5_FUNCTIONAL_AND_ACCEPTANCE_CHECKPOINTS_PUBLISHED_AND_ORIGIN_VERIFIED",
-    "published_checkpoint": "4a9512beb04546649214ad20560c88d784334d92",
-    "verified_origin_head": "ba36cbd1847345f35411164855cd24c5ecaf6188",
+    "publication_status": "M0_S6_EXIT_CHECKPOINT_PUBLISHED_AND_REMOTE_VERIFIED",
+    "published_checkpoint": "fc087f68937479a898af8b093545e9c7e56fbae2",
+    "verified_origin_head": "fc087f68937479a898af8b093545e9c7e56fbae2",
     "verified_draft_pr_head": null,
     "draft_pr_state": "NOT_REVERIFIED_AFTER_S4_PUSH_LOCAL_GH_NOT_AUTHENTICATED",
     "draft_pr_body_update": "NOT_APPLIED_GITHUB_APP_INTEGRATION_403_GH_NOT_PERSISTENTLY_AUTHENTICATED_NO_BYPASS_ATTEMPTED",
     "planning_pull_request": "https://github.com/yanoutrageous/Test/pull/1",
     "integration_pull_request": "https://github.com/yanoutrageous/Test/pull/2"
   },
-  "last_verified_checkpoint": "ba36cbd1847345f35411164855cd24c5ecaf6188",
+  "last_verified_checkpoint": "fc087f68937479a898af8b093545e9c7e56fbae2",
   "last_unverified_pause_checkpoint": "aec3d7413a06251e4865b601fd680090b466892e",
-  "active_job_id": "M0-S6-FREEZE-PUBLISH",
+  "active_job_id": "M1-ENTRY-AUDIT-FIRST-REAL-PAPER",
   "active_writer": {
     "owner": "/root",
     "run_id": "RUN-20260725-M0-S6-COORD-124",
@@ -844,7 +846,8 @@
     "final inventory RUN-20260725-M0-S6-INVENTORY-148 binds 60 production sources and 420 entries with UNKNOWN=0, unmigrated=0, invalid bindings=0, production writer connected, and M0_EXIT_ACCEPTED",
     "RUN-20260725-M0-S6-EXIT-149 passed 34 targeted exit, inventory, crash-race, and production-boundary tests after the machine exit evidence was installed",
     "all 19 cold archives were rehashed and fully listed at M0 freeze with 238143 members and zero unsafe members; 14 superseded test runs and 7 previews moved recoverably to C relief, leaving only 147, 149, and preview 148 hot",
-    "M0 local acceptance is complete with activity database bytes, mtime, SHA-256, and user_version 0 unchanged; explicit Git checkpoint and ordinary push remain before M1 starts"
+    "M0 local acceptance is complete with activity database bytes, mtime, SHA-256, and user_version 0 unchanged",
+    "M0 exit checkpoint fc087f68937479a898af8b093545e9c7e56fbae2 was explicitly staged as 59 allowlisted files, ordinary-pushed, and verified identical at local HEAD, origin, and ls-remote"
   ],
   "not_started": [
     "activity database migration activation (intentionally deferred until a later authorized switch)",
@@ -858,6 +861,6 @@
   "blockers": [
     "M0-SYMLINK-CAPABILITY-001: RUN-20260724-M0-SYMLINK-CAPABILITY-038 returned WinError 1314 when the ordinary account attempted to create a real directory symlink; all other safety gates in that run were clean, no privilege elevation or Developer Mode change is authorized, and independent M0 work may continue"
   ],
-  "next_required_action": "Freeze the explicit M0 allowlist, commit and ordinary-push the M0 checkpoint, verify remote equality, then enter M1 with Copy-first candidate-only import and no implicit activity-database switch.",
-  "resume_rule": "Resume from M0_EXIT_ACCEPTED inventory preview RUN-20260725-M0-S6-INVENTORY-148, stage gate RUN-20260725-M0-S6-GATE-147, exit gate RUN-20260725-M0-S6-EXIT-149, and real-flow evidence RUN-20260725-M0-S6-FLOWS-145. Never reuse a run ID. Preserve the activity database at user_version 0 until a later milestone explicitly passes an activation and rollback gate."
+  "next_required_action": "Execute the M1 entry audit, choose one small complete real paper through the ignored per-machine gold map, Copy it through the registered external boundary, and implement a candidate-only import/review/render loop without implicitly switching the activity database.",
+  "resume_rule": "Resume from published M0 checkpoint fc087f68937479a898af8b093545e9c7e56fbae2, M0_EXIT_ACCEPTED inventory preview RUN-20260725-M0-S6-INVENTORY-148, stage gate RUN-20260725-M0-S6-GATE-147, exit gate RUN-20260725-M0-S6-EXIT-149, and real-flow evidence RUN-20260725-M0-S6-FLOWS-145. Never reuse a run ID. Preserve the activity database at user_version 0 until a later milestone explicitly passes an activation and rollback gate."
 }

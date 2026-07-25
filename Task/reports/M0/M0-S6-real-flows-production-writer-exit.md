@@ -122,5 +122,7 @@ production writer，完成 Test 外真实只读来源 Copy、六条 M0 真实流
 
 M0：`ACCEPTED`。
 
-下一步：形成显式 Git 检查点并普通 push，然后进入 M1 的真实完整试卷 Copy → 导入 →
-人工复核 → 正式渲染闭环。
+Git检查点：`fc087f68937479a898af8b093545e9c7e56fbae2`。该提交已普通push，且本地、
+`origin`与`ls-remote`一致；未强推、未合并`main`、未声称更新PR元数据。
+
+下一步：进入 M1 的真实完整试卷 Copy → 导入 → 人工复核 → 正式渲染闭环。
