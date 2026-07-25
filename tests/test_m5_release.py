@@ -11,6 +11,7 @@ from werkzeug.wrappers import Response
 
 from Task.tools.build_m5_release import (
     START_PS1,
+    START_PS1_BYTES,
     _pii_reasons,
     _privacy_scan_payload,
 )
@@ -299,6 +300,8 @@ def test_release_builder_privacy_patterns_and_launcher_are_portable() -> None:
     assert _pii_reasons(b"203.0.113.9") == {"non-loopback-ip-pattern"}
     assert _pii_reasons(b"123.13800138000") == set()
     assert _pii_reasons("数学变量 qq15uunn".encode("utf-8")) == set()
+    assert START_PS1_BYTES.startswith(b"\xef\xbb\xbf")
+    assert START_PS1_BYTES.decode("utf-8-sig") == START_PS1
     assert "Push-Location -LiteralPath $productRoot" in START_PS1
     assert "-m app.m5_release verify --quick" not in START_PS1
 

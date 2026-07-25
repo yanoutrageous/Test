@@ -331,6 +331,8 @@ try {
 exit $exitCode
 """
 
+START_PS1_BYTES = b"\xef\xbb\xbf" + START_PS1.encode("utf-8")
+
 
 START_CMD = r"""@echo off
 setlocal
@@ -666,7 +668,7 @@ class ReleaseBuilder:
     def _launcher(self) -> None:
         self._write(
             "launcher/start.ps1",
-            START_PS1.encode("utf-8"),
+            START_PS1_BYTES,
             role="FORMAL_LAUNCHER",
         )
         self._write(
