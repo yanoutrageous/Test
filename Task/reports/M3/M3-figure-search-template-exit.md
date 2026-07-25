@@ -1,5 +1,13 @@
 # M3 图形、标签检索与模板闭环阶段报告
 
+> RC2 更新（2026-07-26）：当前正式派生状态已由
+> `STATE-M3-YANYAN-REV-003` / `INDEX-M3-YANYAN-REV-003` 取代下文 REV-002，
+> 活动模板为 `TEMPLATE-M3-EDITABLE-B5-REV-002`。
+> `RUN-20260726-RC2-M3CORE-206` 通过 79/79，最终
+> `RUN-20260726-RC2-FULL-228` 通过 583/583。精确现行事实以
+> `contracts/m3/m3-acceptance-v1.json` 和 M5 RC2 报告为准；下文保留为 2026-07-25
+> 阶段历史。
+
 ## 结论
 
 M3 于 2026-07-25 达到 `ACCEPTED`，正式基线为

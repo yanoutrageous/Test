@@ -1,5 +1,14 @@
 # M4 备份、恢复、活动状态与回滚阶段报告
 
+> RC2 更新（2026-07-26）：当前正式基线已由
+> `BACKUP-M4-YANYAN-FULL-20260726-R2`、
+> `BACKUP-M4-YANYAN-INCREMENTAL-20260726-R2` 和
+> `STATE-M4-YANYAN-RESTORED-20260726-R2` 取代下文 2026-07-25 基线。
+> `RUN-20260726-RC2-M4-USERDATA-CORE-226` 通过 150/150，证明新增用户导入数据可随
+> 备份、恢复、激活和重启保留；最终 `RUN-20260726-RC2-FULL-228` 通过 583/583。
+> 精确现行事实以 `contracts/m4/m4-acceptance-v1.json` 和 M5 RC2 报告为准；下文保留
+> 为阶段历史。
+
 ## 结论
 
 M4 于 2026-07-25 达到 `ACCEPTED`。正式基线由

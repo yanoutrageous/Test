@@ -1,33 +1,42 @@
 {
   "schema_version": "1.0",
-  "contract_id": "M5-PRIVATE-LOCAL-RC1-ACCEPTANCE-V1",
+  "contract_id": "M5-PRIVATE-LOCAL-RC2-ACCEPTANCE-V1",
   "decision": "ACCEPTED_SUPPORTED_PRIVATE_RC_SCOPE",
   "strict_m5_decision": "BLOCKED_DISCLOSED",
   "release": {
-    "release_id": "LOCAL-EXAM-BANK-1.0.0-RC1",
-    "release_root": "output/releases/LOCAL-EXAM-BANK-1.0.0-RC1",
-    "source_commit": "a4c153cb6ee4be68832dfc6f7a7fd06bf00a8b9f",
+    "release_id": "LOCAL-EXAM-BANK-1.0.0-RC2",
+    "release_root": "output/releases/LOCAL-EXAM-BANK-1.0.0-RC2",
+    "source_commit": "d8454d6c76ed5b658db40d66c687cf42b567b7a7",
     "distribution_scope": "SOURCE_OWNER_PRIVATE_LOCAL_USE_ONLY",
-    "file_count": 231,
-    "bytes": 45797102,
-    "manifest_sha256": "97652f875c46b7f3ab058ce49b3d1a9e262947904d1c6f186defbd2e77ef574e",
-    "tree_sha256": "92aac135916e0347a21d75325bbe5899e3eb24bccfc7f1b8327d4346d7db60ee",
+    "declared_file_count": 233,
+    "declared_bytes": 45769264,
+    "physical_file_count_at_publish": 234,
+    "physical_bytes_at_publish": 45825580,
+    "manifest_sha256": "6741008053c30bc8836275b0feaaf284068bda19e980924b02e6a21480c32b5e",
+    "tree_sha256": "8e5010927754eff8a4791569b4bb6d4fbddfd4bb847030b6b63a06afe51cad29",
     "runtime_archive_bytes": 32220167,
     "runtime_archive_sha256": "c433356069ef7e5b26fcb7fd32568ee3eb5a431ca7741cec36c4e39474e7662c",
     "launcher": "launcher/start.cmd",
-    "verifier": "launcher/verify.cmd"
+    "verifier": "launcher/verify.cmd",
+    "post_cleanup_verification": {
+      "status": "PASS",
+      "mode": "full",
+      "checked_file_count": 232,
+      "release_version": "1.0.0-rc2",
+      "tree_sha256": "8e5010927754eff8a4791569b4bb6d4fbddfd4bb847030b6b63a06afe51cad29"
+    }
   },
   "checks": {
     "full_release_manifest_status": "PASS",
     "fresh_user_status": "PASS_SUPPORTED_PRIVATE_RC_SCOPE",
-    "fresh_user_journey_count": 50,
+    "fresh_user_journey_count": 56,
     "fresh_user_journey_failure_count": 0,
     "outside_write_count": 0,
     "non_loopback_success_count": 0,
     "external_html_reference_count": 0,
     "source_guard_status": "UNCHANGED",
-    "source_guard_file_count_before_and_after": 812,
-    "source_guard_tree_sha256_before_and_after": "95ed2e9e67f78407ec7ef47589455e2005da31b5daea704d17b9723c9dcb80ce",
+    "source_guard_file_count_before_and_after": 1374,
+    "source_guard_tree_sha256_before_and_after": "6893c92faa170e9494ae195d7ec99ba2b377d7462753a820da961f06cc976860",
     "privacy_scan_status": "PASS",
     "privacy_absolute_path_findings": 0,
     "privacy_host_identity_findings": 0,
@@ -36,18 +45,46 @@
     "privacy_scanned_pdf_count": 10,
     "five_pdf_unembedded_font_count": 0,
     "backup_restore_activate_restart_status": "PASS",
-    "browser_console_warning_or_error_count": 0
+    "external_pdf_import_status": "PASS",
+    "external_pdf_source_unchanged": true,
+    "external_pdf_page_count": 1207,
+    "external_pdf_selected_pages": [1130, 1131],
+    "external_pdf_column_count": 3,
+    "external_pdf_pending_question_count": 22,
+    "external_pdf_warning_count": 0,
+    "imported_question_reviewed_and_restart_persisted": true,
+    "reference_docx_exact_match": true
+  },
+  "reference_template": {
+    "source_logical_id": "REF-TEMPLATE-PAPER",
+    "source_bytes": 25923,
+    "source_sha256": "2e6731748a76c7d9661943ca8c9e05bb490bb5390a7dd291afb8369cf2f3f6cf",
+    "release_path": "templates/reference/排版格式-试卷.docx",
+    "release_bytes": 25923,
+    "release_sha256": "2e6731748a76c7d9661943ca8c9e05bb490bb5390a7dd291afb8369cf2f3f6cf",
+    "active_template_revision_id": "TEMPLATE-M3-EDITABLE-B5-REV-002",
+    "page_size_mm": [184, 260]
+  },
+  "external_pdf_import": {
+    "source_bytes": 13547660,
+    "source_page_count": 1207,
+    "source_sha256": "d02d0f16371fa96f4b8f7c0cfe43eceaea7df5f57ad83880e8cb27497b32f472",
+    "paper_code": "PDF-D02D0F16371FA96F",
+    "copy_relative_path": "Copy/source/COPY-USER-PDF-ACCEPT-2020-I-F00F79019E6F/payload.bin",
+    "question_count": 22,
+    "warning_count": 0,
+    "source_before_after_match": true
   },
   "documents": {
     "student": {
       "pages": 4,
-      "bytes": 384634,
-      "sha256": "f7b374c5afe4adf86d285a6f7d20b6d74a0a2ec3f31850186273148aa17cc7aa"
+      "bytes": 341858,
+      "sha256": "c6bab705b7e962fa9b42b4ee889c93296f54f8527696224cb8f52809cb6b90e7"
     },
     "teacher": {
       "pages": 15,
-      "bytes": 1087404,
-      "sha256": "995aad0a326e15e96bb27032e5b83e9d1bf2182dd2cbcd217cb8b511491daf69"
+      "bytes": 1088968,
+      "sha256": "d8812bc62dda8a7e2cfc5a0ac6831e2ef8ae6e460f595f21591b71b364d29ebe"
     },
     "answer": {
       "pages": 11,
@@ -61,88 +98,82 @@
     },
     "answer_sheet": {
       "pages": 6,
-      "bytes": 249511,
-      "sha256": "999d9a8bcad62c6c00c93b1bf77d7e79d00645ee61ef7be4080a3f943e3f133a"
+      "bytes": 249523,
+      "sha256": "5325587fd97bdf1df9f2a490ac9cf54eb40b8433d48315575d00615692a66545"
     },
     "restart_hashes_match_first_run": true
   },
   "evidence": {
     "fresh_user": {
-      "run_id": "RUN-20260726-M5-FRESH-R2-196",
-      "report_path": "tmp/acceptance/fresh-user/RUN-20260726-M5-FRESH-R2-196/evidence/m5-fresh-user-detailed.json",
-      "report_sha256": "433b72f9e24d4996b48eb953b215da66aa59914179743e8d5384d92efa506e1e",
-      "publish_authorization_path": "tmp/acceptance/fresh-user/RUN-20260726-M5-FRESH-R2-196/evidence/m5-publish-authorization.json",
-      "publish_authorization_sha256": "061aea4bee018d2a2e2bb075252d739fe73ca0ddc6ee90cd9c5eb418e04b0358"
+      "run_id": "RUN-20260726-M5-RC2-FRESH-229",
+      "report_path": "tmp/acceptance/fresh-user/RUN-20260726-M5-RC2-FRESH-229/evidence/m5-fresh-user-detailed.json",
+      "report_sha256": "d3a88cba0096738b86be1615c0ff7d1ce9ef099d0be54505fdd14475e9e854b7",
+      "publish_authorization_path": "tmp/acceptance/fresh-user/RUN-20260726-M5-RC2-FRESH-229/evidence/m5-publish-authorization.json",
+      "publish_authorization_sha256": "35156f6df1ea8826eab26a1a62a31f2038b2a53cb689ed531a4b94769c36c43d"
     },
-    "core_gate": {
-      "run_id": "RUN-20260726-M5-CORE-R6-195",
-      "passed": 74,
-      "run_result_sha256": "f62a8963b82e66b9d909adf9097250ff2095bed411c3bc1c0324c2ea37379673",
-      "junit_sha256": "89c621725b414513ffc95f6729bd5f9b39e375f0747ad1e0d2e81dc27606eebc",
-      "storage": "RECOVERABLY_RELOCATED_AFTER_FINAL_GATE"
+    "external_import_core_gate": {
+      "run_id": "RUN-20260726-RC2-IMPORT-CORE-222",
+      "passed": 64,
+      "run_result_sha256": "b8817aacf971456d3e4c389bc25101e91451026bef4c67b6602dcabf019fc834",
+      "junit_sha256": "4f2ead7892767e94b86940859c03f408e92cfaf21e8521937cb71a2c330e3227"
+    },
+    "m4_user_data_core_gate": {
+      "run_id": "RUN-20260726-RC2-M4-USERDATA-CORE-226",
+      "passed": 150,
+      "run_result_sha256": "736e8573c09389eea2a9220d592cec3f86441f12fc93ded0444a00d9b8716698",
+      "junit_sha256": "fc740b04cfe3df6832e97cb84abf578e063b12966779fc0f42bc6d1a2b53540e"
     },
     "final_gate": {
-      "run_id": "RUN-20260726-M5-FINAL-R1-197",
-      "passed": 581,
+      "run_id": "RUN-20260726-RC2-FULL-228",
+      "passed": 583,
       "failed": 0,
       "errors": 0,
       "skipped": 0,
-      "run_result_path": "tmp/test_lab/RUN-20260726-M5-FINAL-R1-197/run-result.json",
-      "run_result_sha256": "a872124a8c3e5b595a327c2457ae1e1e38af0d58d419f4e0c64c3833f1bc28fd",
-      "junit_sha256": "8e052386b5b1d86e0da7266898cb528487352f2ccc421a1eb4a87e9645ae9102",
+      "run_result_path": "tmp/test_lab/RUN-20260726-RC2-FULL-228/run-result.json",
+      "run_result_sha256": "ffdc274a442013d45d391f628a053b33096e8e652545e69e7ba6341f1b39b8c6",
+      "junit_sha256": "a27478a337edfcda6ebb04c0c9184468fe1a375be3f4bbd35f1b3b94d2637a0e",
       "activity_database_sha256_before_and_after": "1505bf05bd8e385eada30642110596363c561c330da02a40a497072064ad1c94",
-      "protected_tree_entry_count_before_and_after": 11368,
-      "protected_tree_digest_before_and_after": "c4cec7960602d09ce4022c4ca2d2adf6e1cdfe8fc1754cc90a888f1ce3f2752c",
+      "protected_tree_entry_count_before_and_after": 20589,
+      "protected_tree_digest_before_and_after": "dc8a7896734525e04b2e917b204a60c6038dc2e9cd936aaede8ca36b884179fc",
       "registered_source_count": 2,
       "registered_source_final_state_matches": true
     },
     "write_inventory": {
       "path": "Task/reports/M0/M0-write-entry-inventory.json",
-      "file_sha256": "36416a79d9981cc6406af4a53dd3684325efcfb04247496141a048dfb65bfee2",
+      "file_sha256": "d8e63cdfa5687b28789e660e9284f303118a13176824c2110084089ebc605901",
+      "preview_run_id": "RUN-20260726-RC2-INVENTORY-227",
       "production_source_count": 65,
-      "entry_count": 446,
+      "entry_count": 447,
+      "chunk_count": 18,
       "unknown_dynamic_count": 0,
       "unmigrated_count": 0,
-      "inventory_digest_sha256": "c4b74e7a89eccaeb439b2c31cbee628194f726cacc22adc0bc86e871db708157",
-      "entries_digest_sha256": "eeacd235c24a485869854d0454c05e04830ff021cc73324ba46df8f27c044ff5"
-    },
-    "browser_visual_review": {
-      "status": "PASS_WITH_BROWSER_CLIENT_PATH_LIMITATION_DISCLOSED",
-      "pages_inspected": [
-        "/",
-        "/library/questions?status=all",
-        "/planner/blueprints",
-        "/workbench/",
-        "/documents"
-      ],
-      "browser_console_warning_or_error_count": 0,
-      "browser_client_blocked_direct_paths": [
-        "/workbench/search",
-        "/status.json"
-      ],
-      "application_http_coverage_for_blocked_paths": "PASS_IN_FRESH_USER_ACCEPTANCE"
+      "inventory_digest_sha256": "2f0adb7ad2f2a2f80901b9b2469b16239d4a94582b03221a035243f239f49e13",
+      "entries_digest_sha256": "54d18baea541cf349429eef79ca25f1b26e1683492baa3522b6b2492540f6e36",
+      "source_manifest_digest_sha256": "7e67fce082bd2596d5d9ca88730868fc1738f15384dbcc53a877de4ebf298602",
+      "binding_file_sha256": "5e35bc148f82a21d67ea89038573733d8fb37a98163456613b4ee88005c05eed"
     }
   },
   "storage_cleanup": {
     "status": "COMPLETED_RECOVERABLE_RELOCATION",
-    "recovery_root": "${USERPROFILE}/Codex-Recovery/Test-M5-20260726/post-acceptance-cleanup",
-    "relocated_directory_count": 13,
-    "relocated_file_count": 2785,
-    "relocated_bytes": 331726797,
-    "recovery_target_count": 13,
-    "post_move_file_manifest_digest_sha256": "79feb47763191d8bc1ab9b2db75916b0bb9bc8633f7ab143faecf37f6f177e28",
-    "retained_hot_test_run": "RUN-20260726-M5-FINAL-R1-197",
-    "retained_release_bytes": 45797102,
-    "e_drive_free_bytes_after_cleanup": 114989887488
+    "recovery_root": "C:/RC2R",
+    "relocated_directory_count": 91,
+    "relocated_file_count": 8324,
+    "relocated_bytes": 1145431360,
+    "post_move_file_manifest_digest_sha256": "0266642d3116aa90549123761f7a3c6cac0180f2ef33d53f1304815b06441dee",
+    "pre_post_match": true,
+    "retained_release": "output/releases/LOCAL-EXAM-BANK-1.0.0-RC2",
+    "retained_final_gate": "RUN-20260726-RC2-FULL-228",
+    "retained_fresh_user_evidence": "tmp/acceptance/fresh-user/RUN-20260726-M5-RC2-FRESH-229/evidence",
+    "e_drive_freed_bytes": 1238089728,
+    "e_drive_free_bytes_after_cleanup": 114706792448
   },
   "strict_m5_blockers": [
     "2020—2025 target corpus is not fully imported and human-reviewed",
     "source-derived content and embedded source fonts are not cleared for third-party redistribution",
-    "real printer operation is outside the current Test-only write authority",
-    "fresh-user import of an external real PDF is excluded from this source-owner private package"
+    "real printer operation is outside the current Test-only write authority"
   ],
   "limitations": [
-    "The accepted data scope is one complete reviewed 19-question, 150-point representative paper.",
+    "The accepted reviewed baseline is one complete 19-question, 150-point representative paper; the external 2020 sample import remains pending review except for the acceptance-reviewed item.",
     "The NEW9 visual reference has no useful text layer and V1 does not include OCR.",
     "Embedded source fonts are user-provided and redistributable=false.",
     "PyMuPDF and source-content distribution require a separate legal/licensing decision before third-party distribution.",

@@ -1,5 +1,14 @@
 # M2 蓝图组卷与五类文档包阶段报告
 
+> RC2 更新（2026-07-26）：当前正式基线已由
+> `PAPER-M2-YANYAN-FULL-150-REV-003` /
+> `EXPORT-M2-YANYAN-FULL-150-REV-003` 取代下文 REV-002，并使用受控
+> `TEMPLATE-M3-EDITABLE-B5-REV-002` 生成 184×260 mm 学生卷和教师卷。
+> `RUN-20260726-RC2-M2CORE-211` 通过 80/80，最终
+> `RUN-20260726-RC2-FULL-228` 通过 583/583。精确现行事实以
+> `contracts/m2/m2-acceptance-v1.json` 和 M5 RC2 报告为准；下文保留为 2026-07-25
+> 阶段历史。
+
 ## 结论
 
 M2 于 2026-07-25 达到 `ACCEPTED`，可以进入 M3。正式基线是

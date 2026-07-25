@@ -63,10 +63,10 @@
   "decision": "ACCEPTED",
   "evidence": {
     "core_gate": {
-      "junit_sha256": "236bf5734ac28603360923bc2036a4fb8f5b2753bce602b5783cd2c064215479",
-      "passed": 149,
-      "run_id": "RUN-20260726-RC2-M4CORE-209",
-      "run_result_sha256": "620bb48b613f8b0853fc1c9b5e688c1bba268252e37e3e3b5776d616b2702077"
+      "junit_sha256": "fc740b04cfe3df6832e97cb84abf578e063b12966779fc0f42bc6d1a2b53540e",
+      "passed": 150,
+      "run_id": "RUN-20260726-RC2-M4-USERDATA-CORE-226",
+      "run_result_sha256": "736e8573c09389eea2a9220d592cec3f86441f12fc93ded0444a00d9b8716698"
     },
     "real_flow": {
       "path": "tmp/jobs/INTERNAL/JOB-M4-REAL-FLOW-EVIDENCE-R2-20260726/m4-real-flow-evidence.json",
