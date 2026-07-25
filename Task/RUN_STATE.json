@@ -1,9 +1,9 @@
 {
   "state_version": "1.1.0",
   "plan_version": "1.1.0",
-  "updated_at": "2026-07-25T02:17:01+08:00",
+  "updated_at": "2026-07-25T15:20:00+08:00",
   "current_milestone": "M0",
-  "current_slice": "M0_S5_DOMAIN_IR_GOLD",
+  "current_slice": "M0_S6_REAL_FLOWS_AND_EXIT",
   "status": "RUNNING",
   "implementation_status": "IN_PROGRESS",
   "task_scope": {
@@ -468,6 +468,164 @@
       "cold_archive_validation": "ON_ARCHIVE_AND_STAGE_FREEZE"
     }
   },
+  "s5_checkpoint": {
+    "local_acceptance_status": "PASSED_ACCEPTANCE_PUBLICATION_PENDING",
+    "functional_checkpoint_commit": "4a9512beb04546649214ad20560c88d784334d92",
+    "report": "Task/reports/M0/M0-S5-domain-ir-gold.md",
+    "adr": "Task/adr/ADR-2026-006-versioned-domain-ir-gold-baseline.md",
+    "high_risk_audit": "Task/audit/M0/S5-DOMAIN-IR-GOLD-20260725.md",
+    "domain_contract": {
+      "schema_version": "1.0",
+      "object_type_count": 19,
+      "immutable_revisions": true,
+      "canonical_hashing": true,
+      "latest_alias_allowed": false
+    },
+    "ir_contracts": {
+      "schema_version": "1.0",
+      "types": [
+        "QuestionIR",
+        "FigureIR",
+        "PaperIR"
+      ],
+      "figure_kinds": [
+        "geometry",
+        "function",
+        "statistics"
+      ],
+      "legacy_migration": "V0_9_TO_V1_AND_CONDITIONAL_ROLLBACK_PASSED",
+      "unknown_field_policy": "FAIL_CLOSED_EXCEPT_EXPLICIT_EXTENSIONS",
+      "paper_role_count": 5
+    },
+    "gold_registry": {
+      "registry_id": "GOLD-REGISTRY-M0-V1",
+      "entry_count": 18,
+      "member_count": 63,
+      "fingerprinted_bytes": 853658555,
+      "truth_role_count": 8,
+      "template_family_count": 12,
+      "external_files_copied": 0,
+      "copy_policy": "COPY_ON_USE",
+      "registry_payload_sha256": "c5cddb1af8662d11d298cff7ea465eb2cbe22ea51f7f306e78fe68a593537b4d",
+      "registry_file_sha256": "7032f9b0f1cc1801a10a526192465067d9f7bf683ba4fa58c77eeccf5ad3fecb",
+      "tracked_private_path_count": 0
+    },
+    "visual_thresholds": {
+      "page_size_policy": "EXACT_REFERENCE",
+      "page_size_representation_tolerance_mm": 0.01,
+      "major_anchor_target_mm": 0.5,
+      "major_anchor_hard_limit_mm": 1.0,
+      "crop_tolerance": 0,
+      "overflow_tolerance": 0,
+      "silent_font_substitution_tolerance": 0,
+      "pixel_metric_role": "DIAGNOSTIC_ONLY"
+    },
+    "inventory": {
+      "run_id": "RUN-20260725-M0-S5-INVENTORY-118",
+      "source_head": "4a9512beb04546649214ad20560c88d784334d92",
+      "source_count": 58,
+      "entry_count": 462,
+      "chunk_count": 19,
+      "unknown_dynamic_count": 0,
+      "unmigrated_count": 462,
+      "production_writer_connected": false,
+      "m0_exit_allowed": false,
+      "inventory_payload_sha256": "cc828c0925b2d83be7d17e831fa3370585cee8fa2376f4c4989b798f51389b0c",
+      "manifest_file_sha256": "4bdc323b5cf763595df3a0632cbc20cf4cca0a852195ec16f113d87395309f51"
+    },
+    "core_gate": {
+      "run_id": "RUN-20260725-M0-S5-CORE-113",
+      "effective_exit_code": 0,
+      "pytest_tests": 65,
+      "pytest_failures": 0
+    },
+    "launcher_gate": {
+      "run_id": "RUN-20260725-M0-S5-LAUNCHER-117",
+      "effective_exit_code": 0,
+      "pytest_tests": 97,
+      "pytest_failures": 0
+    },
+    "s5_gate": {
+      "run_id": "RUN-20260725-M0-S5-122",
+      "finished_at": "2026-07-25T14:31:49+08:00",
+      "effective_exit_code": 0,
+      "pytest_tests": 460,
+      "pytest_failures": 0,
+      "activity_database_unchanged": true,
+      "protected_tree_unchanged": true,
+      "all_safety_gates_passed": true
+    },
+    "post_document_stage_gate": {
+      "run_id": "RUN-20260725-M0-S5-POSTDOC-125",
+      "finished_at": "2026-07-25T15:19:47+08:00",
+      "effective_exit_code": 0,
+      "pytest_tests": 460,
+      "pytest_failures": 0,
+      "protected_tree_entries": 14201,
+      "activity_database_unchanged": true,
+      "protected_tree_unchanged": true,
+      "cold_archive_stage_freeze_validation": "PASSED",
+      "moved_recoverably_to_c_after_hash_verification": true
+    },
+    "full_gate": {
+      "run_id": "RUN-20260725-M0-S5-FULL-123",
+      "finished_at": "2026-07-25T14:48:01+08:00",
+      "effective_exit_code": 0,
+      "pytest_tests": 1105,
+      "pytest_failures": 0,
+      "pytest_errors": 0,
+      "pytest_skipped": 0,
+      "symlink_capability_deselected": 1,
+      "protected_tree_entries": 24859,
+      "protected_tree_unchanged": true,
+      "activity_database_unchanged": true,
+      "runtime_monitor_unchanged": true,
+      "handle_fence_valid": true,
+      "run_tree_safe": true,
+      "immutable_evidence_unchanged": true,
+      "source_witness_count": 80,
+      "source_witness_valid": true,
+      "process_tree_terminated": true,
+      "run_budget_peak_bytes": 132750975
+    },
+    "safety_stop_runs": [
+      {
+        "run_id": "RUN-20260725-M0-S5-119",
+        "status": "SAFETY_STOP_BEFORE_PYTEST",
+        "cause": "REDIRECTED_RUNNER_LOG_HANDLE_INSIDE_PROTECTED_TREE"
+      },
+      {
+        "run_id": "RUN-20260725-M0-S5-120",
+        "status": "SAFETY_STOP_BEFORE_PYTEST",
+        "cause": "REDIRECTED_RUNNER_LOG_HANDLE_INSIDE_PROTECTED_TREE"
+      },
+      {
+        "run_id": "RUN-20260725-M0-S5-121",
+        "status": "SAFETY_STOP_BEFORE_PYTEST",
+        "cause": "REDIRECTED_RUNNER_LOG_HANDLE_INSIDE_PROTECTED_TREE"
+      }
+    ],
+    "activity_database": {
+      "sha256": "1505bf05bd8e385eada30642110596363c561c330da02a40a497072064ad1c94",
+      "user_version": 0,
+      "migration_or_switch_performed": false
+    },
+    "storage_freeze": {
+      "archive_count": 17,
+      "archive_total_bytes": 704667068,
+      "archive_entry_count": 216332,
+      "archive_run_root_count": 204,
+      "archive_failed_validation_count": 0,
+      "archive_unsafe_member_count": 0,
+      "archive_duplicate_member_count": 0,
+      "hot_retained_run": "RUN-20260725-M0-S5-FULL-123",
+      "hot_inventory_preview_count": 0,
+      "hot_gold_preview_count": 0,
+      "e_free_bytes": 67263180800,
+      "superseded_directories_moved_recoverably_to_c": true,
+      "permanent_deletion_performed": false
+    }
+  },
   "project_root": {
     "authority": "TRUSTED_MODULE_PLUS_ROOT_MARKER",
     "marker": ".exam-bank-root.json",
@@ -480,21 +638,21 @@
     "base_commit": "bfd4d35973974a223f465cd08910f303518a8586",
     "remote": "https://github.com/yanoutrageous/Test.git",
     "planning_published_commit": "bfd4d35973974a223f465cd08910f303518a8586",
-    "publication_status": "M0_S4_FUNCTIONAL_AND_ACCEPTANCE_CHECKPOINTS_PUBLISHED_AND_ORIGIN_VERIFIED",
+    "publication_status": "M0_S4_PUBLISHED_S5_LOCAL_ACCEPTANCE_PUBLICATION_PENDING",
     "published_checkpoint": "29602bc1af5001e486e9df8b5568af1b51984d08",
-    "verified_origin_head": "51d2a7498eac3955a8ec8a1f1288bd69e0da598a",
+    "verified_origin_head": "445c7986ec65d1e71ea89d4382daf47f6ac86600",
     "verified_draft_pr_head": null,
     "draft_pr_state": "NOT_REVERIFIED_AFTER_S4_PUSH_LOCAL_GH_NOT_AUTHENTICATED",
     "draft_pr_body_update": "NOT_APPLIED_GITHUB_APP_INTEGRATION_403_GH_NOT_PERSISTENTLY_AUTHENTICATED_NO_BYPASS_ATTEMPTED",
     "planning_pull_request": "https://github.com/yanoutrageous/Test/pull/1",
     "integration_pull_request": "https://github.com/yanoutrageous/Test/pull/2"
   },
-  "last_verified_checkpoint": "51d2a7498eac3955a8ec8a1f1288bd69e0da598a",
+  "last_verified_checkpoint": "445c7986ec65d1e71ea89d4382daf47f6ac86600",
   "last_unverified_pause_checkpoint": "aec3d7413a06251e4865b601fd680090b466892e",
-  "active_job_id": "M0-S5-DOMAIN-IR-GOLD",
+  "active_job_id": "M0-S6-REAL-FLOWS-EXIT",
   "active_writer": {
     "owner": "/root",
-    "run_id": "RUN-20260724-M0-S4-COORD-080",
+    "run_id": "RUN-20260725-M0-S6-COORD-124",
     "details": "Task/state/writer.lock (Git-ignored local state; status ACTIVE)"
   },
   "completed_actions": [
@@ -576,7 +734,13 @@
     "production inventory final preview RUN-20260725-M0-S4-INVENTORY-101 matches tracked bytes at 55 sources, 462 entries, 19 chunks, UNKNOWN=0, all entries UNMIGRATED_BLOCKED, payload c5b306f75aeb7fcb7ba685ddf40160f3f97b450fc53f0fe49dcbeaf3fc571e6f",
     "all 14 cold archives were rehashed and fully listed at S4 freeze with 196442 members, 183 run roots, zero coverage/hash/member differences, and zero unsafe paths; only final run 103 and inventory preview 101 remain hot",
     "M0-S4 functional scope was explicitly staged as exactly 44 allowlisted files with zero deletions, binaries, files over 1 MiB, diff-check findings, or secret-pattern findings, and committed as 29602bc1af5001e486e9df8b5568af1b51984d08",
-    "M0-S4 functional and acceptance-report commits were ordinary-pushed through 51d2a7498eac3955a8ec8a1f1288bd69e0da598a and verified identical at local HEAD, origin, and ls-remote; Draft PR metadata was not reverified because local gh is not authenticated"
+    "M0-S4 functional and acceptance-report commits were ordinary-pushed through 51d2a7498eac3955a8ec8a1f1288bd69e0da598a and verified identical at local HEAD, origin, and ls-remote; Draft PR metadata was not reverified because local gh is not authenticated",
+    "M0-S5 froze 19 immutable domain revision types, QuestionIR/FigureIR/PaperIR v1, deterministic v0.9 migration and rollback, coordinate and transform contracts, five PaperIR document roles, and strict unknown-field handling",
+    "M0-S5 gold registry fingerprints 18 logical entries, 63 members and 853658555 read-only bytes across eight truth roles and 12 template families without copying external originals or tracking local paths",
+    "M0-S5 visual thresholds freeze exact-reference pages, 0.01 mm representation tolerance, 0.5/1.0 mm major anchors, zero crop/overflow/silent font substitution, manual overlay, and diagnostic-only pixel metrics",
+    "RUN-20260725-M0-S5-122 passed 460 tests and RUN-20260725-M0-S5-FULL-123 passed 1105 tests with zero failures/errors/skips; the activity database, 24859-entry protected tree, watcher, handle fence, run tree, immutable evidence, 80 source witnesses, and process tree all passed",
+    "production inventory RUN-20260725-M0-S5-INVENTORY-118 matches tracked bytes at 58 sources, 462 entries, 19 chunks, UNKNOWN=0, all entries UNMIGRATED_BLOCKED, payload cc828c0925b2d83be7d17e831fa3370585cee8fa2376f4c4989b798f51389b0c",
+    "all 17 cold archives were rehashed and fully streamed at S5 freeze with 216332 members, 204 run roots, zero hash/member/path/duplicate differences; only final RUN-123 remains hot and superseded directories were moved recoverably to the existing C relief area"
   ],
   "not_started": [
     "activity database migration activation (intentionally deferred until a later authorized switch)",
@@ -590,6 +754,6 @@
   "blockers": [
     "M0-SYMLINK-CAPABILITY-001: RUN-20260724-M0-SYMLINK-CAPABILITY-038 returned WinError 1314 when the ordinary account attempted to create a real directory symlink; all other safety gates in that run were clean, no privilege elevation or Developer Mode change is authorized, and independent M0 work may continue"
   ],
-  "next_required_action": "Implement M0-S5 versioned domain objects, IR validation and round-trip rules, then freeze content, visual, scoring, and figure gold registries without touching real business data.",
-  "resume_rule": "Resume from S4 functional checkpoint 29602bc1af5001e486e9df8b5568af1b51984d08, final gate RUN-20260725-M0-FULL-GATE-103, and inventory preview 101. Never reuse a run ID. Keep production writer disconnected, the activity database at user_version 0, and real business data untouched through S5-S6 and the remaining M0 gates."
+  "next_required_action": "Complete M0-S6 fresh-state, registered external Copy, legal and rejected writes, database migration round-trip, gold-location user flows, production entry migration and M0 exit audit without touching real business data.",
+  "resume_rule": "Resume from S5 functional checkpoint 4a9512beb04546649214ad20560c88d784334d92, final gate RUN-20260725-M0-S5-FULL-123, and inventory preview 118. Never reuse a run ID. Keep the activity database at user_version 0 and real business data untouched until the S6 activation plan, rollback proof, and M0 exit gates explicitly authorize a candidate-only transition."
 }

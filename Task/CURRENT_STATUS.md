@@ -1,6 +1,34 @@
 # 当前状态
 
-更新时间：2026-07-25 02:17 +08:00
+更新时间：2026-07-25 15:20 +08:00
+
+## M0-S5 本地验收与门禁整理（2026-07-25）
+
+- M0-S5已通过本地功能与安全验收；功能检查点为
+  `4a9512beb04546649214ad20560c88d784334d92`，验收文档与远端发布尚在本轮收尾。
+- 已冻结19类不可变领域revision、QuestionIR/FigureIR/PaperIR v1、v0.9迁移/回滚、
+  来源坐标/变换、五类文档角色投影和未知字段失败关闭策略。
+- 金标registry覆盖18个逻辑条目、63个成员、853,658,555 bytes、8个真值角色和12个模板族；
+  外部文件复制为0，tracked产物不含本机绝对路径或源文件名。
+- 初始视觉阈值固定为exact-reference页面、0.01 mm表示容差、0.5/1.0 mm主要锚点、
+  零裁切、零溢出、零静默字体替代；像素指标只作诊断，不能覆盖人工叠图失败。
+- `RUN-20260725-M0-S5-122`为460/460；最终全仓冻结
+  `RUN-20260725-M0-S5-FULL-123`为1105/1105，另1个真实目录symlink能力用例按普通账户
+  WinError 1314既定边界排除。123的24,859项保护树、80个来源、活动库、watcher、句柄围栏、
+  run tree、不可变证据和进程树全部通过。
+- 显式暂存后`RUN-20260725-M0-S5-POSTDOC-125`再次通过460/460，并触发17个冷归档的阶段冻结
+  复核；该小型运行通过87个文件逐项哈希确认后可恢复迁到C盘。
+- 最终inventory为`RUN-20260725-M0-S5-INVENTORY-118`：58个生产源、462个入口、
+  19个分片、`UNKNOWN=0`；全部入口仍为`UNMIGRATED_BLOCKED`，production writer和
+  `m0_exit_allowed`均为false。
+- 活动SQLite仍未迁移或切换，SHA-256保持
+  `1505bf05bd8e385eada30642110596363c561c330da02a40a497072064ad1c94`，
+  `user_version=0`。
+- 17个冷归档已完整复核704,667,068 bytes、216,332个成员和204个运行根，危险路径、
+  重复成员和差异均为0。E盘仅保留最终RUN-123热证据；旧运行/预览/日志经验证后可恢复迁到
+  C盘恢复区，当前E盘约62.64 GiB可用。
+- 当前切片转入M0-S6真实流程与M0总门；M0仍未验收，production writer和真实业务数据继续
+  隔离。完整证据见`Task/reports/M0/M0-S5-domain-ir-gold.md`。
 
 ## M0-S4 本地验收与存储收敛（2026-07-25）
 
@@ -49,7 +77,7 @@
 
 - 计划版本：1.1.0
 - 当前阶段：M0 入场审计完成，M0 尚未验收
-- 当前切片：M0-S4 SQLite migration/Backup API 已验收、提交、普通 push 并核对远端分支；转入 M0-S5 领域模型、IR 与金标基线，M0 总门尚未通过
+- 当前切片：M0-S5领域模型、IR与金标基线已本地验收；正在完成验收提交/远端核验，随后进入M0-S6真实流程与M0总门
 - M0—M5 实现：M0 已开始；M1—M5 未开始
 - 本任务有效终点：按用户后续明确要求，连续完成修订后的 M0—M5，直到真实用户流程、恢复演练和客户交付包全部通过；不得把 M0 或代码完成误报为终局
 - 当前禁止：活动数据库迁移、题库导入、OCR、正式排版、批量资产、备份切换和业务文件清理
@@ -84,11 +112,14 @@
 - 目标 NEW9 PDF 已在 Test 内，但其正文无可提取文字层；视觉回归必须包含整页像素/锚点检查
 - 活动 SQLite SHA-256 为`1505bf05...ad1c94`，`integrity_check=ok`、外键违规 0、`user_version=0`，19 个业务表均为 0 行
 - 历史“1123 题/阶段 14”报告不是当前可复现事实
-- 生产静态 inventory V16 覆盖`app/`和`scripts/`的 55 个源文件、462 个副作用入口和 19 个分片；`UNKNOWN=0`、未授权安全内核构造 0，但 462 项仍全部`UNMIGRATED_BLOCKED`
+- 生产静态 inventory V16 覆盖`app/`和`scripts/`的58个源文件、462个副作用入口和19个分片；`UNKNOWN=0`、未授权安全内核构造0，但462项仍全部`UNMIGRATED_BLOCKED`
 - Policy V7 digest 为`8df50ded...e4d88`；生产 boundary 固定根且`writer_available=false`，`m0_exit_allowed=false`
 - S3-E 最终核心回归`RUN-20260712-M0-S3E-016`为`30 passed`，launcher 门`RUN-20260712-M0-S3E-LAUNCHER-018`为`72 passed`，组合门`RUN-20260712-M0-S3E-COMBINED-019`为`399 passed`；JUnit failure/error/skip 均为 0
 - RUN-009 保护树前后均 93,762 条、运行时变更 0、句柄围栏 93,762 个；活动 SQLite 前后 SHA-256 相同。旧结果字段`source inputs unchanged`只是该次已监测保护集的起止/运行时证据，不声称监控整机或未登记外部源
-- Scanner V16 使用`UTF8_LF_V1`规范化并加入 portable-root authority、external-source、Copy 双账本、全部历史 operation epoch、同 mutex 全 DAG、pair reservation、最终 revalidation、目录 publish/recovery 和 quarantine/retained-restore exact canary；inventory digest 为`6f9624ecfa941e54cfb1e8f08015952d725785ae15bd1bd9a1a338e27d0d9d9a`，生产 writer 与`m0_exit_allowed`均为 false
+- Scanner V16使用`UTF8_LF_V1`规范化并覆盖portable-root authority、S3安全内核、
+  SQLite迁移/备份及S5领域/IR/gold验证器；最终inventory digest为
+  `cc828c0925b2d83be7d17e831fa3370585cee8fa2376f4c4989b798f51389b0c`，生产writer与
+  `m0_exit_allowed`均为false
 
 ## 工具与发布状态
 
@@ -115,7 +146,10 @@
 3. portable root 与 S3-F 合成 Copy/双 ledger 已由`RUN-20260724-M0-PORTABLE-FULL-037`验收，并作为`f9756df79d979ef10f54fc4634f15849857019da`完成精确暂存审计、checkpoint commit、普通 push 与远端核验；
 4. S3-G quarantine/retained restore 已由 CORE-053、INVENTORY-057、GATE-058 与清理后 POSTCLEAN-059 验收，并作为`a757e181a64aea9cbbc91669b7ad48b043bbafd6`完成精确提交、普通 push 与远端核验；
 5. S3-H 历史 operation resolver、完整 DAG、真实 crash/race 矩阵、最终 inventory 和 S3 总门已由 INVENTORY-GATE-078 与 S3-TOTAL-079 验收，并作为`b38dd5e5399cc37dae3fa1086b29c7b5e1385477`完成精确提交、普通 push 与远端核验；
-6. M0-S4 SQLite migration/Backup API 已由 CORE-100、S4-102 和 FULL-103 验收；当前进入 M0-S5 领域模型、IR 与金标基线。按长期终点继续完成 M0—M5，只有 M5 客户交付包、真实用户流程和恢复演练全部通过后才可结束。
+6. M0-S4 SQLite migration/Backup API已由CORE-100、S4-102和FULL-103验收并远端核验；
+7. M0-S5领域revision、三类IR、金标registry、模板族和视觉阈值已由S5-122与FULL-123验收；
+   当前完成验收提交后进入M0-S6。按长期终点继续完成M0—M5，只有M5客户交付包、真实用户流程
+   和恢复演练全部通过后才可结束。
 
 ## 历史暂停检查点（已于 2026-07-24恢复）
 

@@ -6,7 +6,7 @@
 | `M0-GIT-001` | 规划有安全远端恢复点 | R-033/R-034/R-035 | 显式范围、普通 push、Draft PR | PRE-M0 publish audit | PR #1 | PASS |
 | `M0-SAFE-001` | 所有写目标严格在授权 workspace | R-001/R-002 | 合法中文路径通过；全部越界路径零副作用拒绝 | `M0-GUARD-*`、`M0-POLICY-*`、`M0-HANDLE-*`、UJ-067 | S1/S2/S3-B—H 报告；RUN-S3H-S3-TOTAL-079；S4 报告 | IN_PROGRESS（S3 Test-local writer 与完整历史 DAG 已冻结；生产 writer 与 462 个入口迁移仍待完成） |
 | `M0-SAFE-002` | 链接、ADS、设备路径和竞态不能逃逸 | R-003 | Reparse/Junction/ADS/TOCTOU 攻击矩阵通过 | `M0-GUARD-ATTACK-*`、`M0-TICKET-*`、`M0-HANDLE-ATTACK-*`、S3-D—H tree/crash race | S1/S2/S3-B—H 报告；RUN-S3H-S3-TOTAL-079 | IN_PROGRESS（no-replace、历史全 DAG、四个真实 crash 点和最终竞态矩阵已通过；本机实际 symlink 创建权限门仍单独受限） |
-| `M0-SAFE-003` | 测试故障不会碰真实根外目录 | R-001/R-031/R-038 | 全部写测试在 Test test_lab，保护树和活动库不变 | `M0-LAB-*`、`M0-BOOTSTRAP-*` | RUN-S3H-S3-TOTAL-079；RUN-M0-FULL-GATE-103；S3-H/S4 报告 | IN_PROGRESS（1038 项 S4 冻结门的 watcher、句柄围栏、4,817 项保护树、80 个源码见证和活动库均干净；后续 M0 工具仍须持续纳入同一入口） |
+| `M0-SAFE-003` | 测试故障不会碰真实根外目录 | R-001/R-031/R-038 | 全部写测试在 Test test_lab，保护树和活动库不变 | `M0-LAB-*`、`M0-BOOTSTRAP-*` | RUN-S3H-S3-TOTAL-079；RUN-M0-S5-FULL-123；S3-H/S4/S5 报告 | IN_PROGRESS（1105 项 S5 冻结门的 watcher、句柄围栏、24,859 项保护树、80 个源码见证和活动库均干净；后续 M0 工具仍须持续纳入同一入口） |
 | `M0-SAFE-004` | 外部来源加工前有可信 Copy 台账 | R-010/R-027 | source/copy SHA-256 相同，work 不改 source | UJ-010/M0 Copy flow | S3-F/S3-H 报告；RUN-S3H-S3-TOTAL-079 | IN_PROGRESS（Test-local audit/全部 operation epoch/Copy 双链完整 DAG 已通过；真实 Test 外 Copy 用户旅程留给 S6） |
 | `M0-SAFE-005` | 关键文件原子写、失败不部分发布 | R-005/R-014/R-023 | staging 验证后原子发布，旧版可用 | `M0-ATOMIC-*` | S3-C—H reports；M0-S4 报告；RUN-M0-FULL-GATE-103 | IN_PROGRESS（publish、Copy、quarantine/restore 及 SQLite 副本迁移/备份的 no-replace、中断恢复和 fresh replay 已通过；整产品 bundle 与活动切换仍待后续阶段） |
 | `M0-SAFE-006` | 业务删除只进入 quarantine | R-001/R-025/R-039 | 精确 manifest、可恢复、无永久清理 | `M0-QUARANTINE-*` | S3-G/S3-H 报告；RUN-S3H-S3-TOTAL-079 | IN_PROGRESS（Test-local 日期分区、RESTRICTED 脱敏恢复、保留式 restore 和 S3 冻结已通过；production 接线与入口迁移未完成） |
@@ -14,9 +14,13 @@
 | `M0-DB-001` | 读取不隐式写库或建目录 | R-002/R-005 | query-only 路径哈希不变，GET 零写入 | `M0-DB-READ-*` | M0-S4 报告；RUN-S4-GATE-102；RUN-M0-FULL-GATE-103 | PASS |
 | `M0-DB-002` | schema 有只追加版本和可回滚迁移 | R-005/R-030 | 旧库副本正迁移、重复、中断、回滚通过 | `M0-MIG-*` | M0-S4 报告；`tests/test_database_migrations.py`；RUN-S4-GATE-102 | PASS |
 | `M0-DB-003` | SQLite 检查点一致且可恢复 | R-022/R-023 | Backup API、integrity/FK、staging 恢复 | `M0-DB-BACKUP-*` | M0-S4 报告；`tests/test_database_backup.py`；RUN-S4-GATE-102 | PASS |
-| `M0-DOMAIN-001` | 核心对象和 IR 可版本化往返 | R-010/R-014/R-016/R-018 | schema 验证、往返无语义丢失、未知字段策略 | `M0-IR-*` | 待实现 | NOT_STARTED |
-| `M0-GOLD-001` | 视觉/内容/评分/图形金标角色清晰 | R-006/R-007/R-009/R-021 | logical ID、哈希、角色、许可、预期结果齐全 | M0 gold registry review | 待实现 | NOT_STARTED |
-| `M0-GOLD-002` | 模板族和视觉阈值可量化 | R-006/R-007/R-009 | 页面、锚点、分页、字体替代基线冻结 | M0 visual calibration | 待实现 | NOT_STARTED |
+| `M0-DOMAIN-001` | 核心对象和 IR 可版本化往返 | R-010/R-014/R-016/R-018 | schema 验证、往返无语义丢失、未知字段策略 | `tests/test_domain_models.py`、`tests/test_ir_contracts.py` | ADR-006；M0-S5报告；RUN-M0-S5-122/FULL-123 | PASS（19类不可变revision、Question/Figure/Paper IR v1、坐标/变换、五类角色、v0.9迁移/回滚和未知字段失败关闭均已冻结） |
+| `M0-GOLD-001` | 视觉/内容/评分/图形金标角色清晰 | R-006/R-007/R-009/R-021 | logical ID、哈希、角色、许可、预期结果齐全 | `tests/test_gold_registry.py`、gold preview builder | 18条目/63成员registry；ADR-006；M0-S5报告 | PASS（8个真值角色完整，tracked registry无物理路径或源文件名；许可/PII继续作为发布阻断事实） |
+| `M0-GOLD-002` | 模板族和视觉阈值可量化 | R-006/R-007/R-009 | 页面、锚点、分页、字体替代基线冻结 | `tests/test_gold_registry.py`、visual threshold validator | 12个模板族；`visual-thresholds-v1.json`；RUN-M0-S5-122 | PASS（exact页面、0.01 mm表示容差、0.5/1.0 mm锚点、零裁切/溢出/静默替代；真实渲染验收仍属M1） |
 | `M0-FLOW-001` | fresh-state 初始化、合法写、越界拒绝、迁移往返全流程可用 | R-001/R-005/R-032 | UI/公开入口和安全证据全部通过 | M0 entry user flows | 待实现 | NOT_STARTED |
 
-M0-S4 inventory 当前有 462 个`UNMIGRATED_BLOCKED`入口，`UNKNOWN=0`、`production_writer_connected=false`、`m0_exit_allowed=false`。只读网关、追加式迁移目录、SQLite Backup API、暂存恢复和副本迁移已由 462 项 S4 门和 1038 项全仓冻结门验收；活动数据库仍保持`user_version=0`且未被迁移。恢复范围固定为`COOPERATIVE_APPLICATION_WRITERS_ONLY`，普通目录 handle 仍不能冻结 hostile external child namespace。下一安全切片为 M0-S5 领域模型、IR 与金标基线；M0 真实用户流程仍待 S6。
+M0-S5 inventory 当前有462个`UNMIGRATED_BLOCKED`入口，`UNKNOWN=0`、
+`production_writer_connected=false`、`m0_exit_allowed=false`。领域/IR/金标合同已由460项S5门和
+1105项全仓冻结门验收；活动数据库仍保持`user_version=0`且未被迁移。恢复范围固定为
+`COOPERATIVE_APPLICATION_WRITERS_ONLY`，普通目录handle仍不能冻结hostile external child
+namespace。下一安全切片为M0-S6真实用户流程与M0总门。

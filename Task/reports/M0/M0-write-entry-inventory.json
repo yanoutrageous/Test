@@ -17,7 +17,7 @@
     "SQLITE_SCHEMA_MUTATION": 120,
     "SQLITE_TRANSACTION": 45
   },
-  "entries_digest_sha256": "cb24cce8276efbf93adb8b359ce0100b5358df2fe74b7994a4867ed50c893b32",
+  "entries_digest_sha256": "ed8918ca0253553a1bd6c459cd8dacb97906f37598c3e504a7b7aa957f98e35b",
   "entry_chunk_size": 25,
   "entry_chunks": [
     {
@@ -123,16 +123,16 @@
       "serialized_file_sha256": "4c7775d22cfaabfa909ec2aaf4c3f08986e2c4d7bf0ac36097442532b55dfade"
     },
     {
-      "canonical_payload_sha256": "5ca3de199619ac6d02875b9e2d4a8b47fa3fa3e6635eda32941d4be92f34268b",
+      "canonical_payload_sha256": "0f1c7dd440e752f85d8a7fb1805179391aafce202b0bd2620631dba324afdff5",
       "entry_count": 25,
       "path": "Task/reports/M0/write-entry-inventory/entries-017.json",
-      "serialized_file_sha256": "2ddd370936c5fa11d6d2f7e608815a3ba6a3edc0a55c9e3c2c54ae627be3f8e2"
+      "serialized_file_sha256": "7dd677b5262effba192f86eca04e13b262ff8f49dfda5814e1378bb3cbe88181"
     },
     {
-      "canonical_payload_sha256": "fe61d85c8fe20d077540e66f9f693b42420ca5c2a4f1122c410d9b070e220e64",
+      "canonical_payload_sha256": "167435592897c0764fd46a96dd3845f2832c0e1956038f4721d2a13bdb873bdd",
       "entry_count": 12,
       "path": "Task/reports/M0/write-entry-inventory/entries-018.json",
-      "serialized_file_sha256": "4a4fa8541088281e1123f07e8607356cdd5e42b12789b16401b6ccf5ec4e1b1d"
+      "serialized_file_sha256": "fe226ef2fdcb326bff3d8fdda16d69f742bf46e2bef2e6dfade96e7ca43d0754"
     }
   ],
   "entry_count": 462,
@@ -149,19 +149,19 @@
     "unknown_dynamic_count": 0,
     "unmigrated_count": 462
   },
-  "generated_at": "2026-07-25T01:41:45.5080123+08:00",
+  "generated_at": "2026-07-25T14:10:27.9516996+08:00",
   "global_status": "UNMIGRATED_BLOCKED",
   "included_roots": [
     "app",
     "scripts"
   ],
-  "inventory_digest_sha256": "c5b306f75aeb7fcb7ba685ddf40160f3f97b450fc53f0fe49dcbeaf3fc571e6f",
+  "inventory_digest_sha256": "cc828c0925b2d83be7d17e831fa3370585cee8fa2376f4c4989b798f51389b0c",
   "project_root_id": "CONTRACT_PROJECT_ROOT",
   "scanner_version": "M0-S3-STATIC-AUDIT-V16",
   "schema_version": "2.0",
   "source_byte_normalization": "UTF8_LF_V1",
   "source_dirty": true,
-  "source_head": "c1a74d560ed0d3ca31194e4da062a3aa3de07a05",
+  "source_head": "4a9512beb04546649214ad20560c88d784334d92",
   "source_manifest": [
     {
       "file": "app/__init__.py",
@@ -224,6 +224,12 @@
       "size_bytes": 14526
     },
     {
+      "file": "app/domain_models.py",
+      "normalization": "UTF8_LF_V1",
+      "sha256": "aec9f8e17f0a089e9f3e8a5ea322001dfccbe95758da3e2e35534c1010d77586",
+      "size_bytes": 28076
+    },
+    {
       "file": "app/export_quality.py",
       "normalization": "UTF8_LF_V1",
       "sha256": "8acf2282361b327ae0b5d64797c17a2cf5c4fa565fdb027f2472da5b00013dcb",
@@ -242,6 +248,12 @@
       "size_bytes": 1157
     },
     {
+      "file": "app/gold_registry.py",
+      "normalization": "UTF8_LF_V1",
+      "sha256": "c2c736395847e40c66c2019125a61754a3814d4e2ed220b2325c295145cc2671",
+      "size_bytes": 33885
+    },
+    {
       "file": "app/health.py",
       "normalization": "UTF8_LF_V1",
       "sha256": "fdc27faa97d3253ef971b1156dc6a26430a6776b9c702232bd6b71f3863c01fe",
@@ -252,6 +264,12 @@
       "normalization": "UTF8_LF_V1",
       "sha256": "2a062c4a1a7ea64c25cc3b19c5b212ac9f75be3609e36755fb660b337bbe8d64",
       "size_bytes": 22543
+    },
+    {
+      "file": "app/ir_contracts.py",
+      "normalization": "UTF8_LF_V1",
+      "sha256": "7947c9156fbb401530d8b3663a2fcc1bd13c694a58f1a16f400e73bfd9729653",
+      "size_bytes": 45221
     },
     {
       "file": "app/page_ranges.py",
@@ -490,9 +508,9 @@
     {
       "file": "scripts/run_safe_pytest.py",
       "normalization": "UTF8_LF_V1",
-      "sha256": "5f441c50558d92f0d2e987f302cc750f9cf4b7650d746a4dd2c86c32fad47acd",
-      "size_bytes": 99287
+      "sha256": "e61008f2721cab58df67f96b0b884a45f01af483c1b23815cdec5297a8921ed0",
+      "size_bytes": 99846
     }
   ],
-  "source_manifest_digest_sha256": "456d06fb905b90bab58629b451a83fe68dd36bf9bfc73d5be043559be9fd894f"
+  "source_manifest_digest_sha256": "a16632eff7341998c1cb87c795e93503b3bbfafc51197530873b8460903969cc"
 }
