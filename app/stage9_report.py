@@ -8,6 +8,7 @@ from typing import Any
 
 from .config import PROJECT_ROOT
 from .database import connect_database, initialize_database
+from .safety.workspace_io import get_workspace_io
 from .structured_ai import (
     StructuredAiError,
     get_structured_ai_provider_status,
@@ -82,7 +83,6 @@ def write_stage9_quality_report(
         report_stats = _build_report_stats(conn, sample_rows, validation_result, ai_result)
 
     output_path = project_root / REPORT_RELATIVE_PATH
-    output_path.parent.mkdir(parents=True, exist_ok=True)
     text = _render_report_v2(
         init_result=init_result,
         structured_summary=summarize_structured_contents(db_path=db_path),
@@ -91,7 +91,7 @@ def write_stage9_quality_report(
         validation_result=validation_result,
         report_stats=report_stats,
     )
-    output_path.write_text(text, encoding="utf-8")
+    get_workspace_io().write_text_idempotent(output_path, text)
     return {
         "relative_path": REPORT_RELATIVE_PATH.as_posix(),
         "path": str(output_path),

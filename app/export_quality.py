@@ -9,6 +9,7 @@ from typing import Any
 from .config import PROJECT_ROOT
 from .database import connect_database, connect_database_read_only, initialize_database
 from .risk_classifier import RiskClassifier, USABILITY_CLASSIFICATION_VERSION
+from .safety.workspace_io import get_workspace_io
 from .stage10 import HIGH_RISK_PAGES, questions_main_checksum
 from .stage11 import classify_usability_states
 from .structured_content import initialize_structured_contents, parse_json_field
@@ -347,8 +348,10 @@ def write_stage12_export_quality_report(
     classify_result = service.classify_all()
     summary = classify_result["summary"]
     report_path = project_root / "docs" / "stage12_export_quality_report.md"
-    report_path.parent.mkdir(parents=True, exist_ok=True)
-    report_path.write_text(_render_stage12_report(summary), encoding="utf-8")
+    get_workspace_io().write_text_idempotent(
+        report_path,
+        _render_stage12_report(summary),
+    )
     return {
         "status": "ok",
         "relative_path": "docs/stage12_export_quality_report.md",

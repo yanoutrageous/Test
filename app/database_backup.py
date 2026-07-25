@@ -13,7 +13,7 @@ from enum import StrEnum
 from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any
 
-from .database import connect_database_read_only
+from .database import connect_database, connect_database_read_only
 from .database_migrations import (
     CURRENT_SCHEMA_VERSION,
     DatabaseMigrationError,
@@ -22,6 +22,11 @@ from .database_migrations import (
 )
 from .project_root import ProjectRootError, inspect_project_root
 from .safety.context import ContextError, validate_safe_id
+from .safety.workspace_io import (
+    WorkspaceIOCode,
+    WorkspaceIOError,
+    get_workspace_io,
+)
 
 
 BACKUP_MANIFEST_SCHEMA_VERSION = "1.0"
@@ -255,17 +260,14 @@ def _inspect_regular_file(path: Path, *, maximum_bytes: int = MAX_DATABASE_BYTES
 def _ensure_directory(parent: Path, name: str) -> Path:
     _inspect_directory(parent)
     child = parent / name
-    if os.path.lexists(child):
-        _inspect_directory(child)
-    else:
-        try:
-            os.mkdir(child)
-        except OSError as exc:
-            raise DatabaseBackupError(
-                DatabaseBackupCode.INVALID_PATH,
-                "fixed database operation directory could not be created",
-            ) from exc
-        _inspect_directory(child)
+    try:
+        get_workspace_io().ensure_directory(child)
+    except WorkspaceIOError as exc:
+        raise DatabaseBackupError(
+            DatabaseBackupCode.INVALID_PATH,
+            "fixed database operation directory could not be created",
+        ) from exc
+    _inspect_directory(child)
     return child
 
 
@@ -276,29 +278,16 @@ def _write_exclusive(path: Path, payload: bytes) -> None:
             "manifest payload is outside its fixed size boundary",
         )
     try:
-        descriptor = os.open(
-            path,
-            os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_BINARY", 0),
-            0o600,
-        )
-    except OSError as exc:
+        get_workspace_io().create_new_bytes(path, payload)
+    except WorkspaceIOError as exc:
         raise DatabaseBackupError(
-            DatabaseBackupCode.STAGING_CONFLICT,
+            (
+                DatabaseBackupCode.STAGING_CONFLICT
+                if exc.code is WorkspaceIOCode.TARGET_CONFLICT
+                else DatabaseBackupCode.BACKUP_FAILED
+            ),
             "manifest target already exists or cannot be created exclusively",
         ) from exc
-    try:
-        offset = 0
-        while offset < len(payload):
-            written = os.write(descriptor, payload[offset:])
-            if written <= 0:
-                raise DatabaseBackupError(
-                    DatabaseBackupCode.BACKUP_FAILED,
-                    "manifest write made no progress",
-                )
-            offset += written
-        os.fsync(descriptor)
-    finally:
-        os.close(descriptor)
     _inspect_regular_file(path, maximum_bytes=MAX_MANIFEST_BYTES)
     if path.read_bytes() != payload:
         raise DatabaseBackupError(
@@ -474,7 +463,14 @@ def _sqlite_backup(
     source_conn = connect_database_read_only(source)
     target_conn: sqlite3.Connection | None = None
     try:
-        target_conn = sqlite3.connect(target)
+        try:
+            get_workspace_io().create_new_bytes(target, b"")
+        except WorkspaceIOError as exc:
+            raise DatabaseBackupError(
+                DatabaseBackupCode.STAGING_CONFLICT,
+                "SQLite Backup API target could not be created exclusively",
+            ) from exc
+        target_conn = connect_database(target)
         target_conn.execute("PRAGMA foreign_keys = ON")
 
         source_conn.backup(
@@ -517,11 +513,6 @@ def _sqlite_backup(
                 DatabaseBackupCode.BACKUP_FAILED,
                 "SQLite left an undeclared sidecar beside the staged snapshot",
             )
-    descriptor = os.open(target, os.O_RDWR | getattr(os, "O_BINARY", 0))
-    try:
-        os.fsync(descriptor)
-    finally:
-        os.close(descriptor)
 
 
 def _call_failpoint(
@@ -552,7 +543,14 @@ class DatabaseBackupService:
                 DatabaseBackupCode.INVALID_ROOT,
                 "database backup service requires a verified portable project root",
             ) from exc
-        self._root = contract.root
+        try:
+            self._workspace_io = get_workspace_io()
+            self._root = self._workspace_io.validate_directory_path(contract.root)
+        except WorkspaceIOError as exc:
+            raise DatabaseBackupError(
+                DatabaseBackupCode.INVALID_ROOT,
+                "database backup root is outside the production workspace",
+            ) from exc
         self._active_db = self._root / "data" / "db" / "question_bank.sqlite3"
 
     @property
@@ -869,8 +867,8 @@ class DatabaseBackupService:
                 "backup target appeared before no-replace publication",
             )
         try:
-            os.rename(stage_root, final_root)
-        except OSError as exc:
+            self._workspace_io.move_directory_no_replace(stage_root, final_root)
+        except WorkspaceIOError as exc:
             raise DatabaseBackupError(
                 DatabaseBackupCode.PUBLISH_CONFLICT,
                 "backup set could not be published without replacement",
@@ -1050,8 +1048,8 @@ class DatabaseBackupService:
                 idempotent=True,
             )
         try:
-            os.rename(stage_root, final_root)
-        except OSError as exc:
+            self._workspace_io.move_directory_no_replace(stage_root, final_root)
+        except WorkspaceIOError as exc:
             raise DatabaseBackupError(
                 DatabaseBackupCode.PUBLISH_CONFLICT,
                 "database state could not be published without replacement",

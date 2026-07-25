@@ -1,9 +1,9 @@
 {
   "state_version": "1.1.0",
   "plan_version": "1.1.0",
-  "updated_at": "2026-07-25T15:23:00+08:00",
+  "updated_at": "2026-07-25T18:28:00+08:00",
   "current_milestone": "M0",
-  "current_slice": "M0_S6_REAL_FLOWS_AND_EXIT",
+  "current_slice": "M0_S6_FREEZE_AND_PUBLISH",
   "status": "RUNNING",
   "implementation_status": "IN_PROGRESS",
   "task_scope": {
@@ -627,6 +627,100 @@
       "permanent_deletion_performed": false
     }
   },
+  "s6_checkpoint": {
+    "local_acceptance_status": "M0_EXIT_ACCEPTED_PENDING_GIT_CHECKPOINT",
+    "report": "Task/reports/M0/M0-S6-real-flows-production-writer-exit.md",
+    "machine_exit_evidence": "contracts/m0/m0-exit-evidence-v1.json",
+    "production_boundary": {
+      "writer_contract": "FIXED_ROOT_HANDLE_WRITER_V1",
+      "production_writer_connected": true,
+      "workspace_io_fixed_root": true,
+      "registered_external_copy": true
+    },
+    "inventory": {
+      "scanner_version": "M0-S6-STATIC-AUDIT-V21",
+      "preview_run_id": "RUN-20260725-M0-S6-INVENTORY-148",
+      "source_count": 60,
+      "entry_count": 420,
+      "chunk_count": 17,
+      "unknown_dynamic_count": 0,
+      "unmigrated_count": 0,
+      "invalid_binding_count": 0,
+      "production_writer_connected": true,
+      "m0_exit_allowed": true,
+      "global_status": "M0_EXIT_ACCEPTED",
+      "payload_sha256": "d78470cc94bf23eae6871c0e05ff1b839d3de5e4190f3fae87a87cfc040fc778",
+      "manifest_file_sha256": "db4e1ff1fe708b585ddb45c09ea95babfbe616292580a4e5611f2f3263199bd1",
+      "binding_contract_sha256": "a16232648ebda21e1bf75e5e0c8bea9fd80bf68d04b68a7dc43f0e8b0864aeb7"
+    },
+    "real_flows": {
+      "run_id": "RUN-20260725-M0-S6-FLOWS-145",
+      "flow_count": 6,
+      "status": "PASS",
+      "report_sha256": "6af6bd34dd4264cfc1b6449571a6040b6e6458ddbd91ad6d087d2387a32a522c",
+      "outside_write_side_effect_count": 0,
+      "registered_copy_bytes": 109735,
+      "registered_copy_sha256": "7b9baf1e0419d7a8cd31488e3b9092c3e3d055a116fdcdd1bc38a075b1684d5f",
+      "gold_representative_page": 1,
+      "migration_roundtrip_passed": true
+    },
+    "s6_core_gate": {
+      "run_id": "RUN-20260725-M0-S6-144",
+      "tests": 93,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "s6_stage_gate": {
+      "run_id": "RUN-20260725-M0-S6-GATE-147",
+      "tests": 628,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "protected_tree_entries": 26870,
+      "registered_source_count": 82,
+      "activity_database_unchanged": true,
+      "all_safety_gates_passed": true
+    },
+    "exit_freeze_gate": {
+      "run_id": "RUN-20260725-M0-S6-EXIT-149",
+      "tests": 34,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "activity_database_unchanged": true,
+      "all_safety_gates_passed": true
+    },
+    "activity_database": {
+      "sha256": "1505bf05bd8e385eada30642110596363c561c330da02a40a497072064ad1c94",
+      "bytes": 471040,
+      "user_version": 0,
+      "mtime_unchanged": true,
+      "migration_or_switch_performed": false
+    },
+    "security_audit": {
+      "diff_check_findings": 0,
+      "fixed_physical_locator_matches": 0,
+      "tracked_external_locator_matches": 0,
+      "dangerous_shell_call_matches": 0,
+      "undisclosed_p0_p1": 0
+    },
+    "storage_freeze": {
+      "archive_count": 19,
+      "archive_total_bytes": 746034234,
+      "archive_entry_count": 238143,
+      "archive_unsafe_member_count": 0,
+      "hot_retained_runs": [
+        "RUN-20260725-M0-S6-GATE-147",
+        "RUN-20260725-M0-S6-EXIT-149"
+      ],
+      "hot_retained_inventory_preview": "RUN-20260725-M0-S6-INVENTORY-148",
+      "superseded_test_runs_moved_recoverably_to_c": 14,
+      "superseded_inventory_previews_moved_recoverably_to_c": 7,
+      "permanent_deletion_performed": false,
+      "e_free_bytes": 84933775360
+    }
+  },
   "project_root": {
     "authority": "TRUSTED_MODULE_PLUS_ROOT_MARKER",
     "marker": ".exam-bank-root.json",
@@ -650,7 +744,7 @@
   },
   "last_verified_checkpoint": "ba36cbd1847345f35411164855cd24c5ecaf6188",
   "last_unverified_pause_checkpoint": "aec3d7413a06251e4865b601fd680090b466892e",
-  "active_job_id": "M0-S6-REAL-FLOWS-EXIT",
+  "active_job_id": "M0-S6-FREEZE-PUBLISH",
   "active_writer": {
     "owner": "/root",
     "run_id": "RUN-20260725-M0-S6-COORD-124",
@@ -742,7 +836,15 @@
     "RUN-20260725-M0-S5-122 passed 460 tests and RUN-20260725-M0-S5-FULL-123 passed 1105 tests with zero failures/errors/skips; the activity database, 24859-entry protected tree, watcher, handle fence, run tree, immutable evidence, 80 source witnesses, and process tree all passed",
     "production inventory RUN-20260725-M0-S5-INVENTORY-118 matches tracked bytes at 58 sources, 462 entries, 19 chunks, UNKNOWN=0, all entries UNMIGRATED_BLOCKED, payload cc828c0925b2d83be7d17e831fa3370585cee8fa2376f4c4989b798f51389b0c",
     "all 17 cold archives were rehashed and fully streamed at S5 freeze with 216332 members, 204 run roots, zero hash/member/path/duplicate differences; only final RUN-123 remains hot and superseded directories were moved recoverably to the existing C relief area",
-    "M0-S5 functional and acceptance-report commits were ordinary-pushed through ba36cbd1847345f35411164855cd24c5ecaf6188 and verified identical at local HEAD, origin, and ls-remote; PR metadata was not reverified and was not claimed"
+    "M0-S5 functional and acceptance-report commits were ordinary-pushed through ba36cbd1847345f35411164855cd24c5ecaf6188 and verified identical at local HEAD, origin, and ls-remote; PR metadata was not reverified and was not claimed",
+    "M0-S6 connected the fixed-root production handle writer and routed application filesystem and mutable SQLite entry points through the narrow workspace I/O facade",
+    "registered external source Copy now holds one read-only source handle through staged write, final rehash, path-redacted provenance, and no-replace publication",
+    "RUN-20260725-M0-S6-FLOWS-145 passed all six real flows: fresh-state, portable-root failures, external Copy, legal/outside writes, migration rollback, and gold representative-page location",
+    "RUN-20260725-M0-S6-GATE-147 passed 628 tests with 26870 protected entries, 82 registered sources, unchanged activity database, valid watcher/handle fence/run tree/evidence/process tree, and no skips",
+    "final inventory RUN-20260725-M0-S6-INVENTORY-148 binds 60 production sources and 420 entries with UNKNOWN=0, unmigrated=0, invalid bindings=0, production writer connected, and M0_EXIT_ACCEPTED",
+    "RUN-20260725-M0-S6-EXIT-149 passed 34 targeted exit, inventory, crash-race, and production-boundary tests after the machine exit evidence was installed",
+    "all 19 cold archives were rehashed and fully listed at M0 freeze with 238143 members and zero unsafe members; 14 superseded test runs and 7 previews moved recoverably to C relief, leaving only 147, 149, and preview 148 hot",
+    "M0 local acceptance is complete with activity database bytes, mtime, SHA-256, and user_version 0 unchanged; explicit Git checkpoint and ordinary push remain before M1 starts"
   ],
   "not_started": [
     "activity database migration activation (intentionally deferred until a later authorized switch)",
@@ -756,6 +858,6 @@
   "blockers": [
     "M0-SYMLINK-CAPABILITY-001: RUN-20260724-M0-SYMLINK-CAPABILITY-038 returned WinError 1314 when the ordinary account attempted to create a real directory symlink; all other safety gates in that run were clean, no privilege elevation or Developer Mode change is authorized, and independent M0 work may continue"
   ],
-  "next_required_action": "Complete M0-S6 fresh-state, registered external Copy, legal and rejected writes, database migration round-trip, gold-location user flows, production entry migration and M0 exit audit without touching real business data.",
-  "resume_rule": "Resume from S5 functional checkpoint 4a9512beb04546649214ad20560c88d784334d92, final gate RUN-20260725-M0-S5-FULL-123, and inventory preview 118. Never reuse a run ID. Keep the activity database at user_version 0 and real business data untouched until the S6 activation plan, rollback proof, and M0 exit gates explicitly authorize a candidate-only transition."
+  "next_required_action": "Freeze the explicit M0 allowlist, commit and ordinary-push the M0 checkpoint, verify remote equality, then enter M1 with Copy-first candidate-only import and no implicit activity-database switch.",
+  "resume_rule": "Resume from M0_EXIT_ACCEPTED inventory preview RUN-20260725-M0-S6-INVENTORY-148, stage gate RUN-20260725-M0-S6-GATE-147, exit gate RUN-20260725-M0-S6-EXIT-149, and real-flow evidence RUN-20260725-M0-S6-FLOWS-145. Never reuse a run ID. Preserve the activity database at user_version 0 until a later milestone explicitly passes an activation and rollback gate."
 }

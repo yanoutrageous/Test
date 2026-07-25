@@ -21,6 +21,7 @@ from .export_selection import ExportSelectionService
 from .exports import save_html_export
 from .paper_render import PaperRenderService
 from .pdf_scan import scan_pdf_pages
+from .safety.workspace_io import get_workspace_io
 from .source_attribution import (
     SourceAttributionService,
     _extract_header_from_page_text,
@@ -654,7 +655,6 @@ class Stage14QualityService:
                 raise Stage14Error("raw crop file missing")
             candidate_relative = _candidate_visual_path(row)
             candidate_path = self.project_root / candidate_relative
-            candidate_path.parent.mkdir(parents=True, exist_ok=True)
             _write_enhanced_png_candidate(original_path, candidate_path)
             candidate_row = {
                 **row,
@@ -954,13 +954,15 @@ class Stage14QualityService:
             )
             summary = classify["summary"]
         report_path = self.project_root / STAGE14_REPORT_RELATIVE_PATH
-        report_path.parent.mkdir(parents=True, exist_ok=True)
-        report_path.write_text(_render_stage14_report(summary), encoding="utf-8")
+        receipt = get_workspace_io().write_text_idempotent(
+            report_path,
+            _render_stage14_report(summary),
+        )
         return {
             "status": "ok",
             "relative_path": STAGE14_REPORT_RELATIVE_PATH.as_posix(),
             "path": str(report_path),
-            "size_bytes": report_path.stat().st_size,
+            "size_bytes": receipt.size_bytes,
             "summary": summary,
         }
 
@@ -1303,7 +1305,10 @@ def _write_enhanced_png_candidate(source_path: Path, output_path: Path) -> None:
         rgb = _contrast_stretch_rgb(rgb)
         zoom = 3 if width < 120 or height < 60 else 2
         scaled_width, scaled_height, scaled_rgb = _scale_nearest_rgb(width, height, rgb, zoom)
-        output_path.write_bytes(_png_rgb_bytes(scaled_width, scaled_height, scaled_rgb))
+        get_workspace_io().write_bytes_idempotent(
+            output_path,
+            _png_rgb_bytes(scaled_width, scaled_height, scaled_rgb),
+        )
     finally:
         pix = None  # release mmap-backed samples promptly on Windows
 

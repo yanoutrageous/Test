@@ -2152,12 +2152,11 @@ def test_restricted_context_cannot_mutate_internal_active_database(path: str) ->
     assert denied.value.code is PolicyErrorCode.CLASSIFICATION_MISMATCH
 
 
-def test_fixed_production_factory_has_no_injection_and_writer_is_closed() -> None:
+def test_fixed_production_factory_has_no_injection_and_writer_is_connected() -> None:
     boundary = get_production_boundary()
     assert boundary.project_root == CONTRACT_PROJECT_ROOT
-    assert boundary.writer_available is False
-    with pytest.raises(WriterUnavailableError):
-        boundary.require_writer()
+    assert boundary.writer_available is True
+    assert boundary.require_writer() is boundary.require_writer()
     with pytest.raises(TypeError):
         ProductionWorkspaceBoundary(_guard=object())  # type: ignore[call-arg]
     with pytest.raises(TypeError):
@@ -2200,8 +2199,7 @@ def test_production_mutation_returns_candidate_only_denial() -> None:
     boundary = get_production_boundary()
     context = _context(scopes=(_scope(ScopeKind.JOB_ID, "JOB-TEST-001"),))
     before = len(boundary.audit_events)
-    with pytest.raises(WriterUnavailableError):
-        boundary.require_writer()
+    assert boundary.require_writer() is boundary.require_writer()
     result = boundary.authorize(
         "tmp/jobs/INTERNAL/JOB-TEST-001/new.bin",
         intent=PathIntent.NEW_WRITE,

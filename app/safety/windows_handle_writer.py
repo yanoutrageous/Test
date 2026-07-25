@@ -147,7 +147,7 @@ class HandleWriteReceipt:
     size_bytes: int
     sha256: str
     object_reference: str
-    capability_state: str = "TEST_LOCAL_HANDLE_VERIFIED"
+    capability_state: str = "HANDLE_VERIFIED_V1"
 
 
 @dataclass(frozen=True, slots=True)
@@ -161,10 +161,21 @@ class DirectoryPublishReceipt:
     total_bytes: int
     object_reference: str
     receipt_sha256: str
-    capability_state: str = "TEST_LOCAL_HANDLE_BOUND_DIRECTORY_PUBLISH"
+    capability_state: str = "HANDLE_BOUND_DIRECTORY_PUBLISH_V1"
 
     def __reduce__(self) -> Any:
         raise TypeError("directory publish receipts cannot be serialized")
+
+
+@dataclass(frozen=True, slots=True)
+class DirectoryMoveReceipt:
+    operation: str
+    object_reference: str
+    receipt_sha256: str
+    capability_state: str = "HANDLE_BOUND_DIRECTORY_MOVE_V1"
+
+    def __reduce__(self) -> Any:
+        raise TypeError("directory move receipts cannot be serialized")
 
 
 @dataclass(frozen=True, slots=True)
@@ -1716,7 +1727,7 @@ class _WindowsApi:
 
 
 class _WindowsHandleWriter:
-    """Minimal Test-only writer; no production facade imports this candidate yet."""
+    """Fixed-root Windows writer used only through boundary-owned factories."""
 
     _MAX_IO_CHUNK = 1024 * 1024
 
@@ -1760,6 +1771,7 @@ class _WindowsHandleWriter:
             relative_path,
             intent=PathIntent.NEW_WRITE,
             expected_kind=ExpectedKind.FILE,
+            target_conflict_on_existing=True,
         )
 
     def authorize_append_file(self, relative_path: str | os.PathLike[str]) -> GuardedPath:
@@ -1776,6 +1788,26 @@ class _WindowsHandleWriter:
             expected_kind=ExpectedKind.FILE,
         )
 
+    def authorize_existing_file_write(
+        self,
+        relative_path: str | os.PathLike[str],
+    ) -> GuardedPath:
+        return self._authorize(
+            relative_path,
+            intent=PathIntent.EXISTING_WRITE,
+            expected_kind=ExpectedKind.FILE,
+        )
+
+    def authorize_read_directory(
+        self,
+        relative_path: str | os.PathLike[str],
+    ) -> GuardedPath:
+        return self._authorize(
+            relative_path,
+            intent=PathIntent.EXISTING_READ,
+            expected_kind=ExpectedKind.DIRECTORY,
+        )
+
     def authorize_create_directory(
         self,
         relative_path: str | os.PathLike[str],
@@ -1785,6 +1817,89 @@ class _WindowsHandleWriter:
             intent=PathIntent.CREATE_DIRECTORY,
             expected_kind=ExpectedKind.DIRECTORY,
         )
+
+    def discard_issued_ticket(self, ticket: GuardedPath) -> None:
+        """Release an unused exact capability without touching its target."""
+
+        if type(ticket) is not GuardedPath:
+            raise HandleWriterError(
+                HandleWriterCode.INVALID_TICKET,
+                "discard requires an exact writer-issued capability",
+            )
+        self._discard_issued_ticket(ticket)
+
+    def verify_existing_directory(self, ticket: GuardedPath) -> Path:
+        """Consume a directory ticket after same-handle ancestry verification."""
+
+        with self._reserved(
+            ticket,
+            PathIntent.EXISTING_READ,
+            ExpectedKind.DIRECTORY,
+        ):
+            self._revalidate(ticket)
+            handles = self._fence_snapshot(ticket)
+            try:
+                if not handles:
+                    raise HandleWriterError(
+                        HandleWriterCode.PRECONDITION_FAILED,
+                        "directory verification lacks a handle chain",
+                    )
+                observed = self._observe_identity(handles[-1])
+                if not observed.is_directory:
+                    raise HandleWriterError(
+                        HandleWriterCode.TYPE_MISMATCH,
+                        "verified target is not a directory",
+                    )
+                self._require_default_stream_only(handles[-1], directory=True)
+                self._verify_final_path(handles[-1], ticket.path)
+                self._verify_path_matches_handle(ticket.path, observed)
+                self._revalidate(ticket)
+                return ticket.relative_path
+            finally:
+                self._close_all(handles)
+
+    def verify_existing_file(self, ticket: GuardedPath) -> Path:
+        """Consume a read ticket after same-handle file verification."""
+
+        with self._reserved(
+            ticket,
+            PathIntent.EXISTING_READ,
+            ExpectedKind.FILE,
+        ):
+            self._revalidate(ticket)
+            handles = self._fence_snapshot(ticket, omit_final=True)
+            try:
+                if (
+                    not handles
+                    or not ticket.chain_snapshot
+                    or ticket.chain_snapshot[-1].path != ticket.path
+                ):
+                    raise HandleWriterError(
+                        HandleWriterCode.PRECONDITION_FAILED,
+                        "file verification lacks a handle chain",
+                    )
+                file_handle = self._api.open_handle(
+                    ticket.path,
+                    access=self._api.GENERIC_READ,
+                    share=(
+                        self._api.FILE_SHARE_READ
+                        | self._api.FILE_SHARE_WRITE
+                        | self._api.FILE_SHARE_DELETE
+                    ),
+                    disposition=self._api.OPEN_EXISTING,
+                    flags=self._api.FILE_FLAG_OPEN_REPARSE_POINT,
+                )
+                handles.append(file_handle)
+                observed = self._observe_identity(file_handle)
+                self._require_regular_single_link(observed)
+                self._verify_identity(ticket.chain_snapshot[-1], observed)
+                self._require_default_stream_only(file_handle)
+                self._verify_final_path(file_handle, ticket.path)
+                self._verify_path_matches_handle(ticket.path, observed)
+                self._revalidate(ticket)
+                return ticket.path
+            finally:
+                self._close_all(handles)
 
     def create_directory_lease(
         self,
@@ -2351,6 +2466,88 @@ class _WindowsHandleWriter:
             name=self._mutex_name,
             abandoned=abandoned,
         )
+
+    @contextmanager
+    def lease_existing_mutable_file(
+        self,
+        ticket: GuardedPath,
+    ) -> Iterator[Path]:
+        """Pin one existing mutable file and its ancestry for a trusted library.
+
+        The consumer receives only the already-authorized path while the
+        complete existing ancestry and final file remain open without delete
+        sharing.  This permits SQLite to open the same file for read/write but
+        prevents replacement or rename until the consumer closes its lease.
+        """
+
+        with self._reserved(
+            ticket,
+            PathIntent.EXISTING_WRITE,
+            ExpectedKind.FILE,
+        ):
+            self._revalidate(ticket)
+            if (
+                not ticket.chain_snapshot
+                or ticket.chain_snapshot[-1].path != ticket.path
+            ):
+                raise HandleWriterError(
+                    HandleWriterCode.PRECONDITION_FAILED,
+                    "mutable file lease lacks its exact final identity",
+                )
+            handles = self._fence_snapshot(ticket, omit_final=True)
+            file_handle = 0
+            observed: _ObservedHandle | None = None
+            try:
+                file_handle = self._api.open_handle(
+                    ticket.path,
+                    access=self._api.GENERIC_READ,
+                    share=(
+                        self._api.FILE_SHARE_READ
+                        | self._api.FILE_SHARE_WRITE
+                    ),
+                    disposition=self._api.OPEN_EXISTING,
+                    flags=self._api.FILE_FLAG_OPEN_REPARSE_POINT,
+                )
+                observed = self._observe_identity(file_handle)
+                self._require_regular_single_link(observed)
+                self._verify_identity(ticket.chain_snapshot[-1], observed)
+                self._require_default_stream_only(file_handle)
+                self._verify_final_path(file_handle, ticket.path)
+                self._verify_path_matches_handle(ticket.path, observed)
+                yield ticket.path
+            finally:
+                validation_error: HandleWriterError | None = None
+                if file_handle and observed is not None:
+                    try:
+                        self._revalidate(ticket)
+                        after = self._observe_identity(file_handle)
+                        self._require_regular_single_link(after)
+                        self._require_default_stream_only(file_handle)
+                        self._verify_final_path(file_handle, ticket.path)
+                        self._verify_path_matches_handle(ticket.path, after)
+                        if not self._same_object(observed, after):
+                            raise HandleWriterError(
+                                HandleWriterCode.HANDLE_IDENTITY_MISMATCH,
+                                "mutable file identity changed while leased",
+                            )
+                    except HandleWriterError as exc:
+                        validation_error = exc
+                        self._seal(exc.code)
+                close_error: HandleWriterError | None = None
+                if file_handle:
+                    try:
+                        self._api.close(file_handle)
+                    except HandleWriterError as exc:
+                        close_error = exc
+                try:
+                    self._close_all(handles)
+                except HandleWriterError as exc:
+                    close_error = close_error or exc
+                if close_error is not None:
+                    self._seal(HandleWriterCode.HANDLE_CLOSE_FAILED)
+                    raise close_error
+                if validation_error is not None:
+                    raise validation_error
 
     def _require_directory_target_absent_under_existing_mutex(
         self,
@@ -4016,6 +4213,284 @@ class _WindowsHandleWriter:
             ) from None
         return result
 
+    def move_existing_directory_no_replace(
+        self,
+        source_relative_path: str | os.PathLike[str],
+        target_relative_path: str | os.PathLike[str],
+    ) -> DirectoryMoveReceipt:
+        """Atomically move one fixed-root directory without replacing a target.
+
+        The caller owns content-level validation and crash recovery.  This
+        primitive owns both Guard capabilities, source/target parent fences,
+        the DELETE-capable source handle, native no-replace rename, and an
+        independent target-root identity check.  It deliberately does not
+        claim to freeze descendant file contents.
+        """
+
+        source: GuardedPath | None = None
+        target: GuardedPath | None = None
+        try:
+            source = self._authorize(
+                source_relative_path,
+                intent=PathIntent.MOVE_SOURCE,
+                expected_kind=ExpectedKind.DIRECTORY,
+            )
+            try:
+                target = self._authorize(
+                    target_relative_path,
+                    intent=PathIntent.MOVE_TARGET,
+                    expected_kind=ExpectedKind.DIRECTORY,
+                    target_conflict_on_existing=True,
+                )
+            except BaseException:
+                self._discard_issued_ticket(source)
+                raise
+            return self._move_existing_directory_no_replace_impl(source, target)
+        except HandleWriterError as exc:
+            raise HandleWriterError(
+                exc.code,
+                "handle-bound no-replace directory move failed safely",
+                winerror=exc.winerror,
+            ) from None
+        except Exception:
+            self._seal(HandleWriterCode.MUTATION_IN_DOUBT)
+            raise HandleWriterError(
+                HandleWriterCode.MUTATION_IN_DOUBT,
+                "handle-bound no-replace directory move failed indeterminately",
+            ) from None
+
+    def _move_existing_directory_no_replace_impl(
+        self,
+        source: GuardedPath,
+        target: GuardedPath,
+    ) -> DirectoryMoveReceipt:
+        source_fences: list[int] = []
+        target_fences: list[int] = []
+        source_root_handle = 0
+        reopened_target_handle = 0
+        capabilities_consumed = False
+        mutation_attempted = False
+        native_succeeded = False
+        fully_verified = False
+        source_root_before: _ObservedHandle | None = None
+        result: DirectoryMoveReceipt | None = None
+        try:
+            self._revalidate(source)
+            self._revalidate(target, target_conflict_on_existing=True)
+            self._require_existing_direct_parent(target)
+            if (
+                len(source.chain_snapshot) < 2
+                or source.chain_snapshot[-1].path != source.path
+                or source.chain_snapshot[-2].path != source.path.parent
+            ):
+                raise HandleWriterError(
+                    HandleWriterCode.PRECONDITION_FAILED,
+                    "directory move source lacks its exact direct-parent chain",
+                )
+
+            source_fences = self._fence_snapshot(source, omit_final=True)
+            if not source_fences:
+                raise HandleWriterError(
+                    HandleWriterCode.PRECONDITION_FAILED,
+                    "directory move source lacks a verified parent fence",
+                )
+            source_parent_handle = source_fences[-1]
+            source_parent = self._observe_identity(source_parent_handle)
+            self._verify_identity(source.chain_snapshot[-2], source_parent)
+            self._require_default_stream_only(source_parent_handle, directory=True)
+            self._verify_final_path(source_parent_handle, source.path.parent)
+            self._verify_path_matches_handle(source.path.parent, source_parent)
+
+            source_root_handle = self._api.open_relative_directory_for_move(
+                source_parent_handle,
+                source.path.name,
+            )
+            source_root_before = self._observe_identity(source_root_handle)
+            if not source_root_before.is_directory:
+                raise HandleWriterError(
+                    HandleWriterCode.TYPE_MISMATCH,
+                    "directory move source is not a directory",
+                )
+            self._verify_identity(source.chain_snapshot[-1], source_root_before)
+            self._require_default_stream_only(source_root_handle, directory=True)
+            self._verify_final_path(source_root_handle, source.path)
+            self._verify_path_matches_handle(source.path, source_root_before)
+
+            target_fences = self._fence_snapshot(target)
+            if not target_fences:
+                raise HandleWriterError(
+                    HandleWriterCode.PRECONDITION_FAILED,
+                    "directory move target lacks a verified parent fence",
+                )
+            target_parent_handle = target_fences[-1]
+            target_parent = self._observe_identity(target_parent_handle)
+            if (
+                not source_parent.is_directory
+                or not target_parent.is_directory
+                or target_parent.volume_serial != source_root_before.volume_serial
+            ):
+                raise HandleWriterError(
+                    HandleWriterCode.PRECONDITION_FAILED,
+                    "directory move requires directory parents on one volume",
+                )
+            self._require_default_stream_only(target_parent_handle, directory=True)
+            self._verify_final_path(target_parent_handle, target.path.parent)
+            self._verify_path_matches_handle(target.path.parent, target_parent)
+            self._require_directory_name_bound(
+                source_parent_handle,
+                source.path.name,
+                source_root_before,
+            )
+            self._require_directory_name_absent(
+                target_parent_handle,
+                target.path.name,
+            )
+
+            with self._reserved_group(
+                (
+                    (source, PathIntent.MOVE_SOURCE, ExpectedKind.DIRECTORY),
+                    (target, PathIntent.MOVE_TARGET, ExpectedKind.DIRECTORY),
+                )
+            ):
+                capabilities_consumed = True
+                self._revalidate(source)
+                self._revalidate(target, target_conflict_on_existing=True)
+                current_source_parent = self._observe_identity(source_parent_handle)
+                current_target_parent = self._observe_identity(target_parent_handle)
+                current_source_root = self._observe_identity(source_root_handle)
+                if (
+                    not self._same_object(source_parent, current_source_parent)
+                    or not self._same_object(target_parent, current_target_parent)
+                    or not self._same_object(source_root_before, current_source_root)
+                ):
+                    raise HandleWriterError(
+                        HandleWriterCode.HANDLE_IDENTITY_MISMATCH,
+                        "directory move identities changed at the mutation boundary",
+                    )
+                self._require_default_stream_only(source_root_handle, directory=True)
+                self._verify_final_path(source_root_handle, source.path)
+                self._verify_path_matches_handle(source.path, source_root_before)
+                self._require_directory_name_bound(
+                    source_parent_handle,
+                    source.path.name,
+                    source_root_before,
+                )
+                self._require_directory_name_absent(
+                    target_parent_handle,
+                    target.path.name,
+                )
+                self._after_directory_publish_prepared(source, target)
+                mutation_attempted = True
+                try:
+                    self._api.rename_by_handle_no_replace(
+                        source_root_handle,
+                        target.path,
+                    )
+                except HandleWriterError as exc:
+                    if exc.code is HandleWriterCode.TARGET_CONFLICT:
+                        mutation_attempted = False
+                    raise
+                native_succeeded = True
+                self._after_directory_publish_renamed(source, target)
+
+                source_root_after = self._observe_identity(source_root_handle)
+                if not self._same_object(source_root_before, source_root_after):
+                    raise HandleWriterError(
+                        HandleWriterCode.HANDLE_IDENTITY_MISMATCH,
+                        "directory root identity changed across its native move",
+                    )
+                self._verify_final_path(source_root_handle, target.path)
+                self._verify_path_matches_handle(target.path, source_root_after)
+                self._require_directory_name_absent(
+                    source_parent_handle,
+                    source.path.name,
+                )
+                self._require_directory_name_bound(
+                    target_parent_handle,
+                    target.path.name,
+                    source_root_before,
+                )
+
+            reopened_target_handle = self._api.open_handle(
+                target.path,
+                access=(
+                    self._api.FILE_LIST_DIRECTORY
+                    | self._api.FILE_TRAVERSE
+                    | self._api.FILE_READ_ATTRIBUTES
+                    | self._api.SYNCHRONIZE
+                ),
+                share=(
+                    self._api.FILE_SHARE_READ
+                    | self._api.FILE_SHARE_WRITE
+                    | self._api.FILE_SHARE_DELETE
+                ),
+                disposition=self._api.OPEN_EXISTING,
+                flags=(
+                    self._api.FILE_FLAG_BACKUP_SEMANTICS
+                    | self._api.FILE_FLAG_OPEN_REPARSE_POINT
+                ),
+            )
+            reopened_target = self._observe_identity(reopened_target_handle)
+            if (
+                not reopened_target.is_directory
+                or not self._same_object(source_root_before, reopened_target)
+            ):
+                raise HandleWriterError(
+                    HandleWriterCode.POSTCONDITION_FAILED,
+                    "independently reopened move target has another identity",
+                )
+            self._require_default_stream_only(reopened_target_handle, directory=True)
+            self._verify_final_path(reopened_target_handle, target.path)
+            self._verify_path_matches_handle(target.path, reopened_target)
+            result = self._directory_move_receipt(reopened_target)
+            fully_verified = True
+            return result
+        except BaseException as exc:
+            if native_succeeded or mutation_attempted:
+                self._seal(HandleWriterCode.MUTATION_IN_DOUBT)
+            if isinstance(exc, HandleWriterError):
+                raise
+            raise HandleWriterError(
+                (
+                    HandleWriterCode.MUTATION_IN_DOUBT
+                    if native_succeeded or mutation_attempted
+                    else HandleWriterCode.PRECONDITION_FAILED
+                ),
+                "directory move failed before an exact terminal verification",
+            ) from None
+        finally:
+            close_error: HandleWriterError | None = None
+            if not capabilities_consumed:
+                for ticket in (target, source):
+                    try:
+                        self._discard_issued_ticket(ticket)
+                    except HandleWriterError as cleanup_error:
+                        self._seal(HandleWriterCode.TICKET_RELEASE_FAILED)
+                        close_error = close_error or cleanup_error
+            for handle in (reopened_target_handle, source_root_handle):
+                if handle:
+                    try:
+                        self._api.close(handle)
+                    except HandleWriterError as cleanup_error:
+                        close_error = close_error or cleanup_error
+            try:
+                self._close_all(target_fences)
+            except HandleWriterError as cleanup_error:
+                close_error = close_error or cleanup_error
+            try:
+                self._close_all(source_fences)
+            except HandleWriterError as cleanup_error:
+                close_error = close_error or cleanup_error
+            if close_error is not None:
+                self._seal(HandleWriterCode.HANDLE_CLOSE_FAILED)
+                raise close_error
+            if fully_verified and result is None:
+                self._seal(HandleWriterCode.MUTATION_IN_DOUBT)
+                raise HandleWriterError(
+                    HandleWriterCode.MUTATION_IN_DOUBT,
+                    "directory move returned without its verified receipt",
+                )
+
     def _issue_directory_publish_journal_permit(
         self,
         observed_tree: _ObservedTreeLease,
@@ -5343,6 +5818,31 @@ class _WindowsHandleWriter:
             b"M0-S3-DIRECTORY-PUBLISH-RECEIPT-V1\0" + payload
         ).hexdigest()
         return DirectoryPublishReceipt(**body, receipt_sha256=receipt_sha256)
+
+    def _directory_move_receipt(
+        self,
+        observed: _ObservedHandle,
+    ) -> DirectoryMoveReceipt:
+        object_reference = hashlib.sha256(
+            b"M0-S6-DIRECTORY-MOVE-OBJECT-V1\0"
+            + self._receipt_key
+            + observed.volume_serial.to_bytes(8, "little")
+            + observed.file_id
+        ).hexdigest()
+        body = {
+            "object_reference": object_reference,
+            "operation": "MOVE_DIRECTORY_NO_REPLACE",
+        }
+        payload = json.dumps(
+            body,
+            ensure_ascii=True,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("ascii")
+        receipt_sha256 = hashlib.sha256(
+            b"M0-S6-DIRECTORY-MOVE-RECEIPT-V1\0" + payload
+        ).hexdigest()
+        return DirectoryMoveReceipt(**body, receipt_sha256=receipt_sha256)
 
     def _require_directory_name_absent(
         self,

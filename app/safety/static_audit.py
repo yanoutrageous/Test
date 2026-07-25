@@ -14,11 +14,19 @@ from app.config import PROJECT_ROOT
 from app.project_root import PROJECT_ROOT as _VERIFIED_PROJECT_ROOT
 
 
-SCANNER_VERSION = "M0-S3-STATIC-AUDIT-V16"
+SCANNER_VERSION = "M0-S6-STATIC-AUDIT-V21"
 PRODUCTION_ROOTS = ("app", "scripts")
 SOURCE_SUFFIXES = (".py", ".sql")
 SOURCE_BYTE_NORMALIZATION = "UTF8_LF_V1"
 ENTRY_CHUNK_SIZE = 25
+CONTROL_BINDING_RELATIVE_PATH = Path(
+    "contracts/m0/write-control-bindings-v1.json"
+)
+M0_EXIT_EVIDENCE_RELATIVE_PATH = Path(
+    "contracts/m0/m0-exit-evidence-v1.json"
+)
+CONTROL_BINDING_SCHEMA_VERSION = "1.0"
+CONTROL_BINDING_CONTRACT = "M0-WRITE-CONTROL-BINDINGS-V1"
 
 # Indexed receivers lose their concrete type in this small AST analysis.  Only
 # exact repository callsites that were manually reviewed as in-memory/read-only
@@ -28,8 +36,11 @@ ENTRY_CHUNK_SIZE = 25
 _AUDITED_INDEXED_CALLS = frozenset(
     {
         ("app/codex_structure.py", "app.codex_structure._extract_subquestions", "5d696616fed58ea711bb2f29ca183415c5f1e01fb3141173844d22532a3d954a"),
+        ("app/codex_structure.py", "app.codex_structure._extract_subquestions", "2858d8895fe9eebf457b14f394c2288e266e557cfcc0a03625d19170ca3b4c39"),
         ("app/codex_structure.py", "app.codex_structure._split_options", "6bbcc55d9f54b6026e2874e6b35eac1854e1437245667404e34d2639a9a57bcc"),
         ("app/codex_structure.py", "app.codex_structure._split_options", "99342fe48f8acb91372d8433584c8dcd1d45989fba0a77bb24beeddc232c0403"),
+        ("app/codex_structure.py", "app.codex_structure._split_options", "1165533cc781fc3e2b880f4fa97b89160f92fc63c20d6f7ddfc2f7fc0a1ec2fa"),
+        ("app/codex_structure.py", "app.codex_structure._split_options", "2858d8895fe9eebf457b14f394c2288e266e557cfcc0a03625d19170ca3b4c39"),
         ("app/codex_structure.py", "app.codex_structure.run_codex_structure_batch", "ebd6facba6ebaa9a5b0a749c238e4ad564856552820e1b84ac0884dea26bdb2a"),
         ("app/config.py", "app.config.find_unique_target_pdf", "c8826b2017d8b2011090ccfb484159adf9d8b424f3bc48ebf63690ed20a288f2"),
         ("app/export_quality.py", "app.export_quality._render_stage12_report", "3585d9395fde7249ada143ccc279b9d15390a9bdc8d3b09eab21dcc2df8a520f"),
@@ -41,7 +52,9 @@ _AUDITED_INDEXED_CALLS = frozenset(
         ("app/health.py", "app.health.check_sqlite", "69fff54d09cbb7d3929c377db944c875cffd0c105fb53679760bbb9f6462374c"),
         ("app/pdf_import.py", "app.pdf_import.build_paper_code", "8d49edced4935578aaad294e6558fd2044c7603f2eefd2c9f10f8f69f953f6b6"),
         ("app/pdf_import.py", "app.pdf_import.render_pdf_pages", "ca9b3303b86d492168981dc7d9d34210b4f45d9e732280fcca469d8657573f01"),
+        ("app/pdf_import.py", "app.pdf_import.render_pdf_pages", "ad9b3670ba3c12455bc8689031d8da09d4da45bd98645782610cb37d17146e78"),
         ("app/question_assets.py", "app.question_assets.crop_question_assets", "43569ee06df8a7fc8875ec3f15a3cb2d3d0583ae4941fb94e72b99eac9f8171a"),
+        ("app/question_assets.py", "app.question_assets.crop_question_assets", "ad9b3670ba3c12455bc8689031d8da09d4da45bd98645782610cb37d17146e78"),
         ("app/question_split.py", "app.question_split.extract_page_text_blocks", "1aef377320dac5bfadb0aac1281fdacb17d8c36ac214ddcd92ed1e69aa05edc3"),
         ("app/safety/audit_events.py", "app.safety.audit_events.audit_hmac_key_id", "c78ca38e66dbcf5cb8df482b19dead92b2a003dd04d5b48bc239e6d3d3606cda"),
         ("app/safety/copy_operation.py", "app.safety.copy_operation._TestLocalCopyOperation._require_worst_case_publish_budget", "5df82d08868214f698faeae1893fcb2fb04455b44bd2c2d9f42067355fba434d"),
@@ -63,6 +76,7 @@ _AUDITED_INDEXED_CALLS = frozenset(
         ("app/safety/static_audit.py", "app.safety.static_audit._looks_like_path_receiver", "059deb25070485d5b51b6cf7e1ea8d2e366ad1a7613452bf8281e0a916965ef4"),
         ("app/safety/static_audit.py", "app.safety.static_audit._looks_like_path_receiver", "860a78c752c4f7a5534593cdd7b5577dee88be8b0aa2ac93783c95cb0af7215f"),
         ("app/safety/static_audit.py", "app.safety.static_audit._looks_like_path_receiver", "8d9664d4bc9274a8c1dbe02c2522e099c040d9b5b23274481e44fd4528aed811"),
+        ("app/safety/static_audit.py", "app.safety.static_audit._m0_exit_evidence_accepted", "76420c882dcb6ab3a25536582f68ed17fc96b86459932ead4b8ff5036047aa64"),
         ("app/safety/static_audit.py", "app.safety.static_audit._resolve_import_module", "797054c5fce90fcfeac97951fb5df588a649e82230605a92d6c174903ca1a967"),
         ("app/safety/static_audit.py", "app.safety.static_audit._root_ids", "fae67c1b67f348de7a2602636941a1f4d55b8b0f37cad7388b63e49dc1615b3a"),
         ("app/source_attribution.py", "app.source_attribution._find_previous_header", "e23cbd304697341859f0f6725b92a684b565d084c4efc700c719367ff06a5ef2"),
@@ -72,6 +86,7 @@ _AUDITED_INDEXED_CALLS = frozenset(
         ("app/source_attribution.py", "app.source_attribution._render_report_markdown", "c89bcb0c81ea5a4aba6469cc094c5cb4c1384804f6edbb8a65e6076a4a95ccb0"),
         ("app/source_attribution.py", "app.source_attribution._render_report_markdown", "e231b2ac9653afaa9018aabd02b3d4d87d23ab6cc9a5ed7e9baf1a23920c6a96"),
         ("app/stage10.py", "app.stage10._extract_subquestions", "5d696616fed58ea711bb2f29ca183415c5f1e01fb3141173844d22532a3d954a"),
+        ("app/stage10.py", "app.stage10._extract_subquestions", "2858d8895fe9eebf457b14f394c2288e266e557cfcc0a03625d19170ca3b4c39"),
         ("app/stage10.py", "app.stage10._render_stage10_report", "130a6f05c1c473057734b3c1ca44b04753c8ddead6f52605f67e6e11a1f55bd0"),
         ("app/stage10.py", "app.stage10._render_stage10_report", "6c0522b6580a099a9c4dffd6a9c846648be242d2b5208fd0222b8a8469ca88cb"),
         ("app/stage10.py", "app.stage10._render_stage10_report", "81dab40a921cf215cb545ac24e4e080cba90127887f2ff8e101de3121d6a8815"),
@@ -81,6 +96,8 @@ _AUDITED_INDEXED_CALLS = frozenset(
         ("app/stage10.py", "app.stage10._select_baseline_rows.add", "ab1df94f59890c70f23a453d282060f7caf2b210a63c2763ad6ed59da378d1fb"),
         ("app/stage10.py", "app.stage10._split_options", "6bbcc55d9f54b6026e2874e6b35eac1854e1437245667404e34d2639a9a57bcc"),
         ("app/stage10.py", "app.stage10._split_options", "99342fe48f8acb91372d8433584c8dcd1d45989fba0a77bb24beeddc232c0403"),
+        ("app/stage10.py", "app.stage10._split_options", "1165533cc781fc3e2b880f4fa97b89160f92fc63c20d6f7ddfc2f7fc0a1ec2fa"),
+        ("app/stage10.py", "app.stage10._split_options", "2858d8895fe9eebf457b14f394c2288e266e557cfcc0a03625d19170ca3b4c39"),
         ("app/stage11.py", "app.stage11._render_stage11_report", "10b6e76de9ce8e8b0a87a95fc69fee81a26b2bc049a93d73b5fcd22c12fc20c4"),
         ("app/stage11.py", "app.stage11._render_stage11_report", "19bb361eb3d842776732e11f03bc757a5f3a21bf09b51d9f00d5aec026b90c04"),
         ("app/stage11.py", "app.stage11._render_stage11_report", "58b515614b6129152b60eb4fd73f7d31984f36368472ba97f17d5065d76f6824"),
@@ -379,7 +396,22 @@ class ResolutionConfidence(StrEnum):
 
 class MigrationStatus(StrEnum):
     UNMIGRATED_BLOCKED = "UNMIGRATED_BLOCKED"
+    MIGRATED_GUARDED = "MIGRATED_GUARDED"
     ACCEPTED_MEMORY_ONLY = "ACCEPTED_MEMORY_ONLY"
+    ACCEPTED_NON_MUTATING = "ACCEPTED_NON_MUTATING"
+
+
+CONTROL_DATABASE = "M0_DATABASE_LEASE_AND_TRANSACTION_V1"
+CONTROL_DATABASE_BACKUP = "M0_DATABASE_BACKUP_SNAPSHOT_V1"
+CONTROL_DURABLE_LEDGER = "M0_DURABLE_LEDGER_GATE_V1"
+CONTROL_HANDLE_WRITER = "M0_FIXED_ROOT_HANDLE_WRITER_V1"
+CONTROL_LOOPBACK_NETWORK = "M0_LOOPBACK_NETWORK_ALLOWLIST_V1"
+CONTROL_MEMORY_ONLY_SQLITE = "M0_MEMORY_ONLY_SQLITE_V1"
+CONTROL_NATIVE_ALLOWLIST = "M0_NATIVE_FIXED_ALLOWLIST_V1"
+CONTROL_READ_ONLY_ROOT = "M0_READ_ONLY_ROOT_INSPECTION_V1"
+CONTROL_RUNTIME_MUTEX = "M0_FIXED_ROOT_RUNTIME_MUTEX_V1"
+CONTROL_SAFE_TEST_LAUNCHER = "M0_SAFE_TEST_LAUNCHER_V1"
+CONTROL_SCHEMA_CATALOG = "M0_STATIC_SCHEMA_CATALOG_V1"
 
 
 class RiskLevel(StrEnum):
@@ -404,6 +436,7 @@ class WriteEntry:
     owner: str
     target_namespace: str
     required_control: str
+    control_binding_id: str | None
     migration_status: MigrationStatus
     input_source: str
     risk: RiskLevel
@@ -418,6 +451,17 @@ class WriteEntry:
         payload["root_ids"] = list(self.root_ids)
         payload["call_chain"] = list(self.call_chain)
         return payload
+
+
+@dataclass(frozen=True, slots=True)
+class _ControlBinding:
+    entry_id: str
+    file: str
+    source_sha256: str
+    statement_fingerprint: str
+    kind: WritePrimitiveKind
+    control_id: str
+    migration_status: MigrationStatus
 
 
 @dataclass(frozen=True, slots=True)
@@ -488,9 +532,23 @@ def scan_production_write_entries() -> tuple[WriteEntry, ...]:
     return _scan_production_snapshot(root, snapshot)
 
 
+def scan_production_unbound_entries() -> tuple[WriteEntry, ...]:
+    """Return the exact raw inventory before tracked control bindings apply."""
+
+    root = _verified_project_root()
+    snapshot = _production_source_snapshot(root)
+    return _scan_production_snapshot(
+        root,
+        snapshot,
+        apply_control_bindings=False,
+    )
+
+
 def _scan_production_snapshot(
     root: Path,
     snapshot: tuple[tuple[Path, bytes], ...],
+    *,
+    apply_control_bindings: bool = True,
 ) -> tuple[WriteEntry, ...]:
     facts = _load_module_facts(root, snapshot)
     raw_entries: list[_RawEntry] = []
@@ -502,7 +560,12 @@ def _scan_production_snapshot(
     _assert_audited_indexed_hits(audited_indexed_hits)
     raw_entries.extend(_scan_sql_files(root, snapshot))
     graph, roots = _build_call_graph(facts)
-    entries = _enrich_entries(raw_entries, graph, roots)
+    bindings = (
+        _load_control_bindings(root)
+        if apply_control_bindings
+        else {}
+    )
+    entries = _enrich_entries(raw_entries, graph, roots, bindings=bindings)
     return tuple(
         sorted(
             entries,
@@ -580,7 +643,7 @@ def scan_python_source(source: str, *, file: str = "synthetic.py") -> tuple[Writ
     module = _module_facts_from_text(source, file=file)
     raw = _scan_module(module)
     graph, roots = _build_call_graph({module.module: module})
-    return tuple(_enrich_entries(raw, graph, roots))
+    return tuple(_enrich_entries(raw, graph, roots, bindings={}))
 
 
 def scan_unauthorized_guard_construction() -> tuple[tuple[str, int, str], ...]:
@@ -608,7 +671,9 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
     copy_ledger_file = "app/safety/copy_ledger.py"
     copy_operation_file = "app/safety/copy_operation.py"
     external_source_file = "app/safety/external_source.py"
+    source_copy_file = "app/source_copy.py"
     project_root_file = "app/project_root.py"
+    workspace_io_file = "app/safety/workspace_io.py"
     safety_module_prefixes = (
         "app.safety.production_guard",
         "app.safety.namespace_policy",
@@ -720,6 +785,8 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         "_POLICY_CONSTRUCTOR",
         "_SyntheticReferenceLease",
         "_LEASE_CONSTRUCTOR",
+        "_RegisteredExternalReadLease",
+        "_REGISTERED_LEASE_CONSTRUCTOR",
         "_CopyExecutionPermit",
         "_COPY_EXECUTION_PERMIT_CONSTRUCTOR",
         "_create_synthetic_reference_read_policy",
@@ -783,6 +850,8 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         "_POLICY_CONSTRUCTOR",
         "_SyntheticReferenceLease",
         "_LEASE_CONSTRUCTOR",
+        "_RegisteredExternalReadLease",
+        "_REGISTERED_LEASE_CONSTRUCTOR",
         "_CopyExecutionPermit",
         "_COPY_EXECUTION_PERMIT_CONSTRUCTOR",
         "_create_synthetic_reference_read_policy",
@@ -857,6 +926,7 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         "_READ_API_CONSTRUCTOR",
         "_POLICY_CONSTRUCTOR",
         "_LEASE_CONSTRUCTOR",
+        "_REGISTERED_LEASE_CONSTRUCTOR",
         "_COPY_EXECUTION_PERMIT_CONSTRUCTOR",
         "_RECOVERY_LOCATOR_CONSTRUCTOR",
         "_publish_terminal_binding_sha256s",
@@ -887,7 +957,7 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
     symbol_definition_files = {
         "WorkspaceGuard": {"app/workspace_guard.py", allowed_file},
         "NamespacePolicy": {"app/safety/namespace_policy.py", allowed_file},
-        "ProductionWorkspaceBoundary": {allowed_file},
+        "ProductionWorkspaceBoundary": {allowed_file, workspace_io_file},
         "_TestWorkspaceBoundary": {allowed_file},
         "_create_test_boundary": {allowed_file},
         "_BoundaryCore": {allowed_file},
@@ -900,6 +970,7 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
             job_file,
             operation_file,
             copy_ledger_file,
+            workspace_io_file,
             "app/safety/windows_handle_writer.py",
         },
         "_WindowsApi": {
@@ -983,6 +1054,8 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
             copy_operation_file,
         },
         "_LEASE_CONSTRUCTOR": {external_source_file},
+        "_RegisteredExternalReadLease": {external_source_file},
+        "_REGISTERED_LEASE_CONSTRUCTOR": {external_source_file},
         "_CopyExecutionPermit": {
             external_source_file,
             copy_operation_file,
@@ -1271,12 +1344,16 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         },
         "_ReferenceReadApi": {
             (external_source_file, "_create_synthetic_reference_read_policy"),
+            (external_source_file, "open_registered_external_source"),
         },
         "SyntheticReferenceReadPolicy": {
             (external_source_file, "_create_synthetic_reference_read_policy"),
         },
         "_SyntheticReferenceLease": {
             (external_source_file, "SyntheticReferenceReadPolicy.open_reference"),
+        },
+        "_RegisteredExternalReadLease": {
+            (external_source_file, "open_registered_external_source"),
         },
         "_CopyExecutionPermit": {
             (external_source_file, "_issue_copy_execution_permit"),
@@ -1401,6 +1478,7 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         "read_once": {
             (copy_operation_file, "_TestLocalCopyOperation.execute"),
             (copy_operation_file, "_TestLocalCopyOperation.reconcile"),
+            (source_copy_file, "copy_registered_external_file"),
         },
         "operation_reference": {
             (job_file, "_TestJobRuntime.replay_committed_publish"),
@@ -1540,6 +1618,7 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
                 copy_operation_file,
                 "_TestLocalCopyOperation._reconcile_source_only_abort",
             ),
+            (source_copy_file, "copy_registered_external_file"),
         },
         "_issue_execution_permit": {
             (copy_operation_file, "_TestLocalCopyOperation.execute"),
@@ -1816,6 +1895,11 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
             (external_source_file, "_SyntheticReferenceLease.__init__"),
             (external_source_file, "SyntheticReferenceReadPolicy.open_reference"),
         },
+        "_REGISTERED_LEASE_CONSTRUCTOR": {
+            (external_source_file, "<module>"),
+            (external_source_file, "_RegisteredExternalReadLease.__init__"),
+            (external_source_file, "open_registered_external_source"),
+        },
         "_COPY_EXECUTION_PERMIT_CONSTRUCTOR": {
             (external_source_file, "<module>"),
             (external_source_file, "_CopyExecutionPermit.__init__"),
@@ -1977,8 +2061,10 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
             "_ReferenceReadApi.",
             "SyntheticReferenceReadPolicy.",
             "_SyntheticReferenceLease.",
+            "_RegisteredExternalReadLease.",
             "_CopyExecutionPermit.",
         ),
+        workspace_io_file: ("ProductionWorkspaceIO.",),
     }
     authority_access_exact_scopes: set[tuple[str, str]] = {
         (external_source_file, "_copy_execution_scope_sha256"),
@@ -2013,6 +2099,7 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
         (allowed_file, "_TestWorkspaceBoundary._consume_restricted_copy_recovery_locator"),
         (job_file, "_ObservedQuarantineTreeLease.revalidate"),
         (job_file, "_RetainedRestoreSourceLease.operation_tree_evidence"),
+        (workspace_io_file, "get_workspace_io"),
     }
 
     def authority_attribute_access_allowed(enclosing: str) -> bool:
@@ -2553,12 +2640,25 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
                         },
                     }.get(base, set())
                 )
+                workspace_io_kernel_import = (
+                    module.file == workspace_io_file
+                    and alias.name
+                    in {
+                        "app.safety.production_guard": {
+                            "ProductionWorkspaceBoundary",
+                        },
+                        "app.safety.windows_handle_writer": {
+                            "_WindowsHandleWriter",
+                        },
+                    }.get(base, set())
+                )
                 if (
                     module.file != allowed_file
                     and not job_kernel_import
                     and not operation_kernel_import
                     and not copy_ledger_kernel_import
                     and not copy_operation_kernel_import
+                    and not workspace_io_kernel_import
                     and base.startswith(safety_module_prefixes)
                     and (
                         alias.name == "*"
@@ -2947,6 +3047,10 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
                         }
                     )
                     or (
+                        module.file == workspace_io_file
+                        and target_name == "_writer"
+                    )
+                    or (
                         module.file == ledger_file
                         and target_name
                         in {
@@ -3055,6 +3159,7 @@ def _guard_findings(module: _ModuleFacts) -> list[tuple[str, int, str]]:
                             "_READ_API_CONSTRUCTOR",
                             "_POLICY_CONSTRUCTOR",
                             "_LEASE_CONSTRUCTOR",
+                            "_REGISTERED_LEASE_CONSTRUCTOR",
                             "_COPY_EXECUTION_PERMIT_CONSTRUCTOR",
                             "_api",
                             "_policy",
@@ -3078,6 +3183,217 @@ def payload_digest(payload: dict[str, Any]) -> str:
     canonical = dict(payload)
     canonical.pop("inventory_digest_sha256", None)
     return _canonical_sha256(canonical)
+
+
+def _load_control_bindings(root: Path) -> dict[str, _ControlBinding]:
+    path = root / CONTROL_BINDING_RELATIVE_PATH
+    if not path.is_file():
+        return {}
+    data = path.read_bytes()
+    if not data or len(data) > 2 * 1024 * 1024 or data.startswith(b"\xef\xbb\xbf"):
+        raise RuntimeError("write-control binding contract has invalid bytes")
+    try:
+        payload = json.loads(data.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise RuntimeError("write-control binding contract is not UTF-8 JSON") from exc
+    expected_keys = {
+        "binding_contract",
+        "binding_count",
+        "bindings",
+        "bindings_digest_sha256",
+        "scanner_version",
+        "schema_version",
+    }
+    if type(payload) is not dict or set(payload) != expected_keys:
+        raise RuntimeError("write-control binding contract has an invalid shape")
+    rows = payload["bindings"]
+    if (
+        payload["schema_version"] != CONTROL_BINDING_SCHEMA_VERSION
+        or payload["binding_contract"] != CONTROL_BINDING_CONTRACT
+        or payload["scanner_version"] != SCANNER_VERSION
+        or type(rows) is not list
+        or type(payload["binding_count"]) is not int
+        or payload["binding_count"] != len(rows)
+        or len(rows) > 4096
+        or payload["bindings_digest_sha256"] != _canonical_sha256(rows)
+    ):
+        raise RuntimeError("write-control binding contract metadata is invalid")
+
+    bindings: dict[str, _ControlBinding] = {}
+    row_keys = {
+        "control_id",
+        "entry_id",
+        "file",
+        "kind",
+        "migration_status",
+        "source_sha256",
+        "statement_fingerprint",
+    }
+    for row in rows:
+        if type(row) is not dict or set(row) != row_keys:
+            raise RuntimeError("write-control binding row has an invalid shape")
+        values = tuple(row[name] for name in sorted(row_keys))
+        if any(type(value) is not str or not value for value in values):
+            raise RuntimeError("write-control binding row contains invalid text")
+        try:
+            kind = WritePrimitiveKind(row["kind"])
+            status = MigrationStatus(row["migration_status"])
+        except ValueError as exc:
+            raise RuntimeError("write-control binding row contains an invalid enum") from exc
+        if (
+            status is MigrationStatus.UNMIGRATED_BLOCKED
+            or not re.fullmatch(r"WE-[0-9A-F]{24}", row["entry_id"])
+            or not re.fullmatch(r"[0-9a-f]{64}", row["source_sha256"])
+            or not re.fullmatch(r"[0-9a-f]{64}", row["statement_fingerprint"])
+            or row["entry_id"] in bindings
+        ):
+            raise RuntimeError("write-control binding row is not exact or unique")
+        bindings[row["entry_id"]] = _ControlBinding(
+            entry_id=row["entry_id"],
+            file=row["file"],
+            source_sha256=row["source_sha256"],
+            statement_fingerprint=row["statement_fingerprint"],
+            kind=kind,
+            control_id=row["control_id"],
+            migration_status=status,
+        )
+    return bindings
+
+
+def _production_writer_contract_connected(
+    snapshot: tuple[tuple[Path, bytes], ...],
+    entries: tuple[WriteEntry, ...],
+) -> bool:
+    sources = {
+        path.relative_to(_verified_project_root()).as_posix(): data.decode("utf-8")
+        for path, data in snapshot
+        if path.suffix.casefold() == ".py"
+    }
+    required_tokens = {
+        "app/safety/production_guard.py": (
+            'PRODUCTION_WRITER_CONTRACT_VERSION = "FIXED_ROOT_HANDLE_WRITER_V1"',
+            "def require_writer(self) -> _WindowsHandleWriter:",
+            "return self.__writer",
+        ),
+        "app/safety/workspace_io.py": (
+            "class ProductionWorkspaceIO:",
+            "self._writer = writer",
+            "move_existing_directory_no_replace",
+            "lease_existing_mutable_file",
+        ),
+        "app/database.py": (
+            "get_workspace_io().database_mutation_lease",
+            "get_workspace_io().validate_read_file_path",
+        ),
+        "app/database_migrations.py": (
+            "get_workspace_io().database_mutation_lease",
+        ),
+    }
+    if any(
+        file not in sources
+        or any(token not in sources[file] for token in tokens)
+        for file, tokens in required_tokens.items()
+    ):
+        return False
+    required_controls = {
+        CONTROL_DATABASE,
+        CONTROL_DATABASE_BACKUP,
+        CONTROL_DURABLE_LEDGER,
+        CONTROL_HANDLE_WRITER,
+        CONTROL_LOOPBACK_NETWORK,
+        CONTROL_MEMORY_ONLY_SQLITE,
+        CONTROL_NATIVE_ALLOWLIST,
+        CONTROL_READ_ONLY_ROOT,
+        CONTROL_RUNTIME_MUTEX,
+        CONTROL_SAFE_TEST_LAUNCHER,
+        CONTROL_SCHEMA_CATALOG,
+    }
+    applied_controls = {
+        entry.required_control
+        for entry in entries
+        if entry.control_binding_id is not None
+    }
+    return (
+        all(entry.control_binding_id is not None for entry in entries)
+        and required_controls.issubset(applied_controls)
+    )
+
+
+def _m0_exit_evidence_accepted(
+    root: Path,
+    *,
+    source_manifest_digest: str,
+    entries_digest: str,
+    binding_contract_sha256: str | None,
+) -> bool:
+    evidence_path = root / M0_EXIT_EVIDENCE_RELATIVE_PATH
+    if not evidence_path.is_file():
+        return False
+    data = evidence_path.read_bytes()
+    if (
+        not data
+        or len(data) > 64 * 1024
+        or data.startswith(b"\xef\xbb\xbf")
+        or binding_contract_sha256 is None
+    ):
+        raise RuntimeError("M0 exit evidence has invalid bytes or dependencies")
+    try:
+        payload = json.loads(data.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise RuntimeError("M0 exit evidence is not UTF-8 JSON") from exc
+    if type(payload) is not dict or set(payload) != {
+        "binding_contract_sha256",
+        "checks",
+        "decision",
+        "entries_digest_sha256",
+        "flow_report",
+        "schema_version",
+        "source_manifest_digest_sha256",
+    }:
+        raise RuntimeError("M0 exit evidence has an invalid shape")
+    checks = payload["checks"]
+    required_checks = {
+        "activity_database_unchanged",
+        "fixed_physical_paths_absent",
+        "gold_registry_covered",
+        "malicious_paths_rejected",
+        "migration_roundtrip_passed",
+        "outside_writes_zero",
+        "production_writes_guarded",
+        "undisclosed_p0_p1_zero",
+    }
+    flow = payload["flow_report"]
+    if (
+        payload["schema_version"] != "1.0"
+        or payload["decision"] != "PASS"
+        or payload["source_manifest_digest_sha256"] != source_manifest_digest
+        or payload["entries_digest_sha256"] != entries_digest
+        or payload["binding_contract_sha256"] != binding_contract_sha256
+        or type(checks) is not dict
+        or set(checks) != required_checks
+        or any(value is not True for value in checks.values())
+        or type(flow) is not dict
+        or set(flow) != {"path", "sha256"}
+        or type(flow["path"]) is not str
+        or type(flow["sha256"]) is not str
+        or not re.fullmatch(r"[0-9a-f]{64}", flow["sha256"])
+    ):
+        raise RuntimeError("M0 exit evidence does not bind all required gates")
+    relative_report = Path(flow["path"])
+    if (
+        relative_report.is_absolute()
+        or not relative_report.parts
+        or relative_report.parts[:3] != ("Task", "reports", "M0")
+        or any(part in {"", ".", ".."} for part in relative_report.parts)
+    ):
+        raise RuntimeError("M0 exit flow report path is outside its fixed namespace")
+    report_path = root / relative_report
+    if (
+        not report_path.is_file()
+        or hashlib.sha256(report_path.read_bytes()).hexdigest() != flow["sha256"]
+    ):
+        raise RuntimeError("M0 exit flow report is missing or differs from evidence")
+    return True
 
 
 def production_source_manifest(
@@ -3118,8 +3434,46 @@ def build_inventory_bundle(
     root = _verified_project_root()
     snapshot = _production_source_snapshot(root)
     entries = _scan_production_snapshot(root, snapshot)
+    bindings = _load_control_bindings(root)
     counts = Counter(entry.kind.value for entry in entries)
     source_manifest = list(production_source_manifest(snapshot))
+    source_manifest_digest = _canonical_sha256(source_manifest)
+    entries_digest = inventory_digest(entries)
+    applied_binding_ids = {
+        entry.control_binding_id
+        for entry in entries
+        if entry.control_binding_id is not None
+    }
+    invalid_binding_count = len(set(bindings) - applied_binding_ids)
+    unmigrated_count = sum(
+        entry.migration_status is MigrationStatus.UNMIGRATED_BLOCKED
+        for entry in entries
+    )
+    unknown_dynamic_count = counts.get(
+        WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY.value,
+        0,
+    )
+    production_writer_connected = (
+        unmigrated_count == 0
+        and unknown_dynamic_count == 0
+        and invalid_binding_count == 0
+        and _production_writer_contract_connected(snapshot, entries)
+    )
+    binding_path = root / CONTROL_BINDING_RELATIVE_PATH
+    binding_contract_sha256 = (
+        hashlib.sha256(binding_path.read_bytes()).hexdigest()
+        if binding_path.is_file()
+        else None
+    )
+    m0_exit_allowed = (
+        production_writer_connected
+        and _m0_exit_evidence_accepted(
+            root,
+            source_manifest_digest=source_manifest_digest,
+            entries_digest=entries_digest,
+            binding_contract_sha256=binding_contract_sha256,
+        )
+    )
     chunks: list[dict[str, Any]] = []
     chunk_refs: list[dict[str, Any]] = []
     entry_rows = [entry.to_dict() for entry in entries]
@@ -3127,7 +3481,7 @@ def build_inventory_bundle(
         chunk_index = start // ENTRY_CHUNK_SIZE
         rows = entry_rows[start : start + ENTRY_CHUNK_SIZE]
         chunk: dict[str, Any] = {
-            "schema_version": "2.0",
+            "schema_version": "3.0",
             "chunk_index": chunk_index,
             "entry_count": len(rows),
             "entries": rows,
@@ -3148,7 +3502,7 @@ def build_inventory_bundle(
             }
         )
     payload: dict[str, Any] = {
-        "schema_version": "2.0",
+        "schema_version": "3.0",
         "scanner_version": SCANNER_VERSION,
         "generated_at": generated_at,
         "source_head": source_head,
@@ -3158,23 +3512,34 @@ def build_inventory_bundle(
         "excluded_roots": ["tests", "Base", "Copy", "Task/local", ".git"],
         "source_byte_normalization": SOURCE_BYTE_NORMALIZATION,
         "source_manifest": source_manifest,
-        "source_manifest_digest_sha256": _canonical_sha256(source_manifest),
+        "source_manifest_digest_sha256": source_manifest_digest,
         "entry_count": len(entries),
         "entry_chunk_size": ENTRY_CHUNK_SIZE,
         "entry_chunks": chunk_refs,
-        "entries_digest_sha256": inventory_digest(entries),
+        "entries_digest_sha256": entries_digest,
         "counts_by_kind": dict(sorted(counts.items())),
-        "global_status": "UNMIGRATED_BLOCKED",
+        "control_binding_contract": {
+            "path": CONTROL_BINDING_RELATIVE_PATH.as_posix(),
+            "file_sha256": binding_contract_sha256,
+            "declared_count": len(bindings),
+            "applied_count": len(applied_binding_ids),
+            "invalid_count": invalid_binding_count,
+        },
+        "global_status": (
+            "M0_EXIT_ACCEPTED"
+            if m0_exit_allowed
+            else (
+                "CONTROL_BOUND_M0_EXIT_PENDING"
+                if production_writer_connected
+                else "UNMIGRATED_BLOCKED"
+            )
+        ),
         "gate": {
-            "unknown_dynamic_count": counts.get(
-                WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY.value, 0
-            ),
-            "unmigrated_count": sum(
-                entry.migration_status is MigrationStatus.UNMIGRATED_BLOCKED
-                for entry in entries
-            ),
-            "production_writer_connected": False,
-            "m0_exit_allowed": False,
+            "unknown_dynamic_count": unknown_dynamic_count,
+            "unmigrated_count": unmigrated_count,
+            "invalid_binding_count": invalid_binding_count,
+            "production_writer_connected": production_writer_connected,
+            "m0_exit_allowed": m0_exit_allowed,
         },
     }
     payload["inventory_digest_sha256"] = payload_digest(payload)
@@ -4660,15 +5025,15 @@ def _classify_call(
             ResolutionConfidence.DYNAMIC,
         )
     if callee.startswith("<indexed>."):
+        callsite = _indexed_callsite_key(node, file=file, function=function)
+        if allow_audited_indexed and callsite in _AUDITED_INDEXED_CALLS:
+            return None
         if leaf == "start":
             return (
                 WritePrimitiveKind.EXTERNAL_PROCESS,
                 "unresolved indexed receiver start may launch a process or thread",
                 ResolutionConfidence.CONSERVATIVE,
             )
-        callsite = _indexed_callsite_key(node, file=file, function=function)
-        if allow_audited_indexed and callsite in _AUDITED_INDEXED_CALLS:
-            return None
         return (
             WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY,
             "unresolved method on an indexed receiver",
@@ -4744,6 +5109,8 @@ def _enrich_entries(
     raw_entries: Iterable[_RawEntry],
     graph: dict[str, set[str]],
     roots: dict[str, tuple[str, ...]],
+    *,
+    bindings: dict[str, _ControlBinding],
 ) -> list[WriteEntry]:
     reverse: dict[str, set[str]] = defaultdict(set)
     for caller, callees in graph.items():
@@ -4763,11 +5130,26 @@ def _enrich_entries(
             "ordinal": ordinal[key],
         }
         entry_id = "WE-" + _canonical_sha256(stable_payload)[:24].upper()
+        binding = bindings.get(entry_id)
+        accepted_binding = (
+            binding
+            if binding is not None
+            and _control_binding_matches(raw, entry_id, binding)
+            else None
+        )
         root_ids, chain = _reachable_roots(raw.function, reverse, roots)
         owner = _owner_for(raw.file)
-        target = _target_namespace(raw)
-        control = _required_control(raw.kind)
-        status = _migration_status(raw)
+        target = _target_namespace(raw, accepted_binding)
+        control = (
+            accepted_binding.control_id
+            if accepted_binding is not None
+            else _required_control(raw.kind)
+        )
+        status = (
+            accepted_binding.migration_status
+            if accepted_binding is not None
+            else MigrationStatus.UNMIGRATED_BLOCKED
+        )
         input_source = _input_source(raw, root_ids)
         risk = _risk_level(raw.kind)
         result.append(
@@ -4787,6 +5169,11 @@ def _enrich_entries(
                 owner=owner,
                 target_namespace=target,
                 required_control=control,
+                control_binding_id=(
+                    accepted_binding.entry_id
+                    if accepted_binding is not None
+                    else None
+                ),
                 migration_status=status,
                 input_source=input_source,
                 risk=risk,
@@ -5438,9 +5825,171 @@ def _owner_for(file: str) -> str:
     return "APPLICATION_SERVICE"
 
 
-def _target_namespace(raw: _RawEntry) -> str:
-    if _migration_status(raw) is MigrationStatus.ACCEPTED_MEMORY_ONLY:
-        return "MEMORY_ONLY"
+def recommended_control_binding(
+    entry: WriteEntry,
+) -> tuple[str, MigrationStatus] | None:
+    """Return the sole hard-coded control eligible for one exact entry."""
+
+    if type(entry) is not WriteEntry:
+        raise TypeError("control recommendations require an exact WriteEntry")
+    return _control_recommendation(
+        file=entry.file,
+        function=entry.function,
+        kind=entry.kind,
+        callee=entry.callee,
+    )
+
+
+def _control_recommendation(
+    *,
+    file: str,
+    function: str,
+    kind: WritePrimitiveKind,
+    callee: str,
+) -> tuple[str, MigrationStatus] | None:
+    database_kinds = {
+        WritePrimitiveKind.DATABASE_GATEWAY,
+        WritePrimitiveKind.DATABASE_IMPLICIT_INITIALIZER,
+        WritePrimitiveKind.SQLITE_MUTATION,
+        WritePrimitiveKind.SQLITE_DYNAMIC_SQL,
+        WritePrimitiveKind.SQLITE_TRANSACTION,
+        WritePrimitiveKind.SQLITE_SCHEMA_MUTATION,
+    }
+    if file == "scripts/run_safe_pytest.py" and kind in {
+        WritePrimitiveKind.EXTERNAL_PROCESS,
+        WritePrimitiveKind.FILESYSTEM_DIRECTORY_CREATE,
+        WritePrimitiveKind.FILESYSTEM_FILE_WRITE,
+        WritePrimitiveKind.NATIVE_API_BINDING,
+    }:
+        return CONTROL_SAFE_TEST_LAUNCHER, MigrationStatus.MIGRATED_GUARDED
+    if file == "app/project_root.py":
+        if (
+            kind is WritePrimitiveKind.FILESYSTEM_FILE_WRITE
+            and function == "app.project_root._read_verified_marker"
+            and callee == "os.open"
+        ):
+            return CONTROL_READ_ONLY_ROOT, MigrationStatus.ACCEPTED_NON_MUTATING
+        if kind is WritePrimitiveKind.NATIVE_API_BINDING:
+            return CONTROL_NATIVE_ALLOWLIST, MigrationStatus.MIGRATED_GUARDED
+    if file == "app/safety/windows_handle_writer.py":
+        if kind in {
+            WritePrimitiveKind.FILESYSTEM_DIRECTORY_CREATE,
+            WritePrimitiveKind.FILESYSTEM_FILE_WRITE,
+            WritePrimitiveKind.FILESYSTEM_MOVE_OR_REPLACE,
+        }:
+            return CONTROL_HANDLE_WRITER, MigrationStatus.MIGRATED_GUARDED
+        if kind is WritePrimitiveKind.RUNTIME_SYNCHRONIZATION:
+            return CONTROL_RUNTIME_MUTEX, MigrationStatus.MIGRATED_GUARDED
+        if kind is WritePrimitiveKind.NATIVE_API_BINDING:
+            return CONTROL_NATIVE_ALLOWLIST, MigrationStatus.MIGRATED_GUARDED
+    if (
+        file == "app/safety/external_source.py"
+        and kind is WritePrimitiveKind.NATIVE_API_BINDING
+    ):
+        return CONTROL_NATIVE_ALLOWLIST, MigrationStatus.MIGRATED_GUARDED
+    if kind is WritePrimitiveKind.DURABLE_LEDGER_GATEWAY and file in {
+        "app/safety/copy_ledger.py",
+        "app/safety/operation_ledger.py",
+        "app/safety/segment_ledger.py",
+    }:
+        return CONTROL_DURABLE_LEDGER, MigrationStatus.MIGRATED_GUARDED
+    if kind is WritePrimitiveKind.NETWORK_REQUEST and (
+        (
+            file == "app/__main__.py"
+            and function == "app.__main__.main"
+            and callee == "app.web.create_app().run"
+        )
+        or (
+            file == "app/structured_ai.py"
+            and function
+            == "app.structured_ai.LocalOpenAICompatibleProvider.generate"
+            and callee == "urllib.request.request.urlopen"
+        )
+    ):
+        return CONTROL_LOOPBACK_NETWORK, MigrationStatus.MIGRATED_GUARDED
+    if file == "app/schema.sql" and kind in database_kinds:
+        return CONTROL_SCHEMA_CATALOG, MigrationStatus.MIGRATED_GUARDED
+    if (
+        (
+            file == "app/database_migrations.py"
+            and function
+            in {
+                "app.database_migrations._expected_base_objects",
+                "app.database_migrations._expected_current_objects",
+            }
+        )
+        or (
+            file == "app/health.py"
+            and function == "app.health.check_sqlite"
+        )
+    ) and kind in database_kinds | {WritePrimitiveKind.SQLITE_RAW_CONNECT}:
+        return CONTROL_MEMORY_ONLY_SQLITE, MigrationStatus.ACCEPTED_MEMORY_ONLY
+    if (
+        file == "app/database_backup.py"
+        and kind is WritePrimitiveKind.SQLITE_BACKUP_OR_EXTENSION
+        and function == "app.database_backup._sqlite_backup"
+    ):
+        return CONTROL_DATABASE_BACKUP, MigrationStatus.MIGRATED_GUARDED
+    if kind is WritePrimitiveKind.SQLITE_RAW_CONNECT:
+        if (
+            file == "app/database.py"
+            and function
+            in {
+                "app.database.connect_database",
+                "app.database.connect_database_read_only",
+            }
+        ) or (
+            file == "app/database_migrations.py"
+            and function == "app.database_migrations.migrate_database"
+        ):
+            return CONTROL_DATABASE, MigrationStatus.MIGRATED_GUARDED
+        return None
+    if kind in database_kinds and file.startswith("app/"):
+        return CONTROL_DATABASE, MigrationStatus.MIGRATED_GUARDED
+    return None
+
+
+def _control_binding_matches(
+    raw: _RawEntry,
+    entry_id: str,
+    binding: _ControlBinding,
+) -> bool:
+    recommendation = _control_recommendation(
+        file=raw.file,
+        function=raw.function,
+        kind=raw.kind,
+        callee=raw.callee,
+    )
+    return (
+        recommendation is not None
+        and binding.entry_id == entry_id
+        and binding.file == raw.file
+        and binding.source_sha256 == raw.source_sha256
+        and binding.statement_fingerprint == raw.statement_fingerprint
+        and binding.kind is raw.kind
+        and (binding.control_id, binding.migration_status) == recommendation
+    )
+
+
+def _target_namespace(
+    raw: _RawEntry,
+    binding: _ControlBinding | None,
+) -> str:
+    if binding is not None:
+        namespaces = {
+            CONTROL_DATABASE: "FIXED_PROJECT_SQLITE_GATE",
+            CONTROL_DATABASE_BACKUP: "FIXED_PROJECT_BACKUP_SNAPSHOT_GATE",
+            CONTROL_DURABLE_LEDGER: "FIXED_DURABLE_LEDGER_STORE",
+            CONTROL_HANDLE_WRITER: "FIXED_CONTRACT_PROJECT_ROOT",
+            CONTROL_LOOPBACK_NETWORK: "LOOPBACK_NETWORK_ONLY",
+            CONTROL_MEMORY_ONLY_SQLITE: "MEMORY_ONLY",
+            CONTROL_NATIVE_ALLOWLIST: "NATIVE_FIXED_LIBRARY_AND_SYMBOL_ALLOWLIST",
+            CONTROL_READ_ONLY_ROOT: "READ_ONLY_CONTRACT_ROOT_INSPECTION",
+            CONTROL_RUNTIME_MUTEX: "WINDOWS_LOCAL_NAMED_MUTEX",
+            CONTROL_SAFE_TEST_LAUNCHER: "FIXED_TEST_LAB_RUNTIME",
+            CONTROL_SCHEMA_CATALOG: "STATIC_SCHEMA_CATALOG",
+        }
+        return namespaces[binding.control_id]
     if raw.file.startswith("scripts/"):
         return "TEST_LAB_RUNTIME"
     if raw.kind in {
@@ -5504,10 +6053,6 @@ def _required_control(kind: WritePrimitiveKind) -> str:
     if kind is WritePrimitiveKind.NATIVE_API_BINDING:
         return "S3_NATIVE_API_FIXED_LIBRARY_AND_SYMBOL_ALLOWLIST"
     return "S3_HANDLE_LEVEL_WORKSPACE_WRITER"
-
-
-def _migration_status(raw: _RawEntry) -> MigrationStatus:
-    return MigrationStatus.UNMIGRATED_BLOCKED
 
 
 def _input_source(raw: _RawEntry, roots: tuple[str, ...]) -> str:

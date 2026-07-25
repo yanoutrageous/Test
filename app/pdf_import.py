@@ -9,6 +9,7 @@ from typing import Any
 from .config import PROJECT_ROOT, ensure_storage_directories, get_project_paths
 from .database import connect_database, initialize_database
 from .page_ranges import PageRangeError, parse_page_numbers
+from .safety.workspace_io import WorkspaceIOError, get_workspace_io
 
 
 DEFAULT_IMPORT_PAGES = (1, 603, 1090, 1207)
@@ -80,6 +81,12 @@ def register_source_pdf(
         raise PdfImportError(f"PDF not found: {pdf_path}")
     if pdf_path.suffix.lower() != ".pdf":
         raise PdfImportError(f"Expected a PDF file: {pdf_path}")
+    try:
+        pdf_path = get_workspace_io().validate_read_file_path(pdf_path)
+    except WorkspaceIOError as exc:
+        raise PdfImportError(
+            "PDF must be a handle-verified file inside the project workspace"
+        ) from exc
 
     sha256 = compute_file_sha256(pdf_path)
     paper_code = build_paper_code(sha256)
@@ -147,6 +154,12 @@ def render_pdf_pages(
 ) -> list[dict[str, Any]]:
     if dpi <= 0:
         raise PdfImportError(f"DPI must be positive: {dpi}")
+    try:
+        pdf_path = get_workspace_io().validate_read_file_path(pdf_path)
+    except WorkspaceIOError as exc:
+        raise PdfImportError(
+            "PDF must be a handle-verified file inside the project workspace"
+        ) from exc
 
     validate_pages(page_numbers, paper.page_count)
 
@@ -155,16 +168,20 @@ def render_pdf_pages(
     paths = ensure_storage_directories()
     pages_root = paper_pages_dir or paths.paper_pages_dir
     output_dir = pages_root / paper.paper_code
-    output_dir.mkdir(parents=True, exist_ok=True)
+    workspace_io = get_workspace_io()
+    workspace_io.ensure_directory(output_dir)
 
     rendered: list[dict[str, Any]] = []
-    with fitz.open(pdf_path) as doc, connect_database(db_path) as conn:
+    database_rows: list[tuple[int, str, int, str, str]] = []
+    with fitz.open(pdf_path) as doc:
         for page_no in page_numbers:
             page = doc[page_no - 1]
             output_path = output_dir / f"page_{page_no:04d}_{dpi}dpi.png"
-            if not output_path.exists():
-                pixmap = page.get_pixmap(dpi=dpi)
-                pixmap.save(output_path)
+            pixmap = page.get_pixmap(dpi=dpi)
+            receipt = workspace_io.write_bytes_idempotent(
+                output_path,
+                pixmap.tobytes("png"),
+            )
 
             rel_path = relative_path(output_path, project_root)
             bbox_json = json.dumps(
@@ -181,6 +198,22 @@ def render_pdf_pages(
                 },
                 ensure_ascii=False,
             )
+            database_rows.append(
+                (paper.id, rel_path, page_no, bbox_json, meta_json)
+            )
+            rendered.append(
+                {
+                    "page_no": page_no,
+                    "relative_path": rel_path,
+                    "path": str(output_path),
+                    "size_bytes": receipt.size_bytes,
+                }
+            )
+
+    # The database lease deliberately owns the writer's single mutation
+    # reservation.  Finish immutable page publication before opening it.
+    with connect_database(db_path) as conn:
+        for source_paper_id, rel_path, page_no, bbox_json, meta_json in database_rows:
             conn.execute(
                 """
                 INSERT INTO source_paper_assets (
@@ -196,15 +229,14 @@ def render_pdf_pages(
                     bbox_json = excluded.bbox_json,
                     meta_json = excluded.meta_json
                 """,
-                (paper.id, "page_image", rel_path, page_no, bbox_json, meta_json),
-            )
-            rendered.append(
-                {
-                    "page_no": page_no,
-                    "relative_path": rel_path,
-                    "path": str(output_path),
-                    "size_bytes": output_path.stat().st_size,
-                }
+                (
+                    source_paper_id,
+                    "page_image",
+                    rel_path,
+                    page_no,
+                    bbox_json,
+                    meta_json,
+                ),
             )
         conn.commit()
 

@@ -706,9 +706,47 @@ def test_s3d_mode_has_a_fixed_non_injectable_selection(tmp_path: Path) -> None:
                 "tests/test_safe_pytest_launcher.py",
             ],
         ),
+        (
+            "s6_core",
+            [
+                "tests/test_workspace_io.py",
+                "tests/test_source_copy.py",
+                "tests/test_database.py",
+                "tests/test_database_migrations.py",
+                "tests/test_database_backup.py",
+                "tests/test_codex_structure.py",
+                "tests/test_pdf_import.py",
+                "tests/test_pdf_scan.py",
+                "tests/test_stage7_quality.py",
+                "tests/test_stage9_report.py",
+                "tests/test_stage10.py",
+                "tests/test_stage11.py",
+                "tests/test_stage12.py",
+                "tests/test_stage13.py",
+                "tests/test_stage14.py",
+                "tests/test_web.py",
+            ],
+        ),
+        (
+            "s6",
+            [
+                "tests/test_workspace_io.py",
+                "tests/test_source_copy.py",
+                "tests/test_database.py",
+                "tests/test_database_migrations.py",
+                "tests/test_database_backup.py",
+                "tests/test_copy_operation.py",
+                "tests/test_copy_ledger.py",
+                "tests/test_external_source.py",
+                "tests/test_gold_registry.py",
+                "tests/test_workspace_policy.py",
+                "tests/test_write_entry_inventory.py",
+                "tests/test_safe_pytest_launcher.py",
+            ],
+        ),
     ),
 )
-def test_s3e_through_s5_modes_have_exact_non_injectable_selections(
+def test_s3e_through_s6_modes_have_exact_non_injectable_selections(
     tmp_path: Path,
     mode: str,
     selection: list[str],
@@ -1738,7 +1776,7 @@ def test_effective_exit_code_records_protected_state_gate_and_skips() -> None:
 def test_only_copy_bearing_modes_require_a_registered_source_witness() -> None:
     assert RUN_RESULT_SCHEMA_VERSION == "1.2"
     assert SOURCE_REGISTRATION_REQUIRED_MODES == frozenset(
-        {"full", "s3f", "s3f_core", "s3h"}
+        {"full", "s3f", "s3f_core", "s3h", "s6"}
     )
     assert {
         "guard",
@@ -1753,6 +1791,7 @@ def test_only_copy_bearing_modes_require_a_registered_source_witness() -> None:
         "s4_core",
         "s5",
         "s5_core",
+        "s6_core",
         "launcher",
         "symlink",
     }.isdisjoint(SOURCE_REGISTRATION_REQUIRED_MODES)
@@ -1789,6 +1828,7 @@ def test_only_copy_bearing_modes_require_a_registered_source_witness() -> None:
         "s4_core",
         "s5",
         "s5_core",
+        "s6_core",
         "launcher",
         "symlink",
     }:

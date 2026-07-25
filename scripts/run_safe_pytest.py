@@ -60,7 +60,7 @@ SOURCE_WITNESS_KEY_DOMAIN = b"SAFE-PYTEST-SOURCE-WITNESS-KEY-V1\0"
 SOURCE_WITNESS_LOCATOR_DOMAIN = b"SAFE-PYTEST-SOURCE-WITNESS-LOCATOR-V1\0"
 SOURCE_WITNESS_AUTH_DOMAIN = b"SAFE-PYTEST-SOURCE-WITNESS-AUTH-V1\0"
 SOURCE_REGISTRATION_REQUIRED_MODES = frozenset(
-    {"full", "s3f", "s3f_core", "s3h"}
+    {"full", "s3f", "s3f_core", "s3h", "s6"}
 )
 RUN_RESULT_SCHEMA_VERSION = "1.2"
 PROTECTED_TREE_SNAPSHOT_FORMAT = "gzip-canonical-json-v1"
@@ -1839,6 +1839,40 @@ def _build_command(
             "tests/test_ir_contracts.py",
             "tests/test_gold_registry.py",
         ]
+    elif mode == "s6":
+        selection = [
+            "tests/test_workspace_io.py",
+            "tests/test_source_copy.py",
+            "tests/test_database.py",
+            "tests/test_database_migrations.py",
+            "tests/test_database_backup.py",
+            "tests/test_copy_operation.py",
+            "tests/test_copy_ledger.py",
+            "tests/test_external_source.py",
+            "tests/test_gold_registry.py",
+            "tests/test_workspace_policy.py",
+            "tests/test_write_entry_inventory.py",
+            "tests/test_safe_pytest_launcher.py",
+        ]
+    elif mode == "s6_core":
+        selection = [
+            "tests/test_workspace_io.py",
+            "tests/test_source_copy.py",
+            "tests/test_database.py",
+            "tests/test_database_migrations.py",
+            "tests/test_database_backup.py",
+            "tests/test_codex_structure.py",
+            "tests/test_pdf_import.py",
+            "tests/test_pdf_scan.py",
+            "tests/test_stage7_quality.py",
+            "tests/test_stage9_report.py",
+            "tests/test_stage10.py",
+            "tests/test_stage11.py",
+            "tests/test_stage12.py",
+            "tests/test_stage13.py",
+            "tests/test_stage14.py",
+            "tests/test_web.py",
+        ]
     elif mode == "launcher":
         selection = ["tests/test_safe_pytest_launcher.py"]
     elif mode == "symlink":
@@ -1898,6 +1932,8 @@ def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
             "s4_core",
             "s5",
             "s5_core",
+            "s6",
+            "s6_core",
             "launcher",
             "symlink",
         ),

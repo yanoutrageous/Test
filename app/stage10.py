@@ -12,6 +12,7 @@ from .config import PROJECT_ROOT
 from .database import connect_database, connect_database_read_only, initialize_database
 from .exports import save_html_export
 from .question_repository import get_questions_by_ids
+from .safety.workspace_io import get_workspace_io
 from .structured_ai import validate_ai_output_payload
 from .structured_content import (
     initialize_structured_contents,
@@ -322,7 +323,6 @@ def write_stage10_quality_report(
         stage10_verified = _stage10_verified_count(conn)
 
     report_path = project_root / STAGE10_REPORT_RELATIVE_PATH
-    report_path.parent.mkdir(parents=True, exist_ok=True)
     report_text = _render_stage10_report(
         question_count=int(question_count),
         structured_count=int(structured_count),
@@ -342,7 +342,7 @@ def write_stage10_quality_report(
         checksum=checksum,
         stage10_verified=stage10_verified,
     )
-    report_path.write_text(report_text, encoding="utf-8")
+    get_workspace_io().write_text_idempotent(report_path, report_text)
     return {
         "status": "ok",
         "relative_path": STAGE10_REPORT_RELATIVE_PATH.as_posix(),

@@ -10,6 +10,7 @@ from typing import Any
 
 from .config import PROJECT_ROOT, get_project_paths
 from .database import connect_database, initialize_database
+from .safety.workspace_io import get_workspace_io
 
 
 def _json_loads(value: str | None, default: Any) -> Any:
@@ -399,10 +400,9 @@ def write_stage8_quality_report(
 ) -> dict[str, Any]:
     report = build_stage8_quality_report(db_path=db_path, project_root=project_root)
     target = output_path or (project_root / "docs" / "stage8_quality_report.md")
-    target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(report, encoding="utf-8")
+    receipt = get_workspace_io().write_text_idempotent(target, report)
     return {
         "path": str(target),
         "relative_path": target.resolve().relative_to(project_root.resolve()).as_posix(),
-        "size_bytes": target.stat().st_size,
+        "size_bytes": receipt.size_bytes,
     }

@@ -6,6 +6,7 @@ import hmac
 import json
 import ntpath
 import os
+import re
 import stat
 import sys
 import threading
@@ -28,6 +29,7 @@ def _contract_project_root(_root: Path = _VERIFIED_PROJECT_ROOT) -> Path:
 
 CONTRACT_PROJECT_ROOT = _contract_project_root()
 SYNTHETIC_REFERENCE_POLICY_ID = "SYNTHETIC-REFERENCE-EXISTING-READ-V1"
+REGISTERED_EXTERNAL_POLICY_ID = "REGISTERED-EXTERNAL-EXISTING-READ-V1"
 SYNTHETIC_REFERENCE_MAX_BYTES = 64 * 1024 * 1024
 SYNTHETIC_REFERENCE_PAYLOAD_NAME = "payload.bin"
 
@@ -37,8 +39,10 @@ _MARKER_MAX_BYTES = 64 * 1024
 _READ_API_CONSTRUCTOR = object()
 _POLICY_CONSTRUCTOR = object()
 _LEASE_CONSTRUCTOR = object()
+_REGISTERED_LEASE_CONSTRUCTOR = object()
 _COPY_EXECUTION_PERMIT_CONSTRUCTOR = object()
 _SHA256_HEX = frozenset("0123456789abcdef")
+_LOGICAL_REFERENCE_ID = re.compile(r"REF-[A-Z0-9][A-Z0-9._-]{2,127}")
 _P = ParamSpec("_P")
 _T = TypeVar("_T")
 _POLICY_DOCUMENT = {
@@ -182,8 +186,14 @@ _EXTERNAL_BOUNDARY_ALLOWED_QUALNAMES = (
     "_validate_copy_execution_permit",
     "_consume_copy_execution_permit",
     "_create_synthetic_reference_read_policy",
+    "_RegisteredExternalReadLease.read_once",
+    "_RegisteredExternalReadLease.verify_unchanged",
+    "_RegisteredExternalReadLease.close",
+    "_RegisteredExternalReadLease.__enter__",
+    "_RegisteredExternalReadLease.__exit__",
+    "open_registered_external_source",
 )
-_EXTERNAL_BOUNDARY_MAX = 15
+_EXTERNAL_BOUNDARY_MAX = 21
 
 
 def _external_boundary_template(*arguments: Any, **keywords: Any) -> Any:
@@ -486,6 +496,111 @@ class SyntheticSourceVerification:
     def __reduce__(self) -> Any:
         del self
         raise TypeError("synthetic source verifications cannot be serialized")
+
+
+@dataclass(frozen=True, slots=True)
+class RegisteredSourceEvidence:
+    logical_id: str
+    classification: DataClassification
+    source_object_reference: str = field(repr=False)
+    source_identity_digest: str = field(repr=False)
+    size_bytes: int
+    sha256: str
+    schema_version: str = field(default="1.0", init=False)
+    policy_id: str = field(default=REGISTERED_EXTERNAL_POLICY_ID, init=False)
+    destination_name: str = field(
+        default=SYNTHETIC_REFERENCE_PAYLOAD_NAME,
+        init=False,
+    )
+    default_stream_only: bool = field(default=True, init=False)
+
+    def __post_init__(self) -> None:
+        if (
+            type(self.logical_id) is not str
+            or _LOGICAL_REFERENCE_ID.fullmatch(self.logical_id) is None
+            or type(self.classification) is not DataClassification
+            or not _is_sha256(self.source_object_reference)
+            or not _is_sha256(self.source_identity_digest)
+            or type(self.size_bytes) is not int
+            or not 0 <= self.size_bytes <= SYNTHETIC_REFERENCE_MAX_BYTES
+            or not _is_sha256(self.sha256)
+        ):
+            raise TypeError("registered source evidence has an invalid typed shape")
+
+    def to_provenance_fields(self) -> dict[str, Any]:
+        return {
+            "classification": self.classification.value,
+            "default_stream_only": self.default_stream_only,
+            "destination_name": self.destination_name,
+            "logical_id": self.logical_id,
+            "policy_id": self.policy_id,
+            "schema_version": self.schema_version,
+            "sha256": self.sha256,
+            "size_bytes": self.size_bytes,
+            "source_identity_digest": self.source_identity_digest,
+            "source_object_reference": self.source_object_reference,
+        }
+
+    def __repr__(self) -> str:
+        return (
+            "RegisteredSourceEvidence(logical_id="
+            f"'{self.logical_id}', classification='{self.classification.value}', "
+            f"size_bytes={self.size_bytes}, source='<redacted>')"
+        )
+
+    def __reduce__(self) -> Any:
+        del self
+        raise TypeError("registered source evidence cannot be serialized")
+
+
+@dataclass(frozen=True, slots=True)
+class RegisteredSourceMaterial:
+    evidence: RegisteredSourceEvidence
+    payload: bytes = field(repr=False)
+
+    def __post_init__(self) -> None:
+        if (
+            type(self.evidence) is not RegisteredSourceEvidence
+            or type(self.payload) is not bytes
+            or len(self.payload) != self.evidence.size_bytes
+            or hashlib.sha256(self.payload).hexdigest() != self.evidence.sha256
+        ):
+            raise TypeError("registered source material differs from its evidence")
+
+    def __repr__(self) -> str:
+        return (
+            "RegisteredSourceMaterial(payload='<redacted>', size_bytes="
+            f"{self.evidence.size_bytes}, evidence='<handle-verified>')"
+        )
+
+    def __reduce__(self) -> Any:
+        del self
+        raise TypeError("registered source material cannot be serialized")
+
+
+@dataclass(frozen=True, slots=True)
+class RegisteredSourceVerification:
+    evidence: RegisteredSourceEvidence
+    verification_digest: str = field(repr=False)
+
+    def __post_init__(self) -> None:
+        if (
+            type(self.evidence) is not RegisteredSourceEvidence
+            or not _is_sha256(self.verification_digest)
+        ):
+            raise TypeError(
+                "registered source verification has an invalid typed shape"
+            )
+
+    def __repr__(self) -> str:
+        return (
+            "RegisteredSourceVerification(evidence='<redacted>', "
+            "verification_digest='<redacted>')"
+        )
+
+    def __reduce__(self) -> Any:
+        del self
+        raise TypeError("registered source verifications cannot be serialized")
 
 
 @dataclass(frozen=True, slots=True)
@@ -2328,6 +2443,421 @@ def _create_synthetic_reference_read_policy(
             ExternalSourceError(
                 ExternalSourceCode.INTERNAL_FAILURE,
                 "synthetic reference factory failed safely",
+            )
+        )
+
+
+def _validated_registered_source_path(
+    value: str | os.PathLike[str],
+) -> Path:
+    try:
+        raw = os.fspath(value)
+    except TypeError:
+        raise ExternalSourceError(
+            ExternalSourceCode.INVALID_REQUEST,
+            "registered source path must be an explicit filesystem path",
+        ) from None
+    if (
+        type(raw) is not str
+        or not raw
+        or raw.startswith(("\\\\", "//", "\\\\?\\", "\\\\.\\"))
+    ):
+        raise ExternalSourceError(
+            ExternalSourceCode.PATH_REJECTED,
+            "registered sources must use one local absolute drive path",
+        )
+    try:
+        source = _absolute_lexical(raw)
+        windows = PureWindowsPath(str(source))
+    except (OSError, TypeError, ValueError):
+        raise ExternalSourceError(
+            ExternalSourceCode.PATH_REJECTED,
+            "registered source path could not be normalized",
+        ) from None
+    if (
+        not windows.is_absolute()
+        or len(windows.drive) != 2
+        or windows.drive[1:] != ":"
+        or windows.root != "\\"
+        or len(windows.parts) < 2
+        or any(
+            part in {"", ".", ".."}
+            or ":" in part
+            or part.rstrip(" .") != part
+            or any(ord(character) < 32 for character in part)
+            for part in windows.parts[1:]
+        )
+    ):
+        raise ExternalSourceError(
+            ExternalSourceCode.PATH_REJECTED,
+            "registered source path contains unsupported syntax",
+        )
+
+    contract_root = _absolute_lexical(_contract_project_root())
+    inside_contract_root = _relative_parts(source, contract_root) is not None
+    if inside_contract_root:
+        raw_run_root = os.environ.get("M0_TEST_LAB_ROOT")
+        if not raw_run_root:
+            raise ExternalSourceError(
+                ExternalSourceCode.PATH_REJECTED,
+                "registered external sources must be outside the project root",
+            )
+        try:
+            run_root = _absolute_lexical(raw_run_root)
+        except (OSError, TypeError, ValueError):
+            raise ExternalSourceError(
+                ExternalSourceCode.INVALID_LABORATORY,
+                "safe-launcher source exception could not be normalized",
+            ) from None
+        reference_root = run_root / "external" / "REFERENCE"
+        relative = _relative_parts(source, reference_root)
+        if relative is None or len(relative) != 1:
+            raise ExternalSourceError(
+                ExternalSourceCode.PATH_REJECTED,
+                "project-local source is not the active synthetic reference",
+            )
+
+    chain = (*reversed(source.parents), source)
+    for index, component in enumerate(chain):
+        expected = _expected_identity(component)
+        if expected.file_attributes & _REPARSE_ATTRIBUTE or expected.reparse_tag:
+            raise ExternalSourceError(
+                ExternalSourceCode.REPARSE_POINT,
+                "registered source path contains a reparse object",
+            )
+        is_target = index == len(chain) - 1
+        if is_target:
+            if not stat.S_ISREG(expected.mode) or expected.link_count != 1:
+                raise ExternalSourceError(
+                    ExternalSourceCode.HARDLINK_REJECTED,
+                    "registered source must be one single-link regular file",
+                )
+        elif not stat.S_ISDIR(expected.mode):
+            raise ExternalSourceError(
+                ExternalSourceCode.TYPE_MISMATCH,
+                "registered source parent chain contains a non-directory",
+            )
+    _validated_source_name(source.name)
+    return source
+
+
+class _RegisteredExternalReadLease:
+    """Thread-bound external read handle held until target publication ends."""
+
+    __slots__ = (
+        "_api",
+        "_baseline",
+        "_classification",
+        "_handle",
+        "_logical_id",
+        "_material",
+        "_owner_thread",
+        "_owner_thread_object",
+        "_source_path",
+        "_state",
+    )
+
+    def __init__(
+        self,
+        *,
+        api: _ReferenceReadApi,
+        handle: int,
+        baseline: _ObservedReference,
+        source_path: Path,
+        logical_id: str,
+        classification: DataClassification,
+        _constructor: object,
+    ) -> None:
+        if (
+            _constructor is not _REGISTERED_LEASE_CONSTRUCTOR
+            or type(api) is not _ReferenceReadApi
+            or type(handle) is not int
+            or type(baseline) is not _ObservedReference
+            or not isinstance(source_path, Path)
+            or type(logical_id) is not str
+            or _LOGICAL_REFERENCE_ID.fullmatch(logical_id) is None
+            or type(classification) is not DataClassification
+        ):
+            raise TypeError("registered source leases require the fixed factory")
+        self._api = api
+        self._handle: int | None = handle
+        self._baseline = baseline
+        self._source_path: Path | None = source_path
+        self._logical_id = logical_id
+        self._classification = classification
+        self._material: RegisteredSourceMaterial | None = None
+        self._owner_thread = threading.get_ident()
+        self._owner_thread_object = threading.current_thread()
+        if self._owner_thread_object.ident != self._owner_thread:
+            raise ExternalSourceError(
+                ExternalSourceCode.CAPABILITY_CROSS_THREAD,
+                "registered source authority thread identity is unstable",
+            )
+        self._state = "ISSUED"
+
+    def _assert_owner(self, *states: str) -> None:
+        if (
+            threading.get_ident() != self._owner_thread
+            or threading.current_thread() is not self._owner_thread_object
+            or self._owner_thread_object.ident != self._owner_thread
+        ):
+            raise ExternalSourceError(
+                ExternalSourceCode.CAPABILITY_CROSS_THREAD,
+                "registered source lease is bound to its issuing thread",
+            )
+        if self._state not in states:
+            raise ExternalSourceError(
+                ExternalSourceCode.CAPABILITY_ALREADY_USED,
+                "registered source lease is closed or in the wrong state",
+            )
+
+    def _live(self) -> tuple[_ReferenceReadApi, int, Path]:
+        handle = self._handle
+        path = self._source_path
+        if handle is None or path is None:
+            raise ExternalSourceError(
+                ExternalSourceCode.CAPABILITY_ALREADY_USED,
+                "registered source lease no longer holds a source handle",
+            )
+        return self._api, handle, path
+
+    def _close_handle(self) -> None:
+        handle = self._handle
+        self._handle = None
+        self._source_path = None
+        if handle is not None:
+            self._api.close(handle)
+
+    def _fail(self, error: ExternalSourceError) -> NoReturn:
+        self._state = "FAILED"
+        try:
+            self._close_handle()
+        except ExternalSourceError as close_error:
+            _raise_path_free(close_error)
+        _raise_path_free(error)
+
+    @_path_free_exception_boundary
+    def read_once(self) -> RegisteredSourceMaterial:
+        self._assert_owner("ISSUED")
+        try:
+            api, handle, source_path = self._live()
+            payload, payload_sha256 = api.read_bounded(
+                handle,
+                SYNTHETIC_REFERENCE_MAX_BYTES,
+            )
+            after = api.observe(handle)
+            _verify_path_binding(source_path, after)
+            if not _same_snapshot(self._baseline, after):
+                raise ExternalSourceError(
+                    ExternalSourceCode.SOURCE_CHANGED,
+                    "registered source changed during its handle-bound read",
+                )
+            identity_digest = hashlib.sha256(
+                _observation_bytes(after)
+            ).hexdigest()
+            object_reference = hashlib.sha256(
+                b"REGISTERED-EXTERNAL-SOURCE-V1\0"
+                + self._logical_id.encode("ascii")
+                + b"\0"
+                + identity_digest.encode("ascii")
+                + b"\0"
+                + payload_sha256.encode("ascii")
+            ).hexdigest()
+            evidence = RegisteredSourceEvidence(
+                logical_id=self._logical_id,
+                classification=self._classification,
+                source_object_reference=object_reference,
+                source_identity_digest=identity_digest,
+                size_bytes=len(payload),
+                sha256=payload_sha256,
+            )
+            material = RegisteredSourceMaterial(
+                evidence=evidence,
+                payload=payload,
+            )
+            self._material = material
+            self._state = "READ"
+            return material
+        except ExternalSourceError as error:
+            self._fail(error)
+        except BaseException:
+            self._fail(
+                ExternalSourceError(
+                    ExternalSourceCode.INTERNAL_FAILURE,
+                    "registered source read failed safely",
+                )
+            )
+
+    @_path_free_exception_boundary
+    def verify_unchanged(
+        self,
+        evidence: RegisteredSourceEvidence,
+    ) -> RegisteredSourceVerification:
+        self._assert_owner("READ")
+        material = self._material
+        if (
+            type(evidence) is not RegisteredSourceEvidence
+            or material is None
+            or evidence is not material.evidence
+        ):
+            self._fail(
+                ExternalSourceError(
+                    ExternalSourceCode.INVALID_REQUEST,
+                    "registered source verification requires its exact read evidence",
+                )
+            )
+        try:
+            api, handle, source_path = self._live()
+            _payload, payload_sha256 = api.read_bounded(
+                handle,
+                SYNTHETIC_REFERENCE_MAX_BYTES,
+            )
+            after = api.observe(handle)
+            _verify_path_binding(source_path, after)
+            if (
+                not _same_snapshot(self._baseline, after)
+                or payload_sha256 != evidence.sha256
+                or after.end_of_file != evidence.size_bytes
+            ):
+                raise ExternalSourceError(
+                    ExternalSourceCode.SOURCE_CHANGED,
+                    "registered source changed before target publication",
+                )
+            verification_digest = hashlib.sha256(
+                b"REGISTERED-EXTERNAL-FINAL-VERIFICATION-V1\0"
+                + evidence.source_object_reference.encode("ascii")
+                + b"\0"
+                + payload_sha256.encode("ascii")
+                + b"\0"
+                + _observation_bytes(after)
+            ).hexdigest()
+            self._state = "VERIFIED"
+            return RegisteredSourceVerification(
+                evidence=evidence,
+                verification_digest=verification_digest,
+            )
+        except ExternalSourceError as error:
+            self._fail(error)
+        except BaseException:
+            self._fail(
+                ExternalSourceError(
+                    ExternalSourceCode.INTERNAL_FAILURE,
+                    "registered source verification failed safely",
+                )
+            )
+
+    @_path_free_exception_boundary
+    def close(self) -> None:
+        if self._state in {"CLOSED", "FAILED"}:
+            return
+        self._assert_owner("ISSUED", "READ", "VERIFIED")
+        self._state = "CLOSED"
+        self._material = None
+        self._close_handle()
+
+    @_path_free_exception_boundary
+    def __enter__(self) -> _RegisteredExternalReadLease:
+        self._assert_owner("ISSUED")
+        return self
+
+    @_path_free_exception_boundary
+    def __exit__(self, _type: Any, _value: Any, _traceback: Any) -> None:
+        self.close()
+
+    def __repr__(self) -> str:
+        return (
+            "_RegisteredExternalReadLease(state="
+            f"'{self._state}', logical_id='{self._logical_id}', source='<redacted>')"
+        )
+
+    def __reduce__(self) -> Any:
+        del self
+        raise TypeError("registered source leases cannot be serialized")
+
+
+@_path_free_exception_boundary
+def open_registered_external_source(
+    source_path: str | os.PathLike[str],
+    *,
+    logical_id: str,
+    classification: DataClassification,
+) -> _RegisteredExternalReadLease:
+    """Open one registered source without granting any mutation authority."""
+
+    if (
+        type(logical_id) is not str
+        or _LOGICAL_REFERENCE_ID.fullmatch(logical_id) is None
+        or type(classification) is not DataClassification
+    ):
+        raise ExternalSourceError(
+            ExternalSourceCode.INVALID_REQUEST,
+            "registered source metadata is not canonical",
+        )
+    source = _validated_registered_source_path(source_path)
+    if _is_sqlite_name(source.name):
+        raise ExternalSourceError(
+            ExternalSourceCode.SQLITE_REJECTED,
+            "SQLite databases and sidecars require the database backup flow",
+        )
+    api = _ReferenceReadApi(_constructor=_READ_API_CONSTRUCTOR)
+    handle: int | None = None
+    try:
+        handle, baseline, _actual_name = _open_verified(
+            api,
+            source,
+            directory=False,
+            exact_name=source.name,
+        )
+        if baseline.link_count != 1:
+            raise ExternalSourceError(
+                ExternalSourceCode.HARDLINK_REJECTED,
+                "registered source must have exactly one hard link",
+            )
+        if baseline.end_of_file > SYNTHETIC_REFERENCE_MAX_BYTES:
+            raise ExternalSourceError(
+                ExternalSourceCode.RESOURCE_LIMIT,
+                "registered source exceeds the fixed 64 MiB limit",
+            )
+        prefix = api.read_prefix(handle, len(_SQLITE_HEADER))
+        after_prefix = api.observe(handle)
+        if not _same_snapshot(baseline, after_prefix):
+            raise ExternalSourceError(
+                ExternalSourceCode.SOURCE_CHANGED,
+                "registered source changed during its content-type gate",
+            )
+        if prefix.startswith(_SQLITE_HEADER):
+            raise ExternalSourceError(
+                ExternalSourceCode.SQLITE_REJECTED,
+                "SQLite content requires the database backup flow",
+            )
+        lease = _RegisteredExternalReadLease(
+            api=api,
+            handle=handle,
+            baseline=after_prefix,
+            source_path=source,
+            logical_id=logical_id,
+            classification=classification,
+            _constructor=_REGISTERED_LEASE_CONSTRUCTOR,
+        )
+        handle = None
+        return lease
+    except ExternalSourceError as error:
+        if handle is not None:
+            try:
+                api.close(handle)
+            except ExternalSourceError as close_error:
+                _raise_path_free(close_error)
+        _raise_path_free(error)
+    except BaseException:
+        if handle is not None:
+            try:
+                api.close(handle)
+            except ExternalSourceError as close_error:
+                _raise_path_free(close_error)
+        _raise_path_free(
+            ExternalSourceError(
+                ExternalSourceCode.INTERNAL_FAILURE,
+                "registered source factory failed safely",
             )
         )
 

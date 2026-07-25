@@ -1,6 +1,29 @@
 # 当前状态
 
-更新时间：2026-07-25 15:20 +08:00
+更新时间：2026-07-25 18:28 +08:00
+
+## M0-S6 与 M0 总门验收（2026-07-25）
+
+- M0 已通过本机总门，机器可读状态为`M0_EXIT_ACCEPTED`；60个生产源、420个副作用入口、
+  17个分片全部具备精确控制绑定，`UNKNOWN=0`、未迁移入口0、无效绑定0，
+  `production_writer_connected=true`、`m0_exit_allowed=true`。
+- `RUN-20260725-M0-S6-FLOWS-145`完成六条真实流程：中文/空格 fresh-state、portable root
+  与无效根失败关闭、Test外真实PDF只读Copy、合法/越界写、数据库副本迁移/回滚以及金标
+  第1页定位。外部原件物理路径和文件名未进入tracked证据。
+- `RUN-20260725-M0-S6-GATE-147`通过628/628；26,870项保护树、82个登记来源、活动库、
+  watcher、句柄围栏、run tree、不可变证据和进程树全部干净。
+- 加入退出合同与最终清单后，`RUN-20260725-M0-S6-EXIT-149`通过34/34，最终inventory
+  `RUN-20260725-M0-S6-INVENTORY-148`的payload为
+  `d78470cc94bf23eae6871c0e05ff1b839d3de5e4190f3fae87a87cfc040fc778`。
+- 活动SQLite没有迁移或切换，SHA-256仍为
+  `1505bf05bd8e385eada30642110596363c561c330da02a40a497072064ad1c94`，
+  大小、mtime不变且`user_version=0`；v1迁移只在rescue副本上验证并已回滚到旧读取路径。
+- 19个冷归档已重算哈希并完整列出238,143个成员；14个旧test runs和7个旧preview在
+  归档验证后可恢复迁往C盘，没有永久删除。E盘热目录只保留147、149和preview 148，
+  可用空间约79.10 GiB。
+- M0已具备显式Git检查点条件；M0不是长期终点。发布检查点后直接进入M1真实完整试卷
+  Copy→导入→人工复核→正式渲染闭环。完整证据见
+  `Task/reports/M0/M0-S6-real-flows-production-writer-exit.md`。
 
 ## M0-S5 本地验收与门禁整理（2026-07-25）
 
@@ -78,11 +101,12 @@
 ## 长期执行状态
 
 - 计划版本：1.1.0
-- 当前阶段：M0 入场审计完成，M0 尚未验收
-- 当前切片：M0-S5领域模型、IR与金标基线已验收、提交、普通push并核对远端分支；进入M0-S6真实流程与M0总门
-- M0—M5 实现：M0 已开始；M1—M5 未开始
+- 当前阶段：M0 已通过总门，等待显式Git检查点；随后进入M1
+- 当前切片：M0-S6真实流程、production writer、退出合同和存储整理已验收
+- M0—M5 实现：M0 已验收；M1—M5 未开始
 - 本任务有效终点：按用户后续明确要求，连续完成修订后的 M0—M5，直到真实用户流程、恢复演练和客户交付包全部通过；不得把 M0 或代码完成误报为终局
-- 当前禁止：活动数据库迁移、题库导入、OCR、正式排版、批量资产、备份切换和业务文件清理
+- 当前禁止：未经独立备份/回滚门的活动数据库切换、OCR、批量资产、业务文件清理；
+  M1真实导入必须先进入Copy并只在候选状态推进
 
 ## 2026-07-24 新电脑恢复与可迁移根基线
 
@@ -114,14 +138,16 @@
 - 目标 NEW9 PDF 已在 Test 内，但其正文无可提取文字层；视觉回归必须包含整页像素/锚点检查
 - 活动 SQLite SHA-256 为`1505bf05...ad1c94`，`integrity_check=ok`、外键违规 0、`user_version=0`，19 个业务表均为 0 行
 - 历史“1123 题/阶段 14”报告不是当前可复现事实
-- 生产静态 inventory V16 覆盖`app/`和`scripts/`的58个源文件、462个副作用入口和19个分片；`UNKNOWN=0`、未授权安全内核构造0，但462项仍全部`UNMIGRATED_BLOCKED`
-- Policy V7 digest 为`8df50ded...e4d88`；生产 boundary 固定根且`writer_available=false`，`m0_exit_allowed=false`
+- 生产静态 inventory V21 覆盖`app/`和`scripts/`的60个源文件、420个副作用入口和
+  17个分片；`UNKNOWN=0`、未迁移入口0、无效绑定0
+- production boundary固定portable root并提供handle writer；
+  `production_writer_connected=true`、`m0_exit_allowed=true`、`M0_EXIT_ACCEPTED`
 - S3-E 最终核心回归`RUN-20260712-M0-S3E-016`为`30 passed`，launcher 门`RUN-20260712-M0-S3E-LAUNCHER-018`为`72 passed`，组合门`RUN-20260712-M0-S3E-COMBINED-019`为`399 passed`；JUnit failure/error/skip 均为 0
 - RUN-009 保护树前后均 93,762 条、运行时变更 0、句柄围栏 93,762 个；活动 SQLite 前后 SHA-256 相同。旧结果字段`source inputs unchanged`只是该次已监测保护集的起止/运行时证据，不声称监控整机或未登记外部源
-- Scanner V16使用`UTF8_LF_V1`规范化并覆盖portable-root authority、S3安全内核、
-  SQLite迁移/备份及S5领域/IR/gold验证器；最终inventory digest为
-  `cc828c0925b2d83be7d17e831fa3370585cee8fa2376f4c4989b798f51389b0c`，生产writer与
-  `m0_exit_allowed`均为false
+- Scanner V21使用`UTF8_LF_V1`规范化并覆盖portable-root authority、生产handle writer、
+  SQLite迁移/备份、外部Copy及领域/IR/gold验证器；最终inventory payload为
+  `d78470cc94bf23eae6871c0e05ff1b839d3de5e4190f3fae87a87cfc040fc778`，
+  生产writer与M0退出合同均已接受
 
 ## 工具与发布状态
 

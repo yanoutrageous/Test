@@ -14,6 +14,7 @@ from .database_migrations import (
     inspect_migration_state,
     migrate_database,
 )
+from .safety.workspace_io import get_workspace_io
 
 
 _REPARSE_ATTRIBUTE = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
@@ -21,6 +22,17 @@ _REPARSE_ATTRIBUTE = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
 
 class _ManagedConnection(sqlite3.Connection):
     """Commit/rollback like sqlite3, then release the Windows file handles."""
+
+    _workspace_mutation_lease: Any = None
+
+    def close(self) -> None:
+        lease = self._workspace_mutation_lease
+        self._workspace_mutation_lease = None
+        try:
+            super().close()
+        finally:
+            if lease is not None:
+                lease.__exit__(None, None, None)
 
     def __exit__(
         self,
@@ -35,16 +47,26 @@ class _ManagedConnection(sqlite3.Connection):
 
 
 def connect_database(db_path: Path | None = None) -> sqlite3.Connection:
-    path = (
-        Path(db_path).resolve()
+    requested = (
+        Path(db_path)
         if db_path is not None
         else get_project_paths(require_target_pdf=False).db_path
     )
-    path.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(path, factory=_ManagedConnection)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys = ON")
-    return conn
+    lease = get_workspace_io().database_mutation_lease(requested)
+    path = lease.__enter__()
+    conn: _ManagedConnection | None = None
+    try:
+        conn = sqlite3.connect(path, factory=_ManagedConnection)
+        conn._workspace_mutation_lease = lease
+        conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA foreign_keys = ON")
+        return conn
+    except BaseException:
+        if conn is None:
+            lease.__exit__(None, None, None)
+        else:
+            conn.close()
+        raise
 
 
 def _read_only_uri(path: Path, *, immutable: bool) -> str:
@@ -58,6 +80,9 @@ def _read_only_uri(path: Path, *, immutable: bool) -> str:
 def _validate_read_only_database(path: Path) -> Path:
     if not path.is_absolute():
         raise FileNotFoundError("read-only database path must already be absolute")
+    if not os.path.lexists(path):
+        raise FileNotFoundError("read-only database file was not found")
+    path = get_workspace_io().validate_read_file_path(path)
     identity = os.lstat(path)
     if (
         stat.S_ISLNK(identity.st_mode)
@@ -99,8 +124,13 @@ def initialize_database(db_path: Path | None = None) -> dict[str, Any]:
         resolved_db_path = paths.db_path
     else:
         paths = get_project_paths(require_target_pdf=False)
-        resolved_db_path = Path(db_path).resolve()
-        resolved_db_path.parent.mkdir(parents=True, exist_ok=True)
+        requested_db_path = Path(db_path)
+        get_workspace_io().ensure_directory(requested_db_path.parent)
+        resolved_db_path = (
+            requested_db_path
+            if requested_db_path.is_absolute()
+            else get_workspace_io().project_root / requested_db_path
+        )
     existed_before = resolved_db_path.exists()
 
     migration = migrate_database(resolved_db_path)

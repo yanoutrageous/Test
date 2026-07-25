@@ -14,3 +14,5 @@ Task/*.md text eol=lf
 Task/**/*.md text eol=lf
 Task/*.py text eol=lf
 Task/**/*.py text eol=lf
+contracts/*.json text eol=lf
+contracts/**/*.json text eol=lf

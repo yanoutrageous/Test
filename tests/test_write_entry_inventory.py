@@ -15,8 +15,15 @@ from app.safety.static_audit import (
     _AUDITED_DYNAMIC_CALLS,
     _AUDITED_INDEXED_CALLS,
     _AUDITED_PARAMETER_CALLS,
+    _ControlBinding,
+    _RawEntry,
     _assert_audited_indexed_hits,
+    _canonical_sha256,
+    _control_binding_matches,
     _normalize_source_bytes,
+    CONTROL_BINDING_CONTRACT,
+    CONTROL_BINDING_RELATIVE_PATH,
+    CONTROL_BINDING_SCHEMA_VERSION,
     ENTRY_CHUNK_SIZE,
     MigrationStatus,
     SCANNER_VERSION,
@@ -25,6 +32,8 @@ from app.safety.static_audit import (
     inventory_digest,
     payload_digest,
     production_source_manifest,
+    recommended_control_binding,
+    scan_production_unbound_entries,
     scan_production_write_entries,
     scan_python_source,
     scan_unauthorized_guard_construction,
@@ -46,7 +55,7 @@ def _entry_rows(payload: dict) -> list[dict]:
     for expected_index, reference in enumerate(payload["entry_chunks"]):
         chunk_path = PROJECT_ROOT / reference["path"]
         chunk = json.loads(chunk_path.read_text(encoding="utf-8"))
-        assert chunk["schema_version"] == "2.0"
+        assert chunk["schema_version"] == "3.0"
         assert chunk["chunk_index"] == expected_index
         assert chunk["entry_count"] == len(chunk["entries"])
         assert 0 < chunk["entry_count"] <= payload["entry_chunk_size"]
@@ -72,7 +81,7 @@ def test_tracked_inventory_matches_full_current_scanner_and_source_manifest() ->
     payload = _payload()
     entries = scan_production_write_entries()
 
-    assert payload["schema_version"] == "2.0"
+    assert payload["schema_version"] == "3.0"
     assert payload["scanner_version"] == SCANNER_VERSION
     assert payload["source_byte_normalization"] == SOURCE_BYTE_NORMALIZATION
     assert payload["entry_chunk_size"] == ENTRY_CHUNK_SIZE
@@ -149,16 +158,18 @@ def test_inventory_counts_and_policy_metadata_are_internally_consistent() -> Non
         assert row["target_namespace"] not in {"", "UNCLASSIFIED"}
         assert row["required_control"]
         assert row["migration_status"] in {
-            MigrationStatus.UNMIGRATED_BLOCKED.value,
+            MigrationStatus.MIGRATED_GUARDED.value,
             MigrationStatus.ACCEPTED_MEMORY_ONLY.value,
+            MigrationStatus.ACCEPTED_NON_MUTATING.value,
         }
+        assert row["control_binding_id"] == row["entry_id"]
         assert row["root_ids"]
         assert row["call_chain"]
         assert row["source_sha256"]
         assert row["statement_fingerprint"]
-    assert payload["global_status"] == "UNMIGRATED_BLOCKED"
-    assert payload["gate"]["production_writer_connected"] is False
-    assert payload["gate"]["m0_exit_allowed"] is False
+    assert payload["global_status"] == "M0_EXIT_ACCEPTED"
+    assert payload["gate"]["production_writer_connected"] is True
+    assert payload["gate"]["m0_exit_allowed"] is True
     assert payload["gate"]["unknown_dynamic_count"] == counts.get(
         WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY.value,
         0,
@@ -167,6 +178,17 @@ def test_inventory_counts_and_policy_metadata_are_internally_consistent() -> Non
         row["migration_status"] == MigrationStatus.UNMIGRATED_BLOCKED.value
         for row in rows
     )
+    assert payload["gate"]["unmigrated_count"] == 0
+    assert payload["gate"]["invalid_binding_count"] == 0
+    contract_path = PROJECT_ROOT / CONTROL_BINDING_RELATIVE_PATH
+    contract = json.loads(contract_path.read_text(encoding="utf-8"))
+    assert payload["control_binding_contract"] == {
+        "path": CONTROL_BINDING_RELATIVE_PATH.as_posix(),
+        "file_sha256": hashlib.sha256(contract_path.read_bytes()).hexdigest(),
+        "declared_count": len(contract["bindings"]),
+        "applied_count": len(rows),
+        "invalid_count": 0,
+    }
     assert sum(reference["entry_count"] for reference in payload["entry_chunks"]) == len(rows)
 
 
@@ -177,7 +199,7 @@ def test_inventory_covers_sql_sinks_schema_scripts_and_injected_connections() ->
 
     assert counts[WritePrimitiveKind.SQLITE_MUTATION] >= 52
     assert counts[WritePrimitiveKind.SQLITE_SCHEMA_MUTATION] >= 80
-    assert counts[WritePrimitiveKind.SQLITE_RAW_CONNECT] == 7
+    assert counts[WritePrimitiveKind.SQLITE_RAW_CONNECT] == 6
     assert any(
         file == "app/review_events.py"
         and function.endswith("ReviewEventService.record")
@@ -217,7 +239,7 @@ def test_inventory_covers_sql_sinks_schema_scripts_and_injected_connections() ->
     )
 
 
-def test_no_memory_only_exception_is_inferred_from_file_or_function_name() -> None:
+def test_control_bindings_are_exact_and_memory_only_scope_is_fixed() -> None:
     entries = scan_production_write_entries()
     accepted = [
         entry
@@ -225,10 +247,92 @@ def test_no_memory_only_exception_is_inferred_from_file_or_function_name() -> No
         if entry.migration_status is MigrationStatus.ACCEPTED_MEMORY_ONLY
     ]
 
-    assert accepted == []
+    assert {
+        (entry.file, entry.function, entry.kind)
+        for entry in accepted
+    } == {
+        (
+            "app/database_migrations.py",
+            "app.database_migrations._expected_base_objects",
+            WritePrimitiveKind.SQLITE_RAW_CONNECT,
+        ),
+        (
+            "app/database_migrations.py",
+            "app.database_migrations._expected_base_objects",
+            WritePrimitiveKind.SQLITE_DYNAMIC_SQL,
+        ),
+        (
+            "app/database_migrations.py",
+            "app.database_migrations._expected_current_objects",
+            WritePrimitiveKind.SQLITE_RAW_CONNECT,
+        ),
+        (
+            "app/database_migrations.py",
+            "app.database_migrations._expected_current_objects",
+            WritePrimitiveKind.SQLITE_DYNAMIC_SQL,
+        ),
+        (
+            "app/health.py",
+            "app.health.check_sqlite",
+            WritePrimitiveKind.SQLITE_RAW_CONNECT,
+        ),
+        (
+            "app/health.py",
+            "app.health.check_sqlite",
+            WritePrimitiveKind.SQLITE_MUTATION,
+        ),
+    }
+    assert len(accepted) == 8
+    assert all(entry.control_binding_id == entry.entry_id for entry in entries)
     assert all(
-        entry.migration_status is MigrationStatus.UNMIGRATED_BLOCKED
+        entry.migration_status is not MigrationStatus.UNMIGRATED_BLOCKED
         for entry in entries
+    )
+
+    contract_path = PROJECT_ROOT / CONTROL_BINDING_RELATIVE_PATH
+    contract = json.loads(contract_path.read_text(encoding="utf-8"))
+    assert contract["schema_version"] == CONTROL_BINDING_SCHEMA_VERSION
+    assert contract["binding_contract"] == CONTROL_BINDING_CONTRACT
+    assert contract["scanner_version"] == SCANNER_VERSION
+    assert contract["binding_count"] == len(contract["bindings"]) == len(entries)
+    assert contract["bindings_digest_sha256"] == _canonical_sha256(
+        contract["bindings"]
+    )
+
+    unbound = scan_production_unbound_entries()
+    assert len(unbound) == len(entries)
+    first = unbound[0]
+    recommendation = recommended_control_binding(first)
+    assert recommendation is not None
+    control_id, status = recommendation
+    raw = _RawEntry(
+        file=first.file,
+        source_sha256=first.source_sha256,
+        line=first.line,
+        column=first.column,
+        end_line=first.end_line,
+        end_column=first.end_column,
+        function=first.function,
+        kind=first.kind,
+        callee=first.callee,
+        resolution=first.resolution,
+        statement_fingerprint=first.statement_fingerprint,
+        detail=first.detail,
+    )
+    binding = _ControlBinding(
+        entry_id=first.entry_id,
+        file=first.file,
+        source_sha256=first.source_sha256,
+        statement_fingerprint=first.statement_fingerprint,
+        kind=first.kind,
+        control_id=control_id,
+        migration_status=status,
+    )
+    assert _control_binding_matches(raw, first.entry_id, binding)
+    assert not _control_binding_matches(
+        raw,
+        first.entry_id,
+        replace(binding, source_sha256="0" * 64),
     )
 
 

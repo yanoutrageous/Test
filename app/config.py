@@ -85,6 +85,9 @@ def get_project_paths(
     require_target_pdf: bool = True,
     target_pdf: str | Path | None = None,
 ) -> ProjectPaths:
+    from .safety.workspace_io import get_workspace_io
+
+    project_root = get_workspace_io().validate_directory_path(project_root)
     base_dir = project_root / "Base"
     data_dir = project_root / "data"
     db_dir = data_dir / "db"
@@ -118,10 +121,13 @@ def ensure_storage_directories(
     require_target_pdf: bool = False,
     target_pdf: str | Path | None = None,
 ) -> ProjectPaths:
+    from .safety.workspace_io import get_workspace_io
+
     resolved = paths or get_project_paths(
         require_target_pdf=require_target_pdf,
         target_pdf=target_pdf,
     )
+    workspace_io = get_workspace_io()
     for directory in (
         resolved.data_dir,
         resolved.db_dir,
@@ -131,6 +137,6 @@ def ensure_storage_directories(
         resolved.paper_pages_dir,
         resolved.exports_dir,
     ):
-        directory.mkdir(parents=True, exist_ok=True)
+        workspace_io.ensure_directory(directory)
 
     return resolved

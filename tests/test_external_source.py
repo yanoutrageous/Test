@@ -19,6 +19,9 @@ from app.safety.external_source import (
     SYNTHETIC_REFERENCE_POLICY_DIGEST,
     ExternalSourceCode,
     ExternalSourceError,
+    RegisteredSourceEvidence,
+    RegisteredSourceMaterial,
+    RegisteredSourceVerification,
     SyntheticReferenceReadPolicy,
     SyntheticSourceEvidence,
     SyntheticSourceMaterial,
@@ -29,6 +32,7 @@ from app.safety.external_source import (
     _create_synthetic_reference_read_policy,
     _issue_copy_execution_permit,
     _validate_copy_execution_permit,
+    open_registered_external_source,
 )
 from app.workspace_guard import PathIntent
 from tests.conftest import register_synthetic_source
@@ -68,6 +72,12 @@ def _external_boundary_surfaces() -> tuple[FunctionType, ...]:
         _validate_copy_execution_permit,
         _consume_copy_execution_permit,
         _create_synthetic_reference_read_policy,
+        external_source_module._RegisteredExternalReadLease.read_once,
+        external_source_module._RegisteredExternalReadLease.verify_unchanged,
+        external_source_module._RegisteredExternalReadLease.close,
+        external_source_module._RegisteredExternalReadLease.__enter__,
+        external_source_module._RegisteredExternalReadLease.__exit__,
+        open_registered_external_source,
     )
 
 
@@ -166,6 +176,49 @@ def test_internal_source_read_and_final_reverification_are_handle_bound(
     assert material.evidence.destination_name == SYNTHETIC_REFERENCE_PAYLOAD_NAME
     assert verification.evidence is material.evidence
     assert source.read_bytes() == payload
+
+
+def test_registered_source_public_lease_is_handle_bound_and_path_redacted(
+    external_lab: _ExternalLab,
+) -> None:
+    payload = b"registered external source"
+    source = external_lab.write("registered-public-source.svg", payload)
+
+    with open_registered_external_source(
+        source,
+        logical_id="REF-UNIT-REGISTERED-SOURCE",
+        classification=DataClassification.INTERNAL,
+    ) as lease:
+        material = lease.read_once()
+        verification = lease.verify_unchanged(material.evidence)
+
+    assert type(material) is RegisteredSourceMaterial
+    assert type(material.evidence) is RegisteredSourceEvidence
+    assert type(verification) is RegisteredSourceVerification
+    assert material.payload == payload
+    assert material.evidence.logical_id == "REF-UNIT-REGISTERED-SOURCE"
+    assert material.evidence.sha256 == hashlib.sha256(payload).hexdigest()
+    assert verification.evidence is material.evidence
+    exposed = repr(lease) + repr(material) + repr(verification)
+    assert source.name not in exposed
+    assert str(source) not in exposed
+
+
+def test_registered_source_rejects_other_project_local_files_without_path_leak(
+    external_lab: _ExternalLab,
+) -> None:
+    project_file = Path(__file__).parent.parent / "README.md"
+    with pytest.raises(ExternalSourceError) as captured:
+        open_registered_external_source(
+            project_file,
+            logical_id="REF-UNIT-REJECT-PROJECT",
+            classification=DataClassification.INTERNAL,
+        )
+
+    assert captured.value.code is ExternalSourceCode.PATH_REJECTED
+    surface = repr(captured.value) + str(captured.value)
+    assert project_file.name not in surface
+    assert str(project_file) not in surface
 
 
 def test_restricted_record_is_hmac_only_and_contains_no_source_or_ids(

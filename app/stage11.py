@@ -13,6 +13,7 @@ from .risk_classifier import (
     USABILITY_CLASSIFICATION_VERSION,
     RiskClassifier,
 )
+from .safety.workspace_io import get_workspace_io
 from .stage10 import HIGH_RISK_PAGES, questions_main_checksum
 from .structured_content import initialize_structured_contents, parse_json_field
 
@@ -193,9 +194,8 @@ def write_stage11_quality_report(
     )
     summary = classify_result["summary"]
     report_path = project_root / STAGE11_REPORT_RELATIVE_PATH
-    report_path.parent.mkdir(parents=True, exist_ok=True)
     report_text = _render_stage11_report(summary)
-    report_path.write_text(report_text, encoding="utf-8")
+    get_workspace_io().write_text_idempotent(report_path, report_text)
     return {
         "status": "ok",
         "relative_path": STAGE11_REPORT_RELATIVE_PATH.as_posix(),

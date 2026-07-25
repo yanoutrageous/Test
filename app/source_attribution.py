@@ -8,6 +8,7 @@ from typing import Any
 
 from .config import PROJECT_ROOT
 from .database import connect_database, connect_database_read_only, initialize_database
+from .safety.workspace_io import get_workspace_io
 
 
 SOURCE_ATTRIBUTION_VERSION = "source_attribution_v2"
@@ -354,13 +355,15 @@ class SourceAttributionService:
     def write_report(self, *, summary: dict[str, Any] | None = None) -> dict[str, Any]:
         summary = summary or self.summarize()
         report_path = self.project_root / REPORT_RELATIVE_PATH
-        report_path.parent.mkdir(parents=True, exist_ok=True)
-        report_path.write_text(_render_report_markdown(summary), encoding="utf-8")
+        receipt = get_workspace_io().write_text_idempotent(
+            report_path,
+            _render_report_markdown(summary),
+        )
         return {
             "status": "ok",
             "path": str(report_path),
             "relative_path": str(REPORT_RELATIVE_PATH).replace("\\", "/"),
-            "size_bytes": report_path.stat().st_size,
+            "size_bytes": receipt.size_bytes,
         }
 
 

@@ -87,7 +87,7 @@ def test_create_file_with_chinese_path_is_handle_verified(handle_lab: _HandleLab
     assert receipt.operation == "CREATE_FILE"
     assert receipt.size_bytes == len(payload)
     assert receipt.sha256 == _sha256(payload)
-    assert receipt.capability_state == "TEST_LOCAL_HANDLE_VERIFIED"
+    assert receipt.capability_state == "HANDLE_VERIFIED_V1"
     assert handle_lab.sentinel.read_bytes() == b"handle-writer-protected-sentinel"
 
 

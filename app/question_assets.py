@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 import re
@@ -7,7 +8,12 @@ from pathlib import Path
 from typing import Any
 
 from .config import PROJECT_ROOT, get_project_paths
-from .database import connect_database, initialize_database
+from .database import (
+    connect_database,
+    connect_database_read_only,
+    initialize_database,
+)
+from .safety.workspace_io import WorkspaceIOCode, WorkspaceIOError, get_workspace_io
 
 
 class QuestionAssetError(RuntimeError):
@@ -68,7 +74,8 @@ def crop_question_assets(
 ) -> dict[str, Any]:
     initialize_database(db_path)
     paths = get_project_paths(project_root)
-    paths.question_images_dir.mkdir(parents=True, exist_ok=True)
+    workspace_io = get_workspace_io()
+    workspace_io.ensure_directory(paths.question_images_dir)
 
     generated = 0
     reused = 0
@@ -77,7 +84,14 @@ def crop_question_assets(
 
     import fitz
 
-    with connect_database(db_path or paths.db_path) as conn:
+    requested_db_path = Path(db_path) if db_path is not None else paths.db_path
+    resolved_db_path = (
+        requested_db_path
+        if requested_db_path.is_absolute()
+        else project_root / requested_db_path
+    )
+    pending_statements: list[tuple[str, tuple[Any, ...]]] = []
+    with connect_database_read_only(resolved_db_path) as conn:
         rows = _load_crop_rows(conn, question_ids)
         for row in rows:
             if not row["page_image_path"]:
@@ -92,6 +106,11 @@ def crop_question_assets(
                 continue
             if not page_image_path.exists():
                 skipped.append({"question_id": row["id"], "reason": "page_image_missing_file"})
+                continue
+            try:
+                page_image_path = workspace_io.validate_read_file_path(page_image_path)
+            except WorkspaceIOError:
+                skipped.append({"question_id": row["id"], "reason": "page_image_unsafe"})
                 continue
 
             try:
@@ -122,14 +141,30 @@ def crop_question_assets(
                     continue
 
                 output_dir = paths.question_images_dir / row["paper_code"]
-                output_dir.mkdir(parents=True, exist_ok=True)
+                workspace_io.ensure_directory(output_dir)
                 output_path = output_dir / f"{_safe_filename(row['qid'])}.png"
-                if overwrite or not output_path.exists():
-                    pixmap = image_page.get_pixmap(clip=fitz.Rect(x0, y0, x1, y1))
-                    pixmap.save(output_path)
-                    generated += 1
-                else:
+                pixmap = image_page.get_pixmap(clip=fitz.Rect(x0, y0, x1, y1))
+                png_bytes = pixmap.tobytes("png")
+                try:
+                    receipt = workspace_io.write_bytes_idempotent(
+                        output_path,
+                        png_bytes,
+                    )
+                except WorkspaceIOError as error:
+                    if not overwrite or error.code is not WorkspaceIOCode.TARGET_CONFLICT:
+                        raise
+                    digest_suffix = hashlib.sha256(png_bytes).hexdigest()[:12]
+                    output_path = output_dir / (
+                        f"{_safe_filename(row['qid'])}-{digest_suffix}.png"
+                    )
+                    receipt = workspace_io.write_bytes_idempotent(
+                        output_path,
+                        png_bytes,
+                    )
+                if receipt.idempotent:
                     reused += 1
+                else:
+                    generated += 1
 
             relative_output = _relative_to_project(output_path, project_root)
             crop_bbox_json = json.dumps(
@@ -162,7 +197,8 @@ def crop_question_assets(
                 (row["id"],),
             ).fetchone()
             if existing is None:
-                conn.execute(
+                pending_statements.append(
+                    (
                     """
                     INSERT INTO question_assets (
                         question_id,
@@ -173,17 +209,19 @@ def crop_question_assets(
                         meta_json
                     ) VALUES (?, ?, ?, ?, ?, ?)
                     """,
-                    (
-                        row["id"],
-                        "raw_crop",
-                        relative_output,
-                        row["source_page"],
-                        crop_bbox_json,
-                        meta_json,
+                        (
+                            row["id"],
+                            "raw_crop",
+                            relative_output,
+                            row["source_page"],
+                            crop_bbox_json,
+                            meta_json,
+                        ),
                     ),
                 )
             else:
-                conn.execute(
+                pending_statements.append(
+                    (
                     """
                     UPDATE question_assets
                        SET relative_path = ?,
@@ -192,16 +230,21 @@ def crop_question_assets(
                            meta_json = ?
                      WHERE id = ?
                     """,
-                    (
-                        relative_output,
-                        row["source_page"],
-                        crop_bbox_json,
-                        meta_json,
-                        existing["id"],
+                        (
+                            relative_output,
+                            row["source_page"],
+                            crop_bbox_json,
+                            meta_json,
+                            existing["id"],
+                        ),
                     ),
                 )
-            updated_records += 1
 
+    # Publish immutable crops before acquiring the database mutation lease.
+    with connect_database(resolved_db_path) as conn:
+        for statement, parameters in pending_statements:
+            conn.execute(statement, parameters)
+            updated_records += 1
         conn.commit()
         asset_count = conn.execute(
             "SELECT count(*) FROM question_assets WHERE asset_kind = 'raw_crop'"

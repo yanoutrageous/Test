@@ -150,6 +150,7 @@ _MAX_TOMBSTONES = 8192
 _ResultValue = TypeVar("_ResultValue")
 _PRODUCTION_BOUNDARY_LOCK = threading.Lock()
 _production_boundary_singleton: ProductionWorkspaceBoundary | None = None
+PRODUCTION_WRITER_CONTRACT_VERSION = "FIXED_ROOT_HANDLE_WRITER_V1"
 
 
 @dataclass(frozen=True, slots=True)
@@ -3782,16 +3783,22 @@ class _BoundaryCore:
 
 
 class ProductionWorkspaceBoundary:
-    """Fixed-root, candidate-only production boundary with no injected dependencies."""
+    """Fixed-root production boundary with one shared Guard and handle writer."""
 
-    __slots__ = ("__core",)
+    __slots__ = ("__core", "__writer")
 
     def __init__(self, *, _constructor: object | None = None) -> None:
         if _constructor is not _PRODUCTION_BOUNDARY_CONSTRUCTOR:
             raise TypeError("ProductionWorkspaceBoundary is available only from its fixed singleton factory")
         root = _contract_root()
+        guard = WorkspaceGuard(root)
+        self.__writer = _WindowsHandleWriter(
+            guard,
+            _constructor=_HANDLE_WRITER_CONSTRUCTOR,
+            workspace_root=root,
+        )
         self.__core = _BoundaryCore(
-            guard=WorkspaceGuard(root),
+            guard=guard,
             expected_workspace_root=root,
         )
 
@@ -3805,14 +3812,14 @@ class ProductionWorkspaceBoundary:
 
     @property
     def writer_available(self) -> bool:
-        return False
+        return True
 
     @property
     def audit_events(self) -> tuple[AuditEvent, ...]:
         return self.__core.audit_events
 
-    def require_writer(self) -> None:
-        raise WriterUnavailableError()
+    def require_writer(self) -> _WindowsHandleWriter:
+        return self.__writer
 
     def authorize(
         self,

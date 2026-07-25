@@ -13,6 +13,8 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
+from .safety.workspace_io import WorkspaceIOError, get_workspace_io
+
 
 SCHEMA_PATH = Path(__file__).with_name("schema.sql")
 CURRENT_SCHEMA_VERSION = 1
@@ -370,11 +372,19 @@ def migrate_database(
             DatabaseMigrationCode.MIGRATION_FAILED,
             "failpoint must be a published MigrationFailurePoint",
         )
-    path = _validate_database_path(Path(db_path), must_exist=False)
-
-    conn = sqlite3.connect(path, isolation_level=None)
-    conn.row_factory = sqlite3.Row
+    lease = get_workspace_io().database_mutation_lease(Path(db_path))
     try:
+        path = lease.__enter__()
+    except WorkspaceIOError as exc:
+        raise DatabaseMigrationError(
+            DatabaseMigrationCode.INVALID_PATH,
+            "database path is outside the fixed workspace writer",
+        ) from exc
+    conn: sqlite3.Connection | None = None
+    try:
+        path = _validate_database_path(path, must_exist=True)
+        conn = sqlite3.connect(path, isolation_level=None)
+        conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA foreign_keys = ON")
         before = inspect_migration_state(conn)
         if before.schema_version == CURRENT_SCHEMA_VERSION:
@@ -438,6 +448,8 @@ def migrate_database(
     except BaseException:
         raise
     finally:
-        conn.close()
+        if conn is not None:
+            conn.close()
+        lease.__exit__(None, None, None)
         if path.exists():
             _validate_database_path(path, must_exist=True)

@@ -1,0 +1,100 @@
+{
+  "activity_database": {
+    "bytes": 471040,
+    "mtime_unchanged": true,
+    "schema_activation": "DEFERRED",
+    "schema_version": 0,
+    "sha256": "1505bf05bd8e385eada30642110596363c561c330da02a40a497072064ad1c94",
+    "unchanged": true
+  },
+  "audits": {
+    "dangerous_shell_call_matches": 0,
+    "diff_check_findings": 0,
+    "fixed_machine_or_parent_binding_matches": 0,
+    "fixed_physical_locator_matches": 0,
+    "tracked_external_locator_matches": 0,
+    "undisclosed_p0_p1": 0
+  },
+  "checks": {
+    "activity_database_unchanged": true,
+    "fixed_physical_paths_absent": true,
+    "gold_registry_covered": true,
+    "malicious_paths_rejected": true,
+    "migration_roundtrip_passed": true,
+    "outside_writes_zero": true,
+    "production_writes_guarded": true,
+    "undisclosed_p0_p1_zero": true
+  },
+  "decision": "PASS",
+  "disclosed_residual_risks": [
+    {
+      "id": "M0-SYMLINK-CAPABILITY-001",
+      "impact": "The ordinary account cannot create a real directory symbolic link (WinError 1314); the direct NTFS junction rejection passed and the remaining symlink branch is covered by the fail-closed automated matrix.",
+      "priority": "P2",
+      "status": "DISCLOSED_HOST_CAPABILITY_LIMIT"
+    },
+    {
+      "id": "M0-ACTIVITY-SCHEMA-ACTIVATION-DEFERRED",
+      "impact": "The active database intentionally remains on schema version 0; migration version 1 was exercised only on a backup copy and rollback reopened through the old read path.",
+      "priority": "P2",
+      "status": "DEFERRED_BY_M0_ROLLBACK_POLICY"
+    }
+  ],
+  "evidence": {
+    "candidate_s6_core_gate": {
+      "activity_database_unchanged": true,
+      "junit_errors": 0,
+      "junit_failures": 0,
+      "junit_skipped": 0,
+      "junit_tests": 93,
+      "path": "tmp/test_lab/RUN-20260725-M0-S6-144/run-result.json",
+      "run_id": "RUN-20260725-M0-S6-144",
+      "sha256": "7efe47f002e28a8e30ce400d91ae350796fa18f82a7199fdda72d452e9c35bcf"
+    },
+    "candidate_s6_stage_gate": {
+      "activity_database_unchanged": true,
+      "junit_errors": 0,
+      "junit_failures": 0,
+      "junit_skipped": 0,
+      "junit_tests": 628,
+      "path": "tmp/test_lab/RUN-20260725-M0-S6-GATE-147/run-result.json",
+      "protected_tree_entries": 26870,
+      "protected_tree_unchanged": true,
+      "registered_source_final_state_matches": true,
+      "registered_sources": 82,
+      "run_id": "RUN-20260725-M0-S6-GATE-147",
+      "sha256": "ad4305a1873d91a8f4b5a7e2a71a3be80fcfe30e5a3b55e7bfe20a542bb33027"
+    },
+    "real_flows": {
+      "flow_count": 6,
+      "path": "tmp/acceptance/RUN-20260725-M0-S6-FLOWS-145/m0-real-flow-evidence.json",
+      "run_id": "RUN-20260725-M0-S6-FLOWS-145",
+      "sha256": "6af6bd34dd4264cfc1b6449571a6040b6e6458ddbd91ad6d087d2387a32a522c",
+      "status": "PASS"
+    },
+    "write_inventory": {
+      "binding_contract_sha256": "a16232648ebda21e1bf75e5e0c8bea9fd80bf68d04b68a7dc43f0e8b0864aeb7",
+      "entries_digest_sha256": "61d5b5b123481f34b9d5427910744108f2bef07027501b9a7dc450f63bb4702a",
+      "entry_count": 420,
+      "invalid_binding_count": 0,
+      "production_writer_connected": true,
+      "scanner_version": "M0-S6-STATIC-AUDIT-V21",
+      "source_count": 60,
+      "source_manifest_digest_sha256": "0554249910ab3e28158af4badea05ec148eaedab351226e0fffcbe06d37fee7e",
+      "unknown_dynamic_count": 0,
+      "unmigrated_count": 0
+    }
+  },
+  "flows": {
+    "fresh_state_inside_project_root": "PASS",
+    "gold_source_and_representative_page": "PASS",
+    "legal_and_rejected_writes": "PASS",
+    "migration_and_old_read_rollback": "PASS",
+    "portable_migrated_root_and_invalid_roots": "PASS",
+    "registered_external_copy": "PASS"
+  },
+  "generated_at": "2026-07-25T18:21:00+08:00",
+  "git_source_head": "dffdc52ba18f503a5344dc912542f086b3c1a464",
+  "report_id": "M0-S6-REAL-FLOW-EXIT-REPORT-20260725",
+  "schema_version": "1.0"
+}
