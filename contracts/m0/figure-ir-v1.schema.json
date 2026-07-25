@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:local-exam-bank:figure-ir:1.0",
+  "title": "FigureIR v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_id",
+    "schema_version",
+    "ir_id",
+    "revision_id",
+    "figure_kind",
+    "content",
+    "source_refs",
+    "original_asset_ref",
+    "fallback_asset_ref",
+    "style",
+    "extensions"
+  ],
+  "properties": {
+    "schema_id": {
+      "const": "LOCAL_EXAM_BANK_FIGURE_IR"
+    },
+    "schema_version": {
+      "const": "1.0"
+    },
+    "ir_id": {
+      "$ref": "#/$defs/id"
+    },
+    "revision_id": {
+      "$ref": "#/$defs/id"
+    },
+    "figure_kind": {
+      "enum": [
+        "geometry",
+        "function",
+        "statistics"
+      ]
+    },
+    "content": {
+      "type": "object"
+    },
+    "source_refs": {
+      "type": "array",
+      "minItems": 1
+    },
+    "original_asset_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "fallback_asset_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "style": {
+      "type": "object"
+    },
+    "extensions": {
+      "$ref": "#/$defs/extensions"
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9._-]{2,127}$",
+      "not": {
+        "const": "LATEST"
+      }
+    },
+    "extensions": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^x-[a-z0-9][a-z0-9._-]{0,62}$"
+      }
+    }
+  },
+  "x-runtime-validator": "app.ir_contracts.validate_figure_ir"
+}

@@ -1,0 +1,211 @@
+{
+  "schema_id": "LOCAL_EXAM_BANK_TEMPLATE_FAMILIES",
+  "schema_version": "1.0",
+  "families": [
+    {
+      "template_family_id": "TEMPLATE-ANSWER-SCORING-A4-B5",
+      "label": "A4/B5 答案与评分标准",
+      "size_mode": "reference-dependent",
+      "width_mm": null,
+      "height_mm": null,
+      "orientation": "portrait",
+      "document_roles": [
+        "answer",
+        "detailed_solution",
+        "teacher"
+      ],
+      "reference_logical_ids": [
+        "REF-FIVE-ARTIFACT-GOLD",
+        "REF-SCORING-GOLD",
+        "REF-TEMPLATE-ANSWER"
+      ],
+      "extensions": {}
+    },
+    {
+      "template_family_id": "TEMPLATE-ANSWER-SHEET-A3-A4",
+      "label": "A3 双页与 A4 多页答题卡",
+      "size_mode": "reference-dependent",
+      "width_mm": null,
+      "height_mm": null,
+      "orientation": "reference-dependent",
+      "document_roles": [
+        "answer_sheet"
+      ],
+      "reference_logical_ids": [
+        "REF-ANSWER-SHEET-GOLD",
+        "REF-FIVE-ARTIFACT-GOLD"
+      ],
+      "extensions": {}
+    },
+    {
+      "template_family_id": "TEMPLATE-COMPACT-176X250",
+      "label": "紧凑成卷 176×250 mm",
+      "size_mode": "fixed",
+      "width_mm": 176,
+      "height_mm": 250,
+      "orientation": "portrait",
+      "document_roles": [
+        "student",
+        "teacher"
+      ],
+      "reference_logical_ids": [
+        "REF-FIVE-ARTIFACT-GOLD"
+      ],
+      "extensions": {}
+    },
+    {
+      "template_family_id": "TEMPLATE-EDITABLE-B5-184X260",
+      "label": "可编辑 Word B5 184×260 mm",
+      "size_mode": "fixed",
+      "width_mm": 184,
+      "height_mm": 260,
+      "orientation": "portrait",
+      "document_roles": [
+        "student",
+        "teacher"
+      ],
+      "reference_logical_ids": [
+        "REF-EDITABLE-PAPER-SET",
+        "REF-TEMPLATE-PAPER"
+      ],
+      "extensions": {}
+    },
+    {
+      "template_family_id": "TEMPLATE-FIGURE-THREE-TRACK",
+      "label": "题干原图、规范重绘、解答辅助线三轨图形",
+      "size_mode": "not-applicable",
+      "width_mm": null,
+      "height_mm": null,
+      "orientation": "not-applicable",
+      "document_roles": [
+        "answer",
+        "detailed_solution",
+        "student",
+        "teacher"
+      ],
+      "reference_logical_ids": [
+        "REF-FIG-BROKEN-SVG",
+        "REF-FIG-GEOMETRY-SET",
+        "REF-FIG-SOLUTION-SET",
+        "REF-FIG-STAT-SET"
+      ],
+      "extensions": {}
+    },
+    {
+      "template_family_id": "TEMPLATE-LECTURE-A4",
+      "label": "A4 教案与讲义",
+      "size_mode": "fixed",
+      "width_mm": 210,
+      "height_mm": 297,
+      "orientation": "portrait",
+      "document_roles": [
+        "detailed_solution",
+        "teacher"
+      ],
+      "reference_logical_ids": [
+        "REF-LAYOUT-RULES",
+        "REF-METHOD-ANALYSIS"
+      ],
+      "extensions": {}
+    },
+    {
+      "template_family_id": "TEMPLATE-LONG-ANALYSIS",
+      "label": "长篇解析与命题人分析册",
+      "size_mode": "reference-dependent",
+      "width_mm": null,
+      "height_mm": null,
+      "orientation": "portrait",
+      "document_roles": [
+        "detailed_solution",
+        "teacher"
+      ],
+      "reference_logical_ids": [
+        "REF-FIVE-ARTIFACT-GOLD",
+        "REF-MESSY-DOC-SET"
+      ],
+      "extensions": {}
+    },
+    {
+      "template_family_id": "TEMPLATE-NEW9-B5-182X257",
+      "label": "NEW9 仿真 B5 182×257 mm",
+      "size_mode": "fixed",
+      "width_mm": 182,
+      "height_mm": 257,
+      "orientation": "portrait",
+      "document_roles": [
+        "student",
+        "teacher"
+      ],
+      "reference_logical_ids": [
+        "REF-VIS-NEW9"
+      ],
+      "extensions": {}
+    },
+    {
+      "template_family_id": "TEMPLATE-OFFICIAL-A4",
+      "label": "官方与重排 A4",
+      "size_mode": "fixed",
+      "width_mm": 210,
+      "height_mm": 297,
+      "orientation": "portrait",
+      "document_roles": [
+        "student",
+        "teacher"
+      ],
+      "reference_logical_ids": [
+        "REF-EDITABLE-PAPER-SET",
+        "REF-FIVE-ARTIFACT-GOLD"
+      ],
+      "extensions": {}
+    },
+    {
+      "template_family_id": "TEMPLATE-QUALITY-DASHBOARD",
+      "label": "本地测验质量分析仪表盘",
+      "size_mode": "not-applicable",
+      "width_mm": null,
+      "height_mm": null,
+      "orientation": "not-applicable",
+      "document_roles": [
+        "teacher"
+      ],
+      "reference_logical_ids": [
+        "REF-MEASUREMENT-SYNTHETIC"
+      ],
+      "extensions": {}
+    },
+    {
+      "template_family_id": "TEMPLATE-STUDENT-TEACHER-B5",
+      "label": "学生卷与教师卷 B5 长短版",
+      "size_mode": "reference-dependent",
+      "width_mm": null,
+      "height_mm": null,
+      "orientation": "portrait",
+      "document_roles": [
+        "student",
+        "teacher"
+      ],
+      "reference_logical_ids": [
+        "REF-FIVE-ARTIFACT-GOLD",
+        "REF-TEMPLATE-PAPER"
+      ],
+      "extensions": {}
+    },
+    {
+      "template_family_id": "TEMPLATE-TRUE-QUESTION-A3-LANDSCAPE",
+      "label": "A3 横向真题汇编页",
+      "size_mode": "fixed",
+      "width_mm": 420,
+      "height_mm": 297,
+      "orientation": "landscape",
+      "document_roles": [
+        "student",
+        "teacher"
+      ],
+      "reference_logical_ids": [
+        "REF-CONTENT-HISTORY"
+      ],
+      "extensions": {}
+    }
+  ],
+  "extensions": {}
+}

@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:local-exam-bank:paper-ir:1.0",
+  "title": "PaperIR v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_id",
+    "schema_version",
+    "ir_id",
+    "revision_id",
+    "paper_revision_id",
+    "document_roles",
+    "template_revision_id",
+    "title_blocks",
+    "instruction_blocks",
+    "sections",
+    "header_blocks",
+    "footer_blocks",
+    "template_tokens",
+    "declared_total_points",
+    "source_refs",
+    "extensions"
+  ],
+  "properties": {
+    "schema_id": {
+      "const": "LOCAL_EXAM_BANK_PAPER_IR"
+    },
+    "schema_version": {
+      "const": "1.0"
+    },
+    "ir_id": {
+      "$ref": "#/$defs/id"
+    },
+    "revision_id": {
+      "$ref": "#/$defs/id"
+    },
+    "paper_revision_id": {
+      "$ref": "#/$defs/id"
+    },
+    "document_roles": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "student",
+          "teacher",
+          "answer",
+          "detailed_solution",
+          "answer_sheet"
+        ]
+      }
+    },
+    "template_revision_id": {
+      "$ref": "#/$defs/id"
+    },
+    "title_blocks": {
+      "type": "array",
+      "minItems": 1
+    },
+    "instruction_blocks": {
+      "type": "array"
+    },
+    "sections": {
+      "type": "array",
+      "minItems": 1
+    },
+    "header_blocks": {
+      "type": "array"
+    },
+    "footer_blocks": {
+      "type": "array"
+    },
+    "declared_total_points": {
+      "type": "number",
+      "minimum": 0
+    },
+    "template_tokens": {
+      "type": "object"
+    },
+    "source_refs": {
+      "type": "array"
+    },
+    "extensions": {
+      "$ref": "#/$defs/extensions"
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9._-]{2,127}$",
+      "not": {
+        "const": "LATEST"
+      }
+    },
+    "extensions": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^x-[a-z0-9][a-z0-9._-]{0,62}$"
+      }
+    }
+  },
+  "x-runtime-validator": "app.ir_contracts.validate_paper_ir"
+}

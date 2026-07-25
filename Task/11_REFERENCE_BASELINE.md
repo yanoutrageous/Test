@@ -137,6 +137,8 @@
 
 现有约 16 份 XLSX 含姓名、学号、进入/交卷时间、IP、总分和逐题得分。两套 HTML 原型计算难度 P、区分度 D、Cronbach α 和图表，但引用远程 CDN。
 
+M0 可提交的无 PII 合成测量夹具逻辑 ID：`REF-MEASUREMENT-SYNTHETIC`。其 Test 内文件为`gold/m0/measurement-synthetic-v1.json`，只用于冻结`design_difficulty`、`observed_p`和整卷用时的字段语义；它不是原成绩表的脱敏副本，也不能冒充真实测量结论。
+
 用途：
 
 - 脱敏副本可核对 P、D、α 和整卷完成时间；

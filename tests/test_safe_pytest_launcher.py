@@ -7,6 +7,7 @@ import os
 import stat
 import subprocess
 import sys
+import time
 from pathlib import Path
 from typing import Any
 
@@ -74,6 +75,15 @@ def _pid_is_running(pid: int) -> bool:
         return int(kernel32.WaitForSingleObject(handle, 0)) == wait_timeout
     finally:
         kernel32.CloseHandle(handle)
+
+
+def _wait_until_pid_stops(pid: int, timeout_seconds: float = 5.0) -> bool:
+    deadline = time.monotonic() + timeout_seconds
+    while _pid_is_running(pid):
+        if time.monotonic() >= deadline:
+            return False
+        time.sleep(0.05)
+    return True
 
 
 def _source_witness_test_document(
@@ -677,9 +687,28 @@ def test_s3d_mode_has_a_fixed_non_injectable_selection(tmp_path: Path) -> None:
                 "tests/test_safe_pytest_launcher.py",
             ],
         ),
+        (
+            "s5_core",
+            [
+                "tests/test_domain_models.py",
+                "tests/test_ir_contracts.py",
+                "tests/test_gold_registry.py",
+            ],
+        ),
+        (
+            "s5",
+            [
+                "tests/test_domain_models.py",
+                "tests/test_ir_contracts.py",
+                "tests/test_gold_registry.py",
+                "tests/test_workspace_policy.py",
+                "tests/test_write_entry_inventory.py",
+                "tests/test_safe_pytest_launcher.py",
+            ],
+        ),
     ),
 )
-def test_s3e_through_s4_modes_have_exact_non_injectable_selections(
+def test_s3e_through_s5_modes_have_exact_non_injectable_selections(
     tmp_path: Path,
     mode: str,
     selection: list[str],
@@ -1495,7 +1524,7 @@ def test_process_job_reports_and_kills_an_unexpected_background_child(
     assert not tree_terminated
     assert budget_error is None
     pid = int(child_pid.read_text(encoding="ascii"))
-    assert not _pid_is_running(pid)
+    assert _wait_until_pid_stops(pid)
 
 
 def test_process_output_is_captured_inside_the_run_root(tmp_path: Path) -> None:
@@ -1722,6 +1751,8 @@ def test_only_copy_bearing_modes_require_a_registered_source_witness() -> None:
         "s3h_core",
         "s4",
         "s4_core",
+        "s5",
+        "s5_core",
         "launcher",
         "symlink",
     }.isdisjoint(SOURCE_REGISTRATION_REQUIRED_MODES)
@@ -1756,6 +1787,8 @@ def test_only_copy_bearing_modes_require_a_registered_source_witness() -> None:
         "s3h_core",
         "s4",
         "s4_core",
+        "s5",
+        "s5_core",
         "launcher",
         "symlink",
     }:

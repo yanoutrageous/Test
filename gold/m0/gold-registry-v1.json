@@ -1,0 +1,3520 @@
+{
+  "baseline_authority": "Task/11_REFERENCE_BASELINE.md",
+  "entries": [
+    {
+      "aggregate_sha256": "a46c29f1d5822820bf1eec1dbf8b0d91e1ccc5849772dbd4c5b521f74ede1ca3",
+      "baseline_authority": "Task/11_REFERENCE_BASELINE.md",
+      "confirmation": {
+        "actor_ref": "USER-PROVIDED-BASELINE",
+        "change_reason": "M0_INITIAL_REGISTRATION",
+        "confirmed_on": "2026-07-25",
+        "gold_revision": 1,
+        "previous_aggregate_sha256": null,
+        "status": "user-provided-project-baseline"
+      },
+      "copy_policy": "copy-on-use",
+      "expected_outcome": "pass",
+      "extensions": {},
+      "formats": [
+        ".pdf"
+      ],
+      "license_status": "local-use-only",
+      "local_mapping_required": true,
+      "logical_id": "REF-ANSWER-SHEET-GOLD",
+      "member_count": 1,
+      "members": [
+        {
+          "bytes": 109735,
+          "extensions": {},
+          "format": ".pdf",
+          "member_id": "MEMBER-001",
+          "page_count": 6,
+          "page_sizes_mm": [
+            [
+              210.009,
+              297.004
+            ]
+          ],
+          "sha256": "7b9baf1e0419d7a8cd31488e3b9092c3e3d055a116fdcdd1bc38a075b1684d5f",
+          "structural_status": "readable"
+        }
+      ],
+      "page_count": 6,
+      "page_sizes_mm": [
+        [
+          210.009,
+          297.004
+        ]
+      ],
+      "pii_classification": "none",
+      "requirement_ids": [
+        "M0-GOLD-REGISTRY",
+        "M0-TEMPLATE-FAMILIES",
+        "M0-VISUAL-BASELINE"
+      ],
+      "risk_ids": [
+        "R-007",
+        "R-009"
+      ],
+      "source_kind": "file",
+      "template_family_ids": [
+        "TEMPLATE-ANSWER-SHEET-A3-A4"
+      ],
+      "test_copy_ref": null,
+      "total_bytes": 109735,
+      "truth_roles": [
+        "template",
+        "visual"
+      ],
+      "verification_status": "machine_fingerprinted_role_from_project_baseline"
+    },
+    {
+      "aggregate_sha256": "ae30884c0e740f02496c5ef36847e1158257e19c4baf27aa013f36c5a0a74359",
+      "baseline_authority": "Task/11_REFERENCE_BASELINE.md",
+      "confirmation": {
+        "actor_ref": "USER-PROVIDED-BASELINE",
+        "change_reason": "M0_INITIAL_REGISTRATION",
+        "confirmed_on": "2026-07-25",
+        "gold_revision": 1,
+        "previous_aggregate_sha256": null,
+        "status": "user-provided-project-baseline"
+      },
+      "copy_policy": "copy-on-use",
+      "expected_outcome": "review",
+      "extensions": {},
+      "formats": [
+        ".pdf"
+      ],
+      "license_status": "local-use-only",
+      "local_mapping_required": true,
+      "logical_id": "REF-CONTENT-HISTORY",
+      "member_count": 1,
+      "members": [
+        {
+          "bytes": 13547660,
+          "extensions": {},
+          "format": ".pdf",
+          "member_id": "MEMBER-001",
+          "page_count": 1207,
+          "page_sizes_mm": [
+            [
+              420.0,
+              297.0
+            ]
+          ],
+          "sha256": "d02d0f16371fa96f4b8f7c0cfe43eceaea7df5f57ad83880e8cb27497b32f472",
+          "structural_status": "readable"
+        }
+      ],
+      "page_count": 1207,
+      "page_sizes_mm": [
+        [
+          420.0,
+          297.0
+        ]
+      ],
+      "pii_classification": "none",
+      "requirement_ids": [
+        "M0-GOLD-REGISTRY",
+        "M0-TEMPLATE-FAMILIES"
+      ],
+      "risk_ids": [
+        "R-007",
+        "R-028"
+      ],
+      "source_kind": "file",
+      "template_family_ids": [
+        "TEMPLATE-TRUE-QUESTION-A3-LANDSCAPE"
+      ],
+      "test_copy_ref": null,
+      "total_bytes": 13547660,
+      "truth_roles": [
+        "content",
+        "template"
+      ],
+      "verification_status": "machine_fingerprinted_role_from_project_baseline"
+    },
+    {
+      "aggregate_sha256": "2d6cbdb9d152c11fc4b4ccd5f2fdae9d3f4b736e36d67d9e750ae96a83257d82",
+      "baseline_authority": "Task/11_REFERENCE_BASELINE.md",
+      "confirmation": {
+        "actor_ref": "USER-PROVIDED-BASELINE",
+        "change_reason": "M0_INITIAL_REGISTRATION",
+        "confirmed_on": "2026-07-25",
+        "gold_revision": 1,
+        "previous_aggregate_sha256": null,
+        "status": "user-provided-project-baseline"
+      },
+      "copy_policy": "copy-on-use",
+      "expected_outcome": "review",
+      "extensions": {},
+      "formats": [
+        ".docx"
+      ],
+      "license_status": "user-owned",
+      "local_mapping_required": true,
+      "logical_id": "REF-EDITABLE-PAPER-SET",
+      "member_count": 3,
+      "members": [
+        {
+          "bytes": 361695,
+          "extensions": {},
+          "format": ".docx",
+          "member_id": "MEMBER-001",
+          "page_count": null,
+          "page_sizes_mm": [
+            [
+              184.027,
+              260.032
+            ]
+          ],
+          "sha256": "e9599f2ac88fc5ec56dbfdbc6a04eccc07a3139f5d7089f28df5fb04556e16df",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 596750,
+          "extensions": {},
+          "format": ".docx",
+          "member_id": "MEMBER-002",
+          "page_count": null,
+          "page_sizes_mm": [
+            [
+              210.009,
+              297.004
+            ]
+          ],
+          "sha256": "15ba6530a3588c18021c9c68f47579d2718c31146fcf1c4185dc68323ca84143",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 776680,
+          "extensions": {},
+          "format": ".docx",
+          "member_id": "MEMBER-003",
+          "page_count": null,
+          "page_sizes_mm": [
+            [
+              210.009,
+              297.004
+            ]
+          ],
+          "sha256": "ec8db2c494a7b0f23b64af0b849c8bb2d81b3c935f2ce52422b610c31509ed5b",
+          "structural_status": "readable"
+        }
+      ],
+      "page_count": null,
+      "page_sizes_mm": [
+        [
+          184.027,
+          260.032
+        ],
+        [
+          210.009,
+          297.004
+        ]
+      ],
+      "pii_classification": "none",
+      "requirement_ids": [
+        "M0-GOLD-REGISTRY",
+        "M0-TEMPLATE-FAMILIES"
+      ],
+      "risk_ids": [
+        "R-007",
+        "R-008",
+        "R-009"
+      ],
+      "source_kind": "set",
+      "template_family_ids": [
+        "TEMPLATE-EDITABLE-B5-184X260",
+        "TEMPLATE-OFFICIAL-A4"
+      ],
+      "test_copy_ref": null,
+      "total_bytes": 1735125,
+      "truth_roles": [
+        "template",
+        "visual"
+      ],
+      "verification_status": "machine_fingerprinted_role_from_project_baseline"
+    },
+    {
+      "aggregate_sha256": "eca99eb26e466975a4d79d7b97b7f53cf45389c247e704fa1743018772b29177",
+      "baseline_authority": "Task/11_REFERENCE_BASELINE.md",
+      "confirmation": {
+        "actor_ref": "USER-PROVIDED-BASELINE",
+        "change_reason": "M0_INITIAL_REGISTRATION",
+        "confirmed_on": "2026-07-25",
+        "gold_revision": 1,
+        "previous_aggregate_sha256": null,
+        "status": "user-provided-project-baseline"
+      },
+      "copy_policy": "copy-on-use",
+      "expected_outcome": "reject",
+      "extensions": {},
+      "formats": [
+        ".svg"
+      ],
+      "license_status": "user-owned",
+      "local_mapping_required": true,
+      "logical_id": "REF-FIG-BROKEN-SVG",
+      "member_count": 1,
+      "members": [
+        {
+          "bytes": 3592,
+          "extensions": {},
+          "format": ".svg",
+          "member_id": "MEMBER-001",
+          "page_count": null,
+          "page_sizes_mm": [],
+          "sha256": "51c62d3b56ae2daaeaff8d59606a927246e3daae7336c64d95fea4b8e4a27cdf",
+          "structural_status": "invalid_expected"
+        }
+      ],
+      "page_count": null,
+      "page_sizes_mm": [],
+      "pii_classification": "none",
+      "requirement_ids": [
+        "M0-FAILURE-GOLD",
+        "M0-GOLD-REGISTRY"
+      ],
+      "risk_ids": [
+        "R-016",
+        "R-017"
+      ],
+      "source_kind": "file",
+      "template_family_ids": [
+        "TEMPLATE-FIGURE-THREE-TRACK"
+      ],
+      "test_copy_ref": null,
+      "total_bytes": 3592,
+      "truth_roles": [
+        "failure",
+        "figure"
+      ],
+      "verification_status": "machine_fingerprinted_role_from_project_baseline"
+    },
+    {
+      "aggregate_sha256": "322d776dcac03ce0d40d317c70fbe61a39eb9ef1940a35a2b349b7d811764f39",
+      "baseline_authority": "Task/11_REFERENCE_BASELINE.md",
+      "confirmation": {
+        "actor_ref": "USER-PROVIDED-BASELINE",
+        "change_reason": "M0_INITIAL_REGISTRATION",
+        "confirmed_on": "2026-07-25",
+        "gold_revision": 1,
+        "previous_aggregate_sha256": null,
+        "status": "user-provided-project-baseline"
+      },
+      "copy_policy": "copy-on-use",
+      "expected_outcome": "pass",
+      "extensions": {},
+      "formats": [
+        ".svg"
+      ],
+      "license_status": "user-owned",
+      "local_mapping_required": true,
+      "logical_id": "REF-FIG-GEOMETRY-SET",
+      "member_count": 3,
+      "members": [
+        {
+          "bytes": 1557,
+          "extensions": {},
+          "format": ".svg",
+          "member_id": "MEMBER-001",
+          "page_count": null,
+          "page_sizes_mm": [],
+          "sha256": "fb1b192aec8acf7ab8c1609549d09a89718c529386a4bf492f626846a35edfb7",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 2828,
+          "extensions": {},
+          "format": ".svg",
+          "member_id": "MEMBER-002",
+          "page_count": null,
+          "page_sizes_mm": [],
+          "sha256": "31e3a9d7220399eada5cd58c8a0a097497efef01d8a83ae6024f5b99c8adead0",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 4518,
+          "extensions": {},
+          "format": ".svg",
+          "member_id": "MEMBER-003",
+          "page_count": null,
+          "page_sizes_mm": [],
+          "sha256": "d7edfeb373c159190bbca73d153ab582ead3e4ba85487cf11153c4e3df3c14b3",
+          "structural_status": "readable"
+        }
+      ],
+      "page_count": null,
+      "page_sizes_mm": [],
+      "pii_classification": "none",
+      "requirement_ids": [
+        "M0-FIGURE-IR",
+        "M0-GOLD-REGISTRY"
+      ],
+      "risk_ids": [
+        "R-016",
+        "R-017"
+      ],
+      "source_kind": "set",
+      "template_family_ids": [
+        "TEMPLATE-FIGURE-THREE-TRACK"
+      ],
+      "test_copy_ref": null,
+      "total_bytes": 8903,
+      "truth_roles": [
+        "figure"
+      ],
+      "verification_status": "machine_fingerprinted_role_from_project_baseline"
+    },
+    {
+      "aggregate_sha256": "48c8baacb90a4a8799a49588f857a48ad7a112f87f3c7085821893a0838893cb",
+      "baseline_authority": "Task/11_REFERENCE_BASELINE.md",
+      "confirmation": {
+        "actor_ref": "USER-PROVIDED-BASELINE",
+        "change_reason": "M0_INITIAL_REGISTRATION",
+        "confirmed_on": "2026-07-25",
+        "gold_revision": 1,
+        "previous_aggregate_sha256": null,
+        "status": "user-provided-project-baseline"
+      },
+      "copy_policy": "copy-on-use",
+      "expected_outcome": "pass",
+      "extensions": {},
+      "formats": [
+        ".svg"
+      ],
+      "license_status": "user-owned",
+      "local_mapping_required": true,
+      "logical_id": "REF-FIG-SOLUTION-SET",
+      "member_count": 3,
+      "members": [
+        {
+          "bytes": 2263,
+          "extensions": {},
+          "format": ".svg",
+          "member_id": "MEMBER-001",
+          "page_count": null,
+          "page_sizes_mm": [],
+          "sha256": "5eb32dc25984f7ef855ae413e8d7c45e703582c27d369f7176919b06d311be8e",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 2594,
+          "extensions": {},
+          "format": ".svg",
+          "member_id": "MEMBER-002",
+          "page_count": null,
+          "page_sizes_mm": [],
+          "sha256": "92e7355719c9b8184a1129980d480a7c47ade1f9fa1de03d831439547ab9144b",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 4107,
+          "extensions": {},
+          "format": ".svg",
+          "member_id": "MEMBER-003",
+          "page_count": null,
+          "page_sizes_mm": [],
+          "sha256": "c17a0cba74d1a333e3a3e76d36077cafd5c1b48dc0718ce86e935324e821e9ca",
+          "structural_status": "readable"
+        }
+      ],
+      "page_count": null,
+      "page_sizes_mm": [],
+      "pii_classification": "none",
+      "requirement_ids": [
+        "M0-FIGURE-IR",
+        "M0-GOLD-REGISTRY"
+      ],
+      "risk_ids": [
+        "R-016"
+      ],
+      "source_kind": "set",
+      "template_family_ids": [
+        "TEMPLATE-FIGURE-THREE-TRACK"
+      ],
+      "test_copy_ref": null,
+      "total_bytes": 8964,
+      "truth_roles": [
+        "figure"
+      ],
+      "verification_status": "machine_fingerprinted_role_from_project_baseline"
+    },
+    {
+      "aggregate_sha256": "d51534710893010d7c397a613fa09e3b14351d2f760af7d92d9842fd4e1a4148",
+      "baseline_authority": "Task/11_REFERENCE_BASELINE.md",
+      "confirmation": {
+        "actor_ref": "USER-PROVIDED-BASELINE",
+        "change_reason": "M0_INITIAL_REGISTRATION",
+        "confirmed_on": "2026-07-25",
+        "gold_revision": 1,
+        "previous_aggregate_sha256": null,
+        "status": "user-provided-project-baseline"
+      },
+      "copy_policy": "copy-on-use",
+      "expected_outcome": "pass",
+      "extensions": {},
+      "formats": [
+        ".svg"
+      ],
+      "license_status": "user-owned",
+      "local_mapping_required": true,
+      "logical_id": "REF-FIG-STAT-SET",
+      "member_count": 3,
+      "members": [
+        {
+          "bytes": 3625,
+          "extensions": {},
+          "format": ".svg",
+          "member_id": "MEMBER-001",
+          "page_count": null,
+          "page_sizes_mm": [],
+          "sha256": "bc85d6033e4c00d91c3387d0341014e319db3c3d537f27dc6fe55e98350aac01",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 3629,
+          "extensions": {},
+          "format": ".svg",
+          "member_id": "MEMBER-002",
+          "page_count": null,
+          "page_sizes_mm": [],
+          "sha256": "da8c85573b1801bc927a1e781b94b15902e3bdcfb0b4338700d0a03c73f4de89",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 9719,
+          "extensions": {},
+          "format": ".svg",
+          "member_id": "MEMBER-003",
+          "page_count": null,
+          "page_sizes_mm": [],
+          "sha256": "1f2f3528355216946fb88bf14d8698ef84966b01e7613eaaa2dc4da2e2f8e3ee",
+          "structural_status": "readable"
+        }
+      ],
+      "page_count": null,
+      "page_sizes_mm": [],
+      "pii_classification": "none",
+      "requirement_ids": [
+        "M0-FIGURE-IR",
+        "M0-GOLD-REGISTRY"
+      ],
+      "risk_ids": [
+        "R-016",
+        "R-017"
+      ],
+      "source_kind": "set",
+      "template_family_ids": [
+        "TEMPLATE-FIGURE-THREE-TRACK"
+      ],
+      "test_copy_ref": null,
+      "total_bytes": 16973,
+      "truth_roles": [
+        "figure"
+      ],
+      "verification_status": "machine_fingerprinted_role_from_project_baseline"
+    },
+    {
+      "aggregate_sha256": "b6fb4d5c83ac1dbbb36470b26c670cf44047ae138a2fb45ffef20b9fa4afd9f9",
+      "baseline_authority": "Task/11_REFERENCE_BASELINE.md",
+      "confirmation": {
+        "actor_ref": "USER-PROVIDED-BASELINE",
+        "change_reason": "M0_INITIAL_REGISTRATION",
+        "confirmed_on": "2026-07-25",
+        "gold_revision": 1,
+        "previous_aggregate_sha256": null,
+        "status": "user-provided-project-baseline"
+      },
+      "copy_policy": "copy-on-use",
+      "expected_outcome": "review",
+      "extensions": {},
+      "formats": [
+        ".docx",
+        ".jpg",
+        ".pdf"
+      ],
+      "license_status": "user-owned",
+      "local_mapping_required": true,
+      "logical_id": "REF-FIVE-ARTIFACT-GOLD",
+      "member_count": 15,
+      "members": [
+        {
+          "bytes": 162,
+          "extensions": {},
+          "format": ".docx",
+          "member_id": "MEMBER-001",
+          "page_count": null,
+          "page_sizes_mm": [],
+          "sha256": "8ec21cc5d5e1d4896ee7643efbb452f3cf946ccf2975fab60e652adec02d6d03",
+          "structural_status": "invalid_expected"
+        },
+        {
+          "bytes": 2027470,
+          "extensions": {},
+          "format": ".pdf",
+          "member_id": "MEMBER-002",
+          "page_count": 2,
+          "page_sizes_mm": [
+            [
+              420.0,
+              297.0
+            ]
+          ],
+          "sha256": "ccc7ed8a8ec2c0d161fe08d50293122903a1ff289e3a0b91f2dfef65ad18edb3",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 2308349,
+          "extensions": {},
+          "format": ".pdf",
+          "member_id": "MEMBER-003",
+          "page_count": 63,
+          "page_sizes_mm": [
+            [
+              184.023,
+              260.054
+            ]
+          ],
+          "sha256": "3a92ad698a63e5ecabed217bb27119017af4d5bdf7137adfe4b407f43f2362f5",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 274734,
+          "extensions": {},
+          "format": ".docx",
+          "member_id": "MEMBER-004",
+          "page_count": null,
+          "page_sizes_mm": [
+            [
+              210.009,
+              297.004
+            ]
+          ],
+          "sha256": "3e9302721283b24b5d545462db4394079ae924fc83787a21536db0a97aecf40b",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 3197074,
+          "extensions": {},
+          "format": ".pdf",
+          "member_id": "MEMBER-005",
+          "page_count": 6,
+          "page_sizes_mm": [
+            [
+              210.0,
+              297.0
+            ]
+          ],
+          "sha256": "d7315d75294b094673e3ea83554ea1ac595a10a23e35164d38dc819effd18ebe",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 384634,
+          "extensions": {},
+          "format": ".pdf",
+          "member_id": "MEMBER-006",
+          "page_count": 4,
+          "page_sizes_mm": [
+            [
+              210.016,
+              297.011
+            ]
+          ],
+          "sha256": "f7b374c5afe4adf86d285a6f7d20b6d74a0a2ec3f31850186273148aa17cc7aa",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 5235305,
+          "extensions": {},
+          "format": ".docx",
+          "member_id": "MEMBER-007",
+          "page_count": null,
+          "page_sizes_mm": [
+            [
+              184.027,
+              260.032
+            ]
+          ],
+          "sha256": "890397dbdca444fe1bc7e81f5d355b2454df658c8564c7ef7212a37d60301809",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 5237024,
+          "extensions": {},
+          "format": ".docx",
+          "member_id": "MEMBER-008",
+          "page_count": null,
+          "page_sizes_mm": [
+            [
+              184.027,
+              260.032
+            ]
+          ],
+          "sha256": "9e9ae69c12ac9d244852fd2d0900eb6a672fa2350158ac845c884e2d03576c1a",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 631878,
+          "extensions": {},
+          "format": ".pdf",
+          "member_id": "MEMBER-009",
+          "page_count": 4,
+          "page_sizes_mm": [
+            [
+              176.016,
+              250.011
+            ]
+          ],
+          "sha256": "3d09f9f2911b2adc35c47f40774c4f7920bd56f1cfdeeb1d240e4b9237c53f0a",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 631968,
+          "extensions": {},
+          "format": ".pdf",
+          "member_id": "MEMBER-010",
+          "page_count": 4,
+          "page_sizes_mm": [
+            [
+              176.016,
+              250.011
+            ]
+          ],
+          "sha256": "30610acc269dcad935fa58933333c5128ba53078cfd0ea1358297d6caecb3586",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 710733,
+          "extensions": {},
+          "format": ".jpg",
+          "member_id": "MEMBER-011",
+          "page_count": 1,
+          "page_sizes_mm": [],
+          "sha256": "905438c317393c4e31ef73eb1df31d1516c69e03f209841eac327426f9e3d0ef",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 743743,
+          "extensions": {},
+          "format": ".pdf",
+          "member_id": "MEMBER-012",
+          "page_count": 11,
+          "page_sizes_mm": [
+            [
+              176.016,
+              250.011
+            ]
+          ],
+          "sha256": "cccf4751dd426092a49faa65d965085c1b54568fc880092989a74d65fdead9f5",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 791606,
+          "extensions": {},
+          "format": ".jpg",
+          "member_id": "MEMBER-013",
+          "page_count": 1,
+          "page_sizes_mm": [],
+          "sha256": "a36b12976b03e6bb24ff38f1e1ccca7fc47db48ac6eff678c815f72a1d950d17",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 848993,
+          "extensions": {},
+          "format": ".jpg",
+          "member_id": "MEMBER-014",
+          "page_count": 1,
+          "page_sizes_mm": [],
+          "sha256": "fc6c3024ed66f698b09fc59398538ec97452df20e1c9c61643c3b082277ea36e",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 954663,
+          "extensions": {},
+          "format": ".jpg",
+          "member_id": "MEMBER-015",
+          "page_count": 1,
+          "page_sizes_mm": [],
+          "sha256": "4a5a3ad6cf0e2267612206b6caa420560509ff59d7eff2ee722feb18959fe32b",
+          "structural_status": "readable"
+        }
+      ],
+      "page_count": null,
+      "page_sizes_mm": [
+        [
+          176.016,
+          250.011
+        ],
+        [
+          184.023,
+          260.054
+        ],
+        [
+          184.027,
+          260.032
+        ],
+        [
+          210.0,
+          297.0
+        ],
+        [
+          210.009,
+          297.004
+        ],
+        [
+          210.016,
+          297.011
+        ],
+        [
+          420.0,
+          297.0
+        ]
+      ],
+      "pii_classification": "internal",
+      "requirement_ids": [
+        "M0-GOLD-REGISTRY",
+        "M0-TEMPLATE-FAMILIES",
+        "M0-VISUAL-BASELINE"
+      ],
+      "risk_ids": [
+        "R-007",
+        "R-009",
+        "R-014"
+      ],
+      "source_kind": "set",
+      "template_family_ids": [
+        "TEMPLATE-ANSWER-SCORING-A4-B5",
+        "TEMPLATE-ANSWER-SHEET-A3-A4",
+        "TEMPLATE-COMPACT-176X250",
+        "TEMPLATE-LONG-ANALYSIS",
+        "TEMPLATE-OFFICIAL-A4",
+        "TEMPLATE-STUDENT-TEACHER-B5"
+      ],
+      "test_copy_ref": null,
+      "total_bytes": 23978336,
+      "truth_roles": [
+        "failure",
+        "scoring",
+        "template",
+        "visual"
+      ],
+      "verification_status": "machine_fingerprinted_role_from_project_baseline"
+    },
+    {
+      "aggregate_sha256": "41148f2d3c05e5cc875ca1766bf059d15a2397d58cb9dfcb1a667af48620d007",
+      "baseline_authority": "Task/11_REFERENCE_BASELINE.md",
+      "confirmation": {
+        "actor_ref": "USER-PROVIDED-BASELINE",
+        "change_reason": "M0_INITIAL_REGISTRATION",
+        "confirmed_on": "2026-07-25",
+        "gold_revision": 1,
+        "previous_aggregate_sha256": null,
+        "status": "user-provided-project-baseline"
+      },
+      "copy_policy": "copy-on-use",
+      "expected_outcome": "review",
+      "extensions": {},
+      "formats": [
+        ".docx"
+      ],
+      "license_status": "user-owned",
+      "local_mapping_required": true,
+      "logical_id": "REF-LAYOUT-RULES",
+      "member_count": 1,
+      "members": [
+        {
+          "bytes": 442327,
+          "extensions": {},
+          "format": ".docx",
+          "member_id": "MEMBER-001",
+          "page_count": null,
+          "page_sizes_mm": [
+            [
+              210.009,
+              297.004
+            ]
+          ],
+          "sha256": "7e3ea437af36e2e769fe6c154da1afdc97ac493b53df6f1634ac4750ee8cc894",
+          "structural_status": "readable"
+        }
+      ],
+      "page_count": null,
+      "page_sizes_mm": [
+        [
+          210.009,
+          297.004
+        ]
+      ],
+      "pii_classification": "none",
+      "requirement_ids": [
+        "M0-GOLD-REGISTRY",
+        "M0-TEMPLATE-FAMILIES"
+      ],
+      "risk_ids": [
+        "R-007",
+        "R-009"
+      ],
+      "source_kind": "file",
+      "template_family_ids": [
+        "TEMPLATE-LECTURE-A4"
+      ],
+      "test_copy_ref": null,
+      "total_bytes": 442327,
+      "truth_roles": [
+        "template"
+      ],
+      "verification_status": "machine_fingerprinted_role_from_project_baseline"
+    },
+    {
+      "aggregate_sha256": "a1e3cfe90b9611ec25c56447a6108f63cc5ae63c96b357176ec24b51b9889980",
+      "baseline_authority": "Task/11_REFERENCE_BASELINE.md",
+      "confirmation": {
+        "actor_ref": "SYNTHETIC-FIXTURE-AUDIT",
+        "change_reason": "M0_INITIAL_REGISTRATION",
+        "confirmed_on": "2026-07-25",
+        "gold_revision": 1,
+        "previous_aggregate_sha256": null,
+        "status": "synthetic-fixture-verified"
+      },
+      "copy_policy": "synthetic-in-git",
+      "expected_outcome": "pass",
+      "extensions": {},
+      "formats": [
+        ".json"
+      ],
+      "license_status": "synthetic",
+      "local_mapping_required": false,
+      "logical_id": "REF-MEASUREMENT-SYNTHETIC",
+      "member_count": 1,
+      "members": [
+        {
+          "bytes": 2304,
+          "extensions": {},
+          "format": ".json",
+          "member_id": "MEMBER-001",
+          "page_count": null,
+          "page_sizes_mm": [],
+          "sha256": "8d42510c588aba65ee96ff9cfc3a7fff156e127b66d4dbeae4d5f713e4977d5a",
+          "structural_status": "readable"
+        }
+      ],
+      "page_count": null,
+      "page_sizes_mm": [],
+      "pii_classification": "none",
+      "requirement_ids": [
+        "M0-GOLD-REGISTRY",
+        "M0-MEASUREMENT-SEMANTICS",
+        "M0-TEMPLATE-FAMILIES"
+      ],
+      "risk_ids": [
+        "R-011",
+        "R-012",
+        "R-027"
+      ],
+      "source_kind": "synthetic",
+      "template_family_ids": [
+        "TEMPLATE-QUALITY-DASHBOARD"
+      ],
+      "test_copy_ref": "gold/m0/measurement-synthetic-v1.json",
+      "total_bytes": 2304,
+      "truth_roles": [
+        "measurement"
+      ],
+      "verification_status": "synthetic_verified"
+    },
+    {
+      "aggregate_sha256": "a5a10a9fdff9b6dcdd391329e03a0da7893f79cca343b7c0430798dff718a438",
+      "baseline_authority": "Task/11_REFERENCE_BASELINE.md",
+      "confirmation": {
+        "actor_ref": "USER-PROVIDED-BASELINE",
+        "change_reason": "M0_INITIAL_REGISTRATION",
+        "confirmed_on": "2026-07-25",
+        "gold_revision": 1,
+        "previous_aggregate_sha256": null,
+        "status": "user-provided-project-baseline"
+      },
+      "copy_policy": "copy-on-use",
+      "expected_outcome": "review",
+      "extensions": {},
+      "formats": [
+        ".docx"
+      ],
+      "license_status": "user-owned",
+      "local_mapping_required": true,
+      "logical_id": "REF-MESSY-DOC-SET",
+      "member_count": 2,
+      "members": [
+        {
+          "bytes": 315048,
+          "extensions": {},
+          "format": ".docx",
+          "member_id": "MEMBER-001",
+          "page_count": null,
+          "page_sizes_mm": [
+            [
+              184.027,
+              260.032
+            ]
+          ],
+          "sha256": "393566950e8992b957ca7ed3ffb99a32adcb29a6cec4638b8a96dd3ba3e832f0",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 4295081,
+          "extensions": {},
+          "format": ".docx",
+          "member_id": "MEMBER-002",
+          "page_count": null,
+          "page_sizes_mm": [
+            [
+              184.027,
+              260.032
+            ]
+          ],
+          "sha256": "2b685bf92427c43952ceda90989a5189dcb9bb19229ce3deb7608e3c83a934a8",
+          "structural_status": "readable"
+        }
+      ],
+      "page_count": null,
+      "page_sizes_mm": [
+        [
+          184.027,
+          260.032
+        ]
+      ],
+      "pii_classification": "internal",
+      "requirement_ids": [
+        "M0-FAILURE-GOLD",
+        "M0-GOLD-REGISTRY"
+      ],
+      "risk_ids": [
+        "R-008",
+        "R-010"
+      ],
+      "source_kind": "set",
+      "template_family_ids": [
+        "TEMPLATE-LONG-ANALYSIS"
+      ],
+      "test_copy_ref": null,
+      "total_bytes": 4610129,
+      "truth_roles": [
+        "failure",
+        "template"
+      ],
+      "verification_status": "machine_fingerprinted_role_from_project_baseline"
+    },
+    {
+      "aggregate_sha256": "6187da0f082c5edbf6d4239655ee8cd65f760a8642ce76c1e858aee5147e5be4",
+      "baseline_authority": "Task/11_REFERENCE_BASELINE.md",
+      "confirmation": {
+        "actor_ref": "USER-PROVIDED-BASELINE",
+        "change_reason": "M0_INITIAL_REGISTRATION",
+        "confirmed_on": "2026-07-25",
+        "gold_revision": 1,
+        "previous_aggregate_sha256": null,
+        "status": "user-provided-project-baseline"
+      },
+      "copy_policy": "copy-on-use",
+      "expected_outcome": "review",
+      "extensions": {},
+      "formats": [
+        ".pdf"
+      ],
+      "license_status": "unverified",
+      "local_mapping_required": true,
+      "logical_id": "REF-METHOD-ANALYSIS",
+      "member_count": 1,
+      "members": [
+        {
+          "bytes": 1260601,
+          "extensions": {},
+          "format": ".pdf",
+          "member_id": "MEMBER-001",
+          "page_count": 51,
+          "page_sizes_mm": [
+            [
+              215.9,
+              279.4
+            ]
+          ],
+          "sha256": "bcfbd8a4ea6a30043820f48c9ef914e92ffa6a49d0eebc400767edb05165457b",
+          "structural_status": "readable"
+        }
+      ],
+      "page_count": 51,
+      "page_sizes_mm": [
+        [
+          215.9,
+          279.4
+        ]
+      ],
+      "pii_classification": "none",
+      "requirement_ids": [
+        "M0-GOLD-REGISTRY",
+        "M0-TAG-EVIDENCE"
+      ],
+      "risk_ids": [
+        "R-018",
+        "R-028"
+      ],
+      "source_kind": "file",
+      "template_family_ids": [
+        "TEMPLATE-LECTURE-A4"
+      ],
+      "test_copy_ref": null,
+      "total_bytes": 1260601,
+      "truth_roles": [
+        "content",
+        "tag"
+      ],
+      "verification_status": "machine_fingerprinted_role_from_project_baseline"
+    },
+    {
+      "aggregate_sha256": "f84d774bea188412b40276b234fc3ec8c32fd53c1cfa83ef9c72d2e1fa87720b",
+      "baseline_authority": "Task/11_REFERENCE_BASELINE.md",
+      "confirmation": {
+        "actor_ref": "USER-PROVIDED-BASELINE",
+        "change_reason": "M0_INITIAL_REGISTRATION",
+        "confirmed_on": "2026-07-25",
+        "gold_revision": 1,
+        "previous_aggregate_sha256": null,
+        "status": "user-provided-project-baseline"
+      },
+      "copy_policy": "copy-on-use",
+      "expected_outcome": "review",
+      "extensions": {},
+      "formats": [
+        ".jpg"
+      ],
+      "license_status": "user-owned",
+      "local_mapping_required": true,
+      "logical_id": "REF-PHOTO-INPUT-SET",
+      "member_count": 4,
+      "members": [
+        {
+          "bytes": 47445,
+          "extensions": {},
+          "format": ".jpg",
+          "member_id": "MEMBER-001",
+          "page_count": 1,
+          "page_sizes_mm": [],
+          "sha256": "017586bc714c12ead173b781121683f5a15fda0ab911f0a06cf4d70392679755",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 61696,
+          "extensions": {},
+          "format": ".jpg",
+          "member_id": "MEMBER-002",
+          "page_count": 1,
+          "page_sizes_mm": [],
+          "sha256": "ab72a7052d831862aa77a3e3b70d6677d26484de9e5762390714d35ba02c7409",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 62236,
+          "extensions": {},
+          "format": ".jpg",
+          "member_id": "MEMBER-003",
+          "page_count": 1,
+          "page_sizes_mm": [],
+          "sha256": "09d4686ae88161a6ca43a6245063906211bf8b4f13f6b0db9b2855644e703bca",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 68320,
+          "extensions": {},
+          "format": ".jpg",
+          "member_id": "MEMBER-004",
+          "page_count": 1,
+          "page_sizes_mm": [],
+          "sha256": "2eb3591ca12c6007e390323e8e8874437a48fa6a941aa544dd812115d6f71ce7",
+          "structural_status": "readable"
+        }
+      ],
+      "page_count": 4,
+      "page_sizes_mm": [],
+      "pii_classification": "internal",
+      "requirement_ids": [
+        "M0-FAILURE-GOLD",
+        "M0-GOLD-REGISTRY"
+      ],
+      "risk_ids": [
+        "R-010"
+      ],
+      "source_kind": "set",
+      "template_family_ids": [],
+      "test_copy_ref": null,
+      "total_bytes": 239697,
+      "truth_roles": [
+        "failure"
+      ],
+      "verification_status": "machine_fingerprinted_role_from_project_baseline"
+    },
+    {
+      "aggregate_sha256": "f5afa15d23f2472e94d79ed572b8e94594c968819d7e019205684f5dd67eb6d5",
+      "baseline_authority": "Task/11_REFERENCE_BASELINE.md",
+      "confirmation": {
+        "actor_ref": "USER-PROVIDED-BASELINE",
+        "change_reason": "M0_INITIAL_REGISTRATION",
+        "confirmed_on": "2026-07-25",
+        "gold_revision": 1,
+        "previous_aggregate_sha256": null,
+        "status": "user-provided-project-baseline"
+      },
+      "copy_policy": "copy-on-use",
+      "expected_outcome": "pass",
+      "extensions": {},
+      "formats": [
+        ".pdf"
+      ],
+      "license_status": "local-use-only",
+      "local_mapping_required": true,
+      "logical_id": "REF-SCORING-GOLD",
+      "member_count": 1,
+      "members": [
+        {
+          "bytes": 359271,
+          "extensions": {},
+          "format": ".pdf",
+          "member_id": "MEMBER-001",
+          "page_count": 6,
+          "page_sizes_mm": [
+            [
+              210.009,
+              297.004
+            ]
+          ],
+          "sha256": "a3b5963b89723e19146f4f6aabdbddda28ea415cd6c659b8508805bd28f9a57f",
+          "structural_status": "readable"
+        }
+      ],
+      "page_count": 6,
+      "page_sizes_mm": [
+        [
+          210.009,
+          297.004
+        ]
+      ],
+      "pii_classification": "none",
+      "requirement_ids": [
+        "M0-GOLD-REGISTRY",
+        "M0-SCORING-TRUTH"
+      ],
+      "risk_ids": [
+        "R-014"
+      ],
+      "source_kind": "file",
+      "template_family_ids": [
+        "TEMPLATE-ANSWER-SCORING-A4-B5"
+      ],
+      "test_copy_ref": null,
+      "total_bytes": 359271,
+      "truth_roles": [
+        "scoring"
+      ],
+      "verification_status": "machine_fingerprinted_role_from_project_baseline"
+    },
+    {
+      "aggregate_sha256": "bb16a83e8c1e4b916a378d18ddb4fd774cf9f840a505d0c33c03360aa6296681",
+      "baseline_authority": "Task/11_REFERENCE_BASELINE.md",
+      "confirmation": {
+        "actor_ref": "USER-PROVIDED-BASELINE",
+        "change_reason": "M0_INITIAL_REGISTRATION",
+        "confirmed_on": "2026-07-25",
+        "gold_revision": 1,
+        "previous_aggregate_sha256": null,
+        "status": "user-provided-project-baseline"
+      },
+      "copy_policy": "copy-on-use",
+      "expected_outcome": "review",
+      "extensions": {},
+      "formats": [
+        ".docx",
+        ".pdf"
+      ],
+      "license_status": "unverified",
+      "local_mapping_required": true,
+      "logical_id": "REF-TAG-EVIDENCE-SET",
+      "member_count": 20,
+      "members": [
+        {
+          "bytes": 11395480,
+          "extensions": {},
+          "format": ".pdf",
+          "member_id": "MEMBER-001",
+          "page_count": 15,
+          "page_sizes_mm": [
+            [
+              289.278,
+              203.2
+            ],
+            [
+              289.278,
+              203.553
+            ],
+            [
+              289.631,
+              203.2
+            ],
+            [
+              289.631,
+              203.553
+            ],
+            [
+              289.983,
+              203.553
+            ],
+            [
+              290.336,
+              203.906
+            ]
+          ],
+          "sha256": "1502a5990b8bccf99c10b2cb25067722f0e8f2195784898829f87139ff4d0c69",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 11895090,
+          "extensions": {},
+          "format": ".pdf",
+          "member_id": "MEMBER-002",
+          "page_count": 16,
+          "page_sizes_mm": [
+            [
+              288.925,
+              203.553
+            ],
+            [
+              289.278,
+              203.553
+            ],
+            [
+              289.631,
+              203.553
+            ]
+          ],
+          "sha256": "2e0d5508d31f411823e0b3f6296eba56d3c87283f6af98b08bf45686ba1f09b5",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 12085182,
+          "extensions": {},
+          "format": ".pdf",
+          "member_id": "MEMBER-003",
+          "page_count": 177,
+          "page_sizes_mm": [
+            [
+              210.0,
+              297.0
+            ]
+          ],
+          "sha256": "fdf4f477bbd401939cb073bbf42cad81d612ed78c84732571df9ccf0707556cf",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 12563597,
+          "extensions": {},
+          "format": ".pdf",
+          "member_id": "MEMBER-004",
+          "page_count": 15,
+          "page_sizes_mm": [
+            [
+              289.278,
+              203.553
+            ],
+            [
+              289.631,
+              203.553
+            ],
+            [
+              289.983,
+              203.553
+            ]
+          ],
+          "sha256": "8f24fcb74f2cd353a87221716ffb6bc84588830188a5df40e116a9274d0cdaea",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 12614304,
+          "extensions": {},
+          "format": ".pdf",
+          "member_id": "MEMBER-005",
+          "page_count": 18,
+          "page_sizes_mm": [
+            [
+              289.278,
+              203.2
+            ],
+            [
+              289.278,
+              203.553
+            ],
+            [
+              289.631,
+              203.2
+            ]
+          ],
+          "sha256": "4a7e628295b83c658f02fa226e7b69ab05b4ce2f4ba3eab479c0af86310b22f7",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 132762117,
+          "extensions": {},
+          "format": ".pdf",
+          "member_id": "MEMBER-006",
+          "page_count": 183,
+          "page_sizes_mm": [
+            [
+              181.06,
+              260.35
+            ],
+            [
+              181.06,
+              260.392
+            ],
+            [
+              181.144,
+              260.35
+            ],
+            [
+              181.144,
+              260.392
+            ],
+            [
+              181.144,
+              260.519
+            ],
+            [
+              181.144,
+              260.604
+            ],
+            [
+              181.187,
+              260.35
+            ],
+            [
+              181.187,
+              260.392
+            ],
+            [
+              181.187,
+              260.435
+            ],
+            [
+              181.187,
+              260.477
+            ],
+            [
+              181.229,
+              259.715
+            ],
+            [
+              181.229,
+              260.308
+            ],
+            [
+              181.229,
+              260.562
+            ],
+            [
+              181.229,
+              260.604
+            ],
+            [
+              181.271,
+              260.435
+            ],
+            [
+              181.271,
+              260.562
+            ],
+            [
+              181.271,
+              260.604
+            ],
+            [
+              181.314,
+              260.35
+            ],
+            [
+              181.314,
+              260.392
+            ],
+            [
+              181.356,
+              260.011
+            ],
+            [
+              181.356,
+              260.181
+            ],
+            [
+              181.356,
+              260.308
+            ],
+            [
+              181.356,
+              260.392
+            ],
+            [
+              181.356,
+              260.562
+            ],
+            [
+              181.398,
+              260.35
+            ],
+            [
+              181.398,
+              260.435
+            ],
+            [
+              181.398,
+              260.477
+            ],
+            [
+              181.398,
+              260.562
+            ],
+            [
+              181.398,
+              260.646
+            ],
+            [
+              181.398,
+              260.689
+            ],
+            [
+              181.441,
+              259.715
+            ],
+            [
+              181.441,
+              260.265
+            ],
+            [
+              181.441,
+              260.308
+            ],
+            [
+              181.441,
+              260.35
+            ],
+            [
+              181.441,
+              260.392
+            ],
+            [
+              181.441,
+              260.435
+            ],
+            [
+              181.441,
+              260.604
+            ],
+            [
+              181.441,
+              260.858
+            ],
+            [
+              181.483,
+              260.096
+            ],
+            [
+              181.483,
+              260.308
+            ],
+            [
+              181.483,
+              260.435
+            ],
+            [
+              181.483,
+              260.519
+            ],
+            [
+              181.483,
+              260.562
+            ],
+            [
+              181.483,
+              260.646
+            ],
+            [
+              181.525,
+              259.461
+            ],
+            [
+              181.525,
+              260.308
+            ],
+            [
+              181.525,
+              260.435
+            ],
+            [
+              181.525,
+              260.604
+            ],
+            [
+              181.568,
+              260.265
+            ],
+            [
+              181.568,
+              260.308
+            ],
+            [
+              181.568,
+              260.392
+            ],
+            [
+              181.568,
+              260.435
+            ],
+            [
+              181.568,
+              260.519
+            ],
+            [
+              181.568,
+              260.562
+            ],
+            [
+              181.568,
+              260.604
+            ],
+            [
+              181.61,
+              259.546
+            ],
+            [
+              181.61,
+              260.011
+            ],
+            [
+              181.61,
+              260.223
+            ],
+            [
+              181.61,
+              260.35
+            ],
+            [
+              181.61,
+              260.689
+            ],
+            [
+              181.652,
+              260.223
+            ],
+            [
+              181.652,
+              260.265
+            ],
+            [
+              181.652,
+              260.308
+            ],
+            [
+              181.652,
+              260.435
+            ],
+            [
+              181.695,
+              260.096
+            ],
+            [
+              181.695,
+              260.138
+            ],
+            [
+              181.695,
+              260.308
+            ],
+            [
+              181.695,
+              260.35
+            ],
+            [
+              181.695,
+              260.435
+            ],
+            [
+              181.695,
+              260.477
+            ],
+            [
+              181.695,
+              260.519
+            ],
+            [
+              181.737,
+              260.181
+            ],
+            [
+              181.737,
+              260.265
+            ],
+            [
+              181.737,
+              260.435
+            ],
+            [
+              181.737,
+              260.477
+            ],
+            [
+              181.779,
+              259.969
+            ],
+            [
+              181.779,
+              260.181
+            ],
+            [
+              181.779,
+              260.223
+            ],
+            [
+              181.779,
+              260.477
+            ],
+            [
+              181.779,
+              260.604
+            ],
+            [
+              181.822,
+              259.757
+            ],
+            [
+              181.822,
+              260.223
+            ],
+            [
+              181.822,
+              260.265
+            ],
+            [
+              181.822,
+              260.435
+            ],
+            [
+              181.822,
+              260.604
+            ],
+            [
+              181.864,
+              259.884
+            ],
+            [
+              181.864,
+              260.308
+            ],
+            [
+              181.864,
+              260.392
+            ],
+            [
+              181.864,
+              260.689
+            ],
+            [
+              181.906,
+              260.096
+            ],
+            [
+              181.906,
+              260.223
+            ],
+            [
+              181.906,
+              260.308
+            ],
+            [
+              181.906,
+              260.35
+            ],
+            [
+              181.906,
+              260.477
+            ],
+            [
+              181.949,
+              260.138
+            ],
+            [
+              181.949,
+              260.265
+            ],
+            [
+              181.949,
+              260.35
+            ],
+            [
+              181.949,
+              260.519
+            ],
+            [
+              181.991,
+              260.223
+            ],
+            [
+              181.991,
+              260.308
+            ],
+            [
+              181.991,
+              260.35
+            ],
+            [
+              182.033,
+              259.969
+            ],
+            [
+              182.033,
+              260.223
+            ],
+            [
+              182.033,
+              260.477
+            ],
+            [
+              182.033,
+              260.604
+            ],
+            [
+              182.033,
+              260.646
+            ],
+            [
+              182.076,
+              259.969
+            ],
+            [
+              182.076,
+              260.096
+            ],
+            [
+              182.076,
+              260.477
+            ],
+            [
+              182.118,
+              260.181
+            ],
+            [
+              182.118,
+              260.435
+            ],
+            [
+              182.16,
+              259.884
+            ],
+            [
+              182.16,
+              260.096
+            ],
+            [
+              182.16,
+              260.35
+            ],
+            [
+              182.16,
+              260.858
+            ],
+            [
+              182.203,
+              259.969
+            ],
+            [
+              182.203,
+              260.435
+            ],
+            [
+              182.245,
+              259.63
+            ],
+            [
+              182.245,
+              259.8
+            ],
+            [
+              182.245,
+              260.096
+            ],
+            [
+              182.245,
+              260.35
+            ],
+            [
+              182.287,
+              260.265
+            ],
+            [
+              182.287,
+              260.35
+            ],
+            [
+              182.287,
+              260.392
+            ],
+            [
+              182.33,
+              260.265
+            ],
+            [
+              182.33,
+              260.308
+            ],
+            [
+              182.33,
+              260.562
+            ],
+            [
+              182.372,
+              260.138
+            ],
+            [
+              182.372,
+              260.308
+            ],
+            [
+              182.414,
+              259.673
+            ],
+            [
+              182.414,
+              260.308
+            ],
+            [
+              182.414,
+              260.435
+            ],
+            [
+              182.457,
+              259.757
+            ],
+            [
+              182.457,
+              259.927
+            ],
+            [
+              182.457,
+              260.265
+            ],
+            [
+              182.457,
+              260.519
+            ],
+            [
+              182.499,
+              259.842
+            ],
+            [
+              182.541,
+              260.223
+            ],
+            [
+              182.541,
+              260.519
+            ],
+            [
+              182.541,
+              260.562
+            ],
+            [
+              182.626,
+              260.435
+            ],
+            [
+              182.626,
+              260.519
+            ],
+            [
+              182.668,
+              260.054
+            ],
+            [
+              182.711,
+              259.884
+            ],
+            [
+              182.711,
+              260.138
+            ],
+            [
+              182.711,
+              260.392
+            ],
+            [
+              182.753,
+              260.138
+            ],
+            [
+              182.753,
+              260.223
+            ],
+            [
+              182.88,
+              260.138
+            ],
+            [
+              182.88,
+              260.477
+            ],
+            [
+              182.922,
+              259.8
+            ],
+            [
+              182.922,
+              260.138
+            ],
+            [
+              182.965,
+              259.715
+            ],
+            [
+              182.965,
+              259.969
+            ],
+            [
+              183.007,
+              260.096
+            ],
+            [
+              183.049,
+              259.842
+            ],
+            [
+              183.092,
+              260.562
+            ],
+            [
+              381.847,
+              259.588
+            ]
+          ],
+          "sha256": "cfdde9b182c7e7e4a911849c1c421150b6505a47d7be746b14c3d0eeb0532e7f",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 14058592,
+          "extensions": {},
+          "format": ".pdf",
+          "member_id": "MEMBER-007",
+          "page_count": 18,
+          "page_sizes_mm": [
+            [
+              289.278,
+              203.2
+            ],
+            [
+              289.278,
+              203.553
+            ],
+            [
+              289.631,
+              203.2
+            ],
+            [
+              289.631,
+              203.553
+            ]
+          ],
+          "sha256": "0f2d55e0090448054f0f277c3322c929c91b64b58e08080c0203d082df876e89",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 15702197,
+          "extensions": {},
+          "format": ".pdf",
+          "member_id": "MEMBER-008",
+          "page_count": 66,
+          "page_sizes_mm": [
+            [
+              210.058,
+              297.18
+            ]
+          ],
+          "sha256": "776412f0324a8a9958e7fea49c243df93e05d1310e85735f4987e72b63233498",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 236195618,
+          "extensions": {},
+          "format": ".pdf",
+          "member_id": "MEMBER-009",
+          "page_count": 243,
+          "page_sizes_mm": [
+            [
+              180.622,
+              259.997
+            ],
+            [
+              180.622,
+              260.35
+            ],
+            [
+              180.622,
+              260.703
+            ],
+            [
+              180.622,
+              261.056
+            ],
+            [
+              180.975,
+              259.644
+            ],
+            [
+              180.975,
+              259.997
+            ],
+            [
+              180.975,
+              260.35
+            ],
+            [
+              180.975,
+              260.703
+            ],
+            [
+              180.975,
+              261.056
+            ],
+            [
+              181.328,
+              259.997
+            ],
+            [
+              181.328,
+              260.35
+            ],
+            [
+              181.328,
+              260.703
+            ],
+            [
+              181.328,
+              261.056
+            ],
+            [
+              181.328,
+              261.761
+            ],
+            [
+              181.681,
+              260.35
+            ],
+            [
+              181.681,
+              260.703
+            ],
+            [
+              181.681,
+              261.056
+            ],
+            [
+              181.864,
+              259.249
+            ],
+            [
+              182.033,
+              260.703
+            ],
+            [
+              182.033,
+              261.056
+            ],
+            [
+              182.033,
+              261.408
+            ],
+            [
+              182.033,
+              261.761
+            ],
+            [
+              182.372,
+              258.911
+            ],
+            [
+              182.372,
+              259.503
+            ],
+            [
+              182.386,
+              260.35
+            ],
+            [
+              182.386,
+              261.056
+            ],
+            [
+              182.386,
+              261.408
+            ],
+            [
+              182.739,
+              261.408
+            ]
+          ],
+          "sha256": "66b79170ec5cc46fc19063ce20ea8f6a6323e50a3fceca312be9fbe8bd5f2580",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 25140782,
+          "extensions": {},
+          "format": ".pdf",
+          "member_id": "MEMBER-010",
+          "page_count": 115,
+          "page_sizes_mm": [
+            [
+              210.016,
+              297.011
+            ]
+          ],
+          "sha256": "86638dedef04d0303a6ea8e6ea6aeb7d9c9ad18edb2736384980883f840d3abe",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 2601213,
+          "extensions": {},
+          "format": ".pdf",
+          "member_id": "MEMBER-011",
+          "page_count": 9,
+          "page_sizes_mm": [
+            [
+              210.016,
+              297.011
+            ]
+          ],
+          "sha256": "80147cc4ecaaec2c2083b33215ce93e94d6a6fb4794e3bd8e0cee6316394d75f",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 28019299,
+          "extensions": {},
+          "format": ".pdf",
+          "member_id": "MEMBER-012",
+          "page_count": 34,
+          "page_sizes_mm": [
+            [
+              289.631,
+              203.2
+            ],
+            [
+              289.631,
+              203.553
+            ],
+            [
+              289.983,
+              203.553
+            ],
+            [
+              290.336,
+              203.553
+            ]
+          ],
+          "sha256": "a12151ac354d37e1a6b4621f8fcbfe99b32e2361bb8cbecc4c76ab55ecb6bfce",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 32909696,
+          "extensions": {},
+          "format": ".pdf",
+          "member_id": "MEMBER-013",
+          "page_count": 41,
+          "page_sizes_mm": [
+            [
+              289.983,
+              201.789
+            ],
+            [
+              289.983,
+              202.142
+            ],
+            [
+              290.336,
+              202.142
+            ],
+            [
+              290.336,
+              202.494
+            ]
+          ],
+          "sha256": "8db01f0dd2787029e405e1a1edab3298bfd30de3bb2ea2641669aeef5551687d",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 36422098,
+          "extensions": {},
+          "format": ".pdf",
+          "member_id": "MEMBER-014",
+          "page_count": 53,
+          "page_sizes_mm": [
+            [
+              290.336,
+              202.142
+            ],
+            [
+              290.336,
+              202.494
+            ]
+          ],
+          "sha256": "494bccd51d4ebdb69e720547e4aa4f373c807d38f6e507ca15efb684fcb08798",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 3833659,
+          "extensions": {},
+          "format": ".pdf",
+          "member_id": "MEMBER-015",
+          "page_count": 10,
+          "page_sizes_mm": [
+            [
+              210.016,
+              297.011
+            ]
+          ],
+          "sha256": "fde194ea332d1afd44909e0e8bb33bed356f6c149fe59be044c5b82f35344b31",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 47676685,
+          "extensions": {},
+          "format": ".pdf",
+          "member_id": "MEMBER-016",
+          "page_count": 65,
+          "page_sizes_mm": [
+            [
+              289.983,
+              202.142
+            ],
+            [
+              290.336,
+              202.142
+            ],
+            [
+              290.689,
+              202.142
+            ],
+            [
+              291.042,
+              202.142
+            ]
+          ],
+          "sha256": "63c795b83b7f220493d0035737923dc9f743f8ad772ca18ed8982ca294e963e8",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 48706251,
+          "extensions": {},
+          "format": ".pdf",
+          "member_id": "MEMBER-017",
+          "page_count": 70,
+          "page_sizes_mm": [
+            [
+              288.572,
+              204.258
+            ],
+            [
+              288.925,
+              204.258
+            ],
+            [
+              288.925,
+              204.611
+            ],
+            [
+              288.925,
+              204.964
+            ],
+            [
+              288.925,
+              205.317
+            ],
+            [
+              289.278,
+              205.317
+            ]
+          ],
+          "sha256": "c8363c8cc6bd055e9e9b460354b7a8fc135f8f6da2c9b7cebb5484a54387e276",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 78491401,
+          "extensions": {},
+          "format": ".pdf",
+          "member_id": "MEMBER-018",
+          "page_count": 121,
+          "page_sizes_mm": [
+            [
+              209.903,
+              296.686
+            ]
+          ],
+          "sha256": "2b76ce0c163bfe90addf2e06e94d7dc8b8354d75e0f0f746ca3268f0a0b27ef2",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 81468,
+          "extensions": {},
+          "format": ".docx",
+          "member_id": "MEMBER-019",
+          "page_count": null,
+          "page_sizes_mm": [
+            [
+              210.009,
+              297.004
+            ]
+          ],
+          "sha256": "b60b6c51d1ab0c8fdb1a84720b42617dda447adc6fec9231b4aee16d4917c665",
+          "structural_status": "readable"
+        },
+        {
+          "bytes": 8835663,
+          "extensions": {},
+          "format": ".pdf",
+          "member_id": "MEMBER-020",
+          "page_count": 14,
+          "page_sizes_mm": [
+            [
+              209.903,
+              281.287
+            ],
+            [
+              209.903,
+              281.64
+            ]
+          ],
+          "sha256": "9e7c9153be9129577b6bcd93a793a02bf08097b9d5f98eb8cea4ba45f6b7fb56",
+          "structural_status": "readable"
+        }
+      ],
+      "page_count": null,
+      "page_sizes_mm": [
+        [
+          180.622,
+          259.997
+        ],
+        [
+          180.622,
+          260.35
+        ],
+        [
+          180.622,
+          260.703
+        ],
+        [
+          180.622,
+          261.056
+        ],
+        [
+          180.975,
+          259.644
+        ],
+        [
+          180.975,
+          259.997
+        ],
+        [
+          180.975,
+          260.35
+        ],
+        [
+          180.975,
+          260.703
+        ],
+        [
+          180.975,
+          261.056
+        ],
+        [
+          181.06,
+          260.35
+        ],
+        [
+          181.06,
+          260.392
+        ],
+        [
+          181.144,
+          260.35
+        ],
+        [
+          181.144,
+          260.392
+        ],
+        [
+          181.144,
+          260.519
+        ],
+        [
+          181.144,
+          260.604
+        ],
+        [
+          181.187,
+          260.35
+        ],
+        [
+          181.187,
+          260.392
+        ],
+        [
+          181.187,
+          260.435
+        ],
+        [
+          181.187,
+          260.477
+        ],
+        [
+          181.229,
+          259.715
+        ],
+        [
+          181.229,
+          260.308
+        ],
+        [
+          181.229,
+          260.562
+        ],
+        [
+          181.229,
+          260.604
+        ],
+        [
+          181.271,
+          260.435
+        ],
+        [
+          181.271,
+          260.562
+        ],
+        [
+          181.271,
+          260.604
+        ],
+        [
+          181.314,
+          260.35
+        ],
+        [
+          181.314,
+          260.392
+        ],
+        [
+          181.328,
+          259.997
+        ],
+        [
+          181.328,
+          260.35
+        ],
+        [
+          181.328,
+          260.703
+        ],
+        [
+          181.328,
+          261.056
+        ],
+        [
+          181.328,
+          261.761
+        ],
+        [
+          181.356,
+          260.011
+        ],
+        [
+          181.356,
+          260.181
+        ],
+        [
+          181.356,
+          260.308
+        ],
+        [
+          181.356,
+          260.392
+        ],
+        [
+          181.356,
+          260.562
+        ],
+        [
+          181.398,
+          260.35
+        ],
+        [
+          181.398,
+          260.435
+        ],
+        [
+          181.398,
+          260.477
+        ],
+        [
+          181.398,
+          260.562
+        ],
+        [
+          181.398,
+          260.646
+        ],
+        [
+          181.398,
+          260.689
+        ],
+        [
+          181.441,
+          259.715
+        ],
+        [
+          181.441,
+          260.265
+        ],
+        [
+          181.441,
+          260.308
+        ],
+        [
+          181.441,
+          260.35
+        ],
+        [
+          181.441,
+          260.392
+        ],
+        [
+          181.441,
+          260.435
+        ],
+        [
+          181.441,
+          260.604
+        ],
+        [
+          181.441,
+          260.858
+        ],
+        [
+          181.483,
+          260.096
+        ],
+        [
+          181.483,
+          260.308
+        ],
+        [
+          181.483,
+          260.435
+        ],
+        [
+          181.483,
+          260.519
+        ],
+        [
+          181.483,
+          260.562
+        ],
+        [
+          181.483,
+          260.646
+        ],
+        [
+          181.525,
+          259.461
+        ],
+        [
+          181.525,
+          260.308
+        ],
+        [
+          181.525,
+          260.435
+        ],
+        [
+          181.525,
+          260.604
+        ],
+        [
+          181.568,
+          260.265
+        ],
+        [
+          181.568,
+          260.308
+        ],
+        [
+          181.568,
+          260.392
+        ],
+        [
+          181.568,
+          260.435
+        ],
+        [
+          181.568,
+          260.519
+        ],
+        [
+          181.568,
+          260.562
+        ],
+        [
+          181.568,
+          260.604
+        ],
+        [
+          181.61,
+          259.546
+        ],
+        [
+          181.61,
+          260.011
+        ],
+        [
+          181.61,
+          260.223
+        ],
+        [
+          181.61,
+          260.35
+        ],
+        [
+          181.61,
+          260.689
+        ],
+        [
+          181.652,
+          260.223
+        ],
+        [
+          181.652,
+          260.265
+        ],
+        [
+          181.652,
+          260.308
+        ],
+        [
+          181.652,
+          260.435
+        ],
+        [
+          181.681,
+          260.35
+        ],
+        [
+          181.681,
+          260.703
+        ],
+        [
+          181.681,
+          261.056
+        ],
+        [
+          181.695,
+          260.096
+        ],
+        [
+          181.695,
+          260.138
+        ],
+        [
+          181.695,
+          260.308
+        ],
+        [
+          181.695,
+          260.35
+        ],
+        [
+          181.695,
+          260.435
+        ],
+        [
+          181.695,
+          260.477
+        ],
+        [
+          181.695,
+          260.519
+        ],
+        [
+          181.737,
+          260.181
+        ],
+        [
+          181.737,
+          260.265
+        ],
+        [
+          181.737,
+          260.435
+        ],
+        [
+          181.737,
+          260.477
+        ],
+        [
+          181.779,
+          259.969
+        ],
+        [
+          181.779,
+          260.181
+        ],
+        [
+          181.779,
+          260.223
+        ],
+        [
+          181.779,
+          260.477
+        ],
+        [
+          181.779,
+          260.604
+        ],
+        [
+          181.822,
+          259.757
+        ],
+        [
+          181.822,
+          260.223
+        ],
+        [
+          181.822,
+          260.265
+        ],
+        [
+          181.822,
+          260.435
+        ],
+        [
+          181.822,
+          260.604
+        ],
+        [
+          181.864,
+          259.249
+        ],
+        [
+          181.864,
+          259.884
+        ],
+        [
+          181.864,
+          260.308
+        ],
+        [
+          181.864,
+          260.392
+        ],
+        [
+          181.864,
+          260.689
+        ],
+        [
+          181.906,
+          260.096
+        ],
+        [
+          181.906,
+          260.223
+        ],
+        [
+          181.906,
+          260.308
+        ],
+        [
+          181.906,
+          260.35
+        ],
+        [
+          181.906,
+          260.477
+        ],
+        [
+          181.949,
+          260.138
+        ],
+        [
+          181.949,
+          260.265
+        ],
+        [
+          181.949,
+          260.35
+        ],
+        [
+          181.949,
+          260.519
+        ],
+        [
+          181.991,
+          260.223
+        ],
+        [
+          181.991,
+          260.308
+        ],
+        [
+          181.991,
+          260.35
+        ],
+        [
+          182.033,
+          259.969
+        ],
+        [
+          182.033,
+          260.223
+        ],
+        [
+          182.033,
+          260.477
+        ],
+        [
+          182.033,
+          260.604
+        ],
+        [
+          182.033,
+          260.646
+        ],
+        [
+          182.033,
+          260.703
+        ],
+        [
+          182.033,
+          261.056
+        ],
+        [
+          182.033,
+          261.408
+        ],
+        [
+          182.033,
+          261.761
+        ],
+        [
+          182.076,
+          259.969
+        ],
+        [
+          182.076,
+          260.096
+        ],
+        [
+          182.076,
+          260.477
+        ],
+        [
+          182.118,
+          260.181
+        ],
+        [
+          182.118,
+          260.435
+        ],
+        [
+          182.16,
+          259.884
+        ],
+        [
+          182.16,
+          260.096
+        ],
+        [
+          182.16,
+          260.35
+        ],
+        [
+          182.16,
+          260.858
+        ],
+        [
+          182.203,
+          259.969
+        ],
+        [
+          182.203,
+          260.435
+        ],
+        [
+          182.245,
+          259.63
+        ],
+        [
+          182.245,
+          259.8
+        ],
+        [
+          182.245,
+          260.096
+        ],
+        [
+          182.245,
+          260.35
+        ],
+        [
+          182.287,
+          260.265
+        ],
+        [
+          182.287,
+          260.35
+        ],
+        [
+          182.287,
+          260.392
+        ],
+        [
+          182.33,
+          260.265
+        ],
+        [
+          182.33,
+          260.308
+        ],
+        [
+          182.33,
+          260.562
+        ],
+        [
+          182.372,
+          258.911
+        ],
+        [
+          182.372,
+          259.503
+        ],
+        [
+          182.372,
+          260.138
+        ],
+        [
+          182.372,
+          260.308
+        ],
+        [
+          182.386,
+          260.35
+        ],
+        [
+          182.386,
+          261.056
+        ],
+        [
+          182.386,
+          261.408
+        ],
+        [
+          182.414,
+          259.673
+        ],
+        [
+          182.414,
+          260.308
+        ],
+        [
+          182.414,
+          260.435
+        ],
+        [
+          182.457,
+          259.757
+        ],
+        [
+          182.457,
+          259.927
+        ],
+        [
+          182.457,
+          260.265
+        ],
+        [
+          182.457,
+          260.519
+        ],
+        [
+          182.499,
+          259.842
+        ],
+        [
+          182.541,
+          260.223
+        ],
+        [
+          182.541,
+          260.519
+        ],
+        [
+          182.541,
+          260.562
+        ],
+        [
+          182.626,
+          260.435
+        ],
+        [
+          182.626,
+          260.519
+        ],
+        [
+          182.668,
+          260.054
+        ],
+        [
+          182.711,
+          259.884
+        ],
+        [
+          182.711,
+          260.138
+        ],
+        [
+          182.711,
+          260.392
+        ],
+        [
+          182.739,
+          261.408
+        ],
+        [
+          182.753,
+          260.138
+        ],
+        [
+          182.753,
+          260.223
+        ],
+        [
+          182.88,
+          260.138
+        ],
+        [
+          182.88,
+          260.477
+        ],
+        [
+          182.922,
+          259.8
+        ],
+        [
+          182.922,
+          260.138
+        ],
+        [
+          182.965,
+          259.715
+        ],
+        [
+          182.965,
+          259.969
+        ],
+        [
+          183.007,
+          260.096
+        ],
+        [
+          183.049,
+          259.842
+        ],
+        [
+          183.092,
+          260.562
+        ],
+        [
+          209.903,
+          281.287
+        ],
+        [
+          209.903,
+          281.64
+        ],
+        [
+          209.903,
+          296.686
+        ],
+        [
+          210.0,
+          297.0
+        ],
+        [
+          210.009,
+          297.004
+        ],
+        [
+          210.016,
+          297.011
+        ],
+        [
+          210.058,
+          297.18
+        ],
+        [
+          288.572,
+          204.258
+        ],
+        [
+          288.925,
+          203.553
+        ],
+        [
+          288.925,
+          204.258
+        ],
+        [
+          288.925,
+          204.611
+        ],
+        [
+          288.925,
+          204.964
+        ],
+        [
+          288.925,
+          205.317
+        ],
+        [
+          289.278,
+          203.2
+        ],
+        [
+          289.278,
+          203.553
+        ],
+        [
+          289.278,
+          205.317
+        ],
+        [
+          289.631,
+          203.2
+        ],
+        [
+          289.631,
+          203.553
+        ],
+        [
+          289.983,
+          201.789
+        ],
+        [
+          289.983,
+          202.142
+        ],
+        [
+          289.983,
+          203.553
+        ],
+        [
+          290.336,
+          202.142
+        ],
+        [
+          290.336,
+          202.494
+        ],
+        [
+          290.336,
+          203.553
+        ],
+        [
+          290.336,
+          203.906
+        ],
+        [
+          290.689,
+          202.142
+        ],
+        [
+          291.042,
+          202.142
+        ],
+        [
+          381.847,
+          259.588
+        ]
+      ],
+      "pii_classification": "unknown",
+      "requirement_ids": [
+        "M0-GOLD-REGISTRY",
+        "M0-TAG-EVIDENCE"
+      ],
+      "risk_ids": [
+        "R-018",
+        "R-027",
+        "R-028"
+      ],
+      "source_kind": "set",
+      "template_family_ids": [],
+      "test_copy_ref": null,
+      "total_bytes": 771990392,
+      "truth_roles": [
+        "content",
+        "tag"
+      ],
+      "verification_status": "machine_fingerprinted_role_from_project_baseline"
+    },
+    {
+      "aggregate_sha256": "41c159863a26dc58a59e69283c3c61522c105c76b7e7c8ff0bec10e2c5fe4408",
+      "baseline_authority": "Task/11_REFERENCE_BASELINE.md",
+      "confirmation": {
+        "actor_ref": "USER-PROVIDED-BASELINE",
+        "change_reason": "M0_INITIAL_REGISTRATION",
+        "confirmed_on": "2026-07-25",
+        "gold_revision": 1,
+        "previous_aggregate_sha256": null,
+        "status": "user-provided-project-baseline"
+      },
+      "copy_policy": "copy-on-use",
+      "expected_outcome": "review",
+      "extensions": {},
+      "formats": [
+        ".docx"
+      ],
+      "license_status": "user-owned",
+      "local_mapping_required": true,
+      "logical_id": "REF-TEMPLATE-ANSWER",
+      "member_count": 1,
+      "members": [
+        {
+          "bytes": 22409,
+          "extensions": {},
+          "format": ".docx",
+          "member_id": "MEMBER-001",
+          "page_count": null,
+          "page_sizes_mm": [
+            [
+              210.009,
+              297.004
+            ]
+          ],
+          "sha256": "e4db4cc2bfe0e8fac9b4a1ddb0c8af6d48e613b71c81b05304b0be6865490e11",
+          "structural_status": "readable"
+        }
+      ],
+      "page_count": null,
+      "page_sizes_mm": [
+        [
+          210.009,
+          297.004
+        ]
+      ],
+      "pii_classification": "none",
+      "requirement_ids": [
+        "M0-GOLD-REGISTRY",
+        "M0-TEMPLATE-FAMILIES"
+      ],
+      "risk_ids": [
+        "R-009",
+        "R-028"
+      ],
+      "source_kind": "file",
+      "template_family_ids": [
+        "TEMPLATE-ANSWER-SCORING-A4-B5"
+      ],
+      "test_copy_ref": null,
+      "total_bytes": 22409,
+      "truth_roles": [
+        "template"
+      ],
+      "verification_status": "machine_fingerprinted_role_from_project_baseline"
+    },
+    {
+      "aggregate_sha256": "08731e331c18d0b51a34ab3dd5e0bc245fcab9c07b78d7d37b2a82f74c4d6879",
+      "baseline_authority": "Task/11_REFERENCE_BASELINE.md",
+      "confirmation": {
+        "actor_ref": "USER-PROVIDED-BASELINE",
+        "change_reason": "M0_INITIAL_REGISTRATION",
+        "confirmed_on": "2026-07-25",
+        "gold_revision": 1,
+        "previous_aggregate_sha256": null,
+        "status": "user-provided-project-baseline"
+      },
+      "copy_policy": "copy-on-use",
+      "expected_outcome": "pass",
+      "extensions": {},
+      "formats": [
+        ".docx"
+      ],
+      "license_status": "user-owned",
+      "local_mapping_required": true,
+      "logical_id": "REF-TEMPLATE-PAPER",
+      "member_count": 1,
+      "members": [
+        {
+          "bytes": 25923,
+          "extensions": {},
+          "format": ".docx",
+          "member_id": "MEMBER-001",
+          "page_count": null,
+          "page_sizes_mm": [
+            [
+              184.027,
+              260.032
+            ]
+          ],
+          "sha256": "2e6731748a76c7d9661943ca8c9e05bb490bb5390a7dd291afb8369cf2f3f6cf",
+          "structural_status": "readable"
+        }
+      ],
+      "page_count": null,
+      "page_sizes_mm": [
+        [
+          184.027,
+          260.032
+        ]
+      ],
+      "pii_classification": "none",
+      "requirement_ids": [
+        "M0-GOLD-REGISTRY",
+        "M0-TEMPLATE-FAMILIES"
+      ],
+      "risk_ids": [
+        "R-007",
+        "R-009"
+      ],
+      "source_kind": "file",
+      "template_family_ids": [
+        "TEMPLATE-EDITABLE-B5-184X260",
+        "TEMPLATE-STUDENT-TEACHER-B5"
+      ],
+      "test_copy_ref": null,
+      "total_bytes": 25923,
+      "truth_roles": [
+        "template"
+      ],
+      "verification_status": "machine_fingerprinted_role_from_project_baseline"
+    },
+    {
+      "aggregate_sha256": "9b124cbe8f25557482e6a6b9adf30496c0c4655f9a90ee1b1d94fa9fd81541d1",
+      "baseline_authority": "Task/11_REFERENCE_BASELINE.md",
+      "confirmation": {
+        "actor_ref": "USER-PROVIDED-BASELINE",
+        "change_reason": "M0_INITIAL_REGISTRATION",
+        "confirmed_on": "2026-07-25",
+        "gold_revision": 1,
+        "previous_aggregate_sha256": null,
+        "status": "user-provided-project-baseline"
+      },
+      "copy_policy": "copy-on-use",
+      "expected_outcome": "pass",
+      "extensions": {},
+      "formats": [
+        ".pdf"
+      ],
+      "license_status": "local-use-only",
+      "local_mapping_required": true,
+      "logical_id": "REF-VIS-NEW9",
+      "member_count": 1,
+      "members": [
+        {
+          "bytes": 35296214,
+          "extensions": {},
+          "format": ".pdf",
+          "member_id": "MEMBER-001",
+          "page_count": 91,
+          "page_sizes_mm": [
+            [
+              181.991,
+              257.006
+            ],
+            [
+              182.033,
+              257.048
+            ],
+            [
+              209.98,
+              297.039
+            ]
+          ],
+          "sha256": "1754436304ec543d88c5964fdf01409bf081b9c2ea425a22259d6bb5dd0bfac1",
+          "structural_status": "readable"
+        }
+      ],
+      "page_count": 91,
+      "page_sizes_mm": [
+        [
+          181.991,
+          257.006
+        ],
+        [
+          182.033,
+          257.048
+        ],
+        [
+          209.98,
+          297.039
+        ]
+      ],
+      "pii_classification": "none",
+      "requirement_ids": [
+        "M0-GOLD-REGISTRY",
+        "M0-TEMPLATE-FAMILIES",
+        "M0-VISUAL-BASELINE"
+      ],
+      "risk_ids": [
+        "R-006",
+        "R-007",
+        "R-009"
+      ],
+      "source_kind": "file",
+      "template_family_ids": [
+        "TEMPLATE-NEW9-B5-182X257"
+      ],
+      "test_copy_ref": null,
+      "total_bytes": 35296214,
+      "truth_roles": [
+        "template",
+        "visual"
+      ],
+      "verification_status": "machine_fingerprinted_role_from_project_baseline"
+    }
+  ],
+  "extensions": {},
+  "registry_id": "GOLD-REGISTRY-M0-V1",
+  "registry_sha256": "c5cddb1af8662d11d298cff7ea465eb2cbe22ea51f7f306e78fe68a593537b4d",
+  "required_template_family_ids": [
+    "TEMPLATE-ANSWER-SCORING-A4-B5",
+    "TEMPLATE-ANSWER-SHEET-A3-A4",
+    "TEMPLATE-COMPACT-176X250",
+    "TEMPLATE-EDITABLE-B5-184X260",
+    "TEMPLATE-FIGURE-THREE-TRACK",
+    "TEMPLATE-LECTURE-A4",
+    "TEMPLATE-LONG-ANALYSIS",
+    "TEMPLATE-NEW9-B5-182X257",
+    "TEMPLATE-OFFICIAL-A4",
+    "TEMPLATE-QUALITY-DASHBOARD",
+    "TEMPLATE-STUDENT-TEACHER-B5",
+    "TEMPLATE-TRUE-QUESTION-A3-LANDSCAPE"
+  ],
+  "required_truth_roles": [
+    "content",
+    "failure",
+    "figure",
+    "measurement",
+    "scoring",
+    "tag",
+    "template",
+    "visual"
+  ],
+  "schema_id": "LOCAL_EXAM_BANK_GOLD_REGISTRY",
+  "schema_version": "1.0"
+}

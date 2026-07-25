@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:local-exam-bank:visual-thresholds:1.0",
+  "title": "M0 Visual Thresholds v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_id",
+    "schema_version",
+    "engine_lock_required",
+    "raster_dpi",
+    "color_space",
+    "page_size_policy",
+    "page_size_representation_tolerance_mm",
+    "page_count_policy",
+    "critical_anchor_max_mm",
+    "major_anchor_max_mm",
+    "crop_pixels_allowed",
+    "overflow_pixels_allowed",
+    "silent_font_substitutions_allowed",
+    "pixel_metric_role",
+    "manual_overlay_required",
+    "change_control",
+    "extensions"
+  ],
+  "properties": {
+    "schema_id": {
+      "const": "LOCAL_EXAM_BANK_VISUAL_THRESHOLDS"
+    },
+    "schema_version": {
+      "const": "1.0"
+    },
+    "engine_lock_required": {
+      "const": true
+    },
+    "raster_dpi": {
+      "type": "integer",
+      "minimum": 72
+    },
+    "color_space": {
+      "const": "sRGB"
+    },
+    "page_size_policy": {
+      "const": "exact-reference"
+    },
+    "page_size_representation_tolerance_mm": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 0.01
+    },
+    "page_count_policy": {
+      "const": "exact"
+    },
+    "critical_anchor_max_mm": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 0.5
+    },
+    "major_anchor_max_mm": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1.0
+    },
+    "crop_pixels_allowed": {
+      "const": 0
+    },
+    "overflow_pixels_allowed": {
+      "const": 0
+    },
+    "silent_font_substitutions_allowed": {
+      "const": 0
+    },
+    "pixel_metric_role": {
+      "const": "diagnostic-not-sole-gate"
+    },
+    "manual_overlay_required": {
+      "const": true
+    },
+    "change_control": {
+      "const": "D2_ADR_INDEPENDENT_AUDIT"
+    },
+    "extensions": {
+      "type": "object"
+    }
+  },
+  "x-runtime-validator": "app.gold_registry.validate_visual_thresholds"
+}

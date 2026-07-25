@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:local-exam-bank:domain-revision:1.0",
+  "title": "Local Exam Bank Domain Revision v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_id",
+    "schema_version",
+    "object_type",
+    "object_id",
+    "revision_id",
+    "revision_no",
+    "state",
+    "created_at",
+    "predecessor_revision_id",
+    "payload",
+    "extensions",
+    "content_sha256"
+  ],
+  "properties": {
+    "schema_id": {
+      "const": "LOCAL_EXAM_BANK_DOMAIN_REVISION"
+    },
+    "schema_version": {
+      "const": "1.0"
+    },
+    "object_type": {
+      "enum": [
+        "active_state",
+        "audit_event",
+        "backup_set",
+        "blueprint_revision",
+        "candidate_pool_snapshot",
+        "export_bundle",
+        "figure_revision",
+        "font_manifest",
+        "paper_revision",
+        "question_revision",
+        "review_event",
+        "scoring_point_revision",
+        "solution_revision",
+        "source_file_revision",
+        "source_page",
+        "source_region",
+        "tag_assertion",
+        "taxonomy_release",
+        "template_revision"
+      ]
+    },
+    "object_id": {
+      "$ref": "#/$defs/id"
+    },
+    "revision_id": {
+      "$ref": "#/$defs/id"
+    },
+    "revision_no": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "state": {
+      "enum": [
+        "candidate",
+        "reviewed",
+        "approved",
+        "superseded",
+        "rejected"
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,6})?Z$"
+    },
+    "predecessor_revision_id": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/id"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "payload": {
+      "type": "object"
+    },
+    "extensions": {
+      "$ref": "#/$defs/extensions"
+    },
+    "content_sha256": {
+      "$ref": "#/$defs/sha256"
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9._-]{2,127}$",
+      "not": {
+        "const": "LATEST"
+      }
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "extensions": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^x-[a-z0-9][a-z0-9._-]{0,62}$"
+      }
+    }
+  },
+  "x-runtime-validator": "app.domain_models.validate_domain_revision"
+}

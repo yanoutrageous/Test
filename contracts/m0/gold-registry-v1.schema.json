@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:local-exam-bank:gold-registry:1.0",
+  "title": "M0 Gold Registry v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_id",
+    "schema_version",
+    "registry_id",
+    "baseline_authority",
+    "entries",
+    "required_truth_roles",
+    "required_template_family_ids",
+    "extensions",
+    "registry_sha256"
+  ],
+  "properties": {
+    "schema_id": {
+      "const": "LOCAL_EXAM_BANK_GOLD_REGISTRY"
+    },
+    "schema_version": {
+      "const": "1.0"
+    },
+    "registry_id": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9._-]{2,127}$"
+    },
+    "baseline_authority": {
+      "const": "Task/11_REFERENCE_BASELINE.md"
+    },
+    "entries": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object"
+      }
+    },
+    "required_truth_roles": {
+      "type": "array",
+      "uniqueItems": true
+    },
+    "required_template_family_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "extensions": {
+      "type": "object"
+    },
+    "registry_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  },
+  "x-runtime-validator": "app.gold_registry.validate_gold_registry"
+}

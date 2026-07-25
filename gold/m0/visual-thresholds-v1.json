@@ -1,0 +1,19 @@
+{
+  "schema_id": "LOCAL_EXAM_BANK_VISUAL_THRESHOLDS",
+  "schema_version": "1.0",
+  "engine_lock_required": true,
+  "raster_dpi": 200,
+  "color_space": "sRGB",
+  "page_size_policy": "exact-reference",
+  "page_size_representation_tolerance_mm": 0.01,
+  "page_count_policy": "exact",
+  "critical_anchor_max_mm": 0.5,
+  "major_anchor_max_mm": 1.0,
+  "crop_pixels_allowed": 0,
+  "overflow_pixels_allowed": 0,
+  "silent_font_substitutions_allowed": 0,
+  "pixel_metric_role": "diagnostic-not-sole-gate",
+  "manual_overlay_required": true,
+  "change_control": "D2_ADR_INDEPENDENT_AUDIT",
+  "extensions": {}
+}

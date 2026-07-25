@@ -1824,6 +1824,21 @@ def _build_command(
             "tests/test_structured_ai.py",
             "tests/test_web.py",
         ]
+    elif mode == "s5":
+        selection = [
+            "tests/test_domain_models.py",
+            "tests/test_ir_contracts.py",
+            "tests/test_gold_registry.py",
+            "tests/test_workspace_policy.py",
+            "tests/test_write_entry_inventory.py",
+            "tests/test_safe_pytest_launcher.py",
+        ]
+    elif mode == "s5_core":
+        selection = [
+            "tests/test_domain_models.py",
+            "tests/test_ir_contracts.py",
+            "tests/test_gold_registry.py",
+        ]
     elif mode == "launcher":
         selection = ["tests/test_safe_pytest_launcher.py"]
     elif mode == "symlink":
@@ -1881,6 +1896,8 @@ def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
             "s3h_core",
             "s4",
             "s4_core",
+            "s5",
+            "s5_core",
             "launcher",
             "symlink",
         ),

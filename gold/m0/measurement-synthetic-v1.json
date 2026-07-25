@@ -1,0 +1,106 @@
+{
+  "schema_id": "LOCAL_EXAM_BANK_SYNTHETIC_MEASUREMENT",
+  "schema_version": "1.0",
+  "dataset_id": "MEASUREMENT-SYNTHETIC-V1",
+  "synthetic": true,
+  "item_max_points": {
+    "ITEM-001": 2,
+    "ITEM-002": 3,
+    "ITEM-003": 4,
+    "ITEM-004": 6
+  },
+  "responses": [
+    {
+      "synthetic_subject_id": "SUBJECT-001",
+      "whole_paper_minutes": 38,
+      "item_scores": {
+        "ITEM-001": 2,
+        "ITEM-002": 3,
+        "ITEM-003": 4,
+        "ITEM-004": 6
+      }
+    },
+    {
+      "synthetic_subject_id": "SUBJECT-002",
+      "whole_paper_minutes": 42,
+      "item_scores": {
+        "ITEM-001": 2,
+        "ITEM-002": 3,
+        "ITEM-003": 4,
+        "ITEM-004": 5
+      }
+    },
+    {
+      "synthetic_subject_id": "SUBJECT-003",
+      "whole_paper_minutes": 45,
+      "item_scores": {
+        "ITEM-001": 2,
+        "ITEM-002": 3,
+        "ITEM-003": 3,
+        "ITEM-004": 5
+      }
+    },
+    {
+      "synthetic_subject_id": "SUBJECT-004",
+      "whole_paper_minutes": 49,
+      "item_scores": {
+        "ITEM-001": 2,
+        "ITEM-002": 2,
+        "ITEM-003": 3,
+        "ITEM-004": 4
+      }
+    },
+    {
+      "synthetic_subject_id": "SUBJECT-005",
+      "whole_paper_minutes": 53,
+      "item_scores": {
+        "ITEM-001": 2,
+        "ITEM-002": 2,
+        "ITEM-003": 2,
+        "ITEM-004": 3
+      }
+    },
+    {
+      "synthetic_subject_id": "SUBJECT-006",
+      "whole_paper_minutes": 57,
+      "item_scores": {
+        "ITEM-001": 1,
+        "ITEM-002": 2,
+        "ITEM-003": 2,
+        "ITEM-004": 2
+      }
+    },
+    {
+      "synthetic_subject_id": "SUBJECT-007",
+      "whole_paper_minutes": 61,
+      "item_scores": {
+        "ITEM-001": 1,
+        "ITEM-002": 1,
+        "ITEM-003": 1,
+        "ITEM-004": 1
+      }
+    },
+    {
+      "synthetic_subject_id": "SUBJECT-008",
+      "whole_paper_minutes": 66,
+      "item_scores": {
+        "ITEM-001": 0,
+        "ITEM-002": 0,
+        "ITEM-003": 1,
+        "ITEM-004": 0
+      }
+    }
+  ],
+  "expected_item_difficulty_p": {
+    "ITEM-001": 0.75,
+    "ITEM-002": 0.6666666667,
+    "ITEM-003": 0.625,
+    "ITEM-004": 0.5416666667
+  },
+  "time_semantics": {
+    "whole_paper_time_available": true,
+    "observed_item_time_available": false,
+    "observed_item_time_policy": "must-remain-null"
+  },
+  "extensions": {}
+}
