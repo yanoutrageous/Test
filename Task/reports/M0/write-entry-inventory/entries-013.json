@@ -1,7 +1,35 @@
 {
-  "chunk_digest_sha256": "6ea3f2dedaeaa250b1a8ff5cdc84750662226e4a220531cb6ef293136a6be739",
+  "chunk_digest_sha256": "7ed80d563eeee8ced5aed76d66aff40dc491845d98561c98391f3040094a86f1",
   "chunk_index": 13,
   "entries": [
+    {
+      "call_chain": [
+        "app.source_attribution.SourceAttributionService.rebuild"
+      ],
+      "callee": "app.database.connect_database().commit",
+      "column": 12,
+      "control_binding_id": "WE-9EDBDD772B34DDAE261D3BE1",
+      "detail": "transaction commit",
+      "end_column": 25,
+      "end_line": 183,
+      "entry_id": "WE-9EDBDD772B34DDAE261D3BE1",
+      "file": "app/source_attribution.py",
+      "function": "app.source_attribution.SourceAttributionService.rebuild",
+      "input_source": "DATABASE_CONNECTION_AND_CALLER_DATA",
+      "kind": "SQLITE_TRANSACTION",
+      "line": 183,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "resolution": "ALIAS_RESOLVED",
+      "risk": "P1",
+      "root_ids": [
+        "INTERNAL-DIRECT"
+      ],
+      "source_sha256": "228c11f0f9508d37dec6b6f601a24eae0b7f285faf3bd9dda46e3768758c7682",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976",
+      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
+    },
     {
       "call_chain": [
         "app.cli.main",
@@ -711,36 +739,6 @@
       ],
       "source_sha256": "ad6a6ef8c0c1f020d573e00299d5b1d144950569ffdb8d302577ee392a9e66f6",
       "statement_fingerprint": "3df49ab16e94f6db698e8a1580c39a994b2d2d853be762e29ac2c187ff4afed6",
-      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
-    },
-    {
-      "call_chain": [
-        "app.cli.main",
-        "app.stage10.run_stage10_structure_batch",
-        "app.stage10._quality_flag_counts"
-      ],
-      "callee": "conn.execute",
-      "column": 11,
-      "control_binding_id": "WE-AA8B0DD4EE1FEC443649412F",
-      "detail": "dynamic SQL is fail-closed because its effect cannot be proven",
-      "end_column": 5,
-      "end_line": 1245,
-      "entry_id": "WE-AA8B0DD4EE1FEC443649412F",
-      "file": "app/stage10.py",
-      "function": "app.stage10._quality_flag_counts",
-      "input_source": "CLI_ARGUMENT_OR_CONFIG",
-      "kind": "SQLITE_DYNAMIC_SQL",
-      "line": 1238,
-      "migration_status": "MIGRATED_GUARDED",
-      "owner": "REPORT_SERVICE",
-      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
-      "resolution": "DYNAMIC",
-      "risk": "P0",
-      "root_ids": [
-        "CLI:MAIN"
-      ],
-      "source_sha256": "ad6a6ef8c0c1f020d573e00299d5b1d144950569ffdb8d302577ee392a9e66f6",
-      "statement_fingerprint": "259c0d48e8b060adfd709d10f0867651b732331d45704a6e41b74ccda2f6fa40",
       "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
     }
   ],

@@ -13,9 +13,9 @@ from app.m3_pipeline import M3PipelineConfig, M3PipelineError
 from app.project_root import PROJECT_ROOT
 
 
-FULL_BACKUP_ID = "BACKUP-M4-YANYAN-FULL-20260725"
-INCREMENTAL_BACKUP_ID = "BACKUP-M4-YANYAN-INCREMENTAL-20260725"
-RESTORED_STATE_ID = "STATE-M4-YANYAN-RESTORED-20260725"
+FULL_BACKUP_ID = "BACKUP-M4-YANYAN-FULL-20260726-R2"
+INCREMENTAL_BACKUP_ID = "BACKUP-M4-YANYAN-INCREMENTAL-20260726-R2"
+RESTORED_STATE_ID = "STATE-M4-YANYAN-RESTORED-20260726-R2"
 LEGACY_ACTIVITY_SHA256 = (
     "1505bf05bd8e385eada30642110596363c"
     "561c330da02a40a497072064ad1c94"
@@ -64,9 +64,9 @@ def test_formal_full_and_incremental_backups_are_valid_and_deduplicated() -> Non
 
     assert full.validation_status == "VALID"
     assert full.backup_kind == "full"
-    assert full.file_count == 154
-    assert full.logical_bytes == 14_120_090
-    assert full.stored_blob_count == 126
+    assert full.file_count == 156
+    assert full.logical_bytes == 14_118_572
+    assert full.stored_blob_count == 129
     assert 0 < full.stored_bytes < full.logical_bytes
     assert incremental.validation_status == "VALID"
     assert incremental.backup_kind == "incremental"
@@ -97,8 +97,8 @@ def test_formal_restored_state_replays_search_question_basket_and_export() -> No
     assert verification["journey"]["journey_count"] == 6
     assert verification["journey"]["status"] == "PASS"
     assert verification["activation_gate_sha256"] == (
-        "6405ea4be7fe40ee0dc733d7f7c5f83c"
-        "558548c87ead6a8d6357008698d2b7be"
+        "e2f1268db3c6b46562fa22ac5adf42dd"
+        "e90cea9d384e1ca319be8645b6112dd2"
     )
 
 

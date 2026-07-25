@@ -25,14 +25,21 @@ from .safety.context import validate_safe_id
 from .safety.workspace_io import WorkspaceIOError, get_workspace_io
 
 
-M2_PIPELINE_VERSION = "M2-BLUEPRINT-BUNDLE-V2"
+M2_PIPELINE_VERSION = "M2-BLUEPRINT-BUNDLE-V3-EDITABLE-B5"
 M2_SOLVER_VERSION = "DETERMINISTIC-EXHAUSTIVE-V1"
-M2_FIXED_TIMESTAMP = "2026-07-25T00:00:00Z"
-M2_PAPER_REVISION_ID = "PAPER-M2-YANYAN-FULL-150-REV-002"
-M2_PAPER_IR_REVISION_ID = "PAPER-IR-M2-YANYAN-FULL-150-REV-002"
+M2_FIXED_TIMESTAMP = "2026-07-26T00:00:00Z"
+M2_PAPER_REVISION_ID = "PAPER-M2-YANYAN-FULL-150-REV-003"
+M2_PAPER_IR_REVISION_ID = "PAPER-IR-M2-YANYAN-FULL-150-REV-003"
 M2_BLUEPRINT_REVISION_ID = "BLUEPRINT-M2-YANYAN-FULL-150-REV-001"
 M2_POOL_REVISION_ID = "POOL-M2-YANYAN-REV-002-SNAPSHOT-001"
 M2_TAXONOMY_RELEASE_ID = "TAXONOMY-M2-STRUCTURAL-V1"
+M2_PAPER_TEMPLATE_REVISION_ID = "TEMPLATE-M3-EDITABLE-B5-REV-002"
+EDITABLE_B5_WIDTH_MM = 184.0
+EDITABLE_B5_HEIGHT_MM = 260.0
+EDITABLE_B5_MARGIN_LEFT_MM = 22.0
+EDITABLE_B5_MARGIN_RIGHT_MM = 22.0
+EDITABLE_B5_MARGIN_TOP_MM = 20.0
+EDITABLE_B5_MARGIN_BOTTOM_MM = 20.0
 
 DOCUMENT_ROLE_FILENAMES = {
     "student": "student-paper.pdf",
@@ -306,9 +313,9 @@ class SolveResult:
 
 @dataclass(frozen=True, slots=True)
 class M2PipelineConfig:
-    job_id: str = "JOB-M2-YANYAN-BUNDLE-R2-20260725"
+    job_id: str = "JOB-M2-YANYAN-BUNDLE-R3-20260726"
     export_object_id: str = "EXPORT-M2-YANYAN-FULL-150"
-    export_id: str = "EXPORT-M2-YANYAN-FULL-150-REV-002"
+    export_id: str = "EXPORT-M2-YANYAN-FULL-150-REV-003"
     pipeline_id: str = "M2"
     m1_state_id: str = "STATE-M1-YANYAN-REV-002"
     m1_paper_object_id: str = "PAPER-YANYAN-202605"
@@ -517,14 +524,19 @@ def load_candidate_pool(
         config.m1_database_path.resolve(),
         immutable=True,
     ) as connection:
+        paper_revision_id = (
+            f"{config.m1_paper_object_id}-{config.m1_paper_revision}"
+        )
         rows = connection.execute(
             """
             SELECT qid, question_no, question_type, answer_text, analysis_latex,
                    difficulty, year, review_status, meta_json, content_hash,
                    raw_crop_path
               FROM questions
+             WHERE json_extract(meta_json, '$.paper_revision_id') = ?
              ORDER BY CAST(question_no AS INTEGER)
-            """
+            """,
+            (paper_revision_id,),
         ).fetchall()
     for row in rows:
         number = int(row["question_no"])
@@ -1127,12 +1139,15 @@ def _m2_paper_ir(config: M2PipelineConfig) -> dict[str, Any]:
     document["ir_id"] = "PAPER-IR-M2-YANYAN-FULL-150"
     document["revision_id"] = M2_PAPER_IR_REVISION_ID
     document["paper_revision_id"] = M2_PAPER_REVISION_ID
+    document["template_revision_id"] = M2_PAPER_TEMPLATE_REVISION_ID
     document["document_roles"] = list(DOCUMENT_ROLES)
     document["extensions"] = {
         "x-source-composition": True,
         "x-source-page-count": 4,
         "x-frozen-from-paper-ir": str(source["revision_id"]),
         "x-bundle-document-count": 5,
+        "x-page-family": "EDITABLE-B5-184X260",
+        "x-reference-logical-id": "REF-TEMPLATE-PAPER",
     }
     validate_paper_ir(document)
     return document
@@ -1197,10 +1212,10 @@ def _domain_revisions(
         object_type="paper_revision",
         object_id="PAPER-M2-YANYAN-FULL-150",
         revision_id=M2_PAPER_REVISION_ID,
-        revision_no=2,
+        revision_no=3,
         state="approved",
         created_at=M2_FIXED_TIMESTAMP,
-        predecessor_revision_id="PAPER-M2-YANYAN-FULL-150-REV-001",
+        predecessor_revision_id="PAPER-M2-YANYAN-FULL-150-REV-002",
         payload={
             "paper_ir_revision_id": str(paper_ir["revision_id"]),
             "blueprint_revision_id": full_spec.revision_id,
@@ -1234,8 +1249,93 @@ def _compose_pdfs(parts: tuple[bytes, ...]) -> bytes:
                 "keywords": M2_PIPELINE_VERSION,
                 "creator": M2_PIPELINE_VERSION,
                 "producer": "PyMuPDF deterministic source composition",
-                "creationDate": "D:20260725000000+00'00'",
-                "modDate": "D:20260725000000+00'00'",
+                "creationDate": "D:20260726000000+00'00'",
+                "modDate": "D:20260726000000+00'00'",
+            }
+        )
+        return output.tobytes(garbage=4, deflate=True, no_new_id=True)
+    finally:
+        output.close()
+
+
+def _page_content_bbox(page: Any) -> Any:
+    """Measure visible source content while ignoring a full-page background."""
+
+    import fitz
+
+    visible: list[Any] = []
+    for _kind, raw_bbox in page.get_bboxlog():
+        bbox = fitz.Rect(raw_bbox) & page.rect
+        if bbox.is_empty or bbox.width <= 0 or bbox.height <= 0:
+            continue
+        if (
+            bbox.width >= page.rect.width * 0.98
+            and bbox.height >= page.rect.height * 0.98
+        ):
+            continue
+        visible.append(bbox)
+    if not visible:
+        raise M2PipelineError("source page has no measurable visible content")
+    result = fitz.Rect(visible[0])
+    for bbox in visible[1:]:
+        result |= bbox
+    return result
+
+
+def _repage_pdf_to_editable_b5(payload: bytes, *, title: str) -> bytes:
+    """Place the measured source body in the contracted 184 x 260 mm frame."""
+
+    import fitz
+
+    width = EDITABLE_B5_WIDTH_MM * 72.0 / 25.4
+    height = EDITABLE_B5_HEIGHT_MM * 72.0 / 25.4
+    content_rect = fitz.Rect(
+        EDITABLE_B5_MARGIN_LEFT_MM * 72.0 / 25.4,
+        EDITABLE_B5_MARGIN_TOP_MM * 72.0 / 25.4,
+        width - EDITABLE_B5_MARGIN_RIGHT_MM * 72.0 / 25.4,
+        height - EDITABLE_B5_MARGIN_BOTTOM_MM * 72.0 / 25.4,
+    )
+    output = fitz.open()
+    try:
+        with fitz.open(stream=payload, filetype="pdf") as source:
+            if source.page_count < 1:
+                raise M2PipelineError("source PDF has no pages")
+            for page_no, source_page in enumerate(source):
+                clip = _page_content_bbox(source_page)
+                scale = min(
+                    content_rect.width / clip.width,
+                    content_rect.height / clip.height,
+                )
+                placed_width = clip.width * scale
+                placed_height = clip.height * scale
+                destination = fitz.Rect(
+                    content_rect.x0 + (content_rect.width - placed_width) / 2,
+                    content_rect.y0 + (content_rect.height - placed_height) / 2,
+                    content_rect.x0
+                    + (content_rect.width - placed_width) / 2
+                    + placed_width,
+                    content_rect.y0
+                    + (content_rect.height - placed_height) / 2
+                    + placed_height,
+                )
+                target_page = output.new_page(width=width, height=height)
+                target_page.show_pdf_page(
+                    destination,
+                    source,
+                    page_no,
+                    clip=clip,
+                    keep_proportion=True,
+                )
+        output.set_metadata(
+            {
+                "title": title,
+                "author": "Local Exam Bank",
+                "subject": M2_PAPER_REVISION_ID,
+                "keywords": "REF-TEMPLATE-PAPER EDITABLE-B5-184X260",
+                "creator": M2_PIPELINE_VERSION,
+                "producer": "PyMuPDF deterministic reference-template composition",
+                "creationDate": "D:20260726000000+00'00'",
+                "modDate": "D:20260726000000+00'00'",
             }
         )
         return output.tobytes(garbage=4, deflate=True, no_new_id=True)
@@ -1558,8 +1658,24 @@ def build_bundle_staging(
     paper_copy = load_copy_payload(m1_config.paper_copy_id)
     answer_copy = load_copy_payload(m1_config.answer_copy_id)
     analysis_copy = load_copy_payload(m1_config.analysis_copy_id)
-    teacher = _compose_pdfs((paper_copy.payload, answer_copy.payload))
-    teacher_repeat = _compose_pdfs((paper_copy.payload, answer_copy.payload))
+    student = _repage_pdf_to_editable_b5(
+        paper_copy.payload,
+        title="M2 student paper / editable B5 184x260",
+    )
+    student_repeat = _repage_pdf_to_editable_b5(
+        paper_copy.payload,
+        title="M2 student paper / editable B5 184x260",
+    )
+    teacher_questions = _repage_pdf_to_editable_b5(
+        paper_copy.payload,
+        title="M2 teacher questions / editable B5 184x260",
+    )
+    teacher_answers = _repage_pdf_to_editable_b5(
+        answer_copy.payload,
+        title="M2 teacher answers / editable B5 184x260",
+    )
+    teacher = _compose_pdfs((teacher_questions, teacher_answers))
+    teacher_repeat = _compose_pdfs((teacher_questions, teacher_answers))
     answer_sheet_a4 = render_answer_sheet(
         candidates,
         source_payload=paper_copy.payload,
@@ -1581,14 +1697,15 @@ def build_bundle_staging(
         family="A3-DUPLEX",
     )
     if (
-        teacher != teacher_repeat
+        student != student_repeat
+        or teacher != teacher_repeat
         or answer_sheet_a4 != answer_sheet_a4_repeat
         or answer_sheet_a3 != answer_sheet_a3_repeat
     ):
         raise M2PipelineError("M2 PDF generation is not deterministic")
 
     document_payloads = {
-        "student": paper_copy.payload,
+        "student": student,
         "teacher": teacher,
         "answer": answer_copy.payload,
         "detailed_solution": analysis_copy.payload,
@@ -1624,6 +1741,20 @@ def build_bundle_staging(
         "template_revision_id": "TEMPLATE-M2-ANSWER-SHEETS-REV-002",
         "predecessor_revision_id": "TEMPLATE-M2-ANSWER-SHEETS-REV-001",
         "families": [
+            {
+                "family_id": "EDITABLE-B5-184X260",
+                "page_count": 4,
+                "artifact_sha256": document_artifacts["student"]["sha256"],
+                "reference_logical_id": "REF-TEMPLATE-PAPER",
+                "page_width_mm": EDITABLE_B5_WIDTH_MM,
+                "page_height_mm": EDITABLE_B5_HEIGHT_MM,
+                "margins_mm": {
+                    "left": EDITABLE_B5_MARGIN_LEFT_MM,
+                    "right": EDITABLE_B5_MARGIN_RIGHT_MM,
+                    "top": EDITABLE_B5_MARGIN_TOP_MM,
+                    "bottom": EDITABLE_B5_MARGIN_BOTTOM_MM,
+                },
+            },
             {
                 "family_id": "A4-MULTIPAGE",
                 "page_count": 6,
@@ -1665,8 +1796,22 @@ def build_bundle_staging(
         "detailed_solution": 63,
         "answer_sheet": 6,
     }
+    expected_b5_width_pt = round(EDITABLE_B5_WIDTH_MM * 72.0 / 25.4, 6)
+    expected_b5_height_pt = round(EDITABLE_B5_HEIGHT_MM * 72.0 / 25.4, 6)
+    student_template_size_ok = all(
+        abs(float(page["width_pt"]) - expected_b5_width_pt) <= 0.01
+        and abs(float(page["height_pt"]) - expected_b5_height_pt) <= 0.01
+        for page in summaries["student"]["pages"]
+    )
+    teacher_template_size_ok = all(
+        abs(float(page["width_pt"]) - expected_b5_width_pt) <= 0.01
+        and abs(float(page["height_pt"]) - expected_b5_height_pt) <= 0.01
+        for page in summaries["teacher"]["pages"]
+    )
     if (
         student_markers
+        or not student_template_size_ok
+        or not teacher_template_size_ok
         or {
             role: summaries[role]["page_count"] for role in DOCUMENT_ROLES
         }
@@ -1700,6 +1845,9 @@ def build_bundle_staging(
         "answer_sheet_a3": a3_summary,
         "student_answer_leak_markers": student_markers,
         "student_answer_leak_count": len(student_markers),
+        "student_template_size_ok": student_template_size_ok,
+        "teacher_template_size_ok": teacher_template_size_ok,
+        "paper_template_revision_id": M2_PAPER_TEMPLATE_REVISION_ID,
         "cross_document_revision_mapping_percent": 100,
         "cross_document_score_mapping_percent": 100,
         "answer_sheet_question_mapping_percent": 100,
@@ -1788,14 +1936,14 @@ def build_bundle_staging(
         object_id=config.export_object_id,
         revision_id=config.export_id,
         revision_no=(
-            2
+            3
             if config.export_object_id == "EXPORT-M2-YANYAN-FULL-150"
             else 1
         ),
         state="approved",
         created_at=M2_FIXED_TIMESTAMP,
         predecessor_revision_id=(
-            "EXPORT-M2-YANYAN-FULL-150-REV-001"
+            "EXPORT-M2-YANYAN-FULL-150-REV-002"
             if config.export_object_id == "EXPORT-M2-YANYAN-FULL-150"
             else None
         ),

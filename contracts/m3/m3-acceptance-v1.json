@@ -1,17 +1,17 @@
 {
   "accepted_revision": {
-    "active_template_revision_id": "TEMPLATE-M3-B5-REV-002",
+    "active_template_revision_id": "TEMPLATE-M3-EDITABLE-B5-REV-002",
     "derived_state": {
       "artifact_count": 38,
-      "bytes": 1294484,
+      "bytes": 1305925,
       "file_count": 39,
-      "path": "data/derived/M3/STATE-M3-YANYAN-REV-002",
-      "state_id": "STATE-M3-YANYAN-REV-002",
-      "tree_sha256": "aa863de6937b625c6fd232ae89e7dc0a499b7f7944a834b9c43651cc2be76958"
+      "path": "data/derived/M3/STATE-M3-YANYAN-REV-003",
+      "state_id": "STATE-M3-YANYAN-REV-003",
+      "tree_sha256": "386bf715c594cb986c417c02533835d8da963d2808c44f2d533b7ce2dd2f8f15"
     },
     "semantic_index": {
       "dimension": 256,
-      "index_id": "INDEX-M3-YANYAN-REV-002",
+      "index_id": "INDEX-M3-YANYAN-REV-003",
       "model": "LOCAL-HASHED-TFIDF-ZH-V1",
       "model_kind": "deterministic-local-hashed-feature-vector",
       "network_required": false,
@@ -20,10 +20,10 @@
       "weights_required": false
     },
     "state_manifest": {
-      "artifact_index_sha256": "415d33d49980675be9d3063663d8769a753419d2186b866e7deffb93cb80ffe9",
-      "bytes": 10907,
-      "path": "data/derived/M3/STATE-M3-YANYAN-REV-002/state-manifest.json",
-      "sha256": "57613118c509335496eee1088ef1ac98f18844f307526a73f0c57e089bcc13d9"
+      "artifact_index_sha256": "17cb2eb4d66e0e364c0df0e8db107cc51d54d775551335cf155b53d91e5fab55",
+      "bytes": 10982,
+      "path": "data/derived/M3/STATE-M3-YANYAN-REV-003/state-manifest.json",
+      "sha256": "2787d08beb14a930adf4ef431212c795585f6be10143c6810cdd381dfa016f38"
     },
     "taxonomy_release_id": "TAXONOMY-M3-MATH-V1"
   },
@@ -49,37 +49,40 @@
     "silent_font_substitution_count": 0,
     "stale_tag_count": 1,
     "template_failed_revision_rejected": true,
-    "template_pass_revision_active": true
+    "template_pass_revision_active": true,
+    "template_reference_logical_id": "REF-TEMPLATE-PAPER",
+    "template_size_mm": [184, 260]
   },
   "contract_id": "M3-ACCEPTANCE-V1",
   "decision": "ACCEPTED",
   "evidence": {
     "core_gate": {
-      "junit_sha256": "8063f3ba9326b2f21ca8b6786ed2f6575541993827c03b3b4c7d4dac322cd954",
+      "junit_sha256": "55fd103e46c844007276f0bbb432b151d0eafcb40447bcb9755de687219a593e",
       "passed": 79,
-      "run_id": "RUN-20260725-M3-CORE-R2-176",
-      "run_result_sha256": "14883376f3b73a1303ca3c0eb11645639a85391753841c757a03618fc0d11b39"
+      "run_id": "RUN-20260726-RC2-M3CORE-206",
+      "run_result_sha256": "3c0e4a956cca3c24dda05a7b3748d349e23458e57c4d13efad00e7210ead8e96"
     },
     "index_rebuild": {
-      "path": "tmp/jobs/INTERNAL/JOB-M3-INDEX-REBUILD-EVIDENCE-R2-20260725/m3-index-rebuild-evidence.json",
-      "sha256": "f9f5f1302c218f923eb6cb973b708022708a8cb469f159e4cdbb393ffda35f1b"
+      "path": "tmp/jobs/INTERNAL/JOB-M3-INDEX-REBUILD-EVIDENCE-R3-20260726/m3-index-rebuild-evidence.json",
+      "sha256": "3379adc01030492029f8e20e571f832c0d09369de005b93beaf5ebaac0dfbe78"
     },
     "real_flow": {
-      "path": "tmp/jobs/INTERNAL/JOB-M3-REAL-FLOW-EVIDENCE-R2-20260725/m3-real-flow-evidence.json",
-      "run_id": "RUN-20260725-M3-REAL-PIPELINE-R2-175",
-      "sha256": "045101fb3cce6a438d382d8ecb79403ece67e34677ca401e0f01e7c2602e4098"
+      "path": "tmp/jobs/INTERNAL/JOB-M3-REAL-FLOW-EVIDENCE-R3-20260726/m3-real-flow-evidence.json",
+      "run_id": "RUN-20260726-M3-REAL-PIPELINE-R3-204",
+      "sha256": "503236d6bd93f0f508f0b028dc4efae696e9d1271b96661c24924cef029692d3"
     },
     "stage_gate": {
-      "junit_sha256": "33696c998758ac0ae47efdea88672f6b6610b31731290fc089114a5fe8162cd3",
-      "passed": 504,
-      "run_id": "RUN-20260725-M3-GATE-R2-178",
-      "run_result_sha256": "944900f26a4ec0622faf37cb763ea74a754a11bf863e72d1db5c81166ca6314d"
+      "junit_sha256": "a27478a337edfcda6ebb04c0c9184468fe1a375be3f4bbd35f1b3b94d2637a0e",
+      "passed": 583,
+      "run_id": "RUN-20260726-RC2-FULL-228",
+      "run_result_sha256": "ffdc274a442013d45d391f628a053b33096e8e652545e69e7ba6341f1b39b8c6"
     },
     "write_inventory": {
-      "entry_count": 444,
-      "manifest_sha256": "534915735fd4a7954da4d9bd0372c5691422476b22014126247b8207d1945067",
-      "preview_run_id": "RUN-20260725-M3-INVENTORY-R2-177",
-      "source_count": 63,
+      "entry_count": 447,
+      "inventory_payload_sha256": "2f0adb7ad2f2a2f80901b9b2469b16239d4a94582b03221a035243f239f49e13",
+      "manifest_sha256": "d8e63cdfa5687b28789e660e9284f303118a13176824c2110084089ebc605901",
+      "preview_run_id": "RUN-20260726-RC2-INVENTORY-227",
+      "source_count": 65,
       "unknown_dynamic_count": 0,
       "unmigrated_count": 0
     }
@@ -87,7 +90,7 @@
   "limitations": [
     "The local vector is a deterministic hashed lexical-semantic feature vector, not a neural embedding model.",
     "Search acceptance covers the approved 19-question M1 paper and six frozen gold queries, not a large multi-year corpus.",
-    "The accepted template family is the controlled B5 preview used for regression and activation workflow; additional production page families remain future revisions.",
+    "The accepted template family is the controlled 184×260 mm reference derived from REF-TEMPLATE-PAPER; DOCX remains a human reference while formal generated outputs are PDFs.",
     "M3 publishes a derived state only. Activity-database migration, backup, restore and pointer activation remain gated by M4."
   ],
   "schema_version": "1.0",

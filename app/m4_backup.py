@@ -39,7 +39,7 @@ M4_MANIFEST_SCHEMA_VERSION = "1.0"
 M4_STATE_SCHEMA_VERSION = "1.0"
 M4_POINTER_SCHEMA_VERSION = "1.0"
 M4_GATE_SCHEMA_VERSION = "1.0"
-M4_FIXED_TIMESTAMP = "2026-07-25T00:00:00Z"
+M4_FIXED_TIMESTAMP = "2026-07-26T00:00:00Z"
 M4_MAX_MANIFEST_BYTES = 8 * 1024 * 1024
 M4_MAX_FILE_BYTES = 128 * 1024 * 1024
 M4_MAX_LOGICAL_BYTES = 2 * 1024 * 1024 * 1024
@@ -50,10 +50,10 @@ M4_DEFAULT_RESERVE_BYTES = 256 * 1024 * 1024
 M4_CHUNK_BYTES = 1024 * 1024
 
 M4_ACCEPTED_M1_STATE_ID = "STATE-M1-YANYAN-REV-002"
-M4_ACCEPTED_M2_EXPORT_ID = "EXPORT-M2-YANYAN-FULL-150-REV-002"
-M4_ACCEPTED_M3_STATE_ID = "STATE-M3-YANYAN-REV-002"
+M4_ACCEPTED_M2_EXPORT_ID = "EXPORT-M2-YANYAN-FULL-150-REV-003"
+M4_ACCEPTED_M3_STATE_ID = "STATE-M3-YANYAN-REV-003"
 M4_ACCEPTED_TAXONOMY_ID = "TAXONOMY-M3-MATH-V1"
-M4_ACCEPTED_TEMPLATE_ID = "TEMPLATE-M3-B5-REV-002"
+M4_ACCEPTED_TEMPLATE_ID = "TEMPLATE-M3-EDITABLE-B5-REV-002"
 
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 _WINDOWS_RESERVED_RE = re.compile(
@@ -114,9 +114,9 @@ class M4RuntimeLayout:
         "PAPER-YANYAN-202605/REV-002"
     )
     m2_export_root: str = (
-        "data/exports/M2/EXPORT-M2-YANYAN-FULL-150-REV-002"
+        "data/exports/M2/EXPORT-M2-YANYAN-FULL-150-REV-003"
     )
-    m3_state_root: str = "data/derived/M3/STATE-M3-YANYAN-REV-002"
+    m3_state_root: str = "data/derived/M3/STATE-M3-YANYAN-REV-003"
     templates_root: str = "data/templates"
     audit_head_path: str = "state/audit-head.json"
 
@@ -661,6 +661,8 @@ def _role_for_path(logical_path: str) -> str:
         return "TEMPLATE_CONFIGURATION"
     if logical_path.startswith("data/state/"):
         return "M5_PERSISTED_USER_STATE"
+    if logical_path.startswith("data/imports/"):
+        return "M5_USER_IMPORT_ASSET"
     if logical_path == "state/audit-head.json":
         return "AUDIT_HEAD"
     if logical_path == "state/predecessor-active-state.json":
@@ -1070,22 +1072,49 @@ class M4BackupService:
                     else f"{logical_root}/{suffix}"
                 )
                 rows.append((physical, logical, _role_for_path(logical), None))
-        optional_state_root = runtime.resolve("data/state", self._root)
-        if os.path.lexists(optional_state_root):
-            for physical, suffix in _walk_regular_files(optional_state_root):
+        for optional_root, role in (
+            ("data/state", "M5_PERSISTED_USER_STATE"),
+            ("data/imports", "M5_USER_IMPORT_ASSET"),
+        ):
+            physical_root = runtime.resolve(optional_root, self._root)
+            if not os.path.lexists(physical_root):
+                continue
+            for physical, suffix in _walk_regular_files(physical_root):
                 logical = (
-                    "data/state"
+                    optional_root
                     if suffix == "."
-                    else f"data/state/{suffix}"
+                    else f"{optional_root}/{suffix}"
                 )
-                rows.append(
-                    (
-                        physical,
-                        logical,
-                        "M5_PERSISTED_USER_STATE",
-                        None,
+                rows.append((physical, logical, role, None))
+        if runtime.source_root_relative != ".":
+            logical_paths = {row[1] for row in rows}
+            for overlay_root, role in (
+                (runtime.layout.source_copy_root, None),
+                ("data/state", "M5_PERSISTED_USER_STATE"),
+                ("data/imports", "M5_USER_IMPORT_ASSET"),
+            ):
+                physical_root = self._root.joinpath(
+                    *PurePosixPath(overlay_root).parts
+                )
+                if not os.path.lexists(physical_root):
+                    continue
+                for physical, suffix in _walk_regular_files(physical_root):
+                    logical = (
+                        overlay_root
+                        if suffix == "."
+                        else f"{overlay_root}/{suffix}"
                     )
-                )
+                    if logical in logical_paths:
+                        continue
+                    rows.append(
+                        (
+                            physical,
+                            logical,
+                            role or _role_for_path(logical),
+                            None,
+                        )
+                    )
+                    logical_paths.add(logical)
         audit_payload = _audit_head_payload(runtime, self._root)
         rows.append(
             (
@@ -2069,10 +2098,14 @@ class M4BackupService:
                     "SELECT count(*) FROM questions WHERE review_status = 'approved'"
                 ).fetchone()[0]
             )
-        if (question_count, source_paper_count, approved_count) != (19, 1, 19):
+        if (
+            question_count < 19
+            or source_paper_count < 1
+            or approved_count < 19
+        ):
             raise M4Error(
                 M4Code.RESTORE_FAILED,
-                "restored database business row counts are not the accepted M1 state",
+                "restored database no longer contains the accepted M1 baseline",
             )
         m1 = self._verify_m1_assets(files_root, layout)
         m2 = self._verify_m2_assets(files_root, layout)

@@ -1,5 +1,5 @@
 {
-  "chunk_digest_sha256": "bf145f3d87ce25cd850f63e7ba7af4c30e68a9868c5c5085221130607d662dcd",
+  "chunk_digest_sha256": "ea43b6e90a5050d5d91beea1f04ab1fb050659f933c9768abe1849a20d700376",
   "chunk_index": 5,
   "entries": [
     {
@@ -291,13 +291,13 @@
       "control_binding_id": "WE-097C4346D94B8ABEDB252EB4",
       "detail": "filesystem move or replacement",
       "end_column": 59,
-      "end_line": 2450,
+      "end_line": 2483,
       "entry_id": "WE-097C4346D94B8ABEDB252EB4",
       "file": "app/m4_backup.py",
       "function": "app.m4_backup.M4BackupService._replace_active_pointer",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "FILESYSTEM_MOVE_OR_REPLACE",
-      "line": 2450,
+      "line": 2483,
       "migration_status": "MIGRATED_GUARDED",
       "owner": "BACKUP_SERVICE",
       "required_control": "M4_ACTIVE_STATE_POINTER_ATOMIC_GATE_V1",
@@ -306,7 +306,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "e255c2bf40fa9b5d68b9f4927eff6b20f2b2f69e14edefde47bbd3c7d4f42307",
+      "source_sha256": "270252c45c787320d88b61949b88be9c77f9c3db6f7ccd68429aa580fab6038b",
       "statement_fingerprint": "a08948b196ba3e2ead4ee899b46e412c1e1b28592719d4805eb1571d606fb143",
       "target_namespace": "FIXED_ACTIVE_STATE_POINTER"
     },
@@ -319,13 +319,13 @@
       "control_binding_id": "WE-943AE3EB07DA981247CEBA84",
       "detail": "filesystem move or replacement",
       "end_column": 63,
-      "end_line": 2515,
+      "end_line": 2548,
       "entry_id": "WE-943AE3EB07DA981247CEBA84",
       "file": "app/m4_backup.py",
       "function": "app.m4_backup.M4BackupService._restore_pointer_after_failure",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "FILESYSTEM_MOVE_OR_REPLACE",
-      "line": 2515,
+      "line": 2548,
       "migration_status": "MIGRATED_GUARDED",
       "owner": "BACKUP_SERVICE",
       "required_control": "M4_ACTIVE_STATE_POINTER_ATOMIC_GATE_V1",
@@ -334,7 +334,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "e255c2bf40fa9b5d68b9f4927eff6b20f2b2f69e14edefde47bbd3c7d4f42307",
+      "source_sha256": "270252c45c787320d88b61949b88be9c77f9c3db6f7ccd68429aa580fab6038b",
       "statement_fingerprint": "5508ab373e1ebaf48e10c3bb5cdf7591dad67f8873d27aa0d5984115e8d14294",
       "target_namespace": "FIXED_ACTIVE_STATE_POINTER"
     },
@@ -349,13 +349,13 @@
       "control_binding_id": "WE-AE81C16970CFA3D720498611",
       "detail": "implicit schema/directory initialization",
       "end_column": 32,
-      "end_line": 104,
+      "end_line": 303,
       "entry_id": "WE-AE81C16970CFA3D720498611",
       "file": "app/pdf_import.py",
       "function": "app.pdf_import.register_source_pdf",
       "input_source": "CLI_ARGUMENT_OR_CONFIG",
       "kind": "DATABASE_IMPLICIT_INITIALIZER",
-      "line": 104,
+      "line": 303,
       "migration_status": "MIGRATED_GUARDED",
       "owner": "IMPORT_SERVICE",
       "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
@@ -364,7 +364,7 @@
       "root_ids": [
         "CLI:MAIN"
       ],
-      "source_sha256": "194d4dc97e51dcd37bff3a9f8a9667b9d12bdbe4bed2d7e35a5050764f1ee293",
+      "source_sha256": "a86ba4b40e05c5b7c6bdb9009acbaa188391bc1036e02e880e9cdccb0842e9d6",
       "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db",
       "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
     },
@@ -379,13 +379,13 @@
       "control_binding_id": "WE-EE41DCAE97446EFD32D6BE83",
       "detail": "legacy database gateway",
       "end_column": 34,
-      "end_line": 105,
+      "end_line": 304,
       "entry_id": "WE-EE41DCAE97446EFD32D6BE83",
       "file": "app/pdf_import.py",
       "function": "app.pdf_import.register_source_pdf",
       "input_source": "CLI_ARGUMENT_OR_CONFIG",
       "kind": "DATABASE_GATEWAY",
-      "line": 105,
+      "line": 304,
       "migration_status": "MIGRATED_GUARDED",
       "owner": "IMPORT_SERVICE",
       "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
@@ -394,7 +394,7 @@
       "root_ids": [
         "CLI:MAIN"
       ],
-      "source_sha256": "194d4dc97e51dcd37bff3a9f8a9667b9d12bdbe4bed2d7e35a5050764f1ee293",
+      "source_sha256": "a86ba4b40e05c5b7c6bdb9009acbaa188391bc1036e02e880e9cdccb0842e9d6",
       "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6",
       "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
     },
@@ -406,16 +406,16 @@
       ],
       "callee": "app.database.connect_database().execute",
       "column": 8,
-      "control_binding_id": "WE-BBF12CD9A28FAC8482011E13",
+      "control_binding_id": "WE-BA1E98815137975904EF764F",
       "detail": "INSERT",
       "end_column": 9,
-      "end_line": 124,
-      "entry_id": "WE-BBF12CD9A28FAC8482011E13",
+      "end_line": 330,
+      "entry_id": "WE-BA1E98815137975904EF764F",
       "file": "app/pdf_import.py",
       "function": "app.pdf_import.register_source_pdf",
       "input_source": "CLI_ARGUMENT_OR_CONFIG",
       "kind": "SQLITE_MUTATION",
-      "line": 106,
+      "line": 305,
       "migration_status": "MIGRATED_GUARDED",
       "owner": "IMPORT_SERVICE",
       "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
@@ -424,8 +424,8 @@
       "root_ids": [
         "CLI:MAIN"
       ],
-      "source_sha256": "194d4dc97e51dcd37bff3a9f8a9667b9d12bdbe4bed2d7e35a5050764f1ee293",
-      "statement_fingerprint": "624b859a6a8c6b002a1fc41dd809c0f7ab38e9974f292dfc3ea769129ba567b7",
+      "source_sha256": "a86ba4b40e05c5b7c6bdb9009acbaa188391bc1036e02e880e9cdccb0842e9d6",
+      "statement_fingerprint": "4651c12e756f5718272055917a5f5936a2bfc6e384e0bbf8ad9913338542b305",
       "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
     },
     {
@@ -439,13 +439,13 @@
       "control_binding_id": "WE-CCBDE7D4A912F3C748A09BD7",
       "detail": "transaction commit",
       "end_column": 21,
-      "end_line": 133,
+      "end_line": 339,
       "entry_id": "WE-CCBDE7D4A912F3C748A09BD7",
       "file": "app/pdf_import.py",
       "function": "app.pdf_import.register_source_pdf",
       "input_source": "CLI_ARGUMENT_OR_CONFIG",
       "kind": "SQLITE_TRANSACTION",
-      "line": 133,
+      "line": 339,
       "migration_status": "MIGRATED_GUARDED",
       "owner": "IMPORT_SERVICE",
       "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
@@ -454,7 +454,7 @@
       "root_ids": [
         "CLI:MAIN"
       ],
-      "source_sha256": "194d4dc97e51dcd37bff3a9f8a9667b9d12bdbe4bed2d7e35a5050764f1ee293",
+      "source_sha256": "a86ba4b40e05c5b7c6bdb9009acbaa188391bc1036e02e880e9cdccb0842e9d6",
       "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976",
       "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
     },
@@ -469,13 +469,13 @@
       "control_binding_id": "WE-DEE5548D80C28E8580CC79F7",
       "detail": "legacy database gateway",
       "end_column": 34,
-      "end_line": 215,
+      "end_line": 421,
       "entry_id": "WE-DEE5548D80C28E8580CC79F7",
       "file": "app/pdf_import.py",
       "function": "app.pdf_import.render_pdf_pages",
       "input_source": "CLI_ARGUMENT_OR_CONFIG",
       "kind": "DATABASE_GATEWAY",
-      "line": 215,
+      "line": 421,
       "migration_status": "MIGRATED_GUARDED",
       "owner": "IMPORT_SERVICE",
       "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
@@ -484,7 +484,7 @@
       "root_ids": [
         "CLI:MAIN"
       ],
-      "source_sha256": "194d4dc97e51dcd37bff3a9f8a9667b9d12bdbe4bed2d7e35a5050764f1ee293",
+      "source_sha256": "a86ba4b40e05c5b7c6bdb9009acbaa188391bc1036e02e880e9cdccb0842e9d6",
       "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6",
       "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
     },
@@ -499,13 +499,13 @@
       "control_binding_id": "WE-6F1376528987061BF8F78874",
       "detail": "INSERT",
       "end_column": 13,
-      "end_line": 240,
+      "end_line": 446,
       "entry_id": "WE-6F1376528987061BF8F78874",
       "file": "app/pdf_import.py",
       "function": "app.pdf_import.render_pdf_pages",
       "input_source": "CLI_ARGUMENT_OR_CONFIG",
       "kind": "SQLITE_MUTATION",
-      "line": 217,
+      "line": 423,
       "migration_status": "MIGRATED_GUARDED",
       "owner": "IMPORT_SERVICE",
       "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
@@ -514,7 +514,7 @@
       "root_ids": [
         "CLI:MAIN"
       ],
-      "source_sha256": "194d4dc97e51dcd37bff3a9f8a9667b9d12bdbe4bed2d7e35a5050764f1ee293",
+      "source_sha256": "a86ba4b40e05c5b7c6bdb9009acbaa188391bc1036e02e880e9cdccb0842e9d6",
       "statement_fingerprint": "360caa3689ec8c8508bd36a79244c4f79d7d6542b1fd377e06bacc76815d16e9",
       "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
     },
@@ -529,13 +529,13 @@
       "control_binding_id": "WE-AD09CB8E891327BDB9EDEBF8",
       "detail": "transaction commit",
       "end_column": 21,
-      "end_line": 241,
+      "end_line": 447,
       "entry_id": "WE-AD09CB8E891327BDB9EDEBF8",
       "file": "app/pdf_import.py",
       "function": "app.pdf_import.render_pdf_pages",
       "input_source": "CLI_ARGUMENT_OR_CONFIG",
       "kind": "SQLITE_TRANSACTION",
-      "line": 241,
+      "line": 447,
       "migration_status": "MIGRATED_GUARDED",
       "owner": "IMPORT_SERVICE",
       "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
@@ -544,7 +544,7 @@
       "root_ids": [
         "CLI:MAIN"
       ],
-      "source_sha256": "194d4dc97e51dcd37bff3a9f8a9667b9d12bdbe4bed2d7e35a5050764f1ee293",
+      "source_sha256": "a86ba4b40e05c5b7c6bdb9009acbaa188391bc1036e02e880e9cdccb0842e9d6",
       "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976",
       "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
     },

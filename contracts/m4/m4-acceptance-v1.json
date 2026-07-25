@@ -1,43 +1,43 @@
 {
   "accepted_state": {
     "active_pointer": {
-      "active_state_id": "STATE-M4-YANYAN-RESTORED-20260725",
-      "generation": 5,
+      "active_state_id": "STATE-M4-YANYAN-RESTORED-20260726-R2",
+      "generation": 3,
       "path": "data/db/active-state.json",
-      "rescue_backup_id": "BACKUP-M4-RUNNER-RESCUE-REACTIVATE-20260725",
-      "sha256": "a69d77bb8f53568dc94c415938b84ca6a9b206f75c1c9d3a5cd0b63251825ca7",
-      "source_backup_id": "BACKUP-M4-YANYAN-FULL-20260725",
-      "source_root_relative": "data/snapshots/STATE-M4-YANYAN-RESTORED-20260725/files"
+      "rescue_backup_id": "BACKUP-M4-RUNNER-RESCUE-REACTIVATE-20260726-R3",
+      "sha256": "348299f13315df582551ed318528f48331269020f5ae8876f3de176b602555e4",
+      "source_backup_id": "BACKUP-M4-YANYAN-FULL-20260726-R2",
+      "source_root_relative": "data/snapshots/STATE-M4-YANYAN-RESTORED-20260726-R2/files"
     },
     "full_backup": {
-      "backup_id": "BACKUP-M4-YANYAN-FULL-20260725",
+      "backup_id": "BACKUP-M4-YANYAN-FULL-20260726-R2",
       "database_sha256": "3e91259e4072e088435f9d8884ea3aafecab134b3086cb274633047b30356233",
-      "file_count": 154,
-      "logical_bytes": 14120090,
-      "manifest_sha256": "693fcc9f26be9472b30c2635998d714f26880c8e7c83f4646144bfedbd5245e9",
-      "path": "backups/BACKUP-M4-YANYAN-FULL-20260725",
-      "stored_blob_count": 126,
-      "stored_bytes": 10132126
+      "file_count": 156,
+      "logical_bytes": 14118572,
+      "manifest_sha256": "46c34feacfe21cd8b31abaa438b01d12b183039cf4bf82016b48b17de143c6be",
+      "path": "backups/BACKUP-M4-YANYAN-FULL-20260726-R2",
+      "stored_blob_count": 129,
+      "stored_bytes": 10515242
     },
     "incremental_backup": {
-      "backup_id": "BACKUP-M4-YANYAN-INCREMENTAL-20260725",
-      "file_count": 154,
-      "logical_bytes": 14120090,
-      "manifest_sha256": "6f70dfaebcf8fd92beb99c134d020be18d13c300d9bad9edb0bd7e726cf02c81",
-      "parent_backup_id": "BACKUP-M4-YANYAN-FULL-20260725",
-      "path": "backups/BACKUP-M4-YANYAN-INCREMENTAL-20260725",
-      "reused_file_count": 154,
+      "backup_id": "BACKUP-M4-YANYAN-INCREMENTAL-20260726-R2",
+      "file_count": 156,
+      "logical_bytes": 14118572,
+      "manifest_sha256": "22d2daba4fe2a8e2572e389d74ba32129e7ceea2f860c1742054f53ba5c0a3b8",
+      "parent_backup_id": "BACKUP-M4-YANYAN-FULL-20260726-R2",
+      "path": "backups/BACKUP-M4-YANYAN-INCREMENTAL-20260726-R2",
+      "reused_file_count": 156,
       "stored_blob_count": 0,
       "stored_bytes": 0
     },
     "restored_state": {
-      "activation_gate_sha256": "6405ea4be7fe40ee0dc733d7f7c5f83c558548c87ead6a8d6357008698d2b7be",
-      "file_count": 154,
-      "logical_bytes": 14120090,
-      "path": "data/snapshots/STATE-M4-YANYAN-RESTORED-20260725",
-      "state_id": "STATE-M4-YANYAN-RESTORED-20260725",
-      "state_manifest_sha256": "cc0638920af17d4193f308b15f04fc23aad33b468e53613cbf0622ad6b526e35",
-      "verification_sha256": "4168bc5fd057aed5802a9202db8dcf8f59e782060751b27770c8b0657342f6a5"
+      "activation_gate_sha256": "e2f1268db3c6b46562fa22ac5adf42dde90cea9d384e1ca319be8645b6112dd2",
+      "file_count": 156,
+      "logical_bytes": 14118572,
+      "path": "data/snapshots/STATE-M4-YANYAN-RESTORED-20260726-R2",
+      "state_id": "STATE-M4-YANYAN-RESTORED-20260726-R2",
+      "state_manifest_sha256": "5230fd00f50cbd9bf50e7ad7bc202decb6b04337d392e3f7f7565094c5968a64",
+      "verification_sha256": "43a04d8b904444b4d71f8425f829553703971b87a70af25ed1d8cc02f8679ce0"
     }
   },
   "checks": {
@@ -63,28 +63,28 @@
   "decision": "ACCEPTED",
   "evidence": {
     "core_gate": {
-      "junit_sha256": "b5dc5ca7ed6d662ef540230035a7d96182d9cd924abc92e8fa1fac9df28b594c",
+      "junit_sha256": "236bf5734ac28603360923bc2036a4fb8f5b2753bce602b5783cd2c064215479",
       "passed": 149,
-      "run_id": "RUN-20260725-M4-CORE-R2-184",
-      "run_result_sha256": "3f9f64b9c96249aa027726b04a4a119d83d6cfbaf2ecfc7cd7f8d3c5534e7660"
+      "run_id": "RUN-20260726-RC2-M4CORE-209",
+      "run_result_sha256": "620bb48b613f8b0853fc1c9b5e688c1bba268252e37e3e3b5776d616b2702077"
     },
     "real_flow": {
-      "path": "tmp/jobs/INTERNAL/JOB-M4-REAL-FLOW-EVIDENCE-R1-20260725/m4-real-flow-evidence.json",
-      "run_id": "RUN-20260725-M4-REAL-PIPELINE-R1-181",
-      "sha256": "88d5224b80a423398cea8427ec4fe997758073b6a83abd246447a89deed8c057"
+      "path": "tmp/jobs/INTERNAL/JOB-M4-REAL-FLOW-EVIDENCE-R2-20260726/m4-real-flow-evidence.json",
+      "run_id": "RUN-20260726-M4-REAL-PIPELINE-R2-205",
+      "sha256": "85de1b19d9080ad3f53b43a5ef8c17065dc36a2682cd92caa8670a9c52ae2294"
     },
     "stage_gate": {
-      "junit_sha256": "27f85910e03ecfbf6a0e8ea6138d69b476628ca11bb5883e3fb7bf0e0b4a6de9",
-      "passed": 561,
-      "run_id": "RUN-20260725-M4-FULL-R1-185",
-      "run_result_sha256": "120ad4da01e9aac032f2fab095c1e466fcfc91ddf9c4b61c135f9114ad8f8f79"
+      "junit_sha256": "a27478a337edfcda6ebb04c0c9184468fe1a375be3f4bbd35f1b3b94d2637a0e",
+      "passed": 583,
+      "run_id": "RUN-20260726-RC2-FULL-228",
+      "run_result_sha256": "ffdc274a442013d45d391f628a053b33096e8e652545e69e7ba6341f1b39b8c6"
     },
     "write_inventory": {
-      "entry_count": 446,
-      "inventory_payload_sha256": "f7425dac27b1b3d409cd3b32d495b69cde769ccb90d8ee8ea930202b92075776",
-      "manifest_sha256": "8d09dd4995b510ad5327571d9ac5250eef0ebd933d459cd6d1095736496fff73",
-      "preview_run_id": "RUN-20260725-M4-INVENTORY-R2-183",
-      "source_count": 64,
+      "entry_count": 447,
+      "inventory_payload_sha256": "2f0adb7ad2f2a2f80901b9b2469b16239d4a94582b03221a035243f239f49e13",
+      "manifest_sha256": "d8e63cdfa5687b28789e660e9284f303118a13176824c2110084089ebc605901",
+      "preview_run_id": "RUN-20260726-RC2-INVENTORY-227",
+      "source_count": 65,
       "unknown_dynamic_count": 0,
       "unmigrated_count": 0
     }

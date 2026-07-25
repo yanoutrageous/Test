@@ -74,9 +74,9 @@ def _tree_summary(root: Path) -> dict[str, int | str]:
 
 def _atomic_failure_probe() -> dict[str, object]:
     config = M2PipelineConfig(
-        job_id="JOB-M2-ATOMIC-FAILURE-R3-20260725",
-        export_object_id="EXPORT-M2-ATOMIC-FAILURE-R3",
-        export_id="EXPORT-M2-ATOMIC-FAILURE-R3-20260725",
+        job_id="JOB-M2-ATOMIC-FAILURE-R4-20260726",
+        export_object_id="EXPORT-M2-ATOMIC-FAILURE-R4",
+        export_id="EXPORT-M2-ATOMIC-FAILURE-R4-20260726",
     )
     if config.bundle_target_root.exists():
         raise RuntimeError("the failure-probe target must never exist")
@@ -171,7 +171,7 @@ def main() -> int:
     disk = shutil.disk_usage(PROJECT_ROOT)
     evidence = {
         "schema_version": "1.0",
-        "run_id": "RUN-20260725-M2-REAL-PIPELINE-R3-165",
+        "run_id": "RUN-20260726-M2-REAL-PIPELINE-R4-203",
         "pipeline_result": result,
         "atomic_failure_probe": failure_probe,
         "activity_database": {
@@ -192,7 +192,7 @@ def main() -> int:
         / "tmp"
         / "jobs"
         / "INTERNAL"
-        / "JOB-M2-REAL-FLOW-EVIDENCE-R3-20260725"
+        / "JOB-M2-REAL-FLOW-EVIDENCE-R4-20260726"
         / "m2-real-flow-evidence.json"
     )
     payload = (

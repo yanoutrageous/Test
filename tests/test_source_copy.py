@@ -105,3 +105,28 @@ def test_registered_external_copy_never_overwrites_existing_revision(
     assert hashlib.sha256(payload_path.read_bytes()).hexdigest() == (
         first.payload_sha256
     )
+
+
+def test_registered_external_copy_can_be_reverified_without_writing(
+    registered_source: tuple[Path, bytes],
+) -> None:
+    source, payload = registered_source
+    kwargs = {
+        "logical_source_id": "REF-UNIT-REVERIFY",
+        "copy_id": "COPY-UNIT-REVERIFY",
+        "job_id": "JOB-UNIT-REVERIFY",
+        "purpose": "M0-UNIT-COPY",
+        "classification": DataClassification.INTERNAL,
+    }
+    published = copy_registered_external_file(source, **kwargs)
+
+    verified = copy_registered_external_file(
+        source,
+        **kwargs,
+        verify_only=True,
+    )
+
+    assert verified.payload_bytes == len(payload)
+    assert verified.payload_sha256 == published.payload_sha256
+    assert verified.logical_source_id == "REF-UNIT-REVERIFY"
+    assert len(verified.verification_sha256) == 64

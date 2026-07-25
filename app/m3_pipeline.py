@@ -31,13 +31,13 @@ from .safety.context import validate_safe_id
 from .safety.workspace_io import WorkspaceIOError, get_workspace_io
 
 
-M3_PIPELINE_VERSION = "M3-FIGURE-SEARCH-TEMPLATE-V2"
-M3_FIXED_TIMESTAMP = "2026-07-25T00:00:00Z"
+M3_PIPELINE_VERSION = "M3-FIGURE-SEARCH-TEMPLATE-V3-EDITABLE-B5"
+M3_FIXED_TIMESTAMP = "2026-07-26T00:00:00Z"
 M3_TAXONOMY_RELEASE_ID = "TAXONOMY-M3-MATH-V1"
-M3_INDEX_ID = "INDEX-M3-YANYAN-REV-002"
-M3_TEMPLATE_BASE_ID = "TEMPLATE-M3-B5-REV-001"
-M3_TEMPLATE_PASS_ID = "TEMPLATE-M3-B5-REV-002"
-M3_TEMPLATE_FAIL_ID = "TEMPLATE-M3-B5-REV-003"
+M3_INDEX_ID = "INDEX-M3-YANYAN-REV-003"
+M3_TEMPLATE_BASE_ID = "TEMPLATE-M3-EDITABLE-B5-REV-001"
+M3_TEMPLATE_PASS_ID = "TEMPLATE-M3-EDITABLE-B5-REV-002"
+M3_TEMPLATE_FAIL_ID = "TEMPLATE-M3-EDITABLE-B5-REV-003"
 M3_VECTOR_MODEL = "LOCAL-HASHED-TFIDF-ZH-V1"
 M3_VECTOR_DIMENSION = 256
 M3_VECTOR_MODEL_VERSION = "1.0"
@@ -57,8 +57,8 @@ class M3InjectedFailure(M3PipelineError):
 
 @dataclass(frozen=True, slots=True)
 class M3PipelineConfig:
-    job_id: str = "JOB-M3-YANYAN-REV-002-20260725"
-    state_id: str = "STATE-M3-YANYAN-REV-002"
+    job_id: str = "JOB-M3-YANYAN-REV-003-20260726"
+    state_id: str = "STATE-M3-YANYAN-REV-003"
     pipeline_id: str = "M3"
     m1_state_id: str = "STATE-M1-YANYAN-REV-002"
     m1_paper_object_id: str = "PAPER-YANYAN-202605"
@@ -2087,15 +2087,17 @@ _TEMPLATE_TOKEN_KEYS = frozenset(
 def validate_template_tokens(tokens: dict[str, Any]) -> dict[str, Any]:
     if type(tokens) is not dict or set(tokens) != _TEMPLATE_TOKEN_KEYS:
         raise M3PipelineError("template tokens do not match the controlled schema")
-    if tokens["page_family"] != "B5":
-        raise M3PipelineError("only the contracted B5 template family is allowed")
+    if tokens["page_family"] != "EDITABLE-B5-184X260":
+        raise M3PipelineError(
+            "only the contracted editable B5 184x260 template family is allowed"
+        )
     ranges = {
-        "page_width_mm": (170.0, 180.0),
-        "page_height_mm": (245.0, 255.0),
-        "margin_left_mm": (8.0, 30.0),
-        "margin_right_mm": (8.0, 30.0),
-        "margin_top_mm": (8.0, 35.0),
-        "margin_bottom_mm": (8.0, 35.0),
+        "page_width_mm": (183.0, 185.0),
+        "page_height_mm": (259.0, 261.0),
+        "margin_left_mm": (18.0, 26.0),
+        "margin_right_mm": (18.0, 26.0),
+        "margin_top_mm": (18.0, 24.0),
+        "margin_bottom_mm": (18.0, 24.0),
         "body_font_size_pt": (8.0, 14.0),
         "line_height_pt": (10.0, 24.0),
     }
@@ -2393,19 +2395,20 @@ def _template_domain_revision(
     token_sha = _sha256(_canonical_json_bytes(validate_template_tokens(tokens)))
     value = create_domain_revision(
         object_type="template_revision",
-        object_id="TEMPLATE-M3-B5",
+        object_id="TEMPLATE-M3-EDITABLE-B5",
         revision_id=revision_id,
         revision_no=revision_no,
         state=state,
         created_at=M3_FIXED_TIMESTAMP,
         predecessor_revision_id=predecessor_revision_id,
         payload={
-            "template_family_id": "TEMPLATE-FAMILY-B5",
+            "template_family_id": "TEMPLATE-FAMILY-EDITABLE-B5-184X260",
             "token_contract_sha256": token_sha,
             "font_manifest_revision_id": font_manifest_revision_id,
         },
         extensions={
             "x-controlled-token-count": len(_TEMPLATE_TOKEN_KEYS),
+            "x-reference-logical-id": "REF-TEMPLATE-PAPER",
         },
     ).document
     validate_domain_revision(value)
@@ -2449,20 +2452,20 @@ def build_template_tracks(
     ).document
     validate_domain_revision(font_manifest)
     base_tokens = {
-        "page_family": "B5",
-        "page_width_mm": 176.0,
-        "page_height_mm": 250.0,
-        "margin_left_mm": 18.0,
-        "margin_right_mm": 18.0,
+        "page_family": "EDITABLE-B5-184X260",
+        "page_width_mm": 184.0,
+        "page_height_mm": 260.0,
+        "margin_left_mm": 22.0,
+        "margin_right_mm": 22.0,
         "margin_top_mm": 20.0,
-        "margin_bottom_mm": 18.0,
-        "title": "LOCAL EXAM BANK / B5",
+        "margin_bottom_mm": 20.0,
+        "title": "LOCAL EXAM BANK / EDITABLE B5 184x260",
         "footer": "BASELINE / PAGE 1",
         "body_font_size_pt": 10.0,
         "line_height_pt": 15.0,
     }
     pass_tokens = dict(base_tokens, footer="APPROVED REVISION / PAGE 1")
-    fail_tokens = dict(base_tokens, margin_left_mm=22.0)
+    fail_tokens = dict(base_tokens, margin_left_mm=26.0)
     definitions = (
         (M3_TEMPLATE_BASE_ID, 1, base_tokens),
         (M3_TEMPLATE_PASS_ID, 2, pass_tokens),

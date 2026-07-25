@@ -45,12 +45,14 @@ from .m4_backup import (
     _runtime_workbench,
     create_m4_app,
 )
+from .pdf_import import PdfImportError, import_external_pdf, parse_pages
 from .project_root import PROJECT_ROOT, ProjectRootError, inspect_project_root
+from .question_split import QuestionSplitError
 from .safety.workspace_io import WorkspaceIOError, get_workspace_io
 from .web import create_app as create_library_app
 
 
-M5_RELEASE_VERSION = "1.0.0-rc1"
+M5_RELEASE_VERSION = "1.0.0-rc2"
 M5_SESSION_SCHEMA_VERSION = "1.0"
 M5_MAX_SESSION_FILES = 10_000
 M5_MAX_SESSION_BYTES = 2 * 1024 * 1024
@@ -423,6 +425,21 @@ def verify_release_manifest(
         raise M5Error("release manifest product identity is invalid")
     normalized: list[dict[str, Any]] = []
     seen: set[str] = set()
+
+    def is_mutable(relative: str) -> bool:
+        return any(
+            (
+                policy.endswith("/")
+                and relative.startswith(policy)
+            )
+            or (
+                not policy.endswith("/")
+                and relative == policy
+            )
+            for policy in normalized_mutable_paths
+        )
+
+    immutable_seen: set[str] = set()
     for index, row in enumerate(files):
         if type(row) is not dict or set(row) != {
             "bytes",
@@ -447,6 +464,8 @@ def verify_release_manifest(
         ):
             raise M5Error("release manifest file metadata is invalid")
         seen.add(relative)
+        if not is_mutable(relative):
+            immutable_seen.add(relative)
         normalized.append(row)
     actual_immutable_files: set[str] = set()
     reparse_attribute = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
@@ -469,24 +488,17 @@ def verify_release_manifest(
             relative = path.relative_to(project_root).as_posix()
             if relative == M5_RELEASE_MANIFEST_NAME:
                 continue
-            mutable = any(
-                (
-                    policy.endswith("/")
-                    and relative.startswith(policy)
-                )
-                or (
-                    not policy.endswith("/")
-                    and relative == policy
-                )
-                for policy in normalized_mutable_paths
-            )
-            if not mutable:
+            if not is_mutable(relative):
                 actual_immutable_files.add(relative)
     except OSError as exc:
         raise M5Error("release tree could not be safely inventoried") from exc
-    if actual_immutable_files != seen:
+    if actual_immutable_files != immutable_seen:
         raise M5Error("release tree contains missing or unmanifested immutable files")
-    selected = normalized
+    selected = [
+        row
+        for row in normalized
+        if not is_mutable(str(row["relative_path"]))
+    ]
     if quick:
         required_roles = {
             "APPLICATION_SOURCE",
@@ -740,6 +752,8 @@ def create_m5_application(
         asset_roots=(
             runtime.resolve(runtime.layout.m1_derived_root, service.project_root),
             runtime.resolve(runtime.layout.m3_state_root, service.project_root),
+            runtime.resolve("data/imports", service.project_root),
+            service.project_root / "data" / "imports",
         ),
     )
     portal = Flask("local-exam-bank-m5")
@@ -857,6 +871,14 @@ def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
     serve_parser = subparsers.add_parser("serve")
     serve_parser.add_argument("--host", default="127.0.0.1")
     serve_parser.add_argument("--port", type=int, default=8765)
+    import_parser = subparsers.add_parser("import-external-pdf")
+    import_parser.add_argument("--source", required=True)
+    import_parser.add_argument("--import-id", required=True)
+    import_parser.add_argument("--pages", required=True)
+    import_parser.add_argument("--columns", type=int, default=1)
+    import_parser.add_argument("--dpi", type=int, default=120)
+    import_parser.add_argument("--title")
+    import_parser.add_argument("--year", type=int)
     return parser.parse_args(argv)
 
 
@@ -866,6 +888,41 @@ def main(argv: Sequence[str] | None = None) -> int:
         result = inspect_release_environment(quick_manifest=args.quick)
         print(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
         return 0 if result["status"] == "PASS" else 2
+    if args.command == "import-external-pdf":
+        service = M4BackupService()
+        readiness = inspect_release_environment(
+            service,
+            quick_manifest=True,
+        )
+        if readiness["status"] != "PASS":
+            raise M5Error("; ".join(readiness["failures"]))
+        runtime = service.current_runtime()
+        try:
+            result = import_external_pdf(
+                args.source,
+                import_id=args.import_id,
+                pages=parse_pages(args.pages),
+                column_count=args.columns,
+                dpi=args.dpi,
+                title=args.title,
+                year=args.year,
+                db_path=runtime.resolve(
+                    runtime.layout.database_path,
+                    service.project_root,
+                ),
+                project_root=service.project_root,
+            )
+        except (PdfImportError, QuestionSplitError) as exc:
+            raise M5Error(f"PDF 导入失败：{exc}") from exc
+        postflight = inspect_release_environment(
+            service,
+            quick_manifest=False,
+        )
+        if postflight["status"] != "PASS":
+            raise M5Error("; ".join(postflight["failures"]))
+        result["postflight"] = postflight
+        print(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
+        return 0
     if args.host not in {"127.0.0.1", "::1"}:
         raise M5Error("正式服务只允许绑定 127.0.0.1 或 ::1")
     if not 1024 <= args.port <= 65535:

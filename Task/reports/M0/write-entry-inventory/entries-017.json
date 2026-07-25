@@ -1,7 +1,35 @@
 {
-  "chunk_digest_sha256": "88eee9a3be747ea26374a44022eb3b47df2cc73aa5a1b2b0d95e416740504f5f",
+  "chunk_digest_sha256": "024aa77c3cd401c65fb17a4cd86f48c794887d24802f2345257bb17c81f65781",
   "chunk_index": 17,
   "entries": [
+    {
+      "call_chain": [
+        "scripts.run_safe_pytest._WindowsProtectedTreeWatcher.__init__"
+      ],
+      "callee": "ctypes.WinDLL",
+      "column": 19,
+      "control_binding_id": "WE-C2A9F7CB87A5D72F48A35444",
+      "detail": "native library binding requires an audited symbol allowlist",
+      "end_column": 65,
+      "end_line": 367,
+      "entry_id": "WE-C2A9F7CB87A5D72F48A35444",
+      "file": "scripts/run_safe_pytest.py",
+      "function": "scripts.run_safe_pytest._WindowsProtectedTreeWatcher.__init__",
+      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
+      "kind": "NATIVE_API_BINDING",
+      "line": 367,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "TEST_INFRASTRUCTURE",
+      "required_control": "M0_SAFE_TEST_LAUNCHER_V1",
+      "resolution": "CONSERVATIVE",
+      "risk": "P0",
+      "root_ids": [
+        "INTERNAL-DIRECT"
+      ],
+      "source_sha256": "374b318167832a3a3f36dc4d2d72e742d690ad0408ac5f3e195941135ecc41e2",
+      "statement_fingerprint": "3474f55c4f2c4ff899bf534b507dc606ac6ca48c4335543ec7104e00d9f58fff",
+      "target_namespace": "FIXED_TEST_LAB_RUNTIME"
+    },
     {
       "call_chain": [
         "scripts.run_safe_pytest._WindowsProtectedTreeWatcher.__init__"
@@ -598,6 +626,6 @@
       "target_namespace": "FIXED_TEST_LAB_RUNTIME"
     }
   ],
-  "entry_count": 21,
+  "entry_count": 22,
   "schema_version": "3.0"
 }

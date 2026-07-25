@@ -218,6 +218,52 @@ def test_release_manifest_verifies_every_declared_file(tmp_path: Path) -> None:
     assert result["checked_file_count"] == 1
 
 
+def test_release_manifest_allows_declared_mutable_seed_to_change(
+    tmp_path: Path,
+) -> None:
+    application = b"print('portable')\n"
+    database_seed = b"seed-database"
+    (tmp_path / "app").mkdir()
+    (tmp_path / "app" / "portable.py").write_bytes(application)
+    database = tmp_path / "data" / "db" / "versions" / "active.sqlite3"
+    database.parent.mkdir(parents=True)
+    database.write_bytes(database_seed)
+    files = [
+        {
+            "bytes": len(application),
+            "relative_path": "app/portable.py",
+            "role": "APPLICATION_SOURCE",
+            "sha256": hashlib.sha256(application).hexdigest(),
+        },
+        {
+            "bytes": len(database_seed),
+            "relative_path": "data/db/versions/active.sqlite3",
+            "role": "APPROVED_DATABASE",
+            "sha256": hashlib.sha256(database_seed).hexdigest(),
+        },
+    ]
+    manifest = {
+        "build": {},
+        "files": files,
+        "manifest_schema_version": "1.0",
+        "mutable_paths": ["data/db/versions/"],
+        "product": {"version": "test"},
+        "runtime": {},
+        "tree_sha256": hashlib.sha256(
+            _canonical_json_bytes(files)
+        ).hexdigest(),
+    }
+    (tmp_path / "release-manifest.json").write_bytes(
+        _canonical_json_bytes(manifest, pretty=True)
+    )
+    database.write_bytes(b"reviewed-user-state")
+
+    result = verify_release_manifest(tmp_path)
+
+    assert result["status"] == "PASS"
+    assert result["checked_file_count"] == 1
+
+
 def test_release_manifest_rejects_unmanifested_immutable_file(tmp_path: Path) -> None:
     payload = b"declared"
     (tmp_path / "declared.txt").write_bytes(payload)
@@ -303,6 +349,8 @@ def test_release_builder_privacy_patterns_and_launcher_are_portable() -> None:
     assert START_PS1_BYTES.startswith(b"\xef\xbb\xbf")
     assert START_PS1_BYTES.decode("utf-8-sig") == START_PS1
     assert "Push-Location -LiteralPath $productRoot" in START_PS1
+    assert '"import-external-pdf"' in START_PS1
+    assert '"--source", $ImportPdf' in START_PS1
     assert "-m app.m5_release verify --quick" not in START_PS1
 
 

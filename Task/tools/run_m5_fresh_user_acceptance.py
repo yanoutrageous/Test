@@ -23,7 +23,7 @@ import fitz
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-RELEASE_ID = "LOCAL-EXAM-BANK-1.0.0-RC1"
+RELEASE_ID = "LOCAL-EXAM-BANK-1.0.0-RC2"
 STAGING_ROOT = PROJECT_ROOT / "output" / "releases" / f"{RELEASE_ID}.staging"
 FRESH_USER_PARENT = PROJECT_ROOT / "tmp" / "acceptance" / "fresh-user"
 RUN_ID_PATTERN = re.compile(r"RUN-[0-9A-Z-]{8,96}")
@@ -213,6 +213,99 @@ def _run_formal_verify(
         "elapsed_ms": round((time.perf_counter() - started) * 1000, 3),
         "log_sha256": _sha256(completed.stdout),
         "status": "PASS",
+    }
+
+
+def _file_snapshot(path: Path) -> dict[str, Any]:
+    resolved = path.resolve()
+    identity = resolved.stat()
+    if not resolved.is_file() or identity.st_size <= 0:
+        raise RuntimeError("external acceptance PDF is missing or empty")
+    return {
+        "bytes": identity.st_size,
+        "mtime_ns": identity.st_mtime_ns,
+        "sha256": _sha256_file(resolved),
+    }
+
+
+def _run_external_import(
+    product_root: Path,
+    client_cwd: Path,
+    log_path: Path,
+    *,
+    external_pdf: Path,
+    import_id: str,
+) -> dict[str, Any]:
+    started = time.perf_counter()
+    completed = subprocess.run(
+        [
+            "powershell.exe",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(product_root / "launcher" / "start.ps1"),
+            "-ImportPdf",
+            str(external_pdf.resolve()),
+            "-ImportId",
+            import_id,
+            "-Pages",
+            "1130-1131",
+            "-Columns",
+            "3",
+            "-Dpi",
+            "120",
+            "-Title",
+            "2020 普通高等学校招生考试（新高考 I 卷）",
+            "-Year",
+            "2020",
+        ],
+        cwd=client_cwd,
+        env=_formal_environment(),
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        check=False,
+        timeout=300,
+    )
+    _write_new(log_path, completed.stdout)
+    text = completed.stdout.decode("utf-8", errors="replace")
+    document_start = text.find("{")
+    try:
+        result = json.loads(text[document_start:]) if document_start >= 0 else None
+    except json.JSONDecodeError as exc:
+        raise RuntimeError("external import did not return valid JSON") from exc
+    if completed.returncode != 0 or type(result) is not dict:
+        raise RuntimeError("formal external PDF import failed")
+    write = result.get("split", {}).get("write", {})
+    questions = write.get("questions", [])
+    if (
+        result.get("status") != "IMPORTED_PENDING_REVIEW"
+        or write.get("candidates") != 22
+        or write.get("warning_candidates") != 0
+        or len(questions) != 22
+        or any(row.get("review_status") != "pending" for row in questions)
+    ):
+        raise RuntimeError("external PDF import did not create 22 clean pending questions")
+    return {
+        "elapsed_ms": round((time.perf_counter() - started) * 1000, 3),
+        "import_id": result["import_id"],
+        "log_sha256": _sha256(completed.stdout),
+        "page_assets": result["pages"],
+        "paper": result["paper"],
+        "questions": questions,
+        "status": "PASS",
+        "write": {
+            key: write[key]
+            for key in (
+                "candidates",
+                "inserted",
+                "pending_stage4",
+                "skipped_reviewed",
+                "updated",
+                "warning_candidates",
+            )
+        },
     }
 
 
@@ -449,6 +542,7 @@ def _exercise_public_scope(
     client: PublicClient,
     *,
     run_token: str,
+    external_import: dict[str, Any],
 ) -> dict[str, Any]:
     client.request("UJ-001-HOME", "/")
     client.request("UJ-010-LIBRARY", "/library/questions?status=all")
@@ -462,6 +556,41 @@ def _exercise_public_scope(
     question_id = int(match.group(1))
     detail_path = f"/library/questions/{question_id}?status=all&limit=30"
     client.request("UJ-014-QUESTION-DETAIL", detail_path)
+
+    imported = external_import["questions"][0]
+    imported_question_id = int(imported["id"])
+    imported_qid = str(imported["qid"])
+    _, imported_detail, _ = client.request(
+        "UJ-015-IMPORTED-QUESTION-DETAIL",
+        f"/library/questions/{imported_question_id}?status=all&limit=5000",
+    )
+    if imported_qid.encode("ascii") not in imported_detail:
+        raise RuntimeError("imported question is missing from the review UI")
+    page_asset = str(external_import["page_assets"][0]["relative_path"])
+    client.request(
+        "UJ-015-IMPORTED-PAGE-ASSET",
+        "/library/assets/" + urllib.parse.quote(page_asset, safe="/"),
+    )
+    _, reviewed_detail, _ = client.request(
+        "UJ-016-IMPORTED-QUESTION-REVIEW",
+        f"/library/questions/{imported_question_id}?status=all&limit=5000",
+        method="POST",
+        form={
+            "analysis_latex": "",
+            "answer_text": "",
+            "meta_json": str(imported["meta_json"]),
+            "question_type": str(imported["question_type"] or ""),
+            "review_status": "reviewed",
+            "stem_latex": str(imported["stem_latex"]),
+            "stem_text": str(imported["stem_text"]),
+            "tags_json": str(imported["tags_json"]),
+        },
+    )
+    if not re.search(
+        rb'<option value="reviewed"[^>]*selected',
+        reviewed_detail,
+    ):
+        raise RuntimeError("imported question review status was not persisted")
 
     _, keyword = client.json(
         "UJ-023-KEYWORD-SEARCH",
@@ -642,7 +771,7 @@ def _exercise_public_scope(
         raise RuntimeError("baseline update bypassed independent review")
     client.json(
         "UJ-045-FAILED-TEMPLATE-ACTIVATION",
-        "/workbench/templates/TEMPLATE-M3-B5-REV-003/review",
+        "/workbench/templates/TEMPLATE-M3-EDITABLE-B5-REV-003/review",
         method="POST",
         form={"decision": "approve"},
         expected=409,
@@ -705,6 +834,9 @@ def _exercise_public_scope(
         "assertion_id": assertion_id,
         "backup_id": backup_id,
         "locked_question_revision_id": locked_id,
+        "imported_page_asset": page_asset,
+        "imported_qid": imported_qid,
+        "imported_question_id": imported_question_id,
         "pdfs": pdfs,
         "pdf_payload_sha256": {
             role: _sha256(payload) for role, payload in pdf_payloads.items()
@@ -751,6 +883,30 @@ def _verify_restarted_scope(
     )
     if not search.get("results"):
         raise RuntimeError("restart search returned no results")
+    _, imported_detail, _ = client.request(
+        "UJ-067-RESTART-IMPORTED-DETAIL",
+        f"/library/questions/{first_run['imported_question_id']}"
+        "?status=all&limit=5000",
+    )
+    if (
+        first_run["imported_qid"].encode("ascii") not in imported_detail
+        or not re.search(
+            rb'<option value="reviewed"[^>]*selected',
+            imported_detail,
+        )
+    ):
+        raise RuntimeError("restart did not retain the imported review record")
+    _, reviewed_list, _ = client.request(
+        "UJ-067-RESTART-IMPORTED-FILTER",
+        "/library/questions?status=reviewed&limit=5000",
+    )
+    if first_run["imported_qid"].encode("ascii") not in reviewed_list:
+        raise RuntimeError("reviewed-question filter lost the imported question")
+    client.request(
+        "UJ-067-RESTART-IMPORTED-ASSET",
+        "/library/assets/"
+        + urllib.parse.quote(first_run["imported_page_asset"], safe="/"),
+    )
     document_hashes: dict[str, str] = {}
     for role in DOCUMENT_ROLES:
         _, payload, _ = client.request(
@@ -770,6 +926,7 @@ def _verify_restarted_scope(
 
 def _parse_args(argv: Iterable[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser()
+    parser.add_argument("--external-pdf", required=True, type=Path)
     parser.add_argument("--run-id", required=True)
     parser.add_argument("--source-commit")
     return parser.parse_args(argv)
@@ -802,6 +959,7 @@ def main(argv: Iterable[str] | None = None) -> int:
     client_cwd.mkdir()
 
     guard_before = _guard_snapshot()
+    external_before = _file_snapshot(args.external_pdf)
     product_root = _copy_release_to_fresh_root(run_root)
     if _sha256_file(product_root / "release-manifest.json") != _sha256(
         manifest_payload
@@ -812,6 +970,17 @@ def main(argv: Iterable[str] | None = None) -> int:
         client_cwd,
         logs_root / "verify-before.log",
     )
+    run_token = _sha256(args.run_id.encode("utf-8"))[:12].upper()
+    external_import = _run_external_import(
+        product_root,
+        client_cwd,
+        logs_root / "external-import.log",
+        external_pdf=args.external_pdf,
+        import_id=f"ACCEPT-2020-I-{run_token}",
+    )
+    external_after = _file_snapshot(args.external_pdf)
+    if external_after != external_before:
+        raise RuntimeError("external acceptance PDF changed during import")
 
     server_logs: list[dict[str, Any]] = []
     server: RunningServer | None = None
@@ -833,8 +1002,11 @@ def main(argv: Iterable[str] | None = None) -> int:
             or first_status.get("approved_candidate_count") != 19
         ):
             raise RuntimeError("first formal startup status is incomplete")
-        run_token = _sha256(args.run_id.encode("utf-8"))[:12].upper()
-        first_run = _exercise_public_scope(first_client, run_token=run_token)
+        first_run = _exercise_public_scope(
+            first_client,
+            run_token=run_token,
+            external_import=external_import,
+        )
         server_logs.append(_stop_server(server))
         server = None
 
@@ -888,6 +1060,18 @@ def main(argv: Iterable[str] | None = None) -> int:
         "completed_at": completed_at,
         "distribution_scope": "SOURCE_OWNER_PRIVATE_LOCAL_USE_ONLY",
         "external_html_reference_count": external_reference_count,
+        "external_import": {
+            **external_import,
+            "questions": {
+                "count": len(external_import["questions"]),
+                "first_qid": external_import["questions"][0]["qid"],
+            },
+            "source": {
+                "after": external_after,
+                "before": external_before,
+                "status": "UNCHANGED",
+            },
+        },
         "fresh_user_root_relative": run_root.relative_to(PROJECT_ROOT).as_posix(),
         "journey_count": len(journeys),
         "journey_failure_count": 0,
@@ -915,7 +1099,6 @@ def main(argv: Iterable[str] | None = None) -> int:
                 "2020—2025 target corpus is not fully imported and human-reviewed",
                 "source-derived content and embedded fonts are not cleared for third-party redistribution",
                 "real printer operation is outside the current Test-only write authority",
-                "fresh-user import of an external real PDF is excluded from this source-owner private package",
             ],
             "status": "BLOCKED_DISCLOSED",
         },

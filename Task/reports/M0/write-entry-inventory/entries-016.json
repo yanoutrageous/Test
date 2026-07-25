@@ -1,7 +1,36 @@
 {
-  "chunk_digest_sha256": "f432ebae3e6ac5c27fcaf26eddbdb4dba3f5fb34ccdb8b063a8631d64f16b99e",
+  "chunk_digest_sha256": "b609c00b15e2e09ba55097d973e46e2bbb4a62e6945ef8c5e2c3fff7eff7b723",
   "chunk_index": 16,
   "entries": [
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.structured_ai.run_structured_ai_corrections"
+      ],
+      "callee": "app.database.connect_database().commit",
+      "column": 12,
+      "control_binding_id": "WE-36ED2114AC78B3AEAD21D5C8",
+      "detail": "transaction commit",
+      "end_column": 25,
+      "end_line": 289,
+      "entry_id": "WE-36ED2114AC78B3AEAD21D5C8",
+      "file": "app/structured_ai.py",
+      "function": "app.structured_ai.run_structured_ai_corrections",
+      "input_source": "CLI_ARGUMENT_OR_CONFIG",
+      "kind": "SQLITE_TRANSACTION",
+      "line": 289,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "resolution": "ALIAS_RESOLVED",
+      "risk": "P1",
+      "root_ids": [
+        "CLI:MAIN"
+      ],
+      "source_sha256": "4f55559b7e63d78456098a7b598be63bb24d48a0bbe0d3056ca09a6d4cfd132c",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976",
+      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
+    },
     {
       "call_chain": [
         "app.cli.main",
@@ -715,34 +744,6 @@
       ],
       "source_sha256": "374b318167832a3a3f36dc4d2d72e742d690ad0408ac5f3e195941135ecc41e2",
       "statement_fingerprint": "7780013ca247acef940f6ad9307d1a12740d569665d56c15c68627898ebe3593",
-      "target_namespace": "FIXED_TEST_LAB_RUNTIME"
-    },
-    {
-      "call_chain": [
-        "scripts.run_safe_pytest._WindowsProtectedTreeWatcher.__init__"
-      ],
-      "callee": "ctypes.WinDLL",
-      "column": 19,
-      "control_binding_id": "WE-C2A9F7CB87A5D72F48A35444",
-      "detail": "native library binding requires an audited symbol allowlist",
-      "end_column": 65,
-      "end_line": 367,
-      "entry_id": "WE-C2A9F7CB87A5D72F48A35444",
-      "file": "scripts/run_safe_pytest.py",
-      "function": "scripts.run_safe_pytest._WindowsProtectedTreeWatcher.__init__",
-      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
-      "kind": "NATIVE_API_BINDING",
-      "line": 367,
-      "migration_status": "MIGRATED_GUARDED",
-      "owner": "TEST_INFRASTRUCTURE",
-      "required_control": "M0_SAFE_TEST_LAUNCHER_V1",
-      "resolution": "CONSERVATIVE",
-      "risk": "P0",
-      "root_ids": [
-        "INTERNAL-DIRECT"
-      ],
-      "source_sha256": "374b318167832a3a3f36dc4d2d72e742d690ad0408ac5f3e195941135ecc41e2",
-      "statement_fingerprint": "3474f55c4f2c4ff899bf534b507dc606ac6ca48c4335543ec7104e00d9f58fff",
       "target_namespace": "FIXED_TEST_LAB_RUNTIME"
     }
   ],

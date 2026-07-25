@@ -33,7 +33,7 @@ from app.m4_backup import M4BackupService  # noqa: E402
 from app.safety.workspace_io import get_workspace_io  # noqa: E402
 
 
-RELEASE_ID = "LOCAL-EXAM-BANK-1.0.0-RC1"
+RELEASE_ID = "LOCAL-EXAM-BANK-1.0.0-RC2"
 RELEASE_ROOT = PROJECT_ROOT / "output" / "releases"
 STAGING_ROOT = RELEASE_ROOT / f"{RELEASE_ID}.staging"
 FINAL_ROOT = RELEASE_ROOT / RELEASE_ID
@@ -271,7 +271,14 @@ def _portable_runtime_archive() -> tuple[bytes, dict[str, Any]]:
 
 START_PS1 = r"""param(
   [int]$Port = 8765,
-  [switch]$CheckOnly
+  [switch]$CheckOnly,
+  [string]$ImportPdf = "",
+  [string]$ImportId = "",
+  [string]$Pages = "",
+  [int]$Columns = 1,
+  [int]$Dpi = 120,
+  [string]$Title = "",
+  [int]$Year = 0
 )
 $ErrorActionPreference = "Stop"
 $productRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot ".."))
@@ -316,7 +323,33 @@ $env:M5_OFFLINE_ENFORCED = "1"
 $exitCode = 2
 Push-Location -LiteralPath $productRoot
 try {
-  if ($CheckOnly) {
+  if ($CheckOnly -and -not [string]::IsNullOrWhiteSpace($ImportPdf)) {
+    throw "-CheckOnly 与 -ImportPdf 不能同时使用。"
+  }
+  if (-not [string]::IsNullOrWhiteSpace($ImportPdf)) {
+    if ([string]::IsNullOrWhiteSpace($Pages)) {
+      throw "导入 PDF 时必须通过 -Pages 指定页码或页码范围。"
+    }
+    if ([string]::IsNullOrWhiteSpace($ImportId)) {
+      $ImportId = "USER-" + [DateTime]::UtcNow.ToString("yyyyMMdd-HHmmss") + "-" + $PID
+    }
+    $importArguments = @(
+      "-B", "-m", "app.m5_release", "import-external-pdf",
+      "--source", $ImportPdf,
+      "--import-id", $ImportId,
+      "--pages", $Pages,
+      "--columns", [string]$Columns,
+      "--dpi", [string]$Dpi
+    )
+    if (-not [string]::IsNullOrWhiteSpace($Title)) {
+      $importArguments += @("--title", $Title)
+    }
+    if ($Year -ne 0) {
+      $importArguments += @("--year", [string]$Year)
+    }
+    & $runtimePython @importArguments
+    $exitCode = $LASTEXITCODE
+  } elseif ($CheckOnly) {
     & $runtimePython -B -m app.m5_release verify
     $exitCode = $LASTEXITCODE
   } else {
@@ -373,21 +406,23 @@ def _qa_documents(source_commit: str) -> dict[str, bytes]:
 - 产品版本：{M5_RELEASE_VERSION}
 - 源提交：`{source_commit}`
 - M0—M4：已按仓库合同验收
-- M5：发布前 fresh-user 离线客户流程由包外不可变验收报告记录
-- 数据范围：一份 19 题、150 分代表卷
+- M5：发布前 fresh-user 离线客户流程及外部真实 PDF 导入由包外不可变验收报告记录
+- 随包数据范围：一份 19 题、150 分代表卷；新导入题目默认进入人工复核队列
 - 分发范围：源资料权利人私有本地使用，不得向第三方再分发来源派生资产
 - 网络：应用只允许回环地址
 - 打印：仅声明打印就绪 PDF，未操作真实打印机
 """
     visual = """# 视觉回归摘要
 
-当前代表卷、五类文档和批准模板已通过 M1—M3 固定视觉门。发布候选保留原图、
-SVG/TikZ 双轨和字体零静默替换策略。全目标集和第三方可分发字体尚未完成。
+当前代表卷、五类文档和批准模板已通过 M1—M3 固定视觉门。学生卷与教师卷采用受控
+184×260 mm 模板基线；发布候选保留原图、SVG/TikZ 双轨和字体零静默替换策略。
+全目标集和第三方可分发字体尚未完成。
 """
     recovery = """# 恢复演练摘要
 
 M4 已完成全量/增量备份、staging 恢复、显式激活、中断回退、回滚、重启和固定公开
-旅程。M5 fresh-user 验收还将对本发布包再执行一次备份→恢复→重启→重渲染。
+旅程。M5 fresh-user 验收还将对外部导入受控副本、页面资产、人工复核状态执行
+备份→恢复→重启→重渲染。
 """
     return {
         "qa/验收摘要.md": summary.encode("utf-8"),
@@ -569,6 +604,7 @@ class ReleaseBuilder:
             "LICENSES",
             "SBOM",
             "backups",
+            "data/imports",
             "data/snapshots",
             "data/state/m5",
             "docs",
@@ -620,6 +656,22 @@ class ReleaseBuilder:
         ):
             physical = source_root.joinpath(*PurePosixPath(logical_root).parts)
             self._copy_tree(physical, logical_root, role=role)
+        template_copy = (
+            source_root
+            / "Copy"
+            / "source"
+            / "COPY-M5-TEMPLATE-PAPER-20260726"
+        )
+        self._copy(
+            template_copy / "payload.bin",
+            "templates/reference/排版格式-试卷.docx",
+            role="CONTROLLED_TEMPLATE_REFERENCE",
+        )
+        self._copy(
+            template_copy / "provenance.json",
+            "templates/reference/排版格式-试卷.provenance.json",
+            role="CONTROLLED_TEMPLATE_PROVENANCE",
+        )
 
     def _documentation(self) -> None:
         self._copy_tree(
@@ -633,7 +685,7 @@ class ReleaseBuilder:
             (
                 "# 代表成品\n\n"
                 "五类 PDF 位于 "
-                "`data/exports/M2/EXPORT-M2-YANYAN-FULL-150-REV-002/documents/`。"
+                "`data/exports/M2/EXPORT-M2-YANYAN-FULL-150-REV-003/documents/`。"
                 "本目录不重复复制，避免额外占用空间。\n"
             ).encode("utf-8"),
             role="EXAMPLE_INDEX",
@@ -658,7 +710,9 @@ class ReleaseBuilder:
             "templates/README.md",
             (
                 "# 模板\n\n"
-                "批准模板及 manifest 位于 `data/derived/M3/` 与 `data/templates/`。\n"
+                "批准模板及 manifest 位于 `data/derived/M3/` 与 `data/templates/`。"
+                "受控参考原件位于 `templates/reference/排版格式-试卷.docx`；"
+                "它用于版式基线核对，不是自动生成的可编辑试卷。\n"
             ).encode("utf-8"),
             role="TEMPLATE_INDEX",
         )
@@ -859,7 +913,10 @@ class ReleaseBuilder:
             "mutable_paths": [
                 ".runtime/",
                 "backups/",
+                "Copy/source/",
                 "data/db/active-state.json",
+                "data/db/versions/",
+                "data/imports/",
                 "data/snapshots/",
                 "data/state/",
                 "tmp/",

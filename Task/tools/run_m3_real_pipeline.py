@@ -294,8 +294,8 @@ def _atomic_failure_probe(
     font_source_payload: bytes,
 ) -> dict[str, Any]:
     config = M3PipelineConfig(
-        job_id="JOB-M3-ATOMIC-FAILURE-R2-20260725",
-        state_id="STATE-M3-ATOMIC-FAILURE-R2",
+        job_id="JOB-M3-ATOMIC-FAILURE-R3-20260726",
+        state_id="STATE-M3-ATOMIC-FAILURE-R3",
     )
     if config.target_root.exists():
         raise RuntimeError("M3 failure-probe target must never exist")
@@ -344,7 +344,7 @@ def _run_rebuild() -> int:
         / "tmp"
         / "jobs"
         / "INTERNAL"
-        / "JOB-M3-INDEX-REBUILD-EVIDENCE-R2-20260725"
+        / "JOB-M3-INDEX-REBUILD-EVIDENCE-R3-20260726"
         / "m3-index-rebuild-evidence.json"
     )
     receipt = get_workspace_io().write_bytes_idempotent(
@@ -418,14 +418,14 @@ def main() -> int:
         or verification.get("search_hit_at_3") != 1.0
         or float(verification.get("search_mrr", 0)) < 0.8
         or verification.get("active_template_revision_id")
-        != "TEMPLATE-M3-B5-REV-002"
+        != "TEMPLATE-M3-EDITABLE-B5-REV-002"
     ):
         raise RuntimeError("M3 published state failed acceptance checks")
     rebuild = rebuild_published_semantic_index(config)
     disk = shutil.disk_usage(PROJECT_ROOT)
     evidence = {
         "schema_version": "1.0",
-        "run_id": "RUN-20260725-M3-REAL-PIPELINE-R2-175",
+        "run_id": "RUN-20260726-M3-REAL-PIPELINE-R3-204",
         "pipeline_result": result,
         "semantic_index_rebuild": rebuild,
         "atomic_failure_probe": failure_probe,
@@ -449,7 +449,7 @@ def main() -> int:
         / "tmp"
         / "jobs"
         / "INTERNAL"
-        / "JOB-M3-REAL-FLOW-EVIDENCE-R2-20260725"
+        / "JOB-M3-REAL-FLOW-EVIDENCE-R3-20260726"
         / "m3-real-flow-evidence.json"
     )
     receipt = get_workspace_io().write_bytes_idempotent(

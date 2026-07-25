@@ -82,6 +82,14 @@ class SourceCopyReceipt:
         }
 
 
+@dataclass(frozen=True, slots=True)
+class RegisteredExternalVerificationReceipt:
+    logical_source_id: str
+    payload_sha256: str
+    payload_bytes: int
+    verification_sha256: str
+
+
 def _safe_id(value: str, *, field_name: str) -> str:
     try:
         return validate_safe_id(value, field_name=field_name)
@@ -179,7 +187,8 @@ def copy_registered_external_file(
     job_id: str,
     purpose: str,
     classification: DataClassification = DataClassification.INTERNAL,
-) -> SourceCopyReceipt:
+    verify_only: bool = False,
+) -> SourceCopyReceipt | RegisteredExternalVerificationReceipt:
     """Publish one immutable, path-redacted Copy/source revision."""
 
     canonical_copy_id = _safe_id(copy_id, field_name="copy_id")
@@ -217,6 +226,14 @@ def copy_registered_external_file(
             classification=classification,
         ) as lease:
             material = lease.read_once()
+            if verify_only:
+                verification = lease.verify_unchanged(material.evidence)
+                return RegisteredExternalVerificationReceipt(
+                    logical_source_id=material.evidence.logical_id,
+                    payload_sha256=material.evidence.sha256,
+                    payload_bytes=material.evidence.size_bytes,
+                    verification_sha256=verification.verification_digest,
+                )
             workspace.ensure_directory(target_relative.parent)
             workspace.ensure_directory(staging_relative)
             payload_receipt = workspace.create_new_bytes(

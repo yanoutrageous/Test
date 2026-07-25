@@ -1,7 +1,35 @@
 {
-  "chunk_digest_sha256": "33ddfd6fb0a993d994d9aa091475fcca546b4df5c4edf5c3582e6671f4769288",
+  "chunk_digest_sha256": "0925c4b8ab436906a9b778d748ec8d3c61a2f6373d652f4a316e269952243b7e",
   "chunk_index": 15,
   "entries": [
+    {
+      "call_chain": [
+        "app.stage14.Stage14QualityService.generate_visual_repair_candidates"
+      ],
+      "callee": "app.database.connect_database",
+      "column": 13,
+      "control_binding_id": "WE-EDC073051C262DE3FB2C31B5",
+      "detail": "legacy database gateway",
+      "end_column": 43,
+      "end_line": 599,
+      "entry_id": "WE-EDC073051C262DE3FB2C31B5",
+      "file": "app/stage14.py",
+      "function": "app.stage14.Stage14QualityService.generate_visual_repair_candidates",
+      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
+      "kind": "DATABASE_GATEWAY",
+      "line": 599,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "REPORT_SERVICE",
+      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "resolution": "ALIAS_RESOLVED",
+      "risk": "P1",
+      "root_ids": [
+        "INTERNAL-DIRECT"
+      ],
+      "source_sha256": "9b4b48bd302eafccc40557a8e08698d6d5381ed148a863afa66f6a9c79925b2b",
+      "statement_fingerprint": "196c8969b9ae12c0c2db078216eb4ba556d3b51e17241f26af6c3fcbb0fa2f1f",
+      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
+    },
     {
       "call_chain": [
         "app.stage14.Stage14QualityService.generate_visual_repair_candidates"
@@ -690,35 +718,6 @@
       ],
       "source_sha256": "4f55559b7e63d78456098a7b598be63bb24d48a0bbe0d3056ca09a6d4cfd132c",
       "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6",
-      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
-    },
-    {
-      "call_chain": [
-        "app.cli.main",
-        "app.structured_ai.run_structured_ai_corrections"
-      ],
-      "callee": "app.database.connect_database().commit",
-      "column": 12,
-      "control_binding_id": "WE-36ED2114AC78B3AEAD21D5C8",
-      "detail": "transaction commit",
-      "end_column": 25,
-      "end_line": 289,
-      "entry_id": "WE-36ED2114AC78B3AEAD21D5C8",
-      "file": "app/structured_ai.py",
-      "function": "app.structured_ai.run_structured_ai_corrections",
-      "input_source": "CLI_ARGUMENT_OR_CONFIG",
-      "kind": "SQLITE_TRANSACTION",
-      "line": 289,
-      "migration_status": "MIGRATED_GUARDED",
-      "owner": "APPLICATION_SERVICE",
-      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
-      "resolution": "ALIAS_RESOLVED",
-      "risk": "P1",
-      "root_ids": [
-        "CLI:MAIN"
-      ],
-      "source_sha256": "4f55559b7e63d78456098a7b598be63bb24d48a0bbe0d3056ca09a6d4cfd132c",
-      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976",
       "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
     }
   ],

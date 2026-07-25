@@ -28,23 +28,29 @@ from app.m4_backup import (  # noqa: E402
 from app.safety.workspace_io import get_workspace_io  # noqa: E402
 
 
-FULL_BACKUP_ID = "BACKUP-M4-YANYAN-FULL-20260725"
-INCREMENTAL_BACKUP_ID = "BACKUP-M4-YANYAN-INCREMENTAL-20260725"
-RESTORED_STATE_ID = "STATE-M4-YANYAN-RESTORED-20260725"
-CANCEL_BACKUP_ID = "BACKUP-M4-CANCEL-RESUME-20260725"
-CANCEL_STATE_ID = "STATE-M4-CANCEL-RESUME-20260725"
+FULL_BACKUP_ID = "BACKUP-M4-YANYAN-FULL-20260726-R2"
+INCREMENTAL_BACKUP_ID = "BACKUP-M4-YANYAN-INCREMENTAL-20260726-R2"
+RESTORED_STATE_ID = "STATE-M4-YANYAN-RESTORED-20260726-R2"
+CANCEL_BACKUP_ID = "BACKUP-M4-CANCEL-RESUME-20260726-R2"
+CANCEL_STATE_ID = "STATE-M4-CANCEL-RESUME-20260726-R2"
 LEGACY_DATABASE = PROJECT_ROOT / "data" / "db" / "question_bank.sqlite3"
 EVIDENCE_PATH = (
     PROJECT_ROOT
     / "tmp"
     / "jobs"
     / "INTERNAL"
-    / "JOB-M4-REAL-FLOW-EVIDENCE-R1-20260725"
+    / "JOB-M4-REAL-FLOW-EVIDENCE-R2-20260726"
     / "m4-real-flow-evidence.json"
 )
 
 
 def _file_summary(path: Path) -> dict[str, int | str]:
+    if not path.is_file():
+        return {
+            "bytes": 0,
+            "sha256": hashlib.sha256(b"ABSENT").hexdigest(),
+            "status": "ABSENT",
+        }
     payload = path.read_bytes()
     return {
         "bytes": len(payload),
@@ -84,7 +90,7 @@ def _ui_backup_and_restore(service: M4BackupService) -> dict[str, Any]:
             data={
                 "backup_id": FULL_BACKUP_ID,
                 "backup_kind": "full",
-                "job_id": "JOB-M4-UI-FULL-IDEMPOTENT-20260725",
+                "job_id": "JOB-M4-UI-FULL-IDEMPOTENT-20260726-R2",
             },
         )
         incremental = client.post(
@@ -92,7 +98,7 @@ def _ui_backup_and_restore(service: M4BackupService) -> dict[str, Any]:
             data={
                 "backup_id": INCREMENTAL_BACKUP_ID,
                 "backup_kind": "incremental",
-                "job_id": "JOB-M4-UI-INCREMENTAL-20260725",
+                "job_id": "JOB-M4-UI-INCREMENTAL-20260726-R2",
                 "parent_backup_id": FULL_BACKUP_ID,
             },
         )
@@ -103,7 +109,7 @@ def _ui_backup_and_restore(service: M4BackupService) -> dict[str, Any]:
             f"/maintenance/backups/{FULL_BACKUP_ID}/restore",
             data={
                 "state_id": RESTORED_STATE_ID,
-                "job_id": "JOB-M4-UI-RESTORE-20260725",
+                "job_id": "JOB-M4-UI-RESTORE-20260726-R2",
             },
         )
     responses = {
@@ -152,7 +158,7 @@ def _cancel_resume_probe(service: M4BackupService) -> dict[str, Any]:
         try:
             service.create_backup(
                 backup_id=CANCEL_BACKUP_ID,
-                job_id="JOB-M4-CANCEL-RESUME-BACKUP-20260725",
+                job_id="JOB-M4-CANCEL-RESUME-BACKUP-20260726-R2",
                 backup_kind="incremental",
                 parent_backup_id=FULL_BACKUP_ID,
                 cancel_after_files=11,
@@ -163,7 +169,7 @@ def _cancel_resume_probe(service: M4BackupService) -> dict[str, Any]:
             raise RuntimeError("M4 backup cancellation probe unexpectedly completed")
     backup = service.create_backup(
         backup_id=CANCEL_BACKUP_ID,
-        job_id="JOB-M4-CANCEL-RESUME-BACKUP-20260725",
+        job_id="JOB-M4-CANCEL-RESUME-BACKUP-20260726-R2",
         backup_kind="incremental",
         parent_backup_id=FULL_BACKUP_ID,
     )
@@ -177,7 +183,7 @@ def _cancel_resume_probe(service: M4BackupService) -> dict[str, Any]:
             service.restore_backup(
                 backup_id=CANCEL_BACKUP_ID,
                 state_id=CANCEL_STATE_ID,
-                job_id="JOB-M4-CANCEL-RESUME-RESTORE-20260725",
+                job_id="JOB-M4-CANCEL-RESUME-RESTORE-20260726-R2",
                 cancel_after_files=13,
             )
         except M4Cancelled:
@@ -187,7 +193,7 @@ def _cancel_resume_probe(service: M4BackupService) -> dict[str, Any]:
     restored = service.restore_backup(
         backup_id=CANCEL_BACKUP_ID,
         state_id=CANCEL_STATE_ID,
-        job_id="JOB-M4-CANCEL-RESUME-RESTORE-20260725",
+        job_id="JOB-M4-CANCEL-RESUME-RESTORE-20260726-R2",
     )
     restore_seconds = round(time.perf_counter() - restore_started, 6)
     if backup.validation_status != "VALID" or restored.journey_count != 6:
@@ -204,8 +210,8 @@ def _cancel_resume_probe(service: M4BackupService) -> dict[str, Any]:
 
 
 def _low_space_probe(service: M4BackupService) -> dict[str, Any]:
-    backup_id = "BACKUP-M4-LOW-SPACE-REJECT-20260725"
-    state_id = "STATE-M4-LOW-SPACE-REJECT-20260725"
+    backup_id = "BACKUP-M4-LOW-SPACE-REJECT-20260726-R2"
+    state_id = "STATE-M4-LOW-SPACE-REJECT-20260726-R2"
     backup_target = PROJECT_ROOT / "backups" / backup_id
     state_target = PROJECT_ROOT / "data" / "snapshots" / state_id
     if backup_target.exists() or state_target.exists():
@@ -214,7 +220,7 @@ def _low_space_probe(service: M4BackupService) -> dict[str, Any]:
     try:
         service.create_backup(
             backup_id=backup_id,
-            job_id="JOB-M4-LOW-SPACE-BACKUP-20260725",
+            job_id="JOB-M4-LOW-SPACE-BACKUP-20260726-R2",
             available_bytes_override=0,
         )
     except M4Error as exc:
@@ -223,7 +229,7 @@ def _low_space_probe(service: M4BackupService) -> dict[str, Any]:
         service.restore_backup(
             backup_id=FULL_BACKUP_ID,
             state_id=state_id,
-            job_id="JOB-M4-LOW-SPACE-RESTORE-20260725",
+            job_id="JOB-M4-LOW-SPACE-RESTORE-20260726-R2",
             available_bytes_override=0,
         )
     except M4Error as exc:
@@ -401,14 +407,14 @@ def _activation_failure_probe(service: M4BackupService) -> dict[str, Any]:
         (
             "before_switch",
             M4FailurePoint.ACTIVATE_AFTER_RESCUE,
-            "JOB-M4-RUNNER-ACTIVATE-FAIL-BEFORE-20260725",
-            "BACKUP-M4-RUNNER-RESCUE-FAIL-BEFORE-20260725",
+            "JOB-M4-RUNNER-ACTIVATE-FAIL-BEFORE-20260726-R3",
+            "BACKUP-M4-RUNNER-RESCUE-FAIL-BEFORE-20260726-R3",
         ),
         (
             "after_switch",
             M4FailurePoint.ACTIVATE_AFTER_SWITCH,
-            "JOB-M4-RUNNER-ACTIVATE-FAIL-AFTER-20260725",
-            "BACKUP-M4-RUNNER-RESCUE-FAIL-AFTER-20260725",
+            "JOB-M4-RUNNER-ACTIVATE-FAIL-AFTER-20260726-R3",
+            "BACKUP-M4-RUNNER-RESCUE-FAIL-AFTER-20260726-R3",
         ),
     )
     for label, point, job_id, rescue_id in specifications:
@@ -452,9 +458,9 @@ def _rollback_and_reactivate_ui(service: M4BackupService) -> dict[str, Any]:
         rollback = client.post(
             "/maintenance/rollback",
             data={
-                "job_id": "JOB-M4-RUNNER-ROLLBACK-20260725",
+                "job_id": "JOB-M4-RUNNER-ROLLBACK-20260726-R3",
                 "rescue_backup_id": (
-                    "BACKUP-M4-RUNNER-RESCUE-BEFORE-ROLLBACK-20260725"
+                    "BACKUP-M4-RUNNER-RESCUE-BEFORE-ROLLBACK-20260726-R3"
                 ),
             },
         )
@@ -467,9 +473,9 @@ def _rollback_and_reactivate_ui(service: M4BackupService) -> dict[str, Any]:
         activate = client.post(
             f"/maintenance/states/{RESTORED_STATE_ID}/activate",
             data={
-                "job_id": "JOB-M4-RUNNER-REACTIVATE-20260725",
+                "job_id": "JOB-M4-RUNNER-REACTIVATE-20260726-R3",
                 "rescue_backup_id": (
-                    "BACKUP-M4-RUNNER-RESCUE-REACTIVATE-20260725"
+                    "BACKUP-M4-RUNNER-RESCUE-REACTIVATE-20260726-R3"
                 ),
                 "parent_backup_id": FULL_BACKUP_ID,
             },
@@ -486,7 +492,7 @@ def _rollback_and_reactivate_ui(service: M4BackupService) -> dict[str, Any]:
         export = client.get("/runtime/bundles/student")
     if (
         before.active_state_id != RESTORED_STATE_ID
-        or rolled_back.active_state_id != "STATE-M3-YANYAN-REV-002"
+        or rolled_back.active_state_id != "STATE-M3-YANYAN-REV-003"
         or final.active_state_id != RESTORED_STATE_ID
         or status.status_code != 200
         or search.status_code != 200
@@ -523,6 +529,18 @@ def main() -> int:
     low_space = _low_space_probe(service)
     adversarial = _adversarial_candidates(service)
     activation_failures = _activation_failure_probe(service)
+    if service.current_runtime().active_state_id != RESTORED_STATE_ID:
+        activated = service.activate_state(
+            state_id=RESTORED_STATE_ID,
+            job_id="JOB-M4-RUNNER-ACTIVATE-SUCCESS-20260726-R3",
+            rescue_backup_id="BACKUP-M4-RUNNER-RESCUE-SUCCESS-20260726-R3",
+            parent_backup_id=FULL_BACKUP_ID,
+        )
+        if (
+            activated.get("status") != "ACTIVE"
+            or activated.get("active_state_id") != RESTORED_STATE_ID
+        ):
+            raise RuntimeError("M4 explicit activation did not succeed")
     rollback = _rollback_and_reactivate_ui(service)
 
     full = service.validate_backup(FULL_BACKUP_ID)
@@ -609,7 +627,7 @@ def main() -> int:
             "verification": restored,
         },
         "rollback_and_reactivation": rollback,
-        "run_id": "RUN-20260725-M4-REAL-PIPELINE-R1-181",
+        "run_id": "RUN-20260726-M4-REAL-PIPELINE-R2-205",
         "schema_version": "1.0",
         "status": "PASS",
         "ui_flow": ui_flow,

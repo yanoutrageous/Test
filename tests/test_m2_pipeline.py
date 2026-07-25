@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import shutil
+import sqlite3
 from dataclasses import replace
 from pathlib import Path
 
@@ -52,6 +54,55 @@ def test_real_candidate_pool_full_blueprint_is_exact_and_deterministic() -> None
     assert first.diagnostics["hard_constraints_relaxed"] is False
     assert first.diagnostics["duplicate_conflicts"] == []
     assert first.diagnostics["similarity_policy"] == "EXACT-CONTENT-HASH-V1"
+
+
+def test_candidate_pool_ignores_pending_questions_from_user_imports(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    source_root = tmp_path / "runtime"
+    default = m2.M2PipelineConfig()
+    derived_relative = default.m1_derived_root.relative_to(m2.PROJECT_ROOT)
+    database_relative = default.m1_database_path.relative_to(m2.PROJECT_ROOT)
+    derived_target = source_root / derived_relative
+    database_target = source_root / database_relative
+    shutil.copytree(default.m1_derived_root, derived_target)
+    database_target.parent.mkdir(parents=True)
+    shutil.copy2(default.m1_database_path, database_target)
+
+    with sqlite3.connect(database_target) as connection:
+        cursor = connection.execute("SELECT * FROM questions ORDER BY id LIMIT 1")
+        columns = [row[0] for row in cursor.description]
+        source = dict(zip(columns, cursor.fetchone(), strict=True))
+        source.pop("id")
+        source.update(
+            {
+                "content_hash": "0" * 64,
+                "meta_json": json.dumps(
+                    {
+                        "algorithm_version": "stage4_page_anchor_v2_lines",
+                        "source_page": 1130,
+                    }
+                ),
+                "qid": "PDF-EXTERNAL-P1130-Q001",
+                "review_status": "pending",
+            }
+        )
+        names = tuple(source)
+        connection.execute(
+            f"""
+            INSERT INTO questions ({", ".join(names)})
+            VALUES ({", ".join("?" for _ in names)})
+            """,
+            tuple(source[name] for name in names),
+        )
+        connection.commit()
+
+    monkeypatch.setattr(m2, "PROJECT_ROOT", source_root)
+    candidates = m2.load_candidate_pool(m2.M2PipelineConfig())
+
+    assert len(candidates) == 19
+    assert all(row.qid != "PDF-EXTERNAL-P1130-Q001" for row in candidates)
 
 
 def test_infeasible_blueprint_reports_conflict_without_relaxation() -> None:
@@ -126,12 +177,39 @@ def test_five_document_sources_and_answer_sheets_are_deterministic() -> None:
     answer = load_copy_payload(config.answer_copy_id).payload
     analysis = load_copy_payload(config.analysis_copy_id).payload
 
-    teacher = m2._compose_pdfs((paper, answer))
-    assert teacher == m2._compose_pdfs((paper, answer))
+    student = m2._repage_pdf_to_editable_b5(
+        paper,
+        title="M2 student paper / editable B5 184x260",
+    )
+    teacher_questions = m2._repage_pdf_to_editable_b5(
+        paper,
+        title="M2 teacher questions / editable B5 184x260",
+    )
+    teacher_answers = m2._repage_pdf_to_editable_b5(
+        answer,
+        title="M2 teacher answers / editable B5 184x260",
+    )
+    teacher = m2._compose_pdfs((teacher_questions, teacher_answers))
+    assert student == m2._repage_pdf_to_editable_b5(
+        paper,
+        title="M2 student paper / editable B5 184x260",
+    )
+    assert teacher == m2._compose_pdfs((teacher_questions, teacher_answers))
     assert m2._pdf_summary(paper)["page_count"] == 4
+    assert m2._pdf_summary(student)["page_count"] == 4
     assert m2._pdf_summary(teacher)["page_count"] == 15
     assert m2._pdf_summary(answer)["page_count"] == 11
     assert m2._pdf_summary(analysis)["page_count"] == 63
+    for role_payload in (student, teacher):
+        assert all(
+            abs(page["width_pt"] - m2.EDITABLE_B5_WIDTH_MM * 72 / 25.4)
+            <= 0.01
+            and abs(
+                page["height_pt"] - m2.EDITABLE_B5_HEIGHT_MM * 72 / 25.4
+            )
+            <= 0.01
+            for page in m2._pdf_summary(role_payload)["pages"]
+        )
 
     for family, expected_pages in (
         ("A4-MULTIPAGE", 6),

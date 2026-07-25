@@ -1,5 +1,5 @@
 {
-  "chunk_digest_sha256": "2d5ef3f974b742a07920a6bf6c37dbf6ae0c968b94d59d0f01c4b8f2bbaf2b1b",
+  "chunk_digest_sha256": "221072e05bbd8ed5102e1201a3b927615e4177a6fa9bb498d5f6e1a6d451a441",
   "chunk_index": 6,
   "entries": [
     {
@@ -371,13 +371,13 @@
       "control_binding_id": "WE-3CC52B65E59985653EABC4E9",
       "detail": "legacy database gateway",
       "end_column": 34,
-      "end_line": 292,
+      "end_line": 368,
       "entry_id": "WE-3CC52B65E59985653EABC4E9",
       "file": "app/question_split.py",
       "function": "app.question_split._load_source_paper_for_pdf",
       "input_source": "CLI_ARGUMENT_OR_CONFIG",
       "kind": "DATABASE_GATEWAY",
-      "line": 292,
+      "line": 368,
       "migration_status": "MIGRATED_GUARDED",
       "owner": "IMPORT_SERVICE",
       "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
@@ -386,7 +386,7 @@
       "root_ids": [
         "CLI:MAIN"
       ],
-      "source_sha256": "4cdb781d47788ac7ddc9cedd558a10fd849947f5a6bb4444f2852940140b2a34",
+      "source_sha256": "89ee6666b67790e1dc64385d5c197643bf790055404757c0321d360e02559dce",
       "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6",
       "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
     },
@@ -401,13 +401,13 @@
       "control_binding_id": "WE-C7371A5FF2726E72CD74D6CE",
       "detail": "legacy database gateway",
       "end_column": 34,
-      "end_line": 380,
+      "end_line": 508,
       "entry_id": "WE-C7371A5FF2726E72CD74D6CE",
       "file": "app/question_split.py",
       "function": "app.question_split.write_question_candidates",
       "input_source": "CLI_ARGUMENT_OR_CONFIG",
       "kind": "DATABASE_GATEWAY",
-      "line": 380,
+      "line": 508,
       "migration_status": "MIGRATED_GUARDED",
       "owner": "IMPORT_SERVICE",
       "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
@@ -416,7 +416,7 @@
       "root_ids": [
         "CLI:MAIN"
       ],
-      "source_sha256": "4cdb781d47788ac7ddc9cedd558a10fd849947f5a6bb4444f2852940140b2a34",
+      "source_sha256": "89ee6666b67790e1dc64385d5c197643bf790055404757c0321d360e02559dce",
       "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6",
       "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
     },
@@ -428,16 +428,16 @@
       ],
       "callee": "app.database.connect_database().execute",
       "column": 16,
-      "control_binding_id": "WE-17A2BE8450BDD45183EC6DD7",
+      "control_binding_id": "WE-2D59A6207A674EC0C56EB4FE",
       "detail": "INSERT",
       "end_column": 17,
-      "end_line": 441,
-      "entry_id": "WE-17A2BE8450BDD45183EC6DD7",
+      "end_line": 575,
+      "entry_id": "WE-2D59A6207A674EC0C56EB4FE",
       "file": "app/question_split.py",
       "function": "app.question_split.write_question_candidates",
       "input_source": "CLI_ARGUMENT_OR_CONFIG",
       "kind": "SQLITE_MUTATION",
-      "line": 406,
+      "line": 538,
       "migration_status": "MIGRATED_GUARDED",
       "owner": "IMPORT_SERVICE",
       "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
@@ -446,8 +446,8 @@
       "root_ids": [
         "CLI:MAIN"
       ],
-      "source_sha256": "4cdb781d47788ac7ddc9cedd558a10fd849947f5a6bb4444f2852940140b2a34",
-      "statement_fingerprint": "e2af00e8e51e5e4bf6c72ae3f53f839762a97beca03e17c513d7695b6bf1dae3",
+      "source_sha256": "89ee6666b67790e1dc64385d5c197643bf790055404757c0321d360e02559dce",
+      "statement_fingerprint": "87a90d512e011717969af39e877caea17622dcfae8a250fcfcd7f40027c440a7",
       "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
     },
     {
@@ -458,16 +458,16 @@
       ],
       "callee": "app.database.connect_database().execute",
       "column": 16,
-      "control_binding_id": "WE-E26C65757F2C30C2648599A4",
+      "control_binding_id": "WE-18486CBCD9D588173622B5CF",
       "detail": "UPDATE",
       "end_column": 17,
-      "end_line": 470,
-      "entry_id": "WE-E26C65757F2C30C2648599A4",
+      "end_line": 605,
+      "entry_id": "WE-18486CBCD9D588173622B5CF",
       "file": "app/question_split.py",
       "function": "app.question_split.write_question_candidates",
       "input_source": "CLI_ARGUMENT_OR_CONFIG",
       "kind": "SQLITE_MUTATION",
-      "line": 450,
+      "line": 584,
       "migration_status": "MIGRATED_GUARDED",
       "owner": "IMPORT_SERVICE",
       "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
@@ -476,8 +476,8 @@
       "root_ids": [
         "CLI:MAIN"
       ],
-      "source_sha256": "4cdb781d47788ac7ddc9cedd558a10fd849947f5a6bb4444f2852940140b2a34",
-      "statement_fingerprint": "236f8677e4d84c2b699137cb36a198421bcbd22bf3a0cf7cc828fe4721a23832",
+      "source_sha256": "89ee6666b67790e1dc64385d5c197643bf790055404757c0321d360e02559dce",
+      "statement_fingerprint": "5e5e992d1896ff2a31e3aed4a4152c9957cf7e166a43eb05f2f412836f5f87bb",
       "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
     },
     {
@@ -491,13 +491,13 @@
       "control_binding_id": "WE-FC573A13BB15803CFB83E0F7",
       "detail": "transaction commit",
       "end_column": 21,
-      "end_line": 474,
+      "end_line": 609,
       "entry_id": "WE-FC573A13BB15803CFB83E0F7",
       "file": "app/question_split.py",
       "function": "app.question_split.write_question_candidates",
       "input_source": "CLI_ARGUMENT_OR_CONFIG",
       "kind": "SQLITE_TRANSACTION",
-      "line": 474,
+      "line": 609,
       "migration_status": "MIGRATED_GUARDED",
       "owner": "IMPORT_SERVICE",
       "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
@@ -506,8 +506,38 @@
       "root_ids": [
         "CLI:MAIN"
       ],
-      "source_sha256": "4cdb781d47788ac7ddc9cedd558a10fd849947f5a6bb4444f2852940140b2a34",
+      "source_sha256": "89ee6666b67790e1dc64385d5c197643bf790055404757c0321d360e02559dce",
       "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976",
+      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
+    },
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.question_split.split_questions",
+        "app.question_split.write_question_candidates"
+      ],
+      "callee": "app.database.connect_database().execute",
+      "column": 28,
+      "control_binding_id": "WE-89C2C69C9A4511878B5A9D5F",
+      "detail": "dynamic SQL is fail-closed because its effect cannot be proven",
+      "end_column": 13,
+      "end_line": 640,
+      "entry_id": "WE-89C2C69C9A4511878B5A9D5F",
+      "file": "app/question_split.py",
+      "function": "app.question_split.write_question_candidates",
+      "input_source": "CLI_ARGUMENT_OR_CONFIG",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "line": 623,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "IMPORT_SERVICE",
+      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "resolution": "DYNAMIC",
+      "risk": "P0",
+      "root_ids": [
+        "CLI:MAIN"
+      ],
+      "source_sha256": "89ee6666b67790e1dc64385d5c197643bf790055404757c0321d360e02559dce",
+      "statement_fingerprint": "172558664362eb950df6a9bdda03bd23e58f9634026587df1b67e7d154b79754",
       "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
     },
     {
@@ -517,16 +547,16 @@
       ],
       "callee": "app.database.initialize_database",
       "column": 4,
-      "control_binding_id": "WE-F700EAE4EC9FF6C018FC24FA",
+      "control_binding_id": "WE-9EC0CE750E0AE19519D1866E",
       "detail": "implicit schema/directory initialization",
-      "end_column": 49,
-      "end_line": 504,
-      "entry_id": "WE-F700EAE4EC9FF6C018FC24FA",
+      "end_column": 41,
+      "end_line": 669,
+      "entry_id": "WE-9EC0CE750E0AE19519D1866E",
       "file": "app/question_split.py",
       "function": "app.question_split.split_questions",
       "input_source": "CLI_ARGUMENT_OR_CONFIG",
       "kind": "DATABASE_IMPLICIT_INITIALIZER",
-      "line": 504,
+      "line": 669,
       "migration_status": "MIGRATED_GUARDED",
       "owner": "IMPORT_SERVICE",
       "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
@@ -535,8 +565,8 @@
       "root_ids": [
         "CLI:MAIN"
       ],
-      "source_sha256": "4cdb781d47788ac7ddc9cedd558a10fd849947f5a6bb4444f2852940140b2a34",
-      "statement_fingerprint": "5e22f69c8bd773f5ce5c08f148616aa0113fa78c5060f9f0d824518e1adbd17d",
+      "source_sha256": "89ee6666b67790e1dc64385d5c197643bf790055404757c0321d360e02559dce",
+      "statement_fingerprint": "c28a177e5de31830844816c12c066d9bc32226152d61e266ff0b51f6e0c19d12",
       "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
     },
     {
@@ -734,34 +764,6 @@
       "source_sha256": "6fc50d53cb6a8adabc48f17ed04194f91898ece41f67d8f89574432818cb1075",
       "statement_fingerprint": "c1ce267718853b1f1d14f6fd7293b5d0e52ebc311c4365bd698949ca9a4c76c3",
       "target_namespace": "WINDOWS_LOCAL_NAMED_MUTEX"
-    },
-    {
-      "call_chain": [
-        "app.safety.windows_handle_writer._WindowsApi.__init__"
-      ],
-      "callee": "ctypes.WinDLL",
-      "column": 19,
-      "control_binding_id": "WE-EB4549EA8B0171E930006E3F",
-      "detail": "native library binding requires an audited symbol allowlist",
-      "end_column": 65,
-      "end_line": 1119,
-      "entry_id": "WE-EB4549EA8B0171E930006E3F",
-      "file": "app/safety/windows_handle_writer.py",
-      "function": "app.safety.windows_handle_writer._WindowsApi.__init__",
-      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
-      "kind": "NATIVE_API_BINDING",
-      "line": 1119,
-      "migration_status": "MIGRATED_GUARDED",
-      "owner": "SAFETY_SERVICE",
-      "required_control": "M0_NATIVE_FIXED_ALLOWLIST_V1",
-      "resolution": "CONSERVATIVE",
-      "risk": "P0",
-      "root_ids": [
-        "INTERNAL-DIRECT"
-      ],
-      "source_sha256": "6fc50d53cb6a8adabc48f17ed04194f91898ece41f67d8f89574432818cb1075",
-      "statement_fingerprint": "3474f55c4f2c4ff899bf534b507dc606ac6ca48c4335543ec7104e00d9f58fff",
-      "target_namespace": "NATIVE_FIXED_LIBRARY_AND_SYMBOL_ALLOWLIST"
     }
   ],
   "entry_count": 25,
