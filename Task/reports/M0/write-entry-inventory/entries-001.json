@@ -1,5 +1,5 @@
 {
-  "chunk_digest_sha256": "665b5d0bbfbf4f7879198aba099de526992537d3e04edb23fc9973014d9be45c",
+  "chunk_digest_sha256": "740e485562b45a9126586061ee223c5f3829205b6a7bea60328b02f9ee8c1c62",
   "chunk_index": 1,
   "entries": [
     {
@@ -72,6 +72,7 @@
         "WEB:GET /questions",
         "WEB:GET /questions/<int:question_id>",
         "WEB:GET /search",
+        "WEB:GET /status.json",
         "WEB:GET /structured-review",
         "WEB:POST /paper-basket/add/<int:question_id>",
         "WEB:POST /questions/<int:question_id>",
@@ -114,6 +115,7 @@
         "WEB:GET /questions",
         "WEB:GET /questions/<int:question_id>",
         "WEB:GET /search",
+        "WEB:GET /status.json",
         "WEB:GET /structured-review",
         "WEB:POST /paper-basket/add/<int:question_id>",
         "WEB:POST /questions/<int:question_id>",
@@ -156,6 +158,7 @@
         "WEB:GET /questions",
         "WEB:GET /questions/<int:question_id>",
         "WEB:GET /search",
+        "WEB:GET /status.json",
         "WEB:GET /structured-review",
         "WEB:POST /paper-basket/add/<int:question_id>",
         "WEB:POST /questions/<int:question_id>",
@@ -167,6 +170,11 @@
     },
     {
       "call_chain": [
+        "app.m5_release.create_m5_application.status",
+        "app.m5_release.inspect_release_environment",
+        "app.database_backup.validate_database",
+        "app.database_backup._business_invariant_violations",
+        "app.database_backup._database_path_violations",
         "app.database_backup._column_names"
       ],
       "callee": "conn.execute",
@@ -178,7 +186,7 @@
       "entry_id": "WE-6D28140271DF7DE98CC5ECCD",
       "file": "app/database_backup.py",
       "function": "app.database_backup._column_names",
-      "input_source": "DATABASE_CONNECTION_AND_CALLER_DATA",
+      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
       "kind": "SQLITE_DYNAMIC_SQL",
       "line": 350,
       "migration_status": "MIGRATED_GUARDED",
@@ -187,7 +195,7 @@
       "resolution": "DYNAMIC",
       "risk": "P0",
       "root_ids": [
-        "INTERNAL-DIRECT"
+        "WEB:GET /status.json"
       ],
       "source_sha256": "749229674a7ec54a3a18c335179f281cca270acabf674934e53dcb11ee7de443",
       "statement_fingerprint": "a9dc8f1be8c2be0039f5e15e78f63c657b421044714da332141ffccd8a84babd",
@@ -195,6 +203,10 @@
     },
     {
       "call_chain": [
+        "app.m5_release.create_m5_application.status",
+        "app.m5_release.inspect_release_environment",
+        "app.database_backup.validate_database",
+        "app.database_backup._business_invariant_violations",
         "app.database_backup._database_path_violations"
       ],
       "callee": "conn.execute",
@@ -206,7 +218,7 @@
       "entry_id": "WE-82BDF64A544BA2B4AB01897C",
       "file": "app/database_backup.py",
       "function": "app.database_backup._database_path_violations",
-      "input_source": "DATABASE_CONNECTION_AND_CALLER_DATA",
+      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
       "kind": "SQLITE_DYNAMIC_SQL",
       "line": 369,
       "migration_status": "MIGRATED_GUARDED",
@@ -215,7 +227,7 @@
       "resolution": "DYNAMIC",
       "risk": "P0",
       "root_ids": [
-        "INTERNAL-DIRECT"
+        "WEB:GET /status.json"
       ],
       "source_sha256": "749229674a7ec54a3a18c335179f281cca270acabf674934e53dcb11ee7de443",
       "statement_fingerprint": "fcf99c71773ca39cdc08b50b4a08028614861336bdc5a821852fd67d86b5bbdc",
@@ -223,6 +235,8 @@
     },
     {
       "call_chain": [
+        "app.m5_release.create_m5_application.status",
+        "app.m5_release.inspect_release_environment",
         "app.database_backup.validate_database"
       ],
       "callee": "contextlib.closing().execute",
@@ -234,7 +248,7 @@
       "entry_id": "WE-CF1121EFD67E656B8030CB09",
       "file": "app/database_backup.py",
       "function": "app.database_backup.validate_database",
-      "input_source": "DATABASE_CONNECTION_AND_CALLER_DATA",
+      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
       "kind": "SQLITE_MUTATION",
       "line": 415,
       "migration_status": "MIGRATED_GUARDED",
@@ -243,7 +257,7 @@
       "resolution": "ALIAS_RESOLVED",
       "risk": "P1",
       "root_ids": [
-        "INTERNAL-DIRECT"
+        "WEB:GET /status.json"
       ],
       "source_sha256": "749229674a7ec54a3a18c335179f281cca270acabf674934e53dcb11ee7de443",
       "statement_fingerprint": "4f813e7b7294d0835f4c51422de30162ded9f8b8ff6ae97ec2b869022af5b310",
@@ -251,6 +265,8 @@
     },
     {
       "call_chain": [
+        "app.m5_release.create_m5_application.status",
+        "app.m5_release.inspect_release_environment",
         "app.database_backup.validate_database"
       ],
       "callee": "contextlib.closing().execute",
@@ -262,7 +278,7 @@
       "entry_id": "WE-A257FE07DB9B81E7706FD40E",
       "file": "app/database_backup.py",
       "function": "app.database_backup.validate_database",
-      "input_source": "DATABASE_CONNECTION_AND_CALLER_DATA",
+      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
       "kind": "SQLITE_MUTATION",
       "line": 419,
       "migration_status": "MIGRATED_GUARDED",
@@ -271,7 +287,7 @@
       "resolution": "ALIAS_RESOLVED",
       "risk": "P1",
       "root_ids": [
-        "INTERNAL-DIRECT"
+        "WEB:GET /status.json"
       ],
       "source_sha256": "749229674a7ec54a3a18c335179f281cca270acabf674934e53dcb11ee7de443",
       "statement_fingerprint": "2ea71c1d0772af14c4eb5730db6d644eea9f862f72061b5190f1ead1356fa836",
@@ -279,6 +295,8 @@
     },
     {
       "call_chain": [
+        "app.m5_release.create_m5_application.status",
+        "app.m5_release.inspect_release_environment",
         "app.database_backup.validate_database"
       ],
       "callee": "contextlib.closing().execute",
@@ -290,7 +308,7 @@
       "entry_id": "WE-6132D9289E41221DA29BC13A",
       "file": "app/database_backup.py",
       "function": "app.database_backup.validate_database",
-      "input_source": "DATABASE_CONNECTION_AND_CALLER_DATA",
+      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
       "kind": "SQLITE_MUTATION",
       "line": 428,
       "migration_status": "MIGRATED_GUARDED",
@@ -299,7 +317,7 @@
       "resolution": "ALIAS_RESOLVED",
       "risk": "P1",
       "root_ids": [
-        "INTERNAL-DIRECT"
+        "WEB:GET /status.json"
       ],
       "source_sha256": "749229674a7ec54a3a18c335179f281cca270acabf674934e53dcb11ee7de443",
       "statement_fingerprint": "6ea820e81c7ebe28af496fcbc9ab531f3b3364b3513f22fbe9d1e834959aa6ae",
@@ -307,6 +325,8 @@
     },
     {
       "call_chain": [
+        "app.m5_release.create_m5_application.status",
+        "app.m5_release.inspect_release_environment",
         "app.database_backup.validate_database"
       ],
       "callee": "contextlib.closing().execute",
@@ -318,7 +338,7 @@
       "entry_id": "WE-2BA64803D7EE98CB22EB17F4",
       "file": "app/database_backup.py",
       "function": "app.database_backup.validate_database",
-      "input_source": "DATABASE_CONNECTION_AND_CALLER_DATA",
+      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
       "kind": "SQLITE_MUTATION",
       "line": 429,
       "migration_status": "MIGRATED_GUARDED",
@@ -327,7 +347,7 @@
       "resolution": "ALIAS_RESOLVED",
       "risk": "P1",
       "root_ids": [
-        "INTERNAL-DIRECT"
+        "WEB:GET /status.json"
       ],
       "source_sha256": "749229674a7ec54a3a18c335179f281cca270acabf674934e53dcb11ee7de443",
       "statement_fingerprint": "84af667466d451484ff3a3d04b1751599e6fafe8ea4091983674e5fd07086df9",
@@ -588,6 +608,7 @@
         "FACTORY:CREATE_APP",
         "MODULE:APP",
         "WEB:GET /questions/<int:question_id>",
+        "WEB:GET /status.json",
         "WEB:POST /questions/<int:question_id>",
         "WEB:POST /questions/<int:question_id>/ai-suggestions/<int:suggestion_id>/accept",
         "WEB:POST /questions/<int:question_id>/ai-suggestions/<int:suggestion_id>/reject",
@@ -628,6 +649,7 @@
         "FACTORY:CREATE_APP",
         "MODULE:APP",
         "WEB:GET /questions/<int:question_id>",
+        "WEB:GET /status.json",
         "WEB:POST /questions/<int:question_id>",
         "WEB:POST /questions/<int:question_id>/ai-suggestions/<int:suggestion_id>/accept",
         "WEB:POST /questions/<int:question_id>/ai-suggestions/<int:suggestion_id>/reject",
@@ -668,6 +690,7 @@
         "FACTORY:CREATE_APP",
         "MODULE:APP",
         "WEB:GET /questions/<int:question_id>",
+        "WEB:GET /status.json",
         "WEB:POST /questions/<int:question_id>",
         "WEB:POST /questions/<int:question_id>/ai-suggestions/<int:suggestion_id>/accept",
         "WEB:POST /questions/<int:question_id>/ai-suggestions/<int:suggestion_id>/reject",
@@ -708,6 +731,7 @@
         "FACTORY:CREATE_APP",
         "MODULE:APP",
         "WEB:GET /questions/<int:question_id>",
+        "WEB:GET /status.json",
         "WEB:POST /questions/<int:question_id>",
         "WEB:POST /questions/<int:question_id>/ai-suggestions/<int:suggestion_id>/accept",
         "WEB:POST /questions/<int:question_id>/ai-suggestions/<int:suggestion_id>/reject",
@@ -748,6 +772,7 @@
         "FACTORY:CREATE_APP",
         "MODULE:APP",
         "WEB:GET /questions/<int:question_id>",
+        "WEB:GET /status.json",
         "WEB:POST /questions/<int:question_id>",
         "WEB:POST /questions/<int:question_id>/ai-suggestions/<int:suggestion_id>/accept",
         "WEB:POST /questions/<int:question_id>/ai-suggestions/<int:suggestion_id>/reject",
@@ -786,6 +811,7 @@
         "FACTORY:CREATE_APP",
         "MODULE:APP",
         "WEB:GET /questions/<int:question_id>",
+        "WEB:GET /status.json",
         "WEB:POST /questions/<int:question_id>",
         "WEB:POST /questions/<int:question_id>/ai-suggestions/<int:suggestion_id>/accept",
         "WEB:POST /questions/<int:question_id>/ai-suggestions/<int:suggestion_id>/reject",

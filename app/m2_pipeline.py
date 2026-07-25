@@ -313,6 +313,7 @@ class M2PipelineConfig:
     m1_state_id: str = "STATE-M1-YANYAN-REV-002"
     m1_paper_object_id: str = "PAPER-YANYAN-202605"
     m1_paper_revision: str = "REV-002"
+    data_source_root_relative: str = "."
 
     def __post_init__(self) -> None:
         for field_name in (
@@ -325,6 +326,34 @@ class M2PipelineConfig:
             "m1_paper_revision",
         ):
             validate_safe_id(str(getattr(self, field_name)), field_name=field_name)
+        source_root = PurePosixPath(self.data_source_root_relative)
+        if (
+            self.data_source_root_relative == "."
+            or (
+                not source_root.is_absolute()
+                and "\\" not in self.data_source_root_relative
+                and len(source_root.parts) >= 4
+                and source_root.parts[0] in {"data", "tmp"}
+                and (
+                    source_root.parts[:2] == ("data", "snapshots")
+                    or source_root.parts[:3] == ("tmp", "jobs", "INTERNAL")
+                )
+                and all(part not in {"", ".", ".."} for part in source_root.parts)
+            )
+        ):
+            return
+        raise M2PipelineError(
+            "M2 data source root must be the project root, a restored snapshot, "
+            "or an INTERNAL restore staging root"
+        )
+
+    @property
+    def data_source_root(self) -> Path:
+        if self.data_source_root_relative == ".":
+            return PROJECT_ROOT
+        return PROJECT_ROOT.joinpath(
+            *PurePosixPath(self.data_source_root_relative).parts
+        )
 
     @property
     def job_root(self) -> Path:
@@ -337,7 +366,7 @@ class M2PipelineConfig:
     @property
     def bundle_target_root(self) -> Path:
         return (
-            PROJECT_ROOT
+            self.data_source_root
             / "data"
             / "exports"
             / self.pipeline_id
@@ -347,7 +376,7 @@ class M2PipelineConfig:
     @property
     def m1_database_path(self) -> Path:
         return (
-            PROJECT_ROOT
+            self.data_source_root
             / "data"
             / "db"
             / "versions"
@@ -358,7 +387,7 @@ class M2PipelineConfig:
     @property
     def m1_derived_root(self) -> Path:
         return (
-            PROJECT_ROOT
+            self.data_source_root
             / "data"
             / "derived"
             / "papers"
@@ -500,7 +529,7 @@ def load_candidate_pool(
     for row in rows:
         number = int(row["question_no"])
         meta = json.loads(row["meta_json"])
-        ir_path = PROJECT_ROOT / str(meta["question_ir_path"])
+        ir_path = config.data_source_root / str(meta["question_ir_path"])
         ir_payload = get_workspace_io().read_bytes(
             ir_path,
             maximum_bytes=2 * 1024 * 1024,
@@ -831,10 +860,11 @@ def create_blueprint_app(
     candidates: tuple[CandidateQuestion, ...],
     *,
     config: M2PipelineConfig | None = None,
+    state: BlueprintUIState | None = None,
 ) -> Flask:
     config = config or M2PipelineConfig()
     app = Flask(__name__)
-    state = BlueprintUIState()
+    state = state or BlueprintUIState()
     app.extensions["m2_blueprint_state"] = state
 
     def render_state(*, status_code: int = 200) -> tuple[str, int]:

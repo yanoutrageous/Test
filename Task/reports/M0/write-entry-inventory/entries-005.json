@@ -1,5 +1,5 @@
 {
-  "chunk_digest_sha256": "6350554e5a9f6305eb9a2aa5486be24fbb1a38a8374796439c9e285c5dc61f34",
+  "chunk_digest_sha256": "bf145f3d87ce25cd850f63e7ba7af4c30e68a9868c5c5085221130607d662dcd",
   "chunk_index": 5,
   "entries": [
     {
@@ -291,13 +291,13 @@
       "control_binding_id": "WE-097C4346D94B8ABEDB252EB4",
       "detail": "filesystem move or replacement",
       "end_column": 59,
-      "end_line": 2431,
+      "end_line": 2450,
       "entry_id": "WE-097C4346D94B8ABEDB252EB4",
       "file": "app/m4_backup.py",
       "function": "app.m4_backup.M4BackupService._replace_active_pointer",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "FILESYSTEM_MOVE_OR_REPLACE",
-      "line": 2431,
+      "line": 2450,
       "migration_status": "MIGRATED_GUARDED",
       "owner": "BACKUP_SERVICE",
       "required_control": "M4_ACTIVE_STATE_POINTER_ATOMIC_GATE_V1",
@@ -306,7 +306,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "405b3a0bc724ab8b5d9257ee6119918f6c56ba8b9ca99cfb5086ddd5dd4dfcb7",
+      "source_sha256": "e255c2bf40fa9b5d68b9f4927eff6b20f2b2f69e14edefde47bbd3c7d4f42307",
       "statement_fingerprint": "a08948b196ba3e2ead4ee899b46e412c1e1b28592719d4805eb1571d606fb143",
       "target_namespace": "FIXED_ACTIVE_STATE_POINTER"
     },
@@ -319,13 +319,13 @@
       "control_binding_id": "WE-943AE3EB07DA981247CEBA84",
       "detail": "filesystem move or replacement",
       "end_column": 63,
-      "end_line": 2496,
+      "end_line": 2515,
       "entry_id": "WE-943AE3EB07DA981247CEBA84",
       "file": "app/m4_backup.py",
       "function": "app.m4_backup.M4BackupService._restore_pointer_after_failure",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "FILESYSTEM_MOVE_OR_REPLACE",
-      "line": 2496,
+      "line": 2515,
       "migration_status": "MIGRATED_GUARDED",
       "owner": "BACKUP_SERVICE",
       "required_control": "M4_ACTIVE_STATE_POINTER_ATOMIC_GATE_V1",
@@ -334,7 +334,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "405b3a0bc724ab8b5d9257ee6119918f6c56ba8b9ca99cfb5086ddd5dd4dfcb7",
+      "source_sha256": "e255c2bf40fa9b5d68b9f4927eff6b20f2b2f69e14edefde47bbd3c7d4f42307",
       "statement_fingerprint": "5508ab373e1ebaf48e10c3bb5cdf7591dad67f8873d27aa0d5984115e8d14294",
       "target_namespace": "FIXED_ACTIVE_STATE_POINTER"
     },
@@ -550,6 +550,9 @@
     },
     {
       "call_chain": [
+        "app.m5_release.create_m5_application.status",
+        "app.m5_release.inspect_release_environment",
+        "app.project_root.inspect_project_root",
         "app.project_root._read_verified_marker"
       ],
       "callee": "os.open",
@@ -561,7 +564,7 @@
       "entry_id": "WE-5364E97F357793E5992C2421",
       "file": "app/project_root.py",
       "function": "app.project_root._read_verified_marker",
-      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
+      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
       "kind": "FILESYSTEM_FILE_WRITE",
       "line": 117,
       "migration_status": "ACCEPTED_NON_MUTATING",
@@ -570,7 +573,7 @@
       "resolution": "EXACT",
       "risk": "P1",
       "root_ids": [
-        "INTERNAL-DIRECT"
+        "WEB:GET /status.json"
       ],
       "source_sha256": "a325093d7d5b64116f469b0ce36645e6708e9cf10c4394c2a58d548decb30ed3",
       "statement_fingerprint": "432720ced31c71b9417f1c1d24d203a4fad11744eddffacd55213ad71d3c568b",
@@ -578,6 +581,9 @@
     },
     {
       "call_chain": [
+        "app.m5_release.create_m5_application.status",
+        "app.m5_release.inspect_release_environment",
+        "app.project_root.inspect_project_root",
         "app.project_root._filesystem_name"
       ],
       "callee": "ctypes.WinDLL",
@@ -589,7 +595,7 @@
       "entry_id": "WE-4D8C7D2E91414F53A406A388",
       "file": "app/project_root.py",
       "function": "app.project_root._filesystem_name",
-      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
+      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
       "kind": "NATIVE_API_BINDING",
       "line": 161,
       "migration_status": "MIGRATED_GUARDED",
@@ -598,7 +604,7 @@
       "resolution": "CONSERVATIVE",
       "risk": "P0",
       "root_ids": [
-        "INTERNAL-DIRECT"
+        "WEB:GET /status.json"
       ],
       "source_sha256": "a325093d7d5b64116f469b0ce36645e6708e9cf10c4394c2a58d548decb30ed3",
       "statement_fingerprint": "3474f55c4f2c4ff899bf534b507dc606ac6ca48c4335543ec7104e00d9f58fff",

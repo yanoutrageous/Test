@@ -659,6 +659,8 @@ def _role_for_path(logical_path: str) -> str:
         return "PUBLISHED_EXPORT_SNAPSHOT"
     if logical_path.startswith("data/templates/"):
         return "TEMPLATE_CONFIGURATION"
+    if logical_path.startswith("data/state/"):
+        return "M5_PERSISTED_USER_STATE"
     if logical_path == "state/audit-head.json":
         return "AUDIT_HEAD"
     if logical_path == "state/predecessor-active-state.json":
@@ -760,11 +762,12 @@ def create_recovered_runtime_app(
     files_root: Path,
     *,
     layout: M4RuntimeLayout = M4RuntimeLayout(),
+    workbench: M3WorkbenchState | None = None,
 ) -> Flask:
     files_root = Path(files_root)
     _inspect_directory(files_root)
     source_root_relative = _relative_to_project(files_root)
-    workbench = _runtime_workbench(files_root, layout)
+    workbench = workbench or _runtime_workbench(files_root, layout)
     config = M3PipelineConfig(data_source_root_relative=source_root_relative)
     app = create_m3_app(workbench, config=config)
 
@@ -1067,6 +1070,22 @@ class M4BackupService:
                     else f"{logical_root}/{suffix}"
                 )
                 rows.append((physical, logical, _role_for_path(logical), None))
+        optional_state_root = runtime.resolve("data/state", self._root)
+        if os.path.lexists(optional_state_root):
+            for physical, suffix in _walk_regular_files(optional_state_root):
+                logical = (
+                    "data/state"
+                    if suffix == "."
+                    else f"data/state/{suffix}"
+                )
+                rows.append(
+                    (
+                        physical,
+                        logical,
+                        "M5_PERSISTED_USER_STATE",
+                        None,
+                    )
+                )
         audit_payload = _audit_head_payload(runtime, self._root)
         rows.append(
             (
@@ -2778,12 +2797,17 @@ _M4_MAINTENANCE_PAGE = """
 """
 
 
-def create_m4_app(service: M4BackupService | None = None) -> Flask:
+def create_m4_app(
+    service: M4BackupService | None = None,
+    *,
+    workbench: M3WorkbenchState | None = None,
+) -> Flask:
     service = service or M4BackupService()
     runtime = service.current_runtime()
     app = create_recovered_runtime_app(
         runtime.source_root(service.project_root),
         layout=runtime.layout,
+        workbench=workbench,
     )
     app.config.update(TESTING=True, JSON_AS_ASCII=False)
 

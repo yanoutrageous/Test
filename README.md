@@ -1,6 +1,27 @@
 # 试卷题库系统 MVP
 
-当前仓库处于阶段 14：现有 1123 题质量收敛与可导出池压实。此阶段不扩页、不新增 PDF 导入批次、不修改 `questions` 主表；在阶段 12/13 的导出质量和来源归属基础上新增 Stage14 质量队列、重复锚点页审计、视觉修复候选、inferred 来源抽查和正式样卷导出闭环。
+当前主线已经完成 M0—M4，并进入 M5 私有本地发行候选：可在 Windows 11/NTFS
+目录中离线启动，使用已审核的一份 19 题、150 分代表卷完成题库复核、条件/关键词/
+本地相似检索、蓝图组卷、图形与模板查看、五类 PDF 和备份恢复。客户包自带固定
+Python 运行时，不依赖当前电脑的 `.venv`、盘符或用户名。
+
+当前候选只供源资料权利人私有本地使用。2020—2025 全目标集尚未完成逐题人工复核，
+来源派生内容和嵌入字体也未取得第三方再分发结论，因此不能描述为全目标集或公开发行版。
+完整边界见 `docs/m5/已知限制.md`。
+
+正式候选从干净提交分两步产生：先构建不可覆盖的 staging，再由独立 fresh-user
+验收报告授权发布。
+
+```powershell
+.\.venv\Scripts\python.exe -B Task\tools\build_m5_release.py --source-commit <COMMIT>
+.\.venv\Scripts\python.exe -B Task\tools\run_m5_fresh_user_acceptance.py `
+  --run-id <RUN-ID> --source-commit <COMMIT>
+.\.venv\Scripts\python.exe -B Task\tools\build_m5_release.py --publish `
+  --source-commit <COMMIT> --acceptance-report <REPORT>
+```
+
+发布目录中的最终用户入口是 `launcher\start.cmd`，完整哈希与环境检查入口是
+`launcher\verify.cmd`。以下内容保留早期 MVP/Stage 7—14 的开发说明，方便追溯旧流程。
 
 ## 环境
 
