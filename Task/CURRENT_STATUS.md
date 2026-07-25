@@ -1,6 +1,37 @@
 # 当前状态
 
-更新时间：2026-07-25 20:22 +08:00
+更新时间：2026-07-25 21:16 +08:00
+
+## M3 图形、标签检索与模板闭环验收（2026-07-25）
+
+- M3 已以 `STATE-M3-YANYAN-REV-002` 达到 `ACCEPTED`；三类 FigureIR、原图回退、
+  同源 SVG/TikZ、标签审批/失效、混合检索、相似题、组卷篮入口和受控模板激活/回滚
+  均已通过真实本地 UI 流程。
+- REV-001 在首次流程后的目视检查中发现几何 SVG 坐标占位符错误，已明确标为
+  `SUPERSEDED_NOT_ACCEPTED`；REV-002 修复后新增线段坐标、函数采样和统计柱高的数据级
+  同源检查，正式几何预览已复核为正确三角形。
+- 正式派生状态含 39 个文件、1,294,484 bytes；manifest SHA-256 为
+  `57613118c509335496eee1088ef1ac98f18844f307526a73f0c57e089bcc13d9`，
+  tree SHA-256 为
+  `aa863de6937b625c6fd232ae89e7dc0a499b7f7944a834b9c43651cc2be76958`。
+- 23 个标签保持 approved，1 个无证据候选被拒绝，1 个解答变化绑定变为 stale；
+  19 题本地索引显式重建稳定，PII 来源 0、模型权重 0 bytes、无需网络。6 个搜索金标
+  Hit@3=1.0、MRR=0.833333。
+- `TEMPLATE-M3-B5-REV-002` 已激活；4 mm 锚点漂移候选、缺字体和任意 TeX token 均
+  失败关闭，静默字体替代 0；基线更新保持独立 D2 审计，不可从编辑路由执行。
+- 真实流程 `RUN-20260725-M3-REAL-PIPELINE-R2-175`、核心门
+  `RUN-20260725-M3-CORE-R2-176`（79/79）和完整门
+  `RUN-20260725-M3-GATE-R2-178`（504/504）全部通过。活动数据库、保护树、watcher、
+  句柄围栏、run tree、来源见证和进程树保持不变。
+- 当前 inventory 为 63 个生产源、444 个受控入口、18 个分片，unknown/unmigrated/
+  invalid 均为 0，`production_writer_connected=true`、`m0_exit_allowed=true`。
+- M3 未迁移或切换活动库；活动 SQLite SHA-256 仍为
+  `1505bf05bd8e385eada30642110596363c561c330da02a40a497072064ad1c94`。
+  当前转入 M4 独立备份、恢复、显式激活和回滚闭环；完整证据见
+  `Task/reports/M3/M3-figure-search-template-exit.md`。
+- 阶段收尾把 13 个被替代目录（527 个文件、38,336,312 bytes）可恢复地迁到 C 盘
+  `m3-cleanup-20260725` relief；保留 M3 176/178、preview 177、R2 真实流程/重建证据和
+  REV-002。整理后 E 盘可用 100,280,741,888 bytes。
 
 ## M1—M2 真实生产线与五件套验收（2026-07-25）
 
@@ -131,9 +162,9 @@
 ## 长期执行状态
 
 - 计划版本：1.1.0
-- 当前阶段：M0、M1、M2 已验收并完成远端检查点；正在进入 M3
-- 当前切片：M3 图形双轨、标签/混合检索与模板维护闭环
-- M0—M5 实现：M0、M1、M2 已验收；M3—M5 未完成
+- 当前阶段：M0、M1、M2、M3 已验收；正在进入 M4
+- 当前切片：M4 独立备份、恢复、显式激活与回滚闭环
+- M0—M5 实现：M0—M3 已验收；M4—M5 未完成
 - 本任务有效终点：按用户后续明确要求，连续完成修订后的 M0—M5，直到真实用户流程、恢复演练和客户交付包全部通过；不得把 M0 或代码完成误报为终局
 - 当前禁止：未经 M4 独立备份/恢复门的活动数据库切换、OCR、云同步、未审核标签直接进入
   正式检索，以及清理已接受 revision 或未归档证据
@@ -168,15 +199,15 @@
 - 目标 NEW9 PDF 已在 Test 内，但其正文无可提取文字层；视觉回归必须包含整页像素/锚点检查
 - 活动 SQLite SHA-256 为`1505bf05...ad1c94`，`integrity_check=ok`、外键违规 0、`user_version=0`，19 个业务表均为 0 行
 - 历史“1123 题/阶段 14”报告不是当前可复现事实
-- 生产静态 inventory V21 覆盖`app/`和`scripts/`的62个源文件、444个副作用入口和
+- 生产静态 inventory V21 覆盖`app/`和`scripts/`的63个源文件、444个副作用入口和
   18个分片；`UNKNOWN=0`、未迁移入口0、无效绑定0
 - production boundary固定portable root并提供handle writer；
   `production_writer_connected=true`、`m0_exit_allowed=true`、`M0_EXIT_ACCEPTED`
 - S3-E 最终核心回归`RUN-20260712-M0-S3E-016`为`30 passed`，launcher 门`RUN-20260712-M0-S3E-LAUNCHER-018`为`72 passed`，组合门`RUN-20260712-M0-S3E-COMBINED-019`为`399 passed`；JUnit failure/error/skip 均为 0
 - RUN-009 保护树前后均 93,762 条、运行时变更 0、句柄围栏 93,762 个；活动 SQLite 前后 SHA-256 相同。旧结果字段`source inputs unchanged`只是该次已监测保护集的起止/运行时证据，不声称监控整机或未登记外部源
 - Scanner V21使用`UTF8_LF_V1`规范化并覆盖portable-root authority、生产handle writer、
-  SQLite迁移/备份、外部Copy、领域/IR/gold验证器及M1/M2生产线；当前inventory payload为
-  `c77f4d105afddf1c4d8c33ee8c967a873d955ce55cc186554c7a19e37c3678fa`，
+  SQLite迁移/备份、外部Copy、领域/IR/gold验证器及M1/M2/M3生产线；当前inventory payload为
+  `98a9fd61acfb9e0e4ce38ae3286ef06f7cc8c9f0fa5403079dfc9c1f8718f8c5`，
   生产writer与M0退出合同均已接受
 
 ## 工具与发布状态
@@ -225,7 +256,7 @@
 - 当前备份只能位于`PROJECT_ROOT`内：不具备异卷灾备能力，不能对客户宣称可抵御整个产品根所在卷故障。
 - 固定权限但物理路径可迁移的 production boundary、Policy V7、Test-only 句柄 writer、
   audit/全部历史 operation epoch/Copy 双账本和 publish/copy/quarantine/recovery 已通过
-  当前新机门禁；62 个生产源的 444 个入口均已精确绑定，未知和未迁移入口均为 0。
+  当前新机门禁；63 个生产源的 444 个入口均已精确绑定，未知和未迁移入口均为 0。
 - S2 `PairEvidence`仍只是候选声明；S3-E 实际 mutation 只在 exact `_ReservedPairLease`和 live observed lease 内执行，声明或 detached 摘要都不能授权 rename。
 - audit key revision 位于 Test 内、Git 忽略的本地明文存储；不能抵御已取得 Test 读取权的恶意本机用户；没有外部 witness 时也不能证明完整账本尾部未被一致回滚。
 - Test-only writer 的 spent-ticket 记忆和诊断缓存已固定上限；ReFS/128-bit File ID 高位非零兼容、硬件断电语义和业务 operation recovery 仍未声明通过。

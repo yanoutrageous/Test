@@ -1,9 +1,9 @@
 {
   "state_version": "1.1.0",
   "plan_version": "1.1.0",
-  "updated_at": "2026-07-25T20:22:00+08:00",
-  "current_milestone": "M3",
-  "current_slice": "M3_FIGURE_SEARCH_TEMPLATE_CLOSED_LOOP",
+  "updated_at": "2026-07-25T21:16:00+08:00",
+  "current_milestone": "M4",
+  "current_slice": "M4_BACKUP_RESTORE_ACTIVATION_ROLLBACK",
   "status": "RUNNING",
   "implementation_status": "IN_PROGRESS",
   "task_scope": {
@@ -906,8 +906,57 @@
       "e_drive_free_bytes_after_cleanup": 92807614464
     }
   },
+  "m3_checkpoint": {
+    "status": "ACCEPTED_LOCAL_AWAITING_GIT_CHECKPOINT",
+    "contract": "contracts/m3/m3-acceptance-v1.json",
+    "exit_report": "Task/reports/M3/M3-figure-search-template-exit.md",
+    "accepted_state_revision_id": "STATE-M3-YANYAN-REV-002",
+    "accepted_taxonomy_release_id": "TAXONOMY-M3-MATH-V1",
+    "accepted_semantic_index_id": "INDEX-M3-YANYAN-REV-002",
+    "accepted_template_revision_id": "TEMPLATE-M3-B5-REV-002",
+    "real_flow_run_id": "RUN-20260725-M3-REAL-PIPELINE-R2-175",
+    "core_gate_run_id": "RUN-20260725-M3-CORE-R2-176",
+    "full_gate_run_id": "RUN-20260725-M3-GATE-R2-178",
+    "inventory_preview_run_id": "RUN-20260725-M3-INVENTORY-R2-177",
+    "state_tree_sha256": "aa863de6937b625c6fd232ae89e7dc0a499b7f7944a834b9c43651cc2be76958",
+    "state_manifest_sha256": "57613118c509335496eee1088ef1ac98f18844f307526a73f0c57e089bcc13d9",
+    "semantic_index_payload_sha256": "bf4c88cef4857273e343cef752e86d300e11db298f6dda179f81c70747e07cbb",
+    "search_hit_at_3": 1.0,
+    "search_mrr": 0.833333,
+    "activity_database_sha256_before_and_after": "1505bf05bd8e385eada30642110596363c561c330da02a40a497072064ad1c94",
+    "superseded_candidate": {
+      "state_id": "STATE-M3-YANYAN-REV-001",
+      "status": "SUPERSEDED_NOT_ACCEPTED",
+      "reason": "VISUAL_REVIEW_FOUND_LITERAL_Y2_FORMAT_PLACEHOLDER"
+    },
+    "inventory": {
+      "production_source_count": 63,
+      "write_entry_count": 444,
+      "chunk_count": 18,
+      "unknown_count": 0,
+      "unmigrated_count": 0,
+      "production_writer_connected": true,
+      "m0_exit_allowed": true
+    },
+    "cleanup_after_acceptance": {
+      "status": "COMPLETED_RECOVERABLE_RELOCATION",
+      "relief_root": "${LOCALAPPDATA}/Codex/workspace-relief/yanoutrageous-Test/m3-cleanup-20260725",
+      "relocated_directory_count": 13,
+      "relocated_file_count": 527,
+      "relocated_bytes": 38336312,
+      "remaining_source_directory_count": 0,
+      "missing_relief_target_count": 0,
+      "post_move_file_manifest_digest_sha256": "24f84d7c6b6cb686cd2168fae2e03b5dbf05d12be2c887cbdc792343b81b3bd2",
+      "retained_hot_test_runs": [
+        "RUN-20260725-M3-CORE-R2-176",
+        "RUN-20260725-M3-GATE-R2-178"
+      ],
+      "retained_hot_inventory_preview": "RUN-20260725-M3-INVENTORY-R2-177",
+      "retained_real_flow_evidence": "RUN-20260725-M3-REAL-PIPELINE-R2-175",
+      "e_drive_free_bytes_after_cleanup": 100280741888
+    }
+  },
   "not_started": [
-    "M3 figure dual-track lifecycle, local semantic search, approved taxonomy, and reusable template closed loop",
     "M4 customer-facing backup, restore, and explicit activity-database switch journey",
     "M5 target-set production, offline delivery package, and customer acceptance",
     "activity database migration activation (intentionally deferred until the M4 activation gate)"
@@ -915,6 +964,6 @@
   "blockers": [
     "M0-SYMLINK-CAPABILITY-001: RUN-20260724-M0-SYMLINK-CAPABILITY-038 returned WinError 1314 when the ordinary account attempted to create a real directory symlink; all other safety gates in that run were clean, no privilege elevation or Developer Mode change is authorized, and independent M0 work may continue"
   ],
-  "next_required_action": "Build the M3 figure/search/template closed loop from the accepted M2 revision without mutating the active activity database.",
-  "resume_rule": "Resume from published M1 commit 6cd5abd575d7d6839eef88abb98a56f41e88e7cb and the accepted M2 contract, bundle, real-flow, core-gate, and full-gate evidence recorded above. Never reuse a run ID. Preserve the activity database at user_version 0 until the M4 activation and rollback gate explicitly authorizes the switch."
+  "next_required_action": "Build the M4 backup, restore, explicit activation and rollback journey from the accepted M3 derived state, without switching the activity database before the independent recovery gate passes.",
+  "resume_rule": "Resume from the accepted M1/M2 checkpoints and the M3 REV-002 contract, real-flow, index-rebuild, core-gate, full-gate and inventory evidence recorded above. Never reuse a run ID. Preserve the activity database at user_version 0 until the M4 activation and rollback gate explicitly authorizes the switch."
 }

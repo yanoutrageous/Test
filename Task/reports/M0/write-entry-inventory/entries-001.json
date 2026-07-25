@@ -1,5 +1,5 @@
 {
-  "chunk_digest_sha256": "0d6d8c33350eee6dbfc6ca2b615a051b922c2cfcff1cdd3641d6d03ad3f7dca8",
+  "chunk_digest_sha256": "665b5d0bbfbf4f7879198aba099de526992537d3e04edb23fc9973014d9be45c",
   "chunk_index": 1,
   "entries": [
     {
@@ -71,6 +71,7 @@
         "WEB:GET /paper-basket",
         "WEB:GET /questions",
         "WEB:GET /questions/<int:question_id>",
+        "WEB:GET /search",
         "WEB:GET /structured-review",
         "WEB:POST /paper-basket/add/<int:question_id>",
         "WEB:POST /questions/<int:question_id>",
@@ -112,6 +113,7 @@
         "WEB:GET /paper-basket",
         "WEB:GET /questions",
         "WEB:GET /questions/<int:question_id>",
+        "WEB:GET /search",
         "WEB:GET /structured-review",
         "WEB:POST /paper-basket/add/<int:question_id>",
         "WEB:POST /questions/<int:question_id>",
@@ -153,6 +155,7 @@
         "WEB:GET /paper-basket",
         "WEB:GET /questions",
         "WEB:GET /questions/<int:question_id>",
+        "WEB:GET /search",
         "WEB:GET /structured-review",
         "WEB:POST /paper-basket/add/<int:question_id>",
         "WEB:POST /questions/<int:question_id>",
