@@ -77,6 +77,15 @@ portable `PROJECT_ROOT`、相对 manifest 和源 PDF 内嵌字体，不绑定 E 
 测试、机器可读验收合同、清单和小型摘要。迁移电脑时复制 `data/exports/M2/.../REV-002`
 并按 bundle manifest 复算哈希即可。
 
+阶段收尾已把 18 个由新门禁取代的运行、预览和故障暂存目录，以及 20 个历史冷归档，
+可恢复地迁移到本机
+`${LOCALAPPDATA}/Codex/workspace-relief/yanoutrageous-Test/`。迁出文件逻辑大小共
+946,426,689 bytes；20 个冷归档在迁移前后逐文件重算 SHA-256，差异为 0。E 盘热目录只
+保留 CORE-R2-167、GATE-R2-168、inventory R2-166、R3 真实流程证据和正式 REV-002；
+`tmp/test_lab` 从 217,408,057 bytes 收敛到 22,150,670 bytes，清理后 E 盘可用
+92,807,614,464 bytes。C 盘 relief 是可恢复的本机缓存，不是跨电脑备份；迁机时仍应携带
+正式 bundle，并按 manifest 复核。
+
 ## 已知限制
 
 - 本次真实候选池尚无 M3 审批后的知识点/方法标签，因此正式蓝图没有提出非空标签约束；

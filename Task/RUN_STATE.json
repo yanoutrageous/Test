@@ -1,7 +1,7 @@
 {
   "state_version": "1.1.0",
   "plan_version": "1.1.0",
-  "updated_at": "2026-07-25T20:14:00+08:00",
+  "updated_at": "2026-07-25T20:22:00+08:00",
   "current_milestone": "M3",
   "current_slice": "M3_FIGURE_SEARCH_TEMPLATE_CLOSED_LOOP",
   "status": "RUNNING",
@@ -861,7 +861,9 @@
     "accepted_total_score": 150
   },
   "m2_checkpoint": {
-    "status": "ACCEPTED_LOCAL_PENDING_GIT_CHECKPOINT",
+    "status": "ACCEPTED_AND_PUSHED",
+    "checkpoint_commit": "661b6ac7d8d1f895d79fbc5266dbb792c3d5ff9e",
+    "remote_verification": "LOCAL_ORIGIN_TRACKING_AND_LS_REMOTE_EQUAL",
     "contract": "contracts/m2/m2-acceptance-v1.json",
     "exit_report": "Task/reports/M2/M2-real-pipeline-exit.md",
     "print_and_leak_preflight": "Task/reports/M2/M2-print-and-leak-preflight.json",
@@ -884,6 +886,24 @@
       "production_writer_connected": true,
       "m0_exit_allowed": true,
       "preview_run_id": "RUN-20260725-M2-INVENTORY-R2-166"
+    },
+    "cleanup_after_acceptance": {
+      "status": "COMPLETED_RECOVERABLE_RELOCATION",
+      "relief_root": "${LOCALAPPDATA}/Codex/workspace-relief/yanoutrageous-Test",
+      "relocated_directory_count": 18,
+      "relocated_directory_bytes": 200386058,
+      "relocated_cold_archive_file_count": 20,
+      "relocated_cold_archive_bytes": 746040631,
+      "cold_archive_pre_post_sha256_mismatch_count": 0,
+      "total_relocated_bytes": 946426689,
+      "retained_hot_test_runs": [
+        "RUN-20260725-M2-CORE-R2-167",
+        "RUN-20260725-M2-GATE-R2-168"
+      ],
+      "retained_hot_inventory_preview": "RUN-20260725-M2-INVENTORY-R2-166",
+      "retained_real_flow_evidence": "RUN-20260725-M2-REAL-PIPELINE-R3-165",
+      "hot_test_lab_bytes_after_cleanup": 22150670,
+      "e_drive_free_bytes_after_cleanup": 92807614464
     }
   },
   "not_started": [
