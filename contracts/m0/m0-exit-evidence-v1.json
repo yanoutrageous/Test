@@ -1,5 +1,5 @@
 {
-  "binding_contract_sha256": "dd6c823d3390a3e71e852944e3030bd9f4d01f14852f248a7de5359f9a8e3a28",
+  "binding_contract_sha256": "540dfdfdc7bd309aeee791fb29dac27488bfb564d2d6214de7e2d5ee2ed9053a",
   "checks": {
     "activity_database_unchanged": true,
     "fixed_physical_paths_absent": true,
@@ -11,11 +11,11 @@
     "undisclosed_p0_p1_zero": true
   },
   "decision": "PASS",
-  "entries_digest_sha256": "a7ce6c70f768d1ffc004bc8ea02ce9f2ec97794a6a615f12923aff2f3931b943",
+  "entries_digest_sha256": "6f116e035bb9f98b09a9810d04717f1fc1801eda27c3377b6423fbccb481a5e4",
   "flow_report": {
     "path": "Task/reports/M0/M0-S6-real-flow-exit-report.json",
     "sha256": "5c26e8b564d197002a3fc6689b29c5fa64d34da9b5723b8621f66a75486ef545"
   },
   "schema_version": "1.0",
-  "source_manifest_digest_sha256": "0ced9f58b6d7cbb768573f588ebf4a8152718c9274b031fd428777eb4d94ae6b"
+  "source_manifest_digest_sha256": "19247fcdd6be9dac1363a0eb65c6cd0af95425ec6985f2bbb2a26ec43626ae31"
 }

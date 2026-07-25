@@ -1,0 +1,131 @@
+{
+  "accepted_revision": {
+    "blueprint_revision_id": "BLUEPRINT-M2-YANYAN-FULL-150-REV-001",
+    "bundle": {
+      "bytes": 5521224,
+      "export_id": "EXPORT-M2-YANYAN-FULL-150-REV-002",
+      "path": "data/exports/M2/EXPORT-M2-YANYAN-FULL-150-REV-002",
+      "tree_sha256": "50bd044f161ab5ebcd112eb2d4c03691f22faacf22ae67acafda152732533932"
+    },
+    "bundle_manifest": {
+      "bytes": 23139,
+      "path": "data/exports/M2/EXPORT-M2-YANYAN-FULL-150-REV-002/bundle-manifest.json",
+      "sha256": "78b53788a3a7779f19f7d3512b7d1ea205064e6b07d77a18d0ecf85fcd4e0fae"
+    },
+    "candidate_pool": {
+      "count": 19,
+      "sha256": "468bbf5e7be837f9c4fb9411904cc2956f2069d065a779e26ef8e4823c93cdf7",
+      "snapshot_id": "POOL-M2-YANYAN-REV-002-SNAPSHOT-001"
+    },
+    "documents": {
+      "answer": {
+        "bytes": 743743,
+        "page_count": 11,
+        "path": "data/exports/M2/EXPORT-M2-YANYAN-FULL-150-REV-002/documents/answer-book.pdf",
+        "sha256": "cccf4751dd426092a49faa65d965085c1b54568fc880092989a74d65fdead9f5"
+      },
+      "answer_sheet": {
+        "bytes": 249511,
+        "page_count": 6,
+        "path": "data/exports/M2/EXPORT-M2-YANYAN-FULL-150-REV-002/documents/answer-sheet-a4.pdf",
+        "sha256": "999d9a8bcad62c6c00c93b1bf77d7e79d00645ee61ef7be4080a3f943e3f133a"
+      },
+      "detailed_solution": {
+        "bytes": 2308349,
+        "page_count": 63,
+        "path": "data/exports/M2/EXPORT-M2-YANYAN-FULL-150-REV-002/documents/solution-book.pdf",
+        "sha256": "3a92ad698a63e5ecabed217bb27119017af4d5bdf7137adfe4b407f43f2362f5"
+      },
+      "student": {
+        "bytes": 384634,
+        "page_count": 4,
+        "path": "data/exports/M2/EXPORT-M2-YANYAN-FULL-150-REV-002/documents/student-paper.pdf",
+        "sha256": "f7b374c5afe4adf86d285a6f7d20b6d74a0a2ec3f31850186273148aa17cc7aa"
+      },
+      "teacher": {
+        "bytes": 1087404,
+        "page_count": 15,
+        "path": "data/exports/M2/EXPORT-M2-YANYAN-FULL-150-REV-002/documents/teacher-paper.pdf",
+        "sha256": "995aad0a326e15e96bb27032e5b83e9d1bf2182dd2cbcd217cb8b511491daf69"
+      }
+    },
+    "paper_ir_revision_id": "PAPER-IR-M2-YANYAN-FULL-150-REV-002",
+    "paper_revision_id": "PAPER-M2-YANYAN-FULL-150-REV-002",
+    "release_index": {
+      "bytes": 751,
+      "path": "data/exports/M2/EXPORT-M2-YANYAN-FULL-150-REV-002/release-index.json",
+      "sha256": "2e383245212e4a984887578e6edbe4fc01957df2731eb83f0b812a7b4f3d0e9a"
+    },
+    "solver": {
+      "seed": "SEED-M2-FULL-150-V1",
+      "version": "DETERMINISTIC-EXHAUSTIVE-V1"
+    },
+    "template_revision_id": "TEMPLATE-M2-ANSWER-SHEETS-REV-002"
+  },
+  "checks": {
+    "a3_answer_sheet_page_count": 2,
+    "a4_answer_sheet_page_count": 6,
+    "activity_database_unchanged": true,
+    "answer_sheet_question_mapping_percent": 100,
+    "approved_question_count": 19,
+    "atomic_failure_formal_target_exists": false,
+    "atomic_failure_publish_blocked": true,
+    "cross_document_revision_mapping_percent": 100,
+    "cross_document_score_mapping_percent": 100,
+    "declared_total_points": 150,
+    "frozen_snapshot_changed_only_when_regenerated": true,
+    "hard_constraint_satisfaction_percent": 100,
+    "infeasible_hard_constraints_relaxed": false,
+    "manual_visual_answer_sheet_pages_confirmed": 8,
+    "print_preflight_rendered_page_count": 99,
+    "question_count": 19,
+    "repeat_stable": true,
+    "silent_font_substitution_count": 0,
+    "student_answer_leak_count": 0,
+    "ui_document_download_status_200_count": 5
+  },
+  "contract_id": "M2-ACCEPTANCE-V1",
+  "decision": "ACCEPTED",
+  "evidence": {
+    "core_gate": {
+      "junit_sha256": "6808fe98aac60d57a7f2d97ac75440aaaa35c7150de37f71676e1a6b244b3f4f",
+      "passed": 79,
+      "run_id": "RUN-20260725-M2-CORE-R2-167",
+      "run_result_sha256": "0225e75bd4018ca82e3c5cf8698658c464048d19095dd951aabade9c5f55eca2"
+    },
+    "print_and_leak_preflight": {
+      "path": "Task/reports/M2/M2-print-and-leak-preflight.json",
+      "sha256": "eeb6beb89e92b1baba3f84715fe417bafe7407dcacd94089a64ed1b527a6cf35"
+    },
+    "real_flow": {
+      "path": "tmp/jobs/INTERNAL/JOB-M2-REAL-FLOW-EVIDENCE-R3-20260725/m2-real-flow-evidence.json",
+      "run_id": "RUN-20260725-M2-REAL-PIPELINE-R3-165",
+      "sha256": "4c1130511aa98af6990386b7ecc3523ef8c821ac0a418f6f74ddab6da8d7f8c2"
+    },
+    "stage_gate": {
+      "junit_sha256": "d662b04ac596c0767d47b521ffb3ed2b67e8ad79644c4271bd3f9c944ca43ea2",
+      "passed": 495,
+      "run_id": "RUN-20260725-M2-GATE-R2-168",
+      "run_result_sha256": "830b4564c535822250bb45686852c9a68349eea39c926a86cad349b459f84ab1"
+    },
+    "write_inventory": {
+      "entry_count": 444,
+      "manifest_sha256": "298ae2c979deec6ca68486ba8438638c68fda2f19c3dcc9040c518289940c487",
+      "source_count": 62,
+      "unknown_dynamic_count": 0,
+      "unmigrated_count": 0
+    }
+  },
+  "limitations": [
+    "The accepted real blueprint uses no knowledge or method tag assertion because the M1 real pool has no approved semantic-tag assertions yet; those constraints fail closed when requested and are exercised after M3 taxonomy review.",
+    "Similarity exclusion in M2 is exact content-hash duplication; local semantic similarity is delivered and accepted in M3.",
+    "The five formal documents preserve the licensed local source pages where available instead of reflowing the source content.",
+    "This acceptance covers one complete real 19-question paper and is not the M5 target-set or customer-release acceptance."
+  ],
+  "schema_version": "1.0",
+  "superseded_candidate": {
+    "export_id": "EXPORT-M2-YANYAN-FULL-150-REV-001",
+    "reason": "The candidate used one A3 page and two A4 pages; the reference baseline requires two A3 pages and six A4 pages.",
+    "status": "SUPERSEDED_NOT_ACCEPTED"
+  }
+}

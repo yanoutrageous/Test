@@ -1,9 +1,9 @@
 {
   "state_version": "1.1.0",
   "plan_version": "1.1.0",
-  "updated_at": "2026-07-25T18:31:00+08:00",
-  "current_milestone": "M1",
-  "current_slice": "M1_ENTRY_AUDIT_AND_FIRST_REAL_PAPER",
+  "updated_at": "2026-07-25T20:14:00+08:00",
+  "current_milestone": "M3",
+  "current_slice": "M3_FIGURE_SEARCH_TEMPLATE_CLOSED_LOOP",
   "status": "RUNNING",
   "implementation_status": "IN_PROGRESS",
   "task_scope": {
@@ -849,18 +849,52 @@
     "M0 local acceptance is complete with activity database bytes, mtime, SHA-256, and user_version 0 unchanged",
     "M0 exit checkpoint fc087f68937479a898af8b093545e9c7e56fbae2 was explicitly staged as 59 allowlisted files, ordinary-pushed, and verified identical at local HEAD, origin, and ls-remote"
   ],
+  "m1_checkpoint": {
+    "status": "ACCEPTED_AND_PUSHED",
+    "commit": "6cd5abd575d7d6839eef88abb98a56f41e88e7cb",
+    "contract": "contracts/m1/m1-acceptance-v1.json",
+    "exit_report": "Task/reports/M1/M1-real-paper-exit.md",
+    "full_gate_run_id": "RUN-20260725-M1-GATE-R3-157",
+    "accepted_state_revision_id": "STATE-M1-YANYAN-REV-002",
+    "accepted_source_paper_id": "PAPER-YANYAN-202605-REV-002",
+    "accepted_question_count": 19,
+    "accepted_total_score": 150
+  },
+  "m2_checkpoint": {
+    "status": "ACCEPTED_LOCAL_PENDING_GIT_CHECKPOINT",
+    "contract": "contracts/m2/m2-acceptance-v1.json",
+    "exit_report": "Task/reports/M2/M2-real-pipeline-exit.md",
+    "print_and_leak_preflight": "Task/reports/M2/M2-print-and-leak-preflight.json",
+    "accepted_paper_revision_id": "PAPER-M2-YANYAN-FULL-150-REV-002",
+    "accepted_paper_ir_revision_id": "PAPER-IR-M2-YANYAN-FULL-150-REV-002",
+    "accepted_export_revision_id": "EXPORT-M2-YANYAN-FULL-150-REV-002",
+    "accepted_template_revision_id": "TEMPLATE-M2-ANSWER-SHEETS-REV-002",
+    "real_flow_run_id": "RUN-20260725-M2-REAL-PIPELINE-R3-165",
+    "core_gate_run_id": "RUN-20260725-M2-CORE-R2-167",
+    "full_gate_run_id": "RUN-20260725-M2-GATE-R2-168",
+    "bundle_tree_sha256": "50bd044f161ab5ebcd112eb2d4c03691f22faacf22ae67acafda152732533932",
+    "bundle_manifest_sha256": "78b53788a3a7779f19f7d3512b7d1ea205064e6b07d77a18d0ecf85fcd4e0fae",
+    "active_database_sha256_before_and_after": "1505bf05bd8e385eada30642110596363c561c330da02a40a497072064ad1c94",
+    "inventory": {
+      "production_source_count": 62,
+      "write_entry_count": 444,
+      "chunk_count": 18,
+      "unknown_count": 0,
+      "unmigrated_count": 0,
+      "production_writer_connected": true,
+      "m0_exit_allowed": true,
+      "preview_run_id": "RUN-20260725-M2-INVENTORY-R2-166"
+    }
+  },
   "not_started": [
-    "activity database migration activation (intentionally deferred until a later authorized switch)",
-    "question import",
-    "OCR or image processing",
-    "high-fidelity renderer implementation",
-    "blueprint solver implementation",
-    "formal export generation",
-    "customer-facing full-product backup activation and restore journey"
+    "M3 figure dual-track lifecycle, local semantic search, approved taxonomy, and reusable template closed loop",
+    "M4 customer-facing backup, restore, and explicit activity-database switch journey",
+    "M5 target-set production, offline delivery package, and customer acceptance",
+    "activity database migration activation (intentionally deferred until the M4 activation gate)"
   ],
   "blockers": [
     "M0-SYMLINK-CAPABILITY-001: RUN-20260724-M0-SYMLINK-CAPABILITY-038 returned WinError 1314 when the ordinary account attempted to create a real directory symlink; all other safety gates in that run were clean, no privilege elevation or Developer Mode change is authorized, and independent M0 work may continue"
   ],
-  "next_required_action": "Execute the M1 entry audit, choose one small complete real paper through the ignored per-machine gold map, Copy it through the registered external boundary, and implement a candidate-only import/review/render loop without implicitly switching the activity database.",
-  "resume_rule": "Resume from published M0 checkpoint fc087f68937479a898af8b093545e9c7e56fbae2, M0_EXIT_ACCEPTED inventory preview RUN-20260725-M0-S6-INVENTORY-148, stage gate RUN-20260725-M0-S6-GATE-147, exit gate RUN-20260725-M0-S6-EXIT-149, and real-flow evidence RUN-20260725-M0-S6-FLOWS-145. Never reuse a run ID. Preserve the activity database at user_version 0 until a later milestone explicitly passes an activation and rollback gate."
+  "next_required_action": "Build the M3 figure/search/template closed loop from the accepted M2 revision without mutating the active activity database.",
+  "resume_rule": "Resume from published M1 commit 6cd5abd575d7d6839eef88abb98a56f41e88e7cb and the accepted M2 contract, bundle, real-flow, core-gate, and full-gate evidence recorded above. Never reuse a run ID. Preserve the activity database at user_version 0 until the M4 activation and rollback gate explicitly authorizes the switch."
 }

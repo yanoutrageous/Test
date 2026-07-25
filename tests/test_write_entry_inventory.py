@@ -386,6 +386,23 @@ def exercise(path, conn, dynamic_sql, dynamic_name):
     assert kinds[WritePrimitiveKind.UNKNOWN_DYNAMIC_CAPABILITY] == 1
 
 
+def test_pymupdf_text_writer_is_not_misclassified_as_a_file_sink() -> None:
+    entries = scan_python_source(
+        """
+import fitz
+
+def render(writer, page, path):
+    fitz.TextWriter.write_text(writer, page)
+    path.write_text("real filesystem write")
+""",
+        file="app/synthetic.py",
+    )
+
+    assert [entry.kind for entry in entries] == [
+        WritePrimitiveKind.FILESYSTEM_FILE_WRITE
+    ]
+
+
 def test_dynamic_sql_dataflow_and_bound_execute_fail_closed() -> None:
     entries = scan_python_source(
         '''

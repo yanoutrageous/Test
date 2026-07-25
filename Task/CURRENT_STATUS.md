@@ -1,6 +1,29 @@
 # 当前状态
 
-更新时间：2026-07-25 18:28 +08:00
+更新时间：2026-07-25 20:08 +08:00
+
+## M1—M2 真实生产线与五件套验收（2026-07-25）
+
+- M1 已以 `STATE-M1-YANYAN-REV-002` / `PAPER-YANYAN-202605-REV-002`
+  完成一份真实试卷的 Copy、19 题切分、答案/解析关联、逐题 UI 批准和源页高保真正式 PDF；
+  `RUN-20260725-M1-GATE-157` 为 466/466。
+- M2 已以 `PAPER-M2-YANYAN-FULL-150-REV-002` /
+  `EXPORT-M2-YANYAN-FULL-150-REV-002` 验收：确定性蓝图、不可行核心、锁题、换题、排序、
+  冻结 PaperRevision 和五件套原子发布均已真实跑通。
+- 正式五件套为学生卷 4 页、教师卷 15 页、答案册 11 页、解析册 63 页和 A4 答题卡
+  6 页；另有 A3 两页模板。19 题、150 分，跨文档 revision/题号/分值及答题卡映射均为
+  100%，学生卷答案/解析泄漏为 0，所有字体内嵌。
+- A4 六页与 A3 两页共 8 页已逐页目视确认；五份共 99 页全部通过 96 DPI 打印栅格预检。
+  故障注入在解析册输出前中止，partial staging 被发布前门拒绝，正式 failure target 不存在。
+- `RUN-20260725-M2-CORE-R2-167` 为 79/79；
+  `RUN-20260725-M2-GATE-R2-168` 为 495/495。活动库、保护树、watcher、句柄围栏、来源
+  见证与进程树全部不变。
+- 当前静态清单为 62 个生产源、444 个受控写入入口、18 个分片，`UNKNOWN=0`、
+  未迁移入口 0、`m0_exit_allowed=true`。活动 SQLite SHA-256 仍为
+  `1505bf05bd8e385eada30642110596363c561c330da02a40a497072064ad1c94`。
+- M2 REV-001 因答题卡只有 A3 一页/A4 两页被标记为历史候选；符合参考基线的 REV-002
+  才是正式版本。M2 完整证据见 `Task/reports/M2/M2-real-pipeline-exit.md`。
+- 当前进入 M3 图形双轨、标签/混合检索和模板维护闭环；M2 `ACCEPTED` 不代表 M5 客户验收。
 
 ## M0-S6 与 M0 总门验收（2026-07-25）
 
@@ -102,12 +125,12 @@
 ## 长期执行状态
 
 - 计划版本：1.1.0
-- 当前阶段：M0已验收、提交并远端核验；M1入场审计
-- 当前切片：M1第一份真实完整试卷的Copy、候选导入、人工复核与正式渲染闭环
-- M0—M5 实现：M0已验收；M1进行中；M2—M5未开始
+- 当前阶段：M0、M1、M2 已验收；M2 检查点提交与远端核验后进入 M3
+- 当前切片：M2 验收合同、Git 检查点和门禁热目录收敛
+- M0—M5 实现：M0、M1、M2 已验收；M3—M5 未完成
 - 本任务有效终点：按用户后续明确要求，连续完成修订后的 M0—M5，直到真实用户流程、恢复演练和客户交付包全部通过；不得把 M0 或代码完成误报为终局
-- 当前禁止：未经独立备份/回滚门的活动数据库切换、OCR、批量资产、业务文件清理；
-  M1真实导入必须先进入Copy并只在候选状态推进
+- 当前禁止：未经 M4 独立备份/恢复门的活动数据库切换、OCR、云同步、未审核标签直接进入
+  正式检索，以及清理已接受 revision 或未归档证据
 
 ## 2026-07-24 新电脑恢复与可迁移根基线
 
@@ -139,15 +162,15 @@
 - 目标 NEW9 PDF 已在 Test 内，但其正文无可提取文字层；视觉回归必须包含整页像素/锚点检查
 - 活动 SQLite SHA-256 为`1505bf05...ad1c94`，`integrity_check=ok`、外键违规 0、`user_version=0`，19 个业务表均为 0 行
 - 历史“1123 题/阶段 14”报告不是当前可复现事实
-- 生产静态 inventory V21 覆盖`app/`和`scripts/`的60个源文件、420个副作用入口和
-  17个分片；`UNKNOWN=0`、未迁移入口0、无效绑定0
+- 生产静态 inventory V21 覆盖`app/`和`scripts/`的62个源文件、444个副作用入口和
+  18个分片；`UNKNOWN=0`、未迁移入口0、无效绑定0
 - production boundary固定portable root并提供handle writer；
   `production_writer_connected=true`、`m0_exit_allowed=true`、`M0_EXIT_ACCEPTED`
 - S3-E 最终核心回归`RUN-20260712-M0-S3E-016`为`30 passed`，launcher 门`RUN-20260712-M0-S3E-LAUNCHER-018`为`72 passed`，组合门`RUN-20260712-M0-S3E-COMBINED-019`为`399 passed`；JUnit failure/error/skip 均为 0
 - RUN-009 保护树前后均 93,762 条、运行时变更 0、句柄围栏 93,762 个；活动 SQLite 前后 SHA-256 相同。旧结果字段`source inputs unchanged`只是该次已监测保护集的起止/运行时证据，不声称监控整机或未登记外部源
 - Scanner V21使用`UTF8_LF_V1`规范化并覆盖portable-root authority、生产handle writer、
-  SQLite迁移/备份、外部Copy及领域/IR/gold验证器；最终inventory payload为
-  `d78470cc94bf23eae6871c0e05ff1b839d3de5e4190f3fae87a87cfc040fc778`，
+  SQLite迁移/备份、外部Copy、领域/IR/gold验证器及M1/M2生产线；当前inventory payload为
+  `c77f4d105afddf1c4d8c33ee8c967a873d955ce55cc186554c7a19e37c3678fa`，
   生产writer与M0退出合同均已接受
 
 ## 工具与发布状态
@@ -194,7 +217,9 @@
 
 - 精确字体许可尚未审计：不阻塞金标测量，但阻塞“字体完全一比一”的正式声明。
 - 当前备份只能位于`PROJECT_ROOT`内：不具备异卷灾备能力，不能对客户宣称可抵御整个产品根所在卷故障。
-- 固定权限但物理路径可迁移的 production boundary、Policy V7、Test-only 句柄 writer、audit/全部历史 operation epoch/Copy 双账本和 S3-E—H publish/copy/quarantine/recovery 已通过当前新机 S3 总门，但 production writer 仍断开；468 个入口尚未迁移，在 S4—S6 和后续门禁完成前不得处理真实资料。
+- 固定权限但物理路径可迁移的 production boundary、Policy V7、Test-only 句柄 writer、
+  audit/全部历史 operation epoch/Copy 双账本和 publish/copy/quarantine/recovery 已通过
+  当前新机门禁；62 个生产源的 444 个入口均已精确绑定，未知和未迁移入口均为 0。
 - S2 `PairEvidence`仍只是候选声明；S3-E 实际 mutation 只在 exact `_ReservedPairLease`和 live observed lease 内执行，声明或 detached 摘要都不能授权 rename。
 - audit key revision 位于 Test 内、Git 忽略的本地明文存储；不能抵御已取得 Test 读取权的恶意本机用户；没有外部 witness 时也不能证明完整账本尾部未被一致回滚。
 - Test-only writer 的 spent-ticket 记忆和诊断缓存已固定上限；ReFS/128-bit File ID 高位非零兼容、硬件断电语义和业务 operation recovery 仍未声明通过。

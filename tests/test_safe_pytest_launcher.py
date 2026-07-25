@@ -772,6 +772,31 @@ def test_s3d_mode_has_a_fixed_non_injectable_selection(tmp_path: Path) -> None:
                 "tests/test_safe_pytest_launcher.py",
             ],
         ),
+        (
+            "m2_core",
+            [
+                "tests/test_m2_pipeline.py",
+                "tests/test_domain_models.py",
+                "tests/test_ir_contracts.py",
+                "tests/test_database.py",
+                "tests/test_web.py",
+            ],
+        ),
+        (
+            "m2",
+            [
+                "tests/test_m2_pipeline.py",
+                "tests/test_m1_pipeline.py",
+                "tests/test_domain_models.py",
+                "tests/test_ir_contracts.py",
+                "tests/test_database.py",
+                "tests/test_web.py",
+                "tests/test_workspace_io.py",
+                "tests/test_workspace_policy.py",
+                "tests/test_write_entry_inventory.py",
+                "tests/test_safe_pytest_launcher.py",
+            ],
+        ),
     ),
 )
 def test_s3e_through_s6_modes_have_exact_non_injectable_selections(
@@ -1822,6 +1847,8 @@ def test_only_copy_bearing_modes_require_a_registered_source_witness() -> None:
         "s6_core",
         "m1",
         "m1_core",
+        "m2",
+        "m2_core",
         "launcher",
         "symlink",
     }.isdisjoint(SOURCE_REGISTRATION_REQUIRED_MODES)
@@ -1861,6 +1888,8 @@ def test_only_copy_bearing_modes_require_a_registered_source_witness() -> None:
         "s6_core",
         "m1",
         "m1_core",
+        "m2",
+        "m2_core",
         "launcher",
         "symlink",
     }:

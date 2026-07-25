@@ -4645,6 +4645,10 @@ def _classify_call(
                 "print with an explicit file target",
                 ResolutionConfidence.CONSERVATIVE,
             )
+    # PyMuPDF's TextWriter writes glyph commands into an already-open in-memory
+    # PDF page; it is not a filesystem sink despite the method name.
+    if canonical == "fitz.textwriter.write_text":
+        return None
     if leaf in {"write_text", "write_bytes", "writelines", "truncate", "touch"}:
         return WritePrimitiveKind.FILESYSTEM_FILE_WRITE, "file content mutation", None
     if leaf == "write":

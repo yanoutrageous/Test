@@ -1,5 +1,5 @@
 {
-  "chunk_digest_sha256": "1b1436f1cb92c99e4c8de256f8902403cb8836b4cf46ce0667b7ef819dbee52a",
+  "chunk_digest_sha256": "5b9b71ef07d7e66db54703fd6ace948c0c82b9d04e5017b8bb3ec4f6228939fc",
   "chunk_index": 17,
   "entries": [
     {
@@ -26,7 +26,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
+      "source_sha256": "4199e92e1cddfd9cae23491d923b33f49ab1cb55caa95f6727919a0091ec97a3",
       "statement_fingerprint": "04f901d0661301ce7fc0835272521ac5aacd94c087c142c5f7cbb85c241d6bd0",
       "target_namespace": "FIXED_TEST_LAB_RUNTIME"
     },
@@ -54,7 +54,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
+      "source_sha256": "4199e92e1cddfd9cae23491d923b33f49ab1cb55caa95f6727919a0091ec97a3",
       "statement_fingerprint": "3474f55c4f2c4ff899bf534b507dc606ac6ca48c4335543ec7104e00d9f58fff",
       "target_namespace": "FIXED_TEST_LAB_RUNTIME"
     },
@@ -82,7 +82,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
+      "source_sha256": "4199e92e1cddfd9cae23491d923b33f49ab1cb55caa95f6727919a0091ec97a3",
       "statement_fingerprint": "54e7aba638d2603cb3e93eee4f0f9111afa705bf7ae1b3d32efef877299836b7",
       "target_namespace": "FIXED_TEST_LAB_RUNTIME"
     },
@@ -110,7 +110,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
+      "source_sha256": "4199e92e1cddfd9cae23491d923b33f49ab1cb55caa95f6727919a0091ec97a3",
       "statement_fingerprint": "3474f55c4f2c4ff899bf534b507dc606ac6ca48c4335543ec7104e00d9f58fff",
       "target_namespace": "FIXED_TEST_LAB_RUNTIME"
     },
@@ -138,7 +138,7 @@
       "root_ids": [
         "INTERNAL-DIRECT"
       ],
-      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
+      "source_sha256": "4199e92e1cddfd9cae23491d923b33f49ab1cb55caa95f6727919a0091ec97a3",
       "statement_fingerprint": "dd167905a49b370b62e99e3239bfc60d15f3c481c309a45adeab51b077931f1a",
       "target_namespace": "FIXED_TEST_LAB_RUNTIME"
     },
@@ -167,7 +167,7 @@
       "root_ids": [
         "SCRIPT:scripts/run_safe_pytest.py"
       ],
-      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
+      "source_sha256": "4199e92e1cddfd9cae23491d923b33f49ab1cb55caa95f6727919a0091ec97a3",
       "statement_fingerprint": "e44de1e95baf974631b5a28ab7851f3a9256a2b5159eba26d5e1efa1bb764c00",
       "target_namespace": "FIXED_TEST_LAB_RUNTIME"
     },
@@ -196,7 +196,7 @@
       "root_ids": [
         "SCRIPT:scripts/run_safe_pytest.py"
       ],
-      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
+      "source_sha256": "4199e92e1cddfd9cae23491d923b33f49ab1cb55caa95f6727919a0091ec97a3",
       "statement_fingerprint": "c08e0eaaa509384f20cdefa40e74244fd4ff647f5d7a398a28a5099a8f9fc9ab",
       "target_namespace": "FIXED_TEST_LAB_RUNTIME"
     },
@@ -225,7 +225,7 @@
       "root_ids": [
         "SCRIPT:scripts/run_safe_pytest.py"
       ],
-      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
+      "source_sha256": "4199e92e1cddfd9cae23491d923b33f49ab1cb55caa95f6727919a0091ec97a3",
       "statement_fingerprint": "54dea0061a31634a25398b4c2ea17ae98546d3118c53394b4fcdba388c2fbf2c",
       "target_namespace": "FIXED_TEST_LAB_RUNTIME"
     },
@@ -254,7 +254,7 @@
       "root_ids": [
         "SCRIPT:scripts/run_safe_pytest.py"
       ],
-      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
+      "source_sha256": "4199e92e1cddfd9cae23491d923b33f49ab1cb55caa95f6727919a0091ec97a3",
       "statement_fingerprint": "65146e1ad0de15c07406bb37e3cd62e2470db610113b13ea2c5f7462cabda0ab",
       "target_namespace": "FIXED_TEST_LAB_RUNTIME"
     },
@@ -268,13 +268,13 @@
       "control_binding_id": "WE-75DCA8D277DE542A9D56DA3B",
       "detail": "file open in write-capable mode",
       "end_column": 78,
-      "end_line": 1996,
+      "end_line": 2019,
       "entry_id": "WE-75DCA8D277DE542A9D56DA3B",
       "file": "scripts/run_safe_pytest.py",
       "function": "scripts.run_safe_pytest._run_test_process",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "FILESYSTEM_FILE_WRITE",
-      "line": 1996,
+      "line": 2019,
       "migration_status": "MIGRATED_GUARDED",
       "owner": "TEST_INFRASTRUCTURE",
       "required_control": "M0_SAFE_TEST_LAUNCHER_V1",
@@ -283,7 +283,7 @@
       "root_ids": [
         "SCRIPT:scripts/run_safe_pytest.py"
       ],
-      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
+      "source_sha256": "4199e92e1cddfd9cae23491d923b33f49ab1cb55caa95f6727919a0091ec97a3",
       "statement_fingerprint": "cc2d420e2d33e95af54fb7647559f93c5d71fc8d2949e4b67e5495226ead1c9f",
       "target_namespace": "FIXED_TEST_LAB_RUNTIME"
     },
@@ -297,13 +297,13 @@
       "control_binding_id": "WE-F0D0859E85A9FF2AC9881E0D",
       "detail": "file open in write-capable mode",
       "end_column": 78,
-      "end_line": 2002,
+      "end_line": 2025,
       "entry_id": "WE-F0D0859E85A9FF2AC9881E0D",
       "file": "scripts/run_safe_pytest.py",
       "function": "scripts.run_safe_pytest._run_test_process",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "FILESYSTEM_FILE_WRITE",
-      "line": 2002,
+      "line": 2025,
       "migration_status": "MIGRATED_GUARDED",
       "owner": "TEST_INFRASTRUCTURE",
       "required_control": "M0_SAFE_TEST_LAUNCHER_V1",
@@ -312,7 +312,7 @@
       "root_ids": [
         "SCRIPT:scripts/run_safe_pytest.py"
       ],
-      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
+      "source_sha256": "4199e92e1cddfd9cae23491d923b33f49ab1cb55caa95f6727919a0091ec97a3",
       "statement_fingerprint": "7e64ca07120243d21cb9ad0e836c566965cfde1adcf2f29c072ed36bc9e49df5",
       "target_namespace": "FIXED_TEST_LAB_RUNTIME"
     },
@@ -326,13 +326,13 @@
       "control_binding_id": "WE-300DFDE7980CE7975037D24E",
       "detail": "external process invocation",
       "end_column": 9,
-      "end_line": 2018,
+      "end_line": 2041,
       "entry_id": "WE-300DFDE7980CE7975037D24E",
       "file": "scripts/run_safe_pytest.py",
       "function": "scripts.run_safe_pytest._run_test_process",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "EXTERNAL_PROCESS",
-      "line": 2009,
+      "line": 2032,
       "migration_status": "MIGRATED_GUARDED",
       "owner": "TEST_INFRASTRUCTURE",
       "required_control": "M0_SAFE_TEST_LAUNCHER_V1",
@@ -341,7 +341,7 @@
       "root_ids": [
         "SCRIPT:scripts/run_safe_pytest.py"
       ],
-      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
+      "source_sha256": "4199e92e1cddfd9cae23491d923b33f49ab1cb55caa95f6727919a0091ec97a3",
       "statement_fingerprint": "66f3a7bba0b6feef64c69e339fbfbca3e0ea8dc01b54b97847247c87457bd33e",
       "target_namespace": "FIXED_TEST_LAB_RUNTIME"
     },
@@ -354,13 +354,13 @@
       "control_binding_id": "WE-0E26352566B49FCD77331B78",
       "detail": "directory creation",
       "end_column": 22,
-      "end_line": 2226,
+      "end_line": 2249,
       "entry_id": "WE-0E26352566B49FCD77331B78",
       "file": "scripts/run_safe_pytest.py",
       "function": "scripts.run_safe_pytest.main",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "FILESYSTEM_DIRECTORY_CREATE",
-      "line": 2226,
+      "line": 2249,
       "migration_status": "MIGRATED_GUARDED",
       "owner": "TEST_INFRASTRUCTURE",
       "required_control": "M0_SAFE_TEST_LAUNCHER_V1",
@@ -369,7 +369,7 @@
       "root_ids": [
         "SCRIPT:scripts/run_safe_pytest.py"
       ],
-      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
+      "source_sha256": "4199e92e1cddfd9cae23491d923b33f49ab1cb55caa95f6727919a0091ec97a3",
       "statement_fingerprint": "4258319616e9c4b20dbb6e8f951ca7c29563ab46b47f42380aed4b6228cd75d3",
       "target_namespace": "FIXED_TEST_LAB_RUNTIME"
     },
@@ -382,13 +382,13 @@
       "control_binding_id": "WE-8B49BC5FBA78F558CE9D8885",
       "detail": "directory creation",
       "end_column": 23,
-      "end_line": 2235,
+      "end_line": 2258,
       "entry_id": "WE-8B49BC5FBA78F558CE9D8885",
       "file": "scripts/run_safe_pytest.py",
       "function": "scripts.run_safe_pytest.main",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "FILESYSTEM_DIRECTORY_CREATE",
-      "line": 2235,
+      "line": 2258,
       "migration_status": "MIGRATED_GUARDED",
       "owner": "TEST_INFRASTRUCTURE",
       "required_control": "M0_SAFE_TEST_LAUNCHER_V1",
@@ -397,7 +397,7 @@
       "root_ids": [
         "SCRIPT:scripts/run_safe_pytest.py"
       ],
-      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
+      "source_sha256": "4199e92e1cddfd9cae23491d923b33f49ab1cb55caa95f6727919a0091ec97a3",
       "statement_fingerprint": "d76fa67834f025e8ba1ea34a5a15038c09007f8bd789097f763c139a5ac87f20",
       "target_namespace": "FIXED_TEST_LAB_RUNTIME"
     },
@@ -410,13 +410,13 @@
       "control_binding_id": "WE-6B9FC39012EAFF8B5168D7BC",
       "detail": "directory creation",
       "end_column": 26,
-      "end_line": 2236,
+      "end_line": 2259,
       "entry_id": "WE-6B9FC39012EAFF8B5168D7BC",
       "file": "scripts/run_safe_pytest.py",
       "function": "scripts.run_safe_pytest.main",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "FILESYSTEM_DIRECTORY_CREATE",
-      "line": 2236,
+      "line": 2259,
       "migration_status": "MIGRATED_GUARDED",
       "owner": "TEST_INFRASTRUCTURE",
       "required_control": "M0_SAFE_TEST_LAUNCHER_V1",
@@ -425,7 +425,7 @@
       "root_ids": [
         "SCRIPT:scripts/run_safe_pytest.py"
       ],
-      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
+      "source_sha256": "4199e92e1cddfd9cae23491d923b33f49ab1cb55caa95f6727919a0091ec97a3",
       "statement_fingerprint": "3102f577fe457871c6e93b649467cd741570c6e5695ab61120e0be7a8b36c316",
       "target_namespace": "FIXED_TEST_LAB_RUNTIME"
     },
@@ -438,13 +438,13 @@
       "control_binding_id": "WE-847F9745C4C75ABDE6E5D1AC",
       "detail": "directory creation",
       "end_column": 24,
-      "end_line": 2237,
+      "end_line": 2260,
       "entry_id": "WE-847F9745C4C75ABDE6E5D1AC",
       "file": "scripts/run_safe_pytest.py",
       "function": "scripts.run_safe_pytest.main",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "FILESYSTEM_DIRECTORY_CREATE",
-      "line": 2237,
+      "line": 2260,
       "migration_status": "MIGRATED_GUARDED",
       "owner": "TEST_INFRASTRUCTURE",
       "required_control": "M0_SAFE_TEST_LAUNCHER_V1",
@@ -453,7 +453,7 @@
       "root_ids": [
         "SCRIPT:scripts/run_safe_pytest.py"
       ],
-      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
+      "source_sha256": "4199e92e1cddfd9cae23491d923b33f49ab1cb55caa95f6727919a0091ec97a3",
       "statement_fingerprint": "2936544fb8e87590fc4c946250f06759d40a5fa3ca655748ed4a2f5bb15b3a08",
       "target_namespace": "FIXED_TEST_LAB_RUNTIME"
     },
@@ -466,13 +466,13 @@
       "control_binding_id": "WE-FFB1C43A3B1AB9AE24320701",
       "detail": "directory creation",
       "end_column": 23,
-      "end_line": 2238,
+      "end_line": 2261,
       "entry_id": "WE-FFB1C43A3B1AB9AE24320701",
       "file": "scripts/run_safe_pytest.py",
       "function": "scripts.run_safe_pytest.main",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "FILESYSTEM_DIRECTORY_CREATE",
-      "line": 2238,
+      "line": 2261,
       "migration_status": "MIGRATED_GUARDED",
       "owner": "TEST_INFRASTRUCTURE",
       "required_control": "M0_SAFE_TEST_LAUNCHER_V1",
@@ -481,7 +481,7 @@
       "root_ids": [
         "SCRIPT:scripts/run_safe_pytest.py"
       ],
-      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
+      "source_sha256": "4199e92e1cddfd9cae23491d923b33f49ab1cb55caa95f6727919a0091ec97a3",
       "statement_fingerprint": "ebfc35da1fcba9b218e25759adeb31427b05fcb1b535c559884234c0dd3c9e7c",
       "target_namespace": "FIXED_TEST_LAB_RUNTIME"
     },
@@ -494,13 +494,13 @@
       "control_binding_id": "WE-845F0EB1830FA3C43218199A",
       "detail": "directory creation",
       "end_column": 26,
-      "end_line": 2239,
+      "end_line": 2262,
       "entry_id": "WE-845F0EB1830FA3C43218199A",
       "file": "scripts/run_safe_pytest.py",
       "function": "scripts.run_safe_pytest.main",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "FILESYSTEM_DIRECTORY_CREATE",
-      "line": 2239,
+      "line": 2262,
       "migration_status": "MIGRATED_GUARDED",
       "owner": "TEST_INFRASTRUCTURE",
       "required_control": "M0_SAFE_TEST_LAUNCHER_V1",
@@ -509,7 +509,7 @@
       "root_ids": [
         "SCRIPT:scripts/run_safe_pytest.py"
       ],
-      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
+      "source_sha256": "4199e92e1cddfd9cae23491d923b33f49ab1cb55caa95f6727919a0091ec97a3",
       "statement_fingerprint": "983185b355c549db0471769390c377bf2f8c85375cab5de31e860d2a3f2c7ccf",
       "target_namespace": "FIXED_TEST_LAB_RUNTIME"
     },
@@ -522,13 +522,13 @@
       "control_binding_id": "WE-D18D9785C520F017F91C230E",
       "detail": "directory creation",
       "end_column": 32,
-      "end_line": 2240,
+      "end_line": 2263,
       "entry_id": "WE-D18D9785C520F017F91C230E",
       "file": "scripts/run_safe_pytest.py",
       "function": "scripts.run_safe_pytest.main",
       "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
       "kind": "FILESYSTEM_DIRECTORY_CREATE",
-      "line": 2240,
+      "line": 2263,
       "migration_status": "MIGRATED_GUARDED",
       "owner": "TEST_INFRASTRUCTURE",
       "required_control": "M0_SAFE_TEST_LAUNCHER_V1",
@@ -537,7 +537,7 @@
       "root_ids": [
         "SCRIPT:scripts/run_safe_pytest.py"
       ],
-      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
+      "source_sha256": "4199e92e1cddfd9cae23491d923b33f49ab1cb55caa95f6727919a0091ec97a3",
       "statement_fingerprint": "63e777f1078a305b568ea180d1004bd9d2712391705c7d94f8e952fdce697c62",
       "target_namespace": "FIXED_TEST_LAB_RUNTIME"
     }
