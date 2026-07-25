@@ -12,7 +12,7 @@ from .database import connect_database, initialize_database
 from .pdf_import import PdfImportError, parse_pages as parse_import_pages, relative_path, validate_pages
 
 
-ALGORITHM_VERSION = "stage4_page_anchor_v1"
+ALGORITHM_VERSION = "stage4_page_anchor_v2_lines"
 DEFAULT_SPLIT_PAGES = (1090,)
 QUESTION_ANCHOR_RE = re.compile(r"^\s*(\d{1,3})[.．]\s*")
 MIN_STEM_TEXT_LENGTH = 20
@@ -83,20 +83,88 @@ def extract_page_text_blocks(pdf_path: Path, page_no: int) -> tuple[PageTextBloc
     with fitz.open(pdf_path) as doc:
         validate_pages((page_no,), doc.page_count)
         page = doc[page_no - 1]
-        blocks: list[PageTextBlock] = []
-        for block_index, block in enumerate(page.get_text("blocks")):
-            x0, y0, x1, y1, text, *_ = block
-            clean = normalize_block_text(text)
-            if clean:
-                blocks.append(
-                    PageTextBlock(
-                        page_no=page_no,
-                        block_index=block_index,
-                        bbox=(float(x0), float(y0), float(x1), float(y1)),
-                        text=clean,
-                    )
-                )
-        return tuple(blocks)
+        return _visual_text_lines(page, page_no=page_no)
+
+
+def _visual_text_lines(page: Any, *, page_no: int) -> tuple[PageTextBlock, ...]:
+    """Reassemble PDF words by visual baseline instead of coarse text blocks.
+
+    Mathematical PDFs often split one printed line into many font-specific
+    PyMuPDF blocks.  Question numbers then cease to be block prefixes even
+    though they are visibly at the start of a line.  A small vertical cluster
+    restores that line without attempting OCR or formula normalization.
+    """
+
+    words = [
+        (
+            float(item[0]),
+            float(item[1]),
+            float(item[2]),
+            float(item[3]),
+            str(item[4]),
+        )
+        for item in page.get_text("words", sort=True)
+        if len(item) >= 5 and normalize_block_text(str(item[4]))
+    ]
+    clusters: list[list[tuple[float, float, float, float, str]]] = []
+    for word in sorted(words, key=lambda item: (item[1], item[0], item[3], item[2])):
+        midpoint = (word[1] + word[3]) / 2
+        target: list[tuple[float, float, float, float, str]] | None = None
+        for cluster in reversed(clusters[-6:]):
+            cluster_y0 = min(item[1] for item in cluster)
+            cluster_y1 = max(item[3] for item in cluster)
+            cluster_midpoint = (cluster_y0 + cluster_y1) / 2
+            overlap = min(cluster_y1, word[3]) - max(cluster_y0, word[1])
+            minimum_height = min(
+                max(0.1, cluster_y1 - cluster_y0),
+                max(0.1, word[3] - word[1]),
+            )
+            if abs(midpoint - cluster_midpoint) <= 4.75 or overlap / minimum_height >= 0.35:
+                target = cluster
+                break
+        if target is None:
+            clusters.append([word])
+        else:
+            target.append(word)
+
+    result: list[PageTextBlock] = []
+    ordered = sorted(
+        clusters,
+        key=lambda cluster: (
+            min(item[1] for item in cluster),
+            min(item[0] for item in cluster),
+        ),
+    )
+    for block_index, cluster in enumerate(ordered):
+        positioned = sorted(cluster, key=lambda item: (item[0], item[1]))
+        pieces: list[str] = []
+        previous_x1: float | None = None
+        previous_height = 0.0
+        for x0, y0, x1, y1, text in positioned:
+            if previous_x1 is not None:
+                gap = x0 - previous_x1
+                if gap > max(2.0, previous_height * 0.18):
+                    pieces.append(" ")
+            pieces.append(text)
+            previous_x1 = max(previous_x1 or x1, x1)
+            previous_height = max(0.1, y1 - y0)
+        clean = normalize_block_text("".join(pieces))
+        if not clean:
+            continue
+        result.append(
+            PageTextBlock(
+                page_no=page_no,
+                block_index=block_index,
+                bbox=(
+                    min(item[0] for item in cluster),
+                    min(item[1] for item in cluster),
+                    max(item[2] for item in cluster),
+                    max(item[3] for item in cluster),
+                ),
+                text=clean,
+            )
+        )
+    return tuple(result)
 
 
 def _union_bbox(blocks: tuple[PageTextBlock, ...]) -> tuple[float, float, float, float]:

@@ -1,6 +1,6 @@
 {
   "binding_contract": "M0-WRITE-CONTROL-BINDINGS-V1",
-  "binding_count": 420,
+  "binding_count": 444,
   "bindings": [
     {
       "control_id": "M0_LOOPBACK_NETWORK_ALLOWLIST_V1",
@@ -1003,6 +1003,222 @@
     },
     {
       "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-9DD585E73A3B98FF2D7158BA",
+      "file": "app/m1_pipeline.py",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "89394194456af20abe29db0ecd5aaf7fdbedb0bbf025386b0d0670012a8389d4"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-764D2129C5A40D9EEB907416",
+      "file": "app/m1_pipeline.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "f241329fa5bcc0364579727559ccd3aa9f369e3d62186e4b549b0d98e74c6f18"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-5AB9354B919F982BDC252352",
+      "file": "app/m1_pipeline.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "42717ae14035c5faf7ab006a8d258f5bf0149f5aa38b871d1f10ea063dcb4ea0"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-D71DA61EE3FEC88C3C69B4FF",
+      "file": "app/m1_pipeline.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "b69a403cf2ee022fa75cf35bb9dcdfab64199f5c21e500b81291d4032de76072"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-BD891DDC8EA3229FF689949A",
+      "file": "app/m1_pipeline.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "bfdbcf55360cb5732384dfea3ca53e5f6e03db7c0800e40513ae549f7e2f399f"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-ED1021B11417D4ADAE30AF7E",
+      "file": "app/m1_pipeline.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "8103e398a40e6c437aa445b96b9a4f18f236cbd45c346c4da74a58955f0ac501"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-AF43EA1689F9E4C6011FE202",
+      "file": "app/m1_pipeline.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "54ba96aed3de5035a8b6e82c3529629609eb5258ac7c97665feb48a172e82fee"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-B95DEE6A3DA0B29BFE9ACB98",
+      "file": "app/m1_pipeline.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "9612ec057340cd3acd4293d5589a705cc4ae4c760d3a0e55ab5133168a7a8046"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-9DB190B47D40501D6E562B5C",
+      "file": "app/m1_pipeline.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "87b6dc8eee36b8f53fdc5c4511ddff9a4155c069808da39ada957d9fff6931bc"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-DB54864D33B1C25DA5DC8591",
+      "file": "app/m1_pipeline.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "cc7b84d8f627ca5d238fb096f438634d396d1ba9e6961f3f46abea70b2347505"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-7314618EA3F0E62726C93CB3",
+      "file": "app/m1_pipeline.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "ba49b0abaf7f26c2beb3ebfd0816196f79ed28a146ab744c7954f0fa0d45b108"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-2DF959954BE949102CB56ACF",
+      "file": "app/m1_pipeline.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "0f7ca99b13ad330811be2dfbbbd8e94e26a4708dc9ae365208cdb3cd0381dc28"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-3AC17191B133C8EDB46562BD",
+      "file": "app/m1_pipeline.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "f241329fa5bcc0364579727559ccd3aa9f369e3d62186e4b549b0d98e74c6f18"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-205D4871D3A3BA9A8C3BA714",
+      "file": "app/m1_pipeline.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "c6190911f2d175df0fb6143fff0d8d44b702e118a5c82aace3264d6f57404cc5"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-7CA22B42F456FC4EBCAA31CF",
+      "file": "app/m1_pipeline.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "64e5a7197ddd9efef451d93f7ca94d5e20d89f3198916b3b72388c0072fba2e2"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-E081067D1F6019E0A21AA32F",
+      "file": "app/m1_pipeline.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "1ede4a161b8beaa060677c4e15130f4d609ad826bf0b316fdc3f10982a4fdc48"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-1B9458A3827E49DD9E580228",
+      "file": "app/m1_pipeline.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "0f7ca99b13ad330811be2dfbbbd8e94e26a4708dc9ae365208cdb3cd0381dc28"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-C0C41EDD71642614E8BD1A04",
+      "file": "app/m1_pipeline.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "f241329fa5bcc0364579727559ccd3aa9f369e3d62186e4b549b0d98e74c6f18"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-CC02D44139ED08A2940555FF",
+      "file": "app/m1_pipeline.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "52c1be70ddffd0d17f38ab4851168cb005a32df260266f0ec00478f789fd14d4"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-753FFF4FE22060FAE64BF1AC",
+      "file": "app/m1_pipeline.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "0f7ca99b13ad330811be2dfbbbd8e94e26a4708dc9ae365208cdb3cd0381dc28"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-1505CAE5A31F3D77396DAD1D",
+      "file": "app/m1_pipeline.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "02516f7959062dd0c2bef6f0e9c438ed2a24e19d83fd51f598d5b419368941d0"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-6615E44741F852E0EB8177AB",
+      "file": "app/m1_pipeline.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "eb4804ad388a14f17b8929209373b15aae0675e3fa2d15b60e169d6e4ebddec4"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-53959DC66562C5A07EB171FD",
+      "file": "app/m1_pipeline.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "02516f7959062dd0c2bef6f0e9c438ed2a24e19d83fd51f598d5b419368941d0"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-5429C16B2A83359FC1F4C45F",
+      "file": "app/m1_pipeline.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "eb4804ad388a14f17b8929209373b15aae0675e3fa2d15b60e169d6e4ebddec4"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
       "entry_id": "WE-AE81C16970CFA3D720498611",
       "file": "app/pdf_import.py",
       "kind": "DATABASE_IMPLICIT_INITIALIZER",
@@ -1223,7 +1439,7 @@
       "file": "app/question_split.py",
       "kind": "DATABASE_GATEWAY",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "a7f0373d7028a82145c35fc06136ff99f98829a6788e9241c43c7578fcc1c796",
+      "source_sha256": "4cdb781d47788ac7ddc9cedd558a10fd849947f5a6bb4444f2852940140b2a34",
       "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6"
     },
     {
@@ -1232,7 +1448,7 @@
       "file": "app/question_split.py",
       "kind": "DATABASE_GATEWAY",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "a7f0373d7028a82145c35fc06136ff99f98829a6788e9241c43c7578fcc1c796",
+      "source_sha256": "4cdb781d47788ac7ddc9cedd558a10fd849947f5a6bb4444f2852940140b2a34",
       "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6"
     },
     {
@@ -1241,7 +1457,7 @@
       "file": "app/question_split.py",
       "kind": "SQLITE_MUTATION",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "a7f0373d7028a82145c35fc06136ff99f98829a6788e9241c43c7578fcc1c796",
+      "source_sha256": "4cdb781d47788ac7ddc9cedd558a10fd849947f5a6bb4444f2852940140b2a34",
       "statement_fingerprint": "e2af00e8e51e5e4bf6c72ae3f53f839762a97beca03e17c513d7695b6bf1dae3"
     },
     {
@@ -1250,7 +1466,7 @@
       "file": "app/question_split.py",
       "kind": "SQLITE_MUTATION",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "a7f0373d7028a82145c35fc06136ff99f98829a6788e9241c43c7578fcc1c796",
+      "source_sha256": "4cdb781d47788ac7ddc9cedd558a10fd849947f5a6bb4444f2852940140b2a34",
       "statement_fingerprint": "236f8677e4d84c2b699137cb36a198421bcbd22bf3a0cf7cc828fe4721a23832"
     },
     {
@@ -1259,7 +1475,7 @@
       "file": "app/question_split.py",
       "kind": "SQLITE_TRANSACTION",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "a7f0373d7028a82145c35fc06136ff99f98829a6788e9241c43c7578fcc1c796",
+      "source_sha256": "4cdb781d47788ac7ddc9cedd558a10fd849947f5a6bb4444f2852940140b2a34",
       "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976"
     },
     {
@@ -1268,7 +1484,7 @@
       "file": "app/question_split.py",
       "kind": "DATABASE_IMPLICIT_INITIALIZER",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "a7f0373d7028a82145c35fc06136ff99f98829a6788e9241c43c7578fcc1c796",
+      "source_sha256": "4cdb781d47788ac7ddc9cedd558a10fd849947f5a6bb4444f2852940140b2a34",
       "statement_fingerprint": "5e22f69c8bd773f5ce5c08f148616aa0113fa78c5060f9f0d824518e1adbd17d"
     },
     {
@@ -3527,7 +3743,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "NATIVE_API_BINDING",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "8e00c92a2fbc022c423f629826a1b3341fba020f93acd4c0e36d5d03d0c09875",
+      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
       "statement_fingerprint": "3474f55c4f2c4ff899bf534b507dc606ac6ca48c4335543ec7104e00d9f58fff"
     },
     {
@@ -3536,7 +3752,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "EXTERNAL_PROCESS",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "8e00c92a2fbc022c423f629826a1b3341fba020f93acd4c0e36d5d03d0c09875",
+      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
       "statement_fingerprint": "3bae3dc169ca6f62e914ee9e23e5e96473cdab49dfb58fd9402aa70921a5a7ab"
     },
     {
@@ -3545,7 +3761,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "EXTERNAL_PROCESS",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "8e00c92a2fbc022c423f629826a1b3341fba020f93acd4c0e36d5d03d0c09875",
+      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
       "statement_fingerprint": "c6083b9fc5d56593852805263998f951047036e3aceeaad14e38dd86cad70fec"
     },
     {
@@ -3554,7 +3770,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "EXTERNAL_PROCESS",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "8e00c92a2fbc022c423f629826a1b3341fba020f93acd4c0e36d5d03d0c09875",
+      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
       "statement_fingerprint": "7dd9222051d8d2f4cd1b2700fe9c7e2eb6fbb34fa87670438efe9a6ac7dbea73"
     },
     {
@@ -3563,7 +3779,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "EXTERNAL_PROCESS",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "8e00c92a2fbc022c423f629826a1b3341fba020f93acd4c0e36d5d03d0c09875",
+      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
       "statement_fingerprint": "713f2b33010d6c8bc094fa6a54412e54dc5a1e45f3e89a87edb65dd4e363817d"
     },
     {
@@ -3572,7 +3788,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "EXTERNAL_PROCESS",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "8e00c92a2fbc022c423f629826a1b3341fba020f93acd4c0e36d5d03d0c09875",
+      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
       "statement_fingerprint": "2cc7784b0a5e02e898c0632852598ebb4021ff2be70d7ebb38196afc46f42ee8"
     },
     {
@@ -3581,7 +3797,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "EXTERNAL_PROCESS",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "8e00c92a2fbc022c423f629826a1b3341fba020f93acd4c0e36d5d03d0c09875",
+      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
       "statement_fingerprint": "7780013ca247acef940f6ad9307d1a12740d569665d56c15c68627898ebe3593"
     },
     {
@@ -3590,7 +3806,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "NATIVE_API_BINDING",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "8e00c92a2fbc022c423f629826a1b3341fba020f93acd4c0e36d5d03d0c09875",
+      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
       "statement_fingerprint": "3474f55c4f2c4ff899bf534b507dc606ac6ca48c4335543ec7104e00d9f58fff"
     },
     {
@@ -3599,7 +3815,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "FILESYSTEM_FILE_WRITE",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "8e00c92a2fbc022c423f629826a1b3341fba020f93acd4c0e36d5d03d0c09875",
+      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
       "statement_fingerprint": "b52e873c261d950f8af3d41eec4cb399d86171f37018497920074e905dd686c7"
     },
     {
@@ -3608,7 +3824,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "FILESYSTEM_FILE_WRITE",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "8e00c92a2fbc022c423f629826a1b3341fba020f93acd4c0e36d5d03d0c09875",
+      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
       "statement_fingerprint": "e48d8030e1d5de7806bbe9ba0c309d02aa1fadb53729796d50f34eda70ca0f66"
     },
     {
@@ -3617,7 +3833,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "FILESYSTEM_FILE_WRITE",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "8e00c92a2fbc022c423f629826a1b3341fba020f93acd4c0e36d5d03d0c09875",
+      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
       "statement_fingerprint": "04f901d0661301ce7fc0835272521ac5aacd94c087c142c5f7cbb85c241d6bd0"
     },
     {
@@ -3626,7 +3842,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "NATIVE_API_BINDING",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "8e00c92a2fbc022c423f629826a1b3341fba020f93acd4c0e36d5d03d0c09875",
+      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
       "statement_fingerprint": "3474f55c4f2c4ff899bf534b507dc606ac6ca48c4335543ec7104e00d9f58fff"
     },
     {
@@ -3635,7 +3851,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "FILESYSTEM_FILE_WRITE",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "8e00c92a2fbc022c423f629826a1b3341fba020f93acd4c0e36d5d03d0c09875",
+      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
       "statement_fingerprint": "54e7aba638d2603cb3e93eee4f0f9111afa705bf7ae1b3d32efef877299836b7"
     },
     {
@@ -3644,7 +3860,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "NATIVE_API_BINDING",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "8e00c92a2fbc022c423f629826a1b3341fba020f93acd4c0e36d5d03d0c09875",
+      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
       "statement_fingerprint": "3474f55c4f2c4ff899bf534b507dc606ac6ca48c4335543ec7104e00d9f58fff"
     },
     {
@@ -3653,7 +3869,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "FILESYSTEM_FILE_WRITE",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "8e00c92a2fbc022c423f629826a1b3341fba020f93acd4c0e36d5d03d0c09875",
+      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
       "statement_fingerprint": "dd167905a49b370b62e99e3239bfc60d15f3c481c309a45adeab51b077931f1a"
     },
     {
@@ -3662,7 +3878,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "FILESYSTEM_FILE_WRITE",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "8e00c92a2fbc022c423f629826a1b3341fba020f93acd4c0e36d5d03d0c09875",
+      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
       "statement_fingerprint": "e44de1e95baf974631b5a28ab7851f3a9256a2b5159eba26d5e1efa1bb764c00"
     },
     {
@@ -3671,7 +3887,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "FILESYSTEM_FILE_WRITE",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "8e00c92a2fbc022c423f629826a1b3341fba020f93acd4c0e36d5d03d0c09875",
+      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
       "statement_fingerprint": "c08e0eaaa509384f20cdefa40e74244fd4ff647f5d7a398a28a5099a8f9fc9ab"
     },
     {
@@ -3680,7 +3896,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "FILESYSTEM_FILE_WRITE",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "8e00c92a2fbc022c423f629826a1b3341fba020f93acd4c0e36d5d03d0c09875",
+      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
       "statement_fingerprint": "54dea0061a31634a25398b4c2ea17ae98546d3118c53394b4fcdba388c2fbf2c"
     },
     {
@@ -3689,7 +3905,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "FILESYSTEM_FILE_WRITE",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "8e00c92a2fbc022c423f629826a1b3341fba020f93acd4c0e36d5d03d0c09875",
+      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
       "statement_fingerprint": "65146e1ad0de15c07406bb37e3cd62e2470db610113b13ea2c5f7462cabda0ab"
     },
     {
@@ -3698,7 +3914,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "FILESYSTEM_FILE_WRITE",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "8e00c92a2fbc022c423f629826a1b3341fba020f93acd4c0e36d5d03d0c09875",
+      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
       "statement_fingerprint": "cc2d420e2d33e95af54fb7647559f93c5d71fc8d2949e4b67e5495226ead1c9f"
     },
     {
@@ -3707,7 +3923,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "FILESYSTEM_FILE_WRITE",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "8e00c92a2fbc022c423f629826a1b3341fba020f93acd4c0e36d5d03d0c09875",
+      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
       "statement_fingerprint": "7e64ca07120243d21cb9ad0e836c566965cfde1adcf2f29c072ed36bc9e49df5"
     },
     {
@@ -3716,7 +3932,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "EXTERNAL_PROCESS",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "8e00c92a2fbc022c423f629826a1b3341fba020f93acd4c0e36d5d03d0c09875",
+      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
       "statement_fingerprint": "66f3a7bba0b6feef64c69e339fbfbca3e0ea8dc01b54b97847247c87457bd33e"
     },
     {
@@ -3725,7 +3941,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "FILESYSTEM_DIRECTORY_CREATE",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "8e00c92a2fbc022c423f629826a1b3341fba020f93acd4c0e36d5d03d0c09875",
+      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
       "statement_fingerprint": "4258319616e9c4b20dbb6e8f951ca7c29563ab46b47f42380aed4b6228cd75d3"
     },
     {
@@ -3734,7 +3950,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "FILESYSTEM_DIRECTORY_CREATE",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "8e00c92a2fbc022c423f629826a1b3341fba020f93acd4c0e36d5d03d0c09875",
+      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
       "statement_fingerprint": "d76fa67834f025e8ba1ea34a5a15038c09007f8bd789097f763c139a5ac87f20"
     },
     {
@@ -3743,7 +3959,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "FILESYSTEM_DIRECTORY_CREATE",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "8e00c92a2fbc022c423f629826a1b3341fba020f93acd4c0e36d5d03d0c09875",
+      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
       "statement_fingerprint": "3102f577fe457871c6e93b649467cd741570c6e5695ab61120e0be7a8b36c316"
     },
     {
@@ -3752,7 +3968,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "FILESYSTEM_DIRECTORY_CREATE",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "8e00c92a2fbc022c423f629826a1b3341fba020f93acd4c0e36d5d03d0c09875",
+      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
       "statement_fingerprint": "2936544fb8e87590fc4c946250f06759d40a5fa3ca655748ed4a2f5bb15b3a08"
     },
     {
@@ -3761,7 +3977,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "FILESYSTEM_DIRECTORY_CREATE",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "8e00c92a2fbc022c423f629826a1b3341fba020f93acd4c0e36d5d03d0c09875",
+      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
       "statement_fingerprint": "ebfc35da1fcba9b218e25759adeb31427b05fcb1b535c559884234c0dd3c9e7c"
     },
     {
@@ -3770,7 +3986,7 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "FILESYSTEM_DIRECTORY_CREATE",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "8e00c92a2fbc022c423f629826a1b3341fba020f93acd4c0e36d5d03d0c09875",
+      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
       "statement_fingerprint": "983185b355c549db0471769390c377bf2f8c85375cab5de31e860d2a3f2c7ccf"
     },
     {
@@ -3779,11 +3995,11 @@
       "file": "scripts/run_safe_pytest.py",
       "kind": "FILESYSTEM_DIRECTORY_CREATE",
       "migration_status": "MIGRATED_GUARDED",
-      "source_sha256": "8e00c92a2fbc022c423f629826a1b3341fba020f93acd4c0e36d5d03d0c09875",
+      "source_sha256": "4a184439a57a7342d0c909b55db83e924ce06f171445a050d5c1d86d3078649e",
       "statement_fingerprint": "63e777f1078a305b568ea180d1004bd9d2712391705c7d94f8e952fdce697c62"
     }
   ],
-  "bindings_digest_sha256": "26cf7d96c62bbc365ef193c035c7147342989eaebd70a505c360d46fa0fb84f7",
+  "bindings_digest_sha256": "e3e375adadadef0dc2d406fd4f6ea716ad1478b4f5a1e392508cb78619901175",
   "scanner_version": "M0-S6-STATIC-AUDIT-V21",
   "schema_version": "1.0"
 }

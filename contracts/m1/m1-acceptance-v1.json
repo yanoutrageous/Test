@@ -1,0 +1,82 @@
+{
+  "accepted_revision": {
+    "artifact_manifest": {
+      "path": "data/derived/papers/M1-REAL-PIPELINE/PAPER-YANYAN-202605/REV-002/artifact-manifest.json",
+      "sha256": "17c6fc82f16803e0215490f0870b181770d46dd05a1692c7c90ff9481f06d869"
+    },
+    "database": {
+      "bytes": 1961984,
+      "path": "data/db/versions/STATE-M1-YANYAN-REV-002/question_bank.sqlite3",
+      "sha256": "e881f78aab25c6e33376ecdb07d0fd06067d1537e637f59b4752cab45e47ba6f",
+      "state_id": "STATE-M1-YANYAN-REV-002"
+    },
+    "formal_pdf": {
+      "bytes": 384634,
+      "path": "data/derived/papers/M1-REAL-PIPELINE/PAPER-YANYAN-202605/REV-002/formal/student-paper.pdf",
+      "sha256": "f7b374c5afe4adf86d285a6f7d20b6d74a0a2ec3f31850186273148aa17cc7aa"
+    },
+    "paper_revision_id": "PAPER-YANYAN-202605-REV-002",
+    "template": {
+      "path": "data/templates/A4-SOURCE-COMPOSITION/REV-002/template.json",
+      "revision_id": "TEMPLATE-A4-SOURCE-COMPOSE-REV-002",
+      "sha256": "b3693be37c3ef32318a741c1a714a2a4e901076d833b76a4e868d02acb78e554"
+    }
+  },
+  "checks": {
+    "activity_database_unchanged": true,
+    "answer_complete_count": 19,
+    "approved_question_count": 19,
+    "declared_total_points": 150,
+    "failure_route_no_pollution": true,
+    "foreign_key_violations": 0,
+    "formal_pdf_byte_identical_to_source": true,
+    "formal_pdf_differing_channel_samples": 0,
+    "formal_pdf_page_count": 4,
+    "integrity_check": "ok",
+    "manual_visual_pages_1_and_4_confirmed": true,
+    "private_use_character_count": 0,
+    "question_count": 19,
+    "repeat_stable": true,
+    "silent_font_substitution_count": 0,
+    "source_font_count": 10,
+    "source_fonts_all_embedded": true,
+    "ui_review_event_count": 19,
+    "ui_restart_list_detail_crop_status": 200
+  },
+  "contract_id": "M1-ACCEPTANCE-V1",
+  "decision": "ACCEPTED",
+  "evidence": {
+    "core_gate": {
+      "junit_sha256": "1f91720ab28bae42bd98d1b69ef7117478ebfcfa5d9c6a6609d751433e93cdc7",
+      "passed": 61,
+      "run_id": "RUN-20260725-M1-CORE-154"
+    },
+    "stage_gate": {
+      "junit_sha256": "cfee2ecef07db0d85f30565e147395b6a562b12143fcae4721097c513035a716",
+      "passed": 466,
+      "run_id": "RUN-20260725-M1-GATE-157",
+      "run_result_sha256": "2407c1b44837e7183ca958a4221593bba6eb3b2b6730be769bc841510295967e"
+    },
+    "real_flow": {
+      "path": "tmp/jobs/INTERNAL/JOB-M1-REAL-FLOW-EVIDENCE-R2-20260725/m1-real-flow-evidence.json",
+      "run_id": "RUN-20260725-M1-REAL-PIPELINE-R2-153",
+      "sha256": "06e9578c200c97b82b87f1bafbde0a01f5ba090d358946ad567ad8f6602bc01e"
+    },
+    "visual_pages": [
+      {
+        "page": 1,
+        "sha256": "0de986514ba09f976af6eeb8e24bea548c656e54b397bc53cd3d9d66ec77a02b"
+      },
+      {
+        "page": 4,
+        "sha256": "245342f6709d2f7004bcba923a9e542105a538340f83405fb84b3e26fbefd909"
+      }
+    ]
+  },
+  "limitations": [
+    "V1 formal PDF uses byte-preserving source-page composition and is not editable reflow.",
+    "This real acceptance slice covers one complete A4 paper; target-set batch expansion remains later delivery work.",
+    "The source contains no cross-page question, so cross-page support is contract-tested but not exercised by this real paper."
+  ],
+  "schema_version": "1.0"
+}

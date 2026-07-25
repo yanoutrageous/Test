@@ -31,6 +31,7 @@ data/assets/
 data/db/
 data/originals/
 data/derived/
+data/templates/
 data/indexes/
 data/quarantine/
 data/**/*.sqlite

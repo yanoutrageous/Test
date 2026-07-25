@@ -50,12 +50,29 @@ _AUDITED_INDEXED_CALLS = frozenset(
         ("app/export_quality.py", "app.export_quality._render_stage12_report", "c8ed9a43925d451f0b5579a270b8ba82b1783037b2a9d341f450e87b9eefbdb8"),
         ("app/export_quality.py", "app.export_quality._render_stage12_report", "e3425abfab8c3a52c0f751a3b1d63a21984b48dea3a310ad2bf54d29bffeeb55"),
         ("app/health.py", "app.health.check_sqlite", "69fff54d09cbb7d3929c377db944c875cffd0c105fb53679760bbb9f6462374c"),
+        # M1 source parsing/render inspection uses PyMuPDF pages reached through
+        # document indexing plus regex/string and collection operations.  These
+        # exact calls are read-only or in-memory; any source edit drifts closed.
+        ("app/m1_pipeline.py", "app.m1_pipeline.parse_reference_answers", "4bd970e7564442e8a5dc79a69cff7bd8692e921ec8232864f42cb66d28847bbc"),
+        ("app/m1_pipeline.py", "app.m1_pipeline._marker_parts", "c34ab47d424f85ebe3c112f60205a7fbb550cd1d9d5ddd5bc01a3e5ec9c7ab56"),
+        ("app/m1_pipeline.py", "app.m1_pipeline._marker_parts", "08fa289d9c64fe946e7b22e7159fc6716709aee2ba30efdd43f1b265ed9d5b3c"),
+        ("app/m1_pipeline.py", "app.m1_pipeline.render_source_assets", "737fcddc44829e5a08240bcfc4f0da24d10c5f94318e9755f56a0be439f56219"),
+        ("app/m1_pipeline.py", "app.m1_pipeline.render_source_assets", "b48750f1aa4ddfcb46040affdbeca962d1b2f6ddbdab2f27c82df8c22e912acf"),
+        ("app/m1_pipeline.py", "app.m1_pipeline.create_candidate_database", "ac827205f0af8269a53a58e3ffac698fc6eb05fcc765faf0569a785f43f9c4e6"),
+        ("app/m1_pipeline.py", "app.m1_pipeline.create_candidate_database", "c7a9c8eafc600e1ea9796d87e551265bd7342c975cc97e877922bbbebdad456b"),
+        ("app/m1_pipeline.py", "app.m1_pipeline._parse_choice_content", "6bbcc55d9f54b6026e2874e6b35eac1854e1437245667404e34d2639a9a57bcc"),
+        ("app/m1_pipeline.py", "app.m1_pipeline._parse_choice_content", "1165533cc781fc3e2b880f4fa97b89160f92fc63c20d6f7ddfc2f7fc0a1ec2fa"),
+        ("app/m1_pipeline.py", "app.m1_pipeline._parse_choice_content", "2858d8895fe9eebf457b14f394c2288e266e557cfcc0a03625d19170ca3b4c39"),
+        ("app/m1_pipeline.py", "app.m1_pipeline._parse_choice_content", "99342fe48f8acb91372d8433584c8dcd1d45989fba0a77bb24beeddc232c0403"),
+        ("app/m1_pipeline.py", "app.m1_pipeline.inspect_formal_pdf", "c1d2bc8accde456d3a80f07c63a705af8ce2a56b61ef490f08edbb976db6d293"),
+        ("app/m1_pipeline.py", "app.m1_pipeline.inspect_formal_pdf", "ba56ff83bf8822dfcd272c9eb4156bbf31958d4ab43de4e1356a6c498b84cb9d"),
+        ("app/m1_pipeline.py", "app.m1_pipeline.build_formal_revision", "196c47b8447d0ed8a8fe8f1a7c806bd09a06cae31f36bb01a66c46d70bb2fd9b"),
+        ("app/m1_pipeline.py", "app.m1_pipeline.build_formal_revision", "bb8f8abb4c852ad5b109b8527a3decb758d4f4078743271fe6c6705698c48666"),
         ("app/pdf_import.py", "app.pdf_import.build_paper_code", "8d49edced4935578aaad294e6558fd2044c7603f2eefd2c9f10f8f69f953f6b6"),
         ("app/pdf_import.py", "app.pdf_import.render_pdf_pages", "ca9b3303b86d492168981dc7d9d34210b4f45d9e732280fcca469d8657573f01"),
         ("app/pdf_import.py", "app.pdf_import.render_pdf_pages", "ad9b3670ba3c12455bc8689031d8da09d4da45bd98645782610cb37d17146e78"),
         ("app/question_assets.py", "app.question_assets.crop_question_assets", "43569ee06df8a7fc8875ec3f15a3cb2d3d0583ae4941fb94e72b99eac9f8171a"),
         ("app/question_assets.py", "app.question_assets.crop_question_assets", "ad9b3670ba3c12455bc8689031d8da09d4da45bd98645782610cb37d17146e78"),
-        ("app/question_split.py", "app.question_split.extract_page_text_blocks", "1aef377320dac5bfadb0aac1281fdacb17d8c36ac214ddcd92ed1e69aa05edc3"),
         ("app/safety/audit_events.py", "app.safety.audit_events.audit_hmac_key_id", "c78ca38e66dbcf5cb8df482b19dead92b2a003dd04d5b48bc239e6d3d3606cda"),
         ("app/safety/copy_operation.py", "app.safety.copy_operation._TestLocalCopyOperation._require_worst_case_publish_budget", "5df82d08868214f698faeae1893fcb2fb04455b44bd2c2d9f42067355fba434d"),
         ("app/safety/copy_operation.py", "app.safety.copy_operation._TestLocalCopyOperation._target_evidence", "1f31e4f650e22f2186a41f544e55ad25849db6455f5ffb0cf0ec4f8cefe60590"),
@@ -272,6 +289,7 @@ _AUDITED_CAPABILITY_STORES = frozenset(
 
 _AUDITED_PARAMETER_CALLS = frozenset(
     {
+        ("app/question_split.py", "app.question_split._visual_text_lines", "dfdb435bb749ff91311d7215ef9d7259bb12bd57ea5cbed71804c3219f7c34b5"),
         ("app/workspace_guard.py", "app.workspace_guard._coerce_path", "1fd0cd7c0f714054724e7666ad0930fe334dc10a1397ad8384ebd1b251ead795"),
         ("app/workspace_guard.py", "app.workspace_guard._coerce_path", "e1bd4ec60fd3b48342eb2295dd720a68b477d2b22f08640bb0007adc247706c9"),
         ("app/workspace_guard.py", "app.workspace_guard._validate_lexical.reject", "63515c16a802b7c25d990824e3aa49c8b9f2fcf81e6fc30f2864fedfe53c9ed2"),

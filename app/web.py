@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Iterable
 from pathlib import Path
 
 from flask import (
@@ -64,6 +65,7 @@ from .structured_render import (
     render_structured_preview_html,
     structured_content_json_text,
 )
+from .safety.workspace_io import WorkspaceIOError, get_workspace_io
 
 
 BASKET_SESSION_KEY = "paper_basket_question_ids"
@@ -1140,6 +1142,7 @@ def create_app(
     *,
     db_path: str | Path | None = None,
     project_root: str | Path | None = None,
+    asset_roots: Iterable[str | Path] | None = None,
 ) -> Flask:
     app = Flask(__name__)
     paths = (
@@ -1151,6 +1154,28 @@ def create_app(
     app.config["DB_PATH"] = Path(db_path) if db_path is not None else paths.db_path
     app.config["PROJECT_ROOT"] = paths.project_root
     app.config["ASSETS_DIR"] = paths.assets_dir
+    configured_asset_roots = (
+        [Path(value) for value in asset_roots]
+        if asset_roots is not None
+        else [paths.assets_dir, paths.project_root / "data" / "derived"]
+    )
+    project_root_path = paths.project_root.resolve()
+    validated_asset_roots: list[Path] = []
+    for configured_root in configured_asset_roots:
+        candidate = (
+            configured_root
+            if configured_root.is_absolute()
+            else paths.project_root / configured_root
+        ).resolve()
+        try:
+            candidate.relative_to(project_root_path)
+        except ValueError as exc:
+            raise ValueError("asset roots must stay inside the project root") from exc
+        if candidate.exists():
+            candidate = get_workspace_io().validate_directory_path(candidate)
+        if candidate not in validated_asset_roots:
+            validated_asset_roots.append(candidate)
+    app.config["ASSET_ROOTS"] = tuple(validated_asset_roots)
 
     @app.get("/health")
     def health():
@@ -1472,14 +1497,26 @@ def create_app(
     @app.get("/assets/<path:relative_path>")
     def asset_file(relative_path: str):
         project_root_path = Path(app.config["PROJECT_ROOT"]).resolve()
-        assets_root = Path(app.config["ASSETS_DIR"]).resolve()
         target = (project_root_path / relative_path).resolve()
-        try:
-            target.relative_to(assets_root)
-        except ValueError:
+        if not any(
+            _is_path_below(target, Path(root))
+            for root in app.config["ASSET_ROOTS"]
+        ):
             abort(404)
         if not target.is_file():
+            abort(404)
+        try:
+            target = get_workspace_io().validate_read_file_path(target)
+        except WorkspaceIOError:
             abort(404)
         return send_file(target)
 
     return app
+
+
+def _is_path_below(path: Path, root: Path) -> bool:
+    try:
+        path.relative_to(root.resolve())
+    except ValueError:
+        return False
+    return True

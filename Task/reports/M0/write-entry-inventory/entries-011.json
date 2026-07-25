@@ -1,7 +1,679 @@
 {
-  "chunk_digest_sha256": "7e2cbf7ff910c5834e80066fa2deee73ac17af576fde94f7540eeca35fa1d2c7",
+  "chunk_digest_sha256": "d6b8fb9ab437b5887dd83981935ca658531eed95c413d46ba9c55f01efd402fa",
   "chunk_index": 11,
   "entries": [
+    {
+      "call_chain": [
+        "<sql-script>"
+      ],
+      "callee": "SQL:CREATE",
+      "column": 0,
+      "control_binding_id": "WE-431D73CC6B33B69E6B776575",
+      "detail": "schema statement CREATE",
+      "end_column": 6,
+      "end_line": 547,
+      "entry_id": "WE-431D73CC6B33B69E6B776575",
+      "file": "app/schema.sql",
+      "function": "<sql-script>",
+      "input_source": "STATIC_SOURCE_DECLARATION",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "line": 547,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "MODULE-LOAD"
+      ],
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "e756fb5209f8ba87d2110efaa5f8591cf7ca318ffd35c4233b852695435e4048",
+      "target_namespace": "STATIC_SCHEMA_CATALOG"
+    },
+    {
+      "call_chain": [
+        "<sql-script>"
+      ],
+      "callee": "SQL:DELETE",
+      "column": 0,
+      "control_binding_id": "WE-3965DB370414D912ECAEAC10",
+      "detail": "schema statement DELETE",
+      "end_column": 6,
+      "end_line": 549,
+      "entry_id": "WE-3965DB370414D912ECAEAC10",
+      "file": "app/schema.sql",
+      "function": "<sql-script>",
+      "input_source": "STATIC_SOURCE_DECLARATION",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "line": 549,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "MODULE-LOAD"
+      ],
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "c3e17119b260c26ce9459e363d9a35fc001a3555a07edf7f18c5e9d1df45f23f",
+      "target_namespace": "STATIC_SCHEMA_CATALOG"
+    },
+    {
+      "call_chain": [
+        "<sql-script>"
+      ],
+      "callee": "SQL:DELETE",
+      "column": 0,
+      "control_binding_id": "WE-3A61A3E89289EC39AE640933",
+      "detail": "schema statement DELETE",
+      "end_column": 6,
+      "end_line": 550,
+      "entry_id": "WE-3A61A3E89289EC39AE640933",
+      "file": "app/schema.sql",
+      "function": "<sql-script>",
+      "input_source": "STATIC_SOURCE_DECLARATION",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "line": 550,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "MODULE-LOAD"
+      ],
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "a51dabcc8c6d993a37465ddcd416a1ca13849ae19429aa7dea05d6dccc2b598b",
+      "target_namespace": "STATIC_SCHEMA_CATALOG"
+    },
+    {
+      "call_chain": [
+        "<sql-script>"
+      ],
+      "callee": "SQL:CREATE",
+      "column": 0,
+      "control_binding_id": "WE-0BED7C1A782395E61A6886B6",
+      "detail": "schema statement CREATE",
+      "end_column": 6,
+      "end_line": 592,
+      "entry_id": "WE-0BED7C1A782395E61A6886B6",
+      "file": "app/schema.sql",
+      "function": "<sql-script>",
+      "input_source": "STATIC_SOURCE_DECLARATION",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "line": 592,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "MODULE-LOAD"
+      ],
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "336b9252cb88d8c12589341feaa518d71ab748eafc7d240a2c4956cb98442954",
+      "target_namespace": "STATIC_SCHEMA_CATALOG"
+    },
+    {
+      "call_chain": [
+        "<sql-script>"
+      ],
+      "callee": "SQL:CREATE",
+      "column": 0,
+      "control_binding_id": "WE-ED272640923F340CCA191CBC",
+      "detail": "schema statement CREATE",
+      "end_column": 6,
+      "end_line": 594,
+      "entry_id": "WE-ED272640923F340CCA191CBC",
+      "file": "app/schema.sql",
+      "function": "<sql-script>",
+      "input_source": "STATIC_SOURCE_DECLARATION",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "line": 594,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "MODULE-LOAD"
+      ],
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "5311ddae710c8efc1a625ccc453eb9b1f885fa0ce2dd5d47134047fd9f55d25d",
+      "target_namespace": "STATIC_SCHEMA_CATALOG"
+    },
+    {
+      "call_chain": [
+        "<sql-script>"
+      ],
+      "callee": "SQL:CREATE",
+      "column": 0,
+      "control_binding_id": "WE-5BBE24FF246B311FE0556401",
+      "detail": "schema statement CREATE",
+      "end_column": 6,
+      "end_line": 596,
+      "entry_id": "WE-5BBE24FF246B311FE0556401",
+      "file": "app/schema.sql",
+      "function": "<sql-script>",
+      "input_source": "STATIC_SOURCE_DECLARATION",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "line": 596,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "MODULE-LOAD"
+      ],
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "50205b99bddfbdceea7c74b0ebc01aa7ee9430672dda9c5a1cf0536665d7122e",
+      "target_namespace": "STATIC_SCHEMA_CATALOG"
+    },
+    {
+      "call_chain": [
+        "<sql-script>"
+      ],
+      "callee": "SQL:CREATE",
+      "column": 0,
+      "control_binding_id": "WE-E215A25543A323F463CA1227",
+      "detail": "schema statement CREATE",
+      "end_column": 6,
+      "end_line": 599,
+      "entry_id": "WE-E215A25543A323F463CA1227",
+      "file": "app/schema.sql",
+      "function": "<sql-script>",
+      "input_source": "STATIC_SOURCE_DECLARATION",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "line": 599,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "MODULE-LOAD"
+      ],
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "8e356e0a2b06befbaf6f70a5bf198e539cebdb344fd5b0324e933900d65fd3f0",
+      "target_namespace": "STATIC_SCHEMA_CATALOG"
+    },
+    {
+      "call_chain": [
+        "<sql-script>"
+      ],
+      "callee": "SQL:DELETE",
+      "column": 0,
+      "control_binding_id": "WE-D6CCB5BF1740D6BB4A7FF66A",
+      "detail": "schema statement DELETE",
+      "end_column": 6,
+      "end_line": 601,
+      "entry_id": "WE-D6CCB5BF1740D6BB4A7FF66A",
+      "file": "app/schema.sql",
+      "function": "<sql-script>",
+      "input_source": "STATIC_SOURCE_DECLARATION",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "line": 601,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "MODULE-LOAD"
+      ],
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "44a1e00ea55c77ffb6d80465beefe5332a92de8910d80af07193ef6ab0820a9f",
+      "target_namespace": "STATIC_SCHEMA_CATALOG"
+    },
+    {
+      "call_chain": [
+        "<sql-script>"
+      ],
+      "callee": "SQL:CREATE",
+      "column": 0,
+      "control_binding_id": "WE-CC40CDB69635B15016828297",
+      "detail": "schema statement CREATE",
+      "end_column": 6,
+      "end_line": 616,
+      "entry_id": "WE-CC40CDB69635B15016828297",
+      "file": "app/schema.sql",
+      "function": "<sql-script>",
+      "input_source": "STATIC_SOURCE_DECLARATION",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "line": 616,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "MODULE-LOAD"
+      ],
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "595612272a3ea255253db1630fbf01971e2391f605a11a7834fc6d0330ca2fef",
+      "target_namespace": "STATIC_SCHEMA_CATALOG"
+    },
+    {
+      "call_chain": [
+        "<sql-script>"
+      ],
+      "callee": "SQL:CREATE",
+      "column": 0,
+      "control_binding_id": "WE-D8E13C45BB1D9D420D9B4AE3",
+      "detail": "schema statement CREATE",
+      "end_column": 6,
+      "end_line": 617,
+      "entry_id": "WE-D8E13C45BB1D9D420D9B4AE3",
+      "file": "app/schema.sql",
+      "function": "<sql-script>",
+      "input_source": "STATIC_SOURCE_DECLARATION",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "line": 617,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "MODULE-LOAD"
+      ],
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "9789430a75d487e4819c78f3f93e65a4522aece920254eddf3a9633a85244c45",
+      "target_namespace": "STATIC_SCHEMA_CATALOG"
+    },
+    {
+      "call_chain": [
+        "<sql-script>"
+      ],
+      "callee": "SQL:CREATE",
+      "column": 0,
+      "control_binding_id": "WE-C5ED6D33A5574DE62CF2A867",
+      "detail": "schema statement CREATE",
+      "end_column": 6,
+      "end_line": 618,
+      "entry_id": "WE-C5ED6D33A5574DE62CF2A867",
+      "file": "app/schema.sql",
+      "function": "<sql-script>",
+      "input_source": "STATIC_SOURCE_DECLARATION",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "line": 618,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "MODULE-LOAD"
+      ],
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "e7c048b294fdea360eb150086d39a624cfb16bb6d0a725a8cd27d053ab185fc3",
+      "target_namespace": "STATIC_SCHEMA_CATALOG"
+    },
+    {
+      "call_chain": [
+        "<sql-script>"
+      ],
+      "callee": "SQL:CREATE",
+      "column": 0,
+      "control_binding_id": "WE-91C4B2E5C5D4A664AE77323A",
+      "detail": "schema statement CREATE",
+      "end_column": 6,
+      "end_line": 619,
+      "entry_id": "WE-91C4B2E5C5D4A664AE77323A",
+      "file": "app/schema.sql",
+      "function": "<sql-script>",
+      "input_source": "STATIC_SOURCE_DECLARATION",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "line": 619,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "MODULE-LOAD"
+      ],
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "dcbc90f3d2a5238297a36116f17a6e10bf23e4ac6d33dd08aef2df332501876c",
+      "target_namespace": "STATIC_SCHEMA_CATALOG"
+    },
+    {
+      "call_chain": [
+        "<sql-script>"
+      ],
+      "callee": "SQL:CREATE",
+      "column": 0,
+      "control_binding_id": "WE-809C24DB647D74E9172586BA",
+      "detail": "schema statement CREATE",
+      "end_column": 6,
+      "end_line": 622,
+      "entry_id": "WE-809C24DB647D74E9172586BA",
+      "file": "app/schema.sql",
+      "function": "<sql-script>",
+      "input_source": "STATIC_SOURCE_DECLARATION",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "line": 622,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "MODULE-LOAD"
+      ],
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "d53a7cceafd5f37d678a601cea120b6b0b6287afed7f0fc3cb8358df0d260f37",
+      "target_namespace": "STATIC_SCHEMA_CATALOG"
+    },
+    {
+      "call_chain": [
+        "<sql-script>"
+      ],
+      "callee": "SQL:DELETE",
+      "column": 0,
+      "control_binding_id": "WE-28923D9DA01AAF3FB6911B13",
+      "detail": "schema statement DELETE",
+      "end_column": 6,
+      "end_line": 623,
+      "entry_id": "WE-28923D9DA01AAF3FB6911B13",
+      "file": "app/schema.sql",
+      "function": "<sql-script>",
+      "input_source": "STATIC_SOURCE_DECLARATION",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "line": 623,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "MODULE-LOAD"
+      ],
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "2857bebb4f73dce23f247daf036bfdf8f261cd40c8e31571c3d59270ffe0909c",
+      "target_namespace": "STATIC_SCHEMA_CATALOG"
+    },
+    {
+      "call_chain": [
+        "<sql-script>"
+      ],
+      "callee": "SQL:CREATE",
+      "column": 0,
+      "control_binding_id": "WE-32E72BDBA06C31527105F9CA",
+      "detail": "schema statement CREATE",
+      "end_column": 6,
+      "end_line": 634,
+      "entry_id": "WE-32E72BDBA06C31527105F9CA",
+      "file": "app/schema.sql",
+      "function": "<sql-script>",
+      "input_source": "STATIC_SOURCE_DECLARATION",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "line": 634,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "MODULE-LOAD"
+      ],
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "596fd71e205a803bcae25691f7668ffb45f02d2eb8a4457443fd965913458e5b",
+      "target_namespace": "STATIC_SCHEMA_CATALOG"
+    },
+    {
+      "call_chain": [
+        "<sql-script>"
+      ],
+      "callee": "SQL:CREATE",
+      "column": 0,
+      "control_binding_id": "WE-76550B70CA0F2B7E8533BF0D",
+      "detail": "schema statement CREATE",
+      "end_column": 6,
+      "end_line": 648,
+      "entry_id": "WE-76550B70CA0F2B7E8533BF0D",
+      "file": "app/schema.sql",
+      "function": "<sql-script>",
+      "input_source": "STATIC_SOURCE_DECLARATION",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "line": 648,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "MODULE-LOAD"
+      ],
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "eaf26ec7ce9816c0e127ad8f608f1a7e4ab84db07825c56fbf210e6b4ee5477b",
+      "target_namespace": "STATIC_SCHEMA_CATALOG"
+    },
+    {
+      "call_chain": [
+        "<sql-script>"
+      ],
+      "callee": "SQL:INSERT",
+      "column": 0,
+      "control_binding_id": "WE-183D4F1C6F41660994BC263A",
+      "detail": "schema statement INSERT",
+      "end_column": 6,
+      "end_line": 649,
+      "entry_id": "WE-183D4F1C6F41660994BC263A",
+      "file": "app/schema.sql",
+      "function": "<sql-script>",
+      "input_source": "STATIC_SOURCE_DECLARATION",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "line": 649,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "MODULE-LOAD"
+      ],
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "f21d292bdfed03c784a06f0063300b7e30f13693a0ffe39497fc76f633cd1145",
+      "target_namespace": "STATIC_SCHEMA_CATALOG"
+    },
+    {
+      "call_chain": [
+        "<sql-script>"
+      ],
+      "callee": "SQL:BEGIN",
+      "column": 0,
+      "control_binding_id": "WE-4A3B4B2ECAACF38EF1626F57",
+      "detail": "schema statement BEGIN",
+      "end_column": 5,
+      "end_line": 650,
+      "entry_id": "WE-4A3B4B2ECAACF38EF1626F57",
+      "file": "app/schema.sql",
+      "function": "<sql-script>",
+      "input_source": "DATABASE_CONNECTION_AND_CALLER_DATA",
+      "kind": "SQLITE_TRANSACTION",
+      "line": 650,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "MODULE-LOAD"
+      ],
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "66e6552bdd888ca70ea747fa34a922ee2dddbeda23bad38c1994cbf9b215ccac",
+      "target_namespace": "STATIC_SCHEMA_CATALOG"
+    },
+    {
+      "call_chain": [
+        "<sql-script>"
+      ],
+      "callee": "SQL:INSERT",
+      "column": 0,
+      "control_binding_id": "WE-81A328A429776DB110D96BB6",
+      "detail": "schema statement INSERT",
+      "end_column": 6,
+      "end_line": 651,
+      "entry_id": "WE-81A328A429776DB110D96BB6",
+      "file": "app/schema.sql",
+      "function": "<sql-script>",
+      "input_source": "STATIC_SOURCE_DECLARATION",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "line": 651,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "MODULE-LOAD"
+      ],
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "671c67671b3dd5940ff3947d86694a148744055f1e81fabbbaa1cec1f0271079",
+      "target_namespace": "STATIC_SCHEMA_CATALOG"
+    },
+    {
+      "call_chain": [
+        "<sql-script>"
+      ],
+      "callee": "SQL:INSERT",
+      "column": 0,
+      "control_binding_id": "WE-EE479D12F70F985D695F1E40",
+      "detail": "schema statement INSERT",
+      "end_column": 6,
+      "end_line": 674,
+      "entry_id": "WE-EE479D12F70F985D695F1E40",
+      "file": "app/schema.sql",
+      "function": "<sql-script>",
+      "input_source": "STATIC_SOURCE_DECLARATION",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "line": 674,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "MODULE-LOAD"
+      ],
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "ee6d1f3a4b18cc79fed22b4b929717a1d01eda7a7a9565d0061eae5ea5c60d29",
+      "target_namespace": "STATIC_SCHEMA_CATALOG"
+    },
+    {
+      "call_chain": [
+        "<sql-script>"
+      ],
+      "callee": "SQL:END",
+      "column": 0,
+      "control_binding_id": "WE-8E9E1DA6A4910D52D7A962B9",
+      "detail": "schema statement END",
+      "end_column": 3,
+      "end_line": 696,
+      "entry_id": "WE-8E9E1DA6A4910D52D7A962B9",
+      "file": "app/schema.sql",
+      "function": "<sql-script>",
+      "input_source": "DATABASE_CONNECTION_AND_CALLER_DATA",
+      "kind": "SQLITE_TRANSACTION",
+      "line": 696,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "MODULE-LOAD"
+      ],
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "0ef1747b750e673fac4268338d6b445ab0b8a2343d2148cf8b6fbc594dd11803",
+      "target_namespace": "STATIC_SCHEMA_CATALOG"
+    },
+    {
+      "call_chain": [
+        "<sql-script>"
+      ],
+      "callee": "SQL:CREATE",
+      "column": 0,
+      "control_binding_id": "WE-BEC0865F69D3E02F06AC5B76",
+      "detail": "schema statement CREATE",
+      "end_column": 6,
+      "end_line": 698,
+      "entry_id": "WE-BEC0865F69D3E02F06AC5B76",
+      "file": "app/schema.sql",
+      "function": "<sql-script>",
+      "input_source": "STATIC_SOURCE_DECLARATION",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "line": 698,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "MODULE-LOAD"
+      ],
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "8e741ee040975db867e7fd7ee86689757d0b86c192d7099a12dac18193bf7a0d",
+      "target_namespace": "STATIC_SCHEMA_CATALOG"
+    },
+    {
+      "call_chain": [
+        "<sql-script>"
+      ],
+      "callee": "SQL:DELETE",
+      "column": 0,
+      "control_binding_id": "WE-7B43633EF3F1A3AFBE39E6AC",
+      "detail": "schema statement DELETE",
+      "end_column": 6,
+      "end_line": 699,
+      "entry_id": "WE-7B43633EF3F1A3AFBE39E6AC",
+      "file": "app/schema.sql",
+      "function": "<sql-script>",
+      "input_source": "STATIC_SOURCE_DECLARATION",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "line": 699,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "MODULE-LOAD"
+      ],
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "d3a597bbace439b290d990c8517591b2c5b9b92b3c2bf50280a12da15008beaa",
+      "target_namespace": "STATIC_SCHEMA_CATALOG"
+    },
+    {
+      "call_chain": [
+        "<sql-script>"
+      ],
+      "callee": "SQL:BEGIN",
+      "column": 0,
+      "control_binding_id": "WE-D2A879691A6970940E9CAD6D",
+      "detail": "schema statement BEGIN",
+      "end_column": 5,
+      "end_line": 700,
+      "entry_id": "WE-D2A879691A6970940E9CAD6D",
+      "file": "app/schema.sql",
+      "function": "<sql-script>",
+      "input_source": "DATABASE_CONNECTION_AND_CALLER_DATA",
+      "kind": "SQLITE_TRANSACTION",
+      "line": 700,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "MODULE-LOAD"
+      ],
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "559daad67cd8f307a09d008eed48b399745ff0b63056dd920c2a013e94c5a34d",
+      "target_namespace": "STATIC_SCHEMA_CATALOG"
+    },
     {
       "call_chain": [
         "<sql-script>"
@@ -29,685 +701,6 @@
       "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
       "statement_fingerprint": "8e359ff58fae6c94207ab58d40b73489e19f2d903e709e1981ca884165052f35",
       "target_namespace": "STATIC_SCHEMA_CATALOG"
-    },
-    {
-      "call_chain": [
-        "<sql-script>"
-      ],
-      "callee": "SQL:DELETE",
-      "column": 0,
-      "control_binding_id": "WE-386C1EA815B9A7DFF0E29047",
-      "detail": "schema statement DELETE",
-      "end_column": 6,
-      "end_line": 714,
-      "entry_id": "WE-386C1EA815B9A7DFF0E29047",
-      "file": "app/schema.sql",
-      "function": "<sql-script>",
-      "input_source": "STATIC_SOURCE_DECLARATION",
-      "kind": "SQLITE_SCHEMA_MUTATION",
-      "line": 714,
-      "migration_status": "MIGRATED_GUARDED",
-      "owner": "APPLICATION_SERVICE",
-      "required_control": "M0_STATIC_SCHEMA_CATALOG_V1",
-      "resolution": "EXACT",
-      "risk": "P1",
-      "root_ids": [
-        "MODULE-LOAD"
-      ],
-      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
-      "statement_fingerprint": "0a2a4b4eb6f525b4d5e429a622710f5f045561eeaef7cfa42b45f29ce9dd8c0e",
-      "target_namespace": "STATIC_SCHEMA_CATALOG"
-    },
-    {
-      "call_chain": [
-        "<sql-script>"
-      ],
-      "callee": "SQL:DELETE",
-      "column": 0,
-      "control_binding_id": "WE-0F3FD3A94726143A9B29157F",
-      "detail": "schema statement DELETE",
-      "end_column": 6,
-      "end_line": 726,
-      "entry_id": "WE-0F3FD3A94726143A9B29157F",
-      "file": "app/schema.sql",
-      "function": "<sql-script>",
-      "input_source": "STATIC_SOURCE_DECLARATION",
-      "kind": "SQLITE_SCHEMA_MUTATION",
-      "line": 726,
-      "migration_status": "MIGRATED_GUARDED",
-      "owner": "APPLICATION_SERVICE",
-      "required_control": "M0_STATIC_SCHEMA_CATALOG_V1",
-      "resolution": "EXACT",
-      "risk": "P1",
-      "root_ids": [
-        "MODULE-LOAD"
-      ],
-      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
-      "statement_fingerprint": "d2e70b727958838c0852cb06e57dcaead895c14315d4beb043e6ed484c551c0d",
-      "target_namespace": "STATIC_SCHEMA_CATALOG"
-    },
-    {
-      "call_chain": [
-        "<sql-script>"
-      ],
-      "callee": "SQL:END",
-      "column": 0,
-      "control_binding_id": "WE-6A8810FCFD1070ED4AE0E080",
-      "detail": "schema statement END",
-      "end_column": 3,
-      "end_line": 727,
-      "entry_id": "WE-6A8810FCFD1070ED4AE0E080",
-      "file": "app/schema.sql",
-      "function": "<sql-script>",
-      "input_source": "DATABASE_CONNECTION_AND_CALLER_DATA",
-      "kind": "SQLITE_TRANSACTION",
-      "line": 727,
-      "migration_status": "MIGRATED_GUARDED",
-      "owner": "APPLICATION_SERVICE",
-      "required_control": "M0_STATIC_SCHEMA_CATALOG_V1",
-      "resolution": "EXACT",
-      "risk": "P1",
-      "root_ids": [
-        "MODULE-LOAD"
-      ],
-      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
-      "statement_fingerprint": "2fe7ec32af5d9a9841ff75ef82c1fc49d541017f865ca2f3cbeb01c1a356d859",
-      "target_namespace": "STATIC_SCHEMA_CATALOG"
-    },
-    {
-      "call_chain": [
-        "<sql-script>"
-      ],
-      "callee": "SQL:CREATE",
-      "column": 0,
-      "control_binding_id": "WE-133EF14E8EF40CE02E23DAE3",
-      "detail": "schema statement CREATE",
-      "end_column": 6,
-      "end_line": 729,
-      "entry_id": "WE-133EF14E8EF40CE02E23DAE3",
-      "file": "app/schema.sql",
-      "function": "<sql-script>",
-      "input_source": "STATIC_SOURCE_DECLARATION",
-      "kind": "SQLITE_SCHEMA_MUTATION",
-      "line": 729,
-      "migration_status": "MIGRATED_GUARDED",
-      "owner": "APPLICATION_SERVICE",
-      "required_control": "M0_STATIC_SCHEMA_CATALOG_V1",
-      "resolution": "EXACT",
-      "risk": "P1",
-      "root_ids": [
-        "MODULE-LOAD"
-      ],
-      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
-      "statement_fingerprint": "d704ba5cef6f88a037f88a5f823c15e00092e299bf367f337cf03ca5ccee7640",
-      "target_namespace": "STATIC_SCHEMA_CATALOG"
-    },
-    {
-      "call_chain": [
-        "<sql-script>"
-      ],
-      "callee": "SQL:UPDATE",
-      "column": 0,
-      "control_binding_id": "WE-5D692A4C45410C2698CE0F44",
-      "detail": "schema statement UPDATE",
-      "end_column": 6,
-      "end_line": 730,
-      "entry_id": "WE-5D692A4C45410C2698CE0F44",
-      "file": "app/schema.sql",
-      "function": "<sql-script>",
-      "input_source": "STATIC_SOURCE_DECLARATION",
-      "kind": "SQLITE_SCHEMA_MUTATION",
-      "line": 730,
-      "migration_status": "MIGRATED_GUARDED",
-      "owner": "APPLICATION_SERVICE",
-      "required_control": "M0_STATIC_SCHEMA_CATALOG_V1",
-      "resolution": "EXACT",
-      "risk": "P1",
-      "root_ids": [
-        "MODULE-LOAD"
-      ],
-      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
-      "statement_fingerprint": "ec090a12568812adea9168a2a645470c4b14bad2ad04a5bbf89bb61f3221fd51",
-      "target_namespace": "STATIC_SCHEMA_CATALOG"
-    },
-    {
-      "call_chain": [
-        "<sql-script>"
-      ],
-      "callee": "SQL:BEGIN",
-      "column": 0,
-      "control_binding_id": "WE-DB27050E28B18395A445F431",
-      "detail": "schema statement BEGIN",
-      "end_column": 5,
-      "end_line": 731,
-      "entry_id": "WE-DB27050E28B18395A445F431",
-      "file": "app/schema.sql",
-      "function": "<sql-script>",
-      "input_source": "DATABASE_CONNECTION_AND_CALLER_DATA",
-      "kind": "SQLITE_TRANSACTION",
-      "line": 731,
-      "migration_status": "MIGRATED_GUARDED",
-      "owner": "APPLICATION_SERVICE",
-      "required_control": "M0_STATIC_SCHEMA_CATALOG_V1",
-      "resolution": "EXACT",
-      "risk": "P1",
-      "root_ids": [
-        "MODULE-LOAD"
-      ],
-      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
-      "statement_fingerprint": "5a6f8a5d0885b944db0c86c3a471d7a9f63cf0dfb24bdf35e77d1401d0998a5c",
-      "target_namespace": "STATIC_SCHEMA_CATALOG"
-    },
-    {
-      "call_chain": [
-        "<sql-script>"
-      ],
-      "callee": "SQL:INSERT",
-      "column": 0,
-      "control_binding_id": "WE-F0F97E1A7E8180AF75FAE921",
-      "detail": "schema statement INSERT",
-      "end_column": 6,
-      "end_line": 732,
-      "entry_id": "WE-F0F97E1A7E8180AF75FAE921",
-      "file": "app/schema.sql",
-      "function": "<sql-script>",
-      "input_source": "STATIC_SOURCE_DECLARATION",
-      "kind": "SQLITE_SCHEMA_MUTATION",
-      "line": 732,
-      "migration_status": "MIGRATED_GUARDED",
-      "owner": "APPLICATION_SERVICE",
-      "required_control": "M0_STATIC_SCHEMA_CATALOG_V1",
-      "resolution": "EXACT",
-      "risk": "P1",
-      "root_ids": [
-        "MODULE-LOAD"
-      ],
-      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
-      "statement_fingerprint": "c00a85ab07b873a6a810c5a00ffb6fb3d4cda6438b468bb587d32fa954c0c2af",
-      "target_namespace": "STATIC_SCHEMA_CATALOG"
-    },
-    {
-      "call_chain": [
-        "<sql-script>"
-      ],
-      "callee": "SQL:DELETE",
-      "column": 0,
-      "control_binding_id": "WE-B0B721FEA9328D158078A1E5",
-      "detail": "schema statement DELETE",
-      "end_column": 6,
-      "end_line": 745,
-      "entry_id": "WE-B0B721FEA9328D158078A1E5",
-      "file": "app/schema.sql",
-      "function": "<sql-script>",
-      "input_source": "STATIC_SOURCE_DECLARATION",
-      "kind": "SQLITE_SCHEMA_MUTATION",
-      "line": 745,
-      "migration_status": "MIGRATED_GUARDED",
-      "owner": "APPLICATION_SERVICE",
-      "required_control": "M0_STATIC_SCHEMA_CATALOG_V1",
-      "resolution": "EXACT",
-      "risk": "P1",
-      "root_ids": [
-        "MODULE-LOAD"
-      ],
-      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
-      "statement_fingerprint": "d3fdcbfa735d7bfc1af7892117ba8a6a4c0555294747c2d9f007f5a79b3c524e",
-      "target_namespace": "STATIC_SCHEMA_CATALOG"
-    },
-    {
-      "call_chain": [
-        "<sql-script>"
-      ],
-      "callee": "SQL:UPDATE",
-      "column": 0,
-      "control_binding_id": "WE-3362BCE5D143E86098493BD7",
-      "detail": "schema statement UPDATE",
-      "end_column": 6,
-      "end_line": 757,
-      "entry_id": "WE-3362BCE5D143E86098493BD7",
-      "file": "app/schema.sql",
-      "function": "<sql-script>",
-      "input_source": "STATIC_SOURCE_DECLARATION",
-      "kind": "SQLITE_SCHEMA_MUTATION",
-      "line": 757,
-      "migration_status": "MIGRATED_GUARDED",
-      "owner": "APPLICATION_SERVICE",
-      "required_control": "M0_STATIC_SCHEMA_CATALOG_V1",
-      "resolution": "EXACT",
-      "risk": "P1",
-      "root_ids": [
-        "MODULE-LOAD"
-      ],
-      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
-      "statement_fingerprint": "535c792e4a883272ef417d63ddd6a5e25996425d47c176fadd762893d83f454c",
-      "target_namespace": "STATIC_SCHEMA_CATALOG"
-    },
-    {
-      "call_chain": [
-        "<sql-script>"
-      ],
-      "callee": "SQL:INSERT",
-      "column": 0,
-      "control_binding_id": "WE-DDA29ACAA0A1DF649389B4DF",
-      "detail": "schema statement INSERT",
-      "end_column": 6,
-      "end_line": 768,
-      "entry_id": "WE-DDA29ACAA0A1DF649389B4DF",
-      "file": "app/schema.sql",
-      "function": "<sql-script>",
-      "input_source": "STATIC_SOURCE_DECLARATION",
-      "kind": "SQLITE_SCHEMA_MUTATION",
-      "line": 768,
-      "migration_status": "MIGRATED_GUARDED",
-      "owner": "APPLICATION_SERVICE",
-      "required_control": "M0_STATIC_SCHEMA_CATALOG_V1",
-      "resolution": "EXACT",
-      "risk": "P1",
-      "root_ids": [
-        "MODULE-LOAD"
-      ],
-      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
-      "statement_fingerprint": "2f4c6afce8aee82cafd7b061e0d49ec20832aa051ff9322796c48447410d4338",
-      "target_namespace": "STATIC_SCHEMA_CATALOG"
-    },
-    {
-      "call_chain": [
-        "<sql-script>"
-      ],
-      "callee": "SQL:END",
-      "column": 0,
-      "control_binding_id": "WE-26B40FF5B6E59B592CFD27F5",
-      "detail": "schema statement END",
-      "end_column": 3,
-      "end_line": 790,
-      "entry_id": "WE-26B40FF5B6E59B592CFD27F5",
-      "file": "app/schema.sql",
-      "function": "<sql-script>",
-      "input_source": "DATABASE_CONNECTION_AND_CALLER_DATA",
-      "kind": "SQLITE_TRANSACTION",
-      "line": 790,
-      "migration_status": "MIGRATED_GUARDED",
-      "owner": "APPLICATION_SERVICE",
-      "required_control": "M0_STATIC_SCHEMA_CATALOG_V1",
-      "resolution": "EXACT",
-      "risk": "P1",
-      "root_ids": [
-        "MODULE-LOAD"
-      ],
-      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
-      "statement_fingerprint": "ec01604817f3fb08da8e1ee314b74364958f2ed9335c4eabfa9ce26e32c57733",
-      "target_namespace": "STATIC_SCHEMA_CATALOG"
-    },
-    {
-      "call_chain": [
-        "app.cli.main",
-        "app.search_index.rebuild_search_index"
-      ],
-      "callee": "app.database.initialize_database",
-      "column": 4,
-      "control_binding_id": "WE-7DA693952CD226F71B31AF3C",
-      "detail": "implicit schema/directory initialization",
-      "end_column": 32,
-      "end_line": 10,
-      "entry_id": "WE-7DA693952CD226F71B31AF3C",
-      "file": "app/search_index.py",
-      "function": "app.search_index.rebuild_search_index",
-      "input_source": "CLI_ARGUMENT_OR_CONFIG",
-      "kind": "DATABASE_IMPLICIT_INITIALIZER",
-      "line": 10,
-      "migration_status": "MIGRATED_GUARDED",
-      "owner": "DATABASE_SERVICE",
-      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
-      "resolution": "ALIAS_RESOLVED",
-      "risk": "P1",
-      "root_ids": [
-        "CLI:MAIN"
-      ],
-      "source_sha256": "808252a8237519ce0b0cd37c7bf0f9bb7a1a5ca46d49eec59a25706c3e76ebf5",
-      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db",
-      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
-    },
-    {
-      "call_chain": [
-        "app.cli.main",
-        "app.search_index.rebuild_search_index"
-      ],
-      "callee": "app.database.connect_database",
-      "column": 9,
-      "control_binding_id": "WE-8DE9F514DAE809D955EC2F72",
-      "detail": "legacy database gateway",
-      "end_column": 34,
-      "end_line": 12,
-      "entry_id": "WE-8DE9F514DAE809D955EC2F72",
-      "file": "app/search_index.py",
-      "function": "app.search_index.rebuild_search_index",
-      "input_source": "CLI_ARGUMENT_OR_CONFIG",
-      "kind": "DATABASE_GATEWAY",
-      "line": 12,
-      "migration_status": "MIGRATED_GUARDED",
-      "owner": "DATABASE_SERVICE",
-      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
-      "resolution": "ALIAS_RESOLVED",
-      "risk": "P1",
-      "root_ids": [
-        "CLI:MAIN"
-      ],
-      "source_sha256": "808252a8237519ce0b0cd37c7bf0f9bb7a1a5ca46d49eec59a25706c3e76ebf5",
-      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6",
-      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
-    },
-    {
-      "call_chain": [
-        "app.cli.main",
-        "app.search_index.rebuild_search_index"
-      ],
-      "callee": "app.database.connect_database().execute",
-      "column": 8,
-      "control_binding_id": "WE-A10191946B9B84E34D5D5A3C",
-      "detail": "DELETE",
-      "end_column": 59,
-      "end_line": 15,
-      "entry_id": "WE-A10191946B9B84E34D5D5A3C",
-      "file": "app/search_index.py",
-      "function": "app.search_index.rebuild_search_index",
-      "input_source": "CLI_ARGUMENT_OR_CONFIG",
-      "kind": "SQLITE_MUTATION",
-      "line": 15,
-      "migration_status": "MIGRATED_GUARDED",
-      "owner": "DATABASE_SERVICE",
-      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
-      "resolution": "ALIAS_RESOLVED",
-      "risk": "P1",
-      "root_ids": [
-        "CLI:MAIN"
-      ],
-      "source_sha256": "808252a8237519ce0b0cd37c7bf0f9bb7a1a5ca46d49eec59a25706c3e76ebf5",
-      "statement_fingerprint": "8d9fda65e9256626ca21bab979f6192fa803ab7e181d6494f0f3f6e1e38e54dd",
-      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
-    },
-    {
-      "call_chain": [
-        "app.cli.main",
-        "app.search_index.rebuild_search_index"
-      ],
-      "callee": "app.database.connect_database().execute",
-      "column": 8,
-      "control_binding_id": "WE-B0DDD85781D59241F346DD0A",
-      "detail": "INSERT",
-      "end_column": 9,
-      "end_line": 41,
-      "entry_id": "WE-B0DDD85781D59241F346DD0A",
-      "file": "app/search_index.py",
-      "function": "app.search_index.rebuild_search_index",
-      "input_source": "CLI_ARGUMENT_OR_CONFIG",
-      "kind": "SQLITE_MUTATION",
-      "line": 16,
-      "migration_status": "MIGRATED_GUARDED",
-      "owner": "DATABASE_SERVICE",
-      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
-      "resolution": "ALIAS_RESOLVED",
-      "risk": "P1",
-      "root_ids": [
-        "CLI:MAIN"
-      ],
-      "source_sha256": "808252a8237519ce0b0cd37c7bf0f9bb7a1a5ca46d49eec59a25706c3e76ebf5",
-      "statement_fingerprint": "9d76906c2a199340991c1703e83bdca459b55a25b1ec571b1313cda3c73be247",
-      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
-    },
-    {
-      "call_chain": [
-        "app.cli.main",
-        "app.search_index.rebuild_search_index"
-      ],
-      "callee": "app.database.connect_database().execute",
-      "column": 8,
-      "control_binding_id": "WE-5561EDA3EA0D03D71478C1CB",
-      "detail": "INSERT",
-      "end_column": 81,
-      "end_line": 42,
-      "entry_id": "WE-5561EDA3EA0D03D71478C1CB",
-      "file": "app/search_index.py",
-      "function": "app.search_index.rebuild_search_index",
-      "input_source": "CLI_ARGUMENT_OR_CONFIG",
-      "kind": "SQLITE_MUTATION",
-      "line": 42,
-      "migration_status": "MIGRATED_GUARDED",
-      "owner": "DATABASE_SERVICE",
-      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
-      "resolution": "ALIAS_RESOLVED",
-      "risk": "P1",
-      "root_ids": [
-        "CLI:MAIN"
-      ],
-      "source_sha256": "808252a8237519ce0b0cd37c7bf0f9bb7a1a5ca46d49eec59a25706c3e76ebf5",
-      "statement_fingerprint": "015b2a97f73d5e7ba525fb02c047bd51080f3eb6343d0d75dffa23ba3aae5d72",
-      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
-    },
-    {
-      "call_chain": [
-        "app.cli.main",
-        "app.search_index.rebuild_search_index"
-      ],
-      "callee": "app.database.connect_database().commit",
-      "column": 8,
-      "control_binding_id": "WE-22DAB634374C7DC0F520DD7E",
-      "detail": "transaction commit",
-      "end_column": 21,
-      "end_line": 43,
-      "entry_id": "WE-22DAB634374C7DC0F520DD7E",
-      "file": "app/search_index.py",
-      "function": "app.search_index.rebuild_search_index",
-      "input_source": "CLI_ARGUMENT_OR_CONFIG",
-      "kind": "SQLITE_TRANSACTION",
-      "line": 43,
-      "migration_status": "MIGRATED_GUARDED",
-      "owner": "DATABASE_SERVICE",
-      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
-      "resolution": "ALIAS_RESOLVED",
-      "risk": "P1",
-      "root_ids": [
-        "CLI:MAIN"
-      ],
-      "source_sha256": "808252a8237519ce0b0cd37c7bf0f9bb7a1a5ca46d49eec59a25706c3e76ebf5",
-      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976",
-      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
-    },
-    {
-      "call_chain": [
-        "app.source_attribution.SourceAttributionService.ensure_source_attributions"
-      ],
-      "callee": "app.database.initialize_database",
-      "column": 8,
-      "control_binding_id": "WE-2DBE85C53EB7D962CE4E77CD",
-      "detail": "implicit schema/directory initialization",
-      "end_column": 41,
-      "end_line": 48,
-      "entry_id": "WE-2DBE85C53EB7D962CE4E77CD",
-      "file": "app/source_attribution.py",
-      "function": "app.source_attribution.SourceAttributionService.ensure_source_attributions",
-      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
-      "kind": "DATABASE_IMPLICIT_INITIALIZER",
-      "line": 48,
-      "migration_status": "MIGRATED_GUARDED",
-      "owner": "APPLICATION_SERVICE",
-      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
-      "resolution": "ALIAS_RESOLVED",
-      "risk": "P1",
-      "root_ids": [
-        "INTERNAL-DIRECT"
-      ],
-      "source_sha256": "228c11f0f9508d37dec6b6f601a24eae0b7f285faf3bd9dda46e3768758c7682",
-      "statement_fingerprint": "fd5e65fec6c126443b7b26acdd25c79a688e8096a89a52e9dce945a71eaaf53e",
-      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
-    },
-    {
-      "call_chain": [
-        "app.source_attribution.SourceAttributionService.rebuild"
-      ],
-      "callee": "app.database.initialize_database",
-      "column": 8,
-      "control_binding_id": "WE-710CE2F310C511C481577069",
-      "detail": "implicit schema/directory initialization",
-      "end_column": 41,
-      "end_line": 93,
-      "entry_id": "WE-710CE2F310C511C481577069",
-      "file": "app/source_attribution.py",
-      "function": "app.source_attribution.SourceAttributionService.rebuild",
-      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
-      "kind": "DATABASE_IMPLICIT_INITIALIZER",
-      "line": 93,
-      "migration_status": "MIGRATED_GUARDED",
-      "owner": "APPLICATION_SERVICE",
-      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
-      "resolution": "ALIAS_RESOLVED",
-      "risk": "P1",
-      "root_ids": [
-        "INTERNAL-DIRECT"
-      ],
-      "source_sha256": "228c11f0f9508d37dec6b6f601a24eae0b7f285faf3bd9dda46e3768758c7682",
-      "statement_fingerprint": "fd5e65fec6c126443b7b26acdd25c79a688e8096a89a52e9dce945a71eaaf53e",
-      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
-    },
-    {
-      "call_chain": [
-        "app.source_attribution.SourceAttributionService.rebuild"
-      ],
-      "callee": "app.database.connect_database",
-      "column": 13,
-      "control_binding_id": "WE-1785C52FC9556F56FAE9D8CF",
-      "detail": "legacy database gateway",
-      "end_column": 43,
-      "end_line": 96,
-      "entry_id": "WE-1785C52FC9556F56FAE9D8CF",
-      "file": "app/source_attribution.py",
-      "function": "app.source_attribution.SourceAttributionService.rebuild",
-      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
-      "kind": "DATABASE_GATEWAY",
-      "line": 96,
-      "migration_status": "MIGRATED_GUARDED",
-      "owner": "APPLICATION_SERVICE",
-      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
-      "resolution": "ALIAS_RESOLVED",
-      "risk": "P1",
-      "root_ids": [
-        "INTERNAL-DIRECT"
-      ],
-      "source_sha256": "228c11f0f9508d37dec6b6f601a24eae0b7f285faf3bd9dda46e3768758c7682",
-      "statement_fingerprint": "196c8969b9ae12c0c2db078216eb4ba556d3b51e17241f26af6c3fcbb0fa2f1f",
-      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
-    },
-    {
-      "call_chain": [
-        "app.source_attribution.SourceAttributionService.rebuild"
-      ],
-      "callee": "app.database.connect_database().execute",
-      "column": 19,
-      "control_binding_id": "WE-14890B771EC5FDAB6E7715DF",
-      "detail": "dynamic SQL is fail-closed because its effect cannot be proven",
-      "end_column": 46,
-      "end_line": 117,
-      "entry_id": "WE-14890B771EC5FDAB6E7715DF",
-      "file": "app/source_attribution.py",
-      "function": "app.source_attribution.SourceAttributionService.rebuild",
-      "input_source": "DATABASE_CONNECTION_AND_CALLER_DATA",
-      "kind": "SQLITE_DYNAMIC_SQL",
-      "line": 117,
-      "migration_status": "MIGRATED_GUARDED",
-      "owner": "APPLICATION_SERVICE",
-      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
-      "resolution": "DYNAMIC",
-      "risk": "P0",
-      "root_ids": [
-        "INTERNAL-DIRECT"
-      ],
-      "source_sha256": "228c11f0f9508d37dec6b6f601a24eae0b7f285faf3bd9dda46e3768758c7682",
-      "statement_fingerprint": "21a1e1633385992923de01778436df53bfd17486e19689c140959fde4dc927d7",
-      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
-    },
-    {
-      "call_chain": [
-        "app.source_attribution.SourceAttributionService.rebuild"
-      ],
-      "callee": "app.database.connect_database().execute",
-      "column": 16,
-      "control_binding_id": "WE-8DF0F3E7BCFD9ADAD0D02A6D",
-      "detail": "INSERT",
-      "end_column": 17,
-      "end_line": 178,
-      "entry_id": "WE-8DF0F3E7BCFD9ADAD0D02A6D",
-      "file": "app/source_attribution.py",
-      "function": "app.source_attribution.SourceAttributionService.rebuild",
-      "input_source": "DATABASE_CONNECTION_AND_CALLER_DATA",
-      "kind": "SQLITE_MUTATION",
-      "line": 132,
-      "migration_status": "MIGRATED_GUARDED",
-      "owner": "APPLICATION_SERVICE",
-      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
-      "resolution": "ALIAS_RESOLVED",
-      "risk": "P1",
-      "root_ids": [
-        "INTERNAL-DIRECT"
-      ],
-      "source_sha256": "228c11f0f9508d37dec6b6f601a24eae0b7f285faf3bd9dda46e3768758c7682",
-      "statement_fingerprint": "05e8d924b0944f1e14f90ee63fc9209471aa91ce1642a1049e3cbeda8df3639a",
-      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
-    },
-    {
-      "call_chain": [
-        "app.source_attribution.SourceAttributionService.rebuild"
-      ],
-      "callee": "app.database.connect_database().commit",
-      "column": 12,
-      "control_binding_id": "WE-9EDBDD772B34DDAE261D3BE1",
-      "detail": "transaction commit",
-      "end_column": 25,
-      "end_line": 183,
-      "entry_id": "WE-9EDBDD772B34DDAE261D3BE1",
-      "file": "app/source_attribution.py",
-      "function": "app.source_attribution.SourceAttributionService.rebuild",
-      "input_source": "DATABASE_CONNECTION_AND_CALLER_DATA",
-      "kind": "SQLITE_TRANSACTION",
-      "line": 183,
-      "migration_status": "MIGRATED_GUARDED",
-      "owner": "APPLICATION_SERVICE",
-      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
-      "resolution": "ALIAS_RESOLVED",
-      "risk": "P1",
-      "root_ids": [
-        "INTERNAL-DIRECT"
-      ],
-      "source_sha256": "228c11f0f9508d37dec6b6f601a24eae0b7f285faf3bd9dda46e3768758c7682",
-      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976",
-      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
-    },
-    {
-      "call_chain": [
-        "app.cli.main",
-        "app.stage10.register_stage10_baseline"
-      ],
-      "callee": "app.database.initialize_database",
-      "column": 4,
-      "control_binding_id": "WE-EC941925187D4A82D3B6671A",
-      "detail": "implicit schema/directory initialization",
-      "end_column": 32,
-      "end_line": 82,
-      "entry_id": "WE-EC941925187D4A82D3B6671A",
-      "file": "app/stage10.py",
-      "function": "app.stage10.register_stage10_baseline",
-      "input_source": "CLI_ARGUMENT_OR_CONFIG",
-      "kind": "DATABASE_IMPLICIT_INITIALIZER",
-      "line": 82,
-      "migration_status": "MIGRATED_GUARDED",
-      "owner": "REPORT_SERVICE",
-      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
-      "resolution": "ALIAS_RESOLVED",
-      "risk": "P1",
-      "root_ids": [
-        "CLI:MAIN"
-      ],
-      "source_sha256": "ad6a6ef8c0c1f020d573e00299d5b1d144950569ffdb8d302577ee392a9e66f6",
-      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db",
-      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
     }
   ],
   "entry_count": 25,
