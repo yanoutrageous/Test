@@ -959,7 +959,15 @@
     }
   },
   "m4_checkpoint": {
-    "status": "ACCEPTED_LOCAL_AWAITING_CHECKPOINT_PUSH",
+    "status": "ACCEPTED_AND_REMOTE_VERIFIED",
+    "checkpoint_commit": "a62dfc5c9f3dc13142c2c7881922e3e203dead9f",
+    "remote_verification": "LOCAL_ORIGIN_TRACKING_AND_LS_REMOTE_EQUAL",
+    "draft_pr": {
+      "number": 2,
+      "state": "OPEN",
+      "draft": true,
+      "head_commit": "a62dfc5c9f3dc13142c2c7881922e3e203dead9f"
+    },
     "contract": "contracts/m4/m4-acceptance-v1.json",
     "exit_report": "Task/reports/M4/M4-backup-restore-exit.md",
     "accepted_full_backup_id": "BACKUP-M4-YANYAN-FULL-20260725",

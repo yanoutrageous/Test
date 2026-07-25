@@ -29,6 +29,9 @@
   184/185、inventory 183 和真实流程证据继续留在 E 盘。
 - 当前备份位于产品根所在卷，只防误操作和逻辑损坏，不宣称防整卷故障；异卷灾备仍需
   用户另行授权。完整事实见 `Task/reports/M4/M4-backup-restore-exit.md`。
+- M4 功能与验收已作为 `a62dfc5c9f3dc13142c2c7881922e3e203dead9f` 普通 push；
+  本地 HEAD、origin tracking 和 `ls-remote` 三者一致。Draft PR #2 仍为 OPEN/DRAFT，
+  当前 head 已核对为该提交。
 - 当前进入 M5 离线发布候选、fresh-user 客户流程、许可/SBOM/隐私、release manifest
   和客户验收；M4 `ACCEPTED` 仍不是最终客户交付。
 
