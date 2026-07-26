@@ -1,7 +1,7 @@
 {
   "state_version": "1.1.0",
   "plan_version": "1.1.0",
-  "updated_at": "2026-07-26T06:39:14+08:00",
+  "updated_at": "2026-07-26T17:53:00+08:00",
   "current_milestone": "M5",
   "current_slice": "M5_PRIVATE_LOCAL_RC2_DELIVERED_STRICT_TARGET_SET_BLOCKED",
   "status": "BLOCKED_DISCLOSED",
@@ -1050,8 +1050,9 @@
     "contract": "contracts/m5/m5-private-local-rc-v1.json",
     "exit_report": "Task/reports/M5/M5-private-local-rc-exit.md",
     "cleanup_after_acceptance": {
-      "status": "COMPLETED_RECOVERABLE_RELOCATION",
+      "status": "PURGED_AFTER_USER_CONFIRMATION",
       "recovery_root": "C:/RC2R",
+      "recovery_root_currently_exists": false,
       "relocated_directory_count": 91,
       "relocated_file_count": 8324,
       "relocated_bytes": 1145431360,
@@ -1060,7 +1061,25 @@
       "retained_hot_test_run": "RUN-20260726-RC2-FULL-228",
       "retained_fresh_user_evidence": "tmp/acceptance/fresh-user/RUN-20260726-M5-RC2-FRESH-229/evidence",
       "e_drive_freed_bytes": 1238089728,
-      "e_drive_free_bytes_after_cleanup": 114706792448
+      "e_drive_free_bytes_after_cleanup": 114706792448,
+      "c_drive_purge": {
+        "authorized_by_user": true,
+        "completed_at": "2026-07-26T17:49:44+08:00",
+        "purged_roots": [
+          "C:/RC2R",
+          "${LOCALAPPDATA}/Codex/workspace-relief/yanoutrageous-Test"
+        ],
+        "deleted_file_count": 96303,
+        "deleted_logical_bytes": 13285568584,
+        "c_free_bytes_before": 14422073344,
+        "c_free_bytes_after": 21129166848,
+        "physical_free_increase_bytes": 6707093504,
+        "recoverable": false,
+        "pre_delete_checks": "PASS_NO_RUNTIME_REFERENCE_NO_REGISTERED_GIT_WORKTREE_NO_ACTIVE_PROCESS_REFERENCE_NO_REPARSE_POINT",
+        "pre_delete_isolation_release_verification": "PASS",
+        "post_delete_release_verification": "PASS",
+        "retained_projects_unchanged": true
+      }
     }
   },
   "not_started": [
