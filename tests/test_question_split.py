@@ -8,11 +8,29 @@ from app.database import connect_database, initialize_database
 from app.question_split import (
     ALGORITHM_VERSION,
     PageTextBlock,
+    _column_text_blocks,
     detect_question_anchor,
     parse_split_pages,
     split_blocks_into_candidates,
     write_question_candidates,
 )
+
+
+class _FakeRect:
+    width = 300.0
+
+
+class _FakePage:
+    rect = _FakeRect()
+
+    def get_text(self, kind: str, *, sort: bool = False):
+        assert kind == "blocks"
+        assert sort is False
+        return (
+            (110, 10, 190, 20, "2. middle top"),
+            (10, 60, 90, 70, "1. left lower"),
+            (210, 5, 290, 15, "3. right top"),
+        )
 
 
 def _insert_source_paper(conn: sqlite3.Connection) -> int:
@@ -77,6 +95,20 @@ def test_detect_question_anchor_supports_arabic_number_dot() -> None:
     assert detect_question_anchor("一、选择题") is None
 
 
+def test_column_text_blocks_order_columns_before_vertical_position() -> None:
+    blocks = _column_text_blocks(
+        _FakePage(),
+        page_no=1,
+        column_count=3,
+    )
+
+    assert [block.text for block in blocks] == [
+        "1. left lower",
+        "2. middle top",
+        "3. right top",
+    ]
+
+
 def test_split_blocks_into_candidates_marks_pending_warnings() -> None:
     candidates = _sample_candidates(source_paper_id=1)
 
@@ -97,8 +129,18 @@ def test_write_question_candidates_is_idempotent_and_pending(tmp_path: Path) -> 
         conn.commit()
 
     candidates = _sample_candidates(source_paper_id)
-    first = write_question_candidates(candidates, db_path=db_path)
-    second = write_question_candidates(candidates, db_path=db_path)
+    first = write_question_candidates(
+        candidates,
+        db_path=db_path,
+        year=2020,
+        column_count=3,
+    )
+    second = write_question_candidates(
+        candidates,
+        db_path=db_path,
+        year=2020,
+        column_count=3,
+    )
 
     assert first["inserted"] == 2
     assert first["updated"] == 0
@@ -131,7 +173,7 @@ def test_write_question_candidates_is_idempotent_and_pending(tmp_path: Path) -> 
         ).fetchall()
         row = conn.execute(
             """
-            SELECT meta_json
+            SELECT year, meta_json
               FROM questions
              WHERE qid = 'PDF-SPLIT-TEST-P1090-Q003'
             """
@@ -139,7 +181,9 @@ def test_write_question_candidates_is_idempotent_and_pending(tmp_path: Path) -> 
 
     assert [hit["qid"] for hit in hits] == ["PDF-SPLIT-TEST-P1090-Q001"]
     meta = json.loads(row["meta_json"])
+    assert row["year"] == 2020
     assert meta["algorithm_version"] == ALGORITHM_VERSION
+    assert meta["column_count"] == 3
     assert meta["source_page"] == 1090
     assert "question_number_non_contiguous" in meta["split_warnings"]
 

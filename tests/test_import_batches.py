@@ -13,6 +13,7 @@ from app.import_batches import (
     run_import_batch,
 )
 from app.stage8_report import write_stage8_quality_report
+from app.project_root import PROJECT_ROOT, ROOT_MARKER_NAME
 
 
 def _create_pdf(path: Path, page_count: int = 3) -> None:
@@ -35,6 +36,9 @@ def _prepare_project(tmp_path: Path) -> tuple[Path, Path, Path]:
     pdf_path = project_root / "Base" / "sample.pdf"
     db_path = project_root / "data" / "db" / "question_bank.sqlite3"
     _create_pdf(pdf_path)
+    (project_root / ROOT_MARKER_NAME).write_bytes(
+        (PROJECT_ROOT / ROOT_MARKER_NAME).read_bytes()
+    )
     initialize_database(db_path)
     return project_root, db_path, pdf_path
 
@@ -161,8 +165,11 @@ def test_run_import_batch_records_stats_and_backup(tmp_path: Path) -> None:
     )
 
     assert batch["status"] == "done"
-    assert batch["backup_path"].startswith("data/db/backups/")
+    assert batch["backup_path"].startswith("backups/BACKUP-")
     assert (project_root / batch["backup_path"]).is_file()
+    assert (
+        project_root / Path(batch["backup_path"]).parent / "manifest.json"
+    ).is_file()
     pages = batch["pages"]
     assert [page["status"] for page in pages] == ["done", "done"]
     assert [page["candidate_count"] for page in pages] == [2, 2]

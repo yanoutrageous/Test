@@ -8,6 +8,7 @@ from typing import Any
 
 from .config import PROJECT_ROOT, get_project_paths
 from .database import connect_database, initialize_database
+from .safety.workspace_io import get_workspace_io
 from .structured_ai import StructuredAiError, validate_ai_output_payload
 from .structured_content import initialize_structured_contents, normalize_question_type, parse_json_field
 from .structured_validation import validate_structured_contents
@@ -41,25 +42,28 @@ def export_codex_structure_batch(
     initialize_structured_contents(db_path=db_path)
     rows = _select_rows(db_path=db_path, sample_size=sample_size)
     output_abs = _resolve_output_path(output_path, project_root=project_root)
-    output_abs.parent.mkdir(parents=True, exist_ok=True)
 
     written = 0
-    with output_abs.open("w", encoding="utf-8", newline="\n") as handle:
-        for row in rows:
-            payload = _build_codex_payload(row)
-            record = {
-                "schema_version": CODEX_AGENT_VERSION,
-                "batch_name": batch_name,
-                "question_id": row["question_id"],
-                "qid": row["qid"],
-                "source_page": row["source_page"],
-                "review_status": row["review_status"],
-                "raw_crop_path": row["raw_crop_path"],
-                "page_image_path": row["page_image_path"],
-                "payload": payload,
-            }
-            handle.write(json.dumps(record, ensure_ascii=False) + "\n")
-            written += 1
+    records: list[str] = []
+    for row in rows:
+        payload = _build_codex_payload(row)
+        record = {
+            "schema_version": CODEX_AGENT_VERSION,
+            "batch_name": batch_name,
+            "question_id": row["question_id"],
+            "qid": row["qid"],
+            "source_page": row["source_page"],
+            "review_status": row["review_status"],
+            "raw_crop_path": row["raw_crop_path"],
+            "page_image_path": row["page_image_path"],
+            "payload": payload,
+        }
+        records.append(json.dumps(record, ensure_ascii=False))
+        written += 1
+    get_workspace_io().create_new_text(
+        output_abs,
+        "".join(f"{record}\n" for record in records),
+    )
 
     return {
         "status": "ok",

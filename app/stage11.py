@@ -7,12 +7,13 @@ from pathlib import Path
 from typing import Any
 
 from .config import PROJECT_ROOT
-from .database import connect_database, initialize_database
+from .database import connect_database, connect_database_read_only, initialize_database
 from .risk_classifier import (
     EXPORT_USABLE_STATUSES,
     USABILITY_CLASSIFICATION_VERSION,
     RiskClassifier,
 )
+from .safety.workspace_io import get_workspace_io
 from .stage10 import HIGH_RISK_PAGES, questions_main_checksum
 from .structured_content import initialize_structured_contents, parse_json_field
 
@@ -97,8 +98,7 @@ def summarize_usability_states(
     project_root: Path = PROJECT_ROOT,
 ) -> dict[str, Any]:
     if conn is None:
-        initialize_database(db_path)
-        with connect_database(db_path) as owned_conn:
+        with connect_database_read_only(db_path) as owned_conn:
             return summarize_usability_states(conn=owned_conn, project_root=project_root)
 
     question_count = int(conn.execute("SELECT count(*) FROM questions").fetchone()[0])
@@ -156,10 +156,9 @@ def get_usability_states_by_question_ids(
 ) -> dict[int, dict[str, Any]]:
     if not question_ids:
         return {}
-    initialize_database(db_path)
     unique_ids = list(dict.fromkeys(int(value) for value in question_ids))
     placeholders = ", ".join("?" for _ in unique_ids)
-    with connect_database(db_path) as conn:
+    with connect_database_read_only(db_path) as conn:
         rows = conn.execute(
             f"""
             SELECT *
@@ -195,9 +194,8 @@ def write_stage11_quality_report(
     )
     summary = classify_result["summary"]
     report_path = project_root / STAGE11_REPORT_RELATIVE_PATH
-    report_path.parent.mkdir(parents=True, exist_ok=True)
     report_text = _render_stage11_report(summary)
-    report_path.write_text(report_text, encoding="utf-8")
+    get_workspace_io().write_text_idempotent(report_path, report_text)
     return {
         "status": "ok",
         "relative_path": STAGE11_REPORT_RELATIVE_PATH.as_posix(),

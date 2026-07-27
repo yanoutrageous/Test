@@ -1,0 +1,102 @@
+{
+  "accepted_revision": {
+    "active_template_revision_id": "TEMPLATE-M3-EDITABLE-B5-REV-002",
+    "derived_state": {
+      "artifact_count": 38,
+      "bytes": 1305925,
+      "file_count": 39,
+      "path": "data/derived/M3/STATE-M3-YANYAN-REV-003",
+      "state_id": "STATE-M3-YANYAN-REV-003",
+      "tree_sha256": "386bf715c594cb986c417c02533835d8da963d2808c44f2d533b7ce2dd2f8f15"
+    },
+    "semantic_index": {
+      "dimension": 256,
+      "index_id": "INDEX-M3-YANYAN-REV-003",
+      "model": "LOCAL-HASHED-TFIDF-ZH-V1",
+      "model_kind": "deterministic-local-hashed-feature-vector",
+      "network_required": false,
+      "payload_sha256": "bf4c88cef4857273e343cef752e86d300e11db298f6dda179f81c70747e07cbb",
+      "question_count": 19,
+      "weights_required": false
+    },
+    "state_manifest": {
+      "artifact_index_sha256": "17cb2eb4d66e0e364c0df0e8db107cc51d54d775551335cf155b53d91e5fab55",
+      "bytes": 10982,
+      "path": "data/derived/M3/STATE-M3-YANYAN-REV-003/state-manifest.json",
+      "sha256": "2787d08beb14a930adf4ef431212c795585f6be10143c6810cdd381dfa016f38"
+    },
+    "taxonomy_release_id": "TAXONOMY-M3-MATH-V1"
+  },
+  "checks": {
+    "activity_database_switched": false,
+    "activity_database_unchanged": true,
+    "approved_tag_count": 23,
+    "atomic_failure_formal_target_exists": false,
+    "atomic_failure_publish_blocked": true,
+    "baseline_update_separated": true,
+    "figure_data_semantic_parity_percent": 100,
+    "figure_ir_kind_count": 3,
+    "figure_original_fallback_percent": 100,
+    "invalid_svg_rejected": true,
+    "manual_visual_preview_count": 4,
+    "model_weights_bytes": 0,
+    "required_user_journeys_passed": true,
+    "search_gold_case_count": 6,
+    "search_hit_at_3": 1.0,
+    "search_mrr": 0.833333,
+    "semantic_index_pii_source_count": 0,
+    "semantic_index_rebuild_stable": true,
+    "silent_font_substitution_count": 0,
+    "stale_tag_count": 1,
+    "template_failed_revision_rejected": true,
+    "template_pass_revision_active": true,
+    "template_reference_logical_id": "REF-TEMPLATE-PAPER",
+    "template_size_mm": [184, 260]
+  },
+  "contract_id": "M3-ACCEPTANCE-V1",
+  "decision": "ACCEPTED",
+  "evidence": {
+    "core_gate": {
+      "junit_sha256": "55fd103e46c844007276f0bbb432b151d0eafcb40447bcb9755de687219a593e",
+      "passed": 79,
+      "run_id": "RUN-20260726-RC2-M3CORE-206",
+      "run_result_sha256": "3c0e4a956cca3c24dda05a7b3748d349e23458e57c4d13efad00e7210ead8e96"
+    },
+    "index_rebuild": {
+      "path": "tmp/jobs/INTERNAL/JOB-M3-INDEX-REBUILD-EVIDENCE-R3-20260726/m3-index-rebuild-evidence.json",
+      "sha256": "3379adc01030492029f8e20e571f832c0d09369de005b93beaf5ebaac0dfbe78"
+    },
+    "real_flow": {
+      "path": "tmp/jobs/INTERNAL/JOB-M3-REAL-FLOW-EVIDENCE-R3-20260726/m3-real-flow-evidence.json",
+      "run_id": "RUN-20260726-M3-REAL-PIPELINE-R3-204",
+      "sha256": "503236d6bd93f0f508f0b028dc4efae696e9d1271b96661c24924cef029692d3"
+    },
+    "stage_gate": {
+      "junit_sha256": "a27478a337edfcda6ebb04c0c9184468fe1a375be3f4bbd35f1b3b94d2637a0e",
+      "passed": 583,
+      "run_id": "RUN-20260726-RC2-FULL-228",
+      "run_result_sha256": "ffdc274a442013d45d391f628a053b33096e8e652545e69e7ba6341f1b39b8c6"
+    },
+    "write_inventory": {
+      "entry_count": 447,
+      "inventory_payload_sha256": "2f0adb7ad2f2a2f80901b9b2469b16239d4a94582b03221a035243f239f49e13",
+      "manifest_sha256": "d8e63cdfa5687b28789e660e9284f303118a13176824c2110084089ebc605901",
+      "preview_run_id": "RUN-20260726-RC2-INVENTORY-227",
+      "source_count": 65,
+      "unknown_dynamic_count": 0,
+      "unmigrated_count": 0
+    }
+  },
+  "limitations": [
+    "The local vector is a deterministic hashed lexical-semantic feature vector, not a neural embedding model.",
+    "Search acceptance covers the approved 19-question M1 paper and six frozen gold queries, not a large multi-year corpus.",
+    "The accepted template family is the controlled 184×260 mm reference derived from REF-TEMPLATE-PAPER; DOCX remains a human reference while formal generated outputs are PDFs.",
+    "M3 publishes a derived state only. Activity-database migration, backup, restore and pointer activation remain gated by M4."
+  ],
+  "schema_version": "1.0",
+  "superseded_candidate": {
+    "reason": "Visual review found a generated geometry SVG y2 coordinate emitted as a literal format placeholder. REV-002 fixes the renderer and adds geometry-segment, function-sample and statistics-value parity gates.",
+    "state_id": "STATE-M3-YANYAN-REV-001",
+    "status": "SUPERSEDED_NOT_ACCEPTED"
+  }
+}

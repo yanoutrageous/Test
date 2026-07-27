@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from .config import PROJECT_ROOT, get_project_paths
-from .database import connect_database, initialize_database
+from .database import connect_database, connect_database_read_only, initialize_database
 from .export_quality import (
     EXPORT_READY_STATUSES,
     ExportQualityService,
@@ -21,6 +21,7 @@ from .export_selection import ExportSelectionService
 from .exports import save_html_export
 from .paper_render import PaperRenderService
 from .pdf_scan import scan_pdf_pages
+from .safety.workspace_io import get_workspace_io
 from .source_attribution import (
     SourceAttributionService,
     _extract_header_from_page_text,
@@ -148,10 +149,9 @@ def get_stage14_quality_by_question_ids(
 ) -> dict[int, dict[str, Any]]:
     if not question_ids:
         return {}
-    initialize_database(db_path)
     unique_ids = list(dict.fromkeys(int(value) for value in question_ids))
     placeholders = ", ".join("?" for _ in unique_ids)
-    with connect_database(db_path) as conn:
+    with connect_database_read_only(db_path) as conn:
         rows = conn.execute(
             f"""
             SELECT *
@@ -655,7 +655,6 @@ class Stage14QualityService:
                 raise Stage14Error("raw crop file missing")
             candidate_relative = _candidate_visual_path(row)
             candidate_path = self.project_root / candidate_relative
-            candidate_path.parent.mkdir(parents=True, exist_ok=True)
             _write_enhanced_png_candidate(original_path, candidate_path)
             candidate_row = {
                 **row,
@@ -800,8 +799,7 @@ class Stage14QualityService:
         return asset_id
 
     def summarize(self) -> dict[str, Any]:
-        initialize_database(self.db_path)
-        with connect_database(self.db_path) as conn:
+        with connect_database_read_only(self.db_path) as conn:
             queue_count = int(conn.execute("SELECT count(*) FROM stage14_quality_queue").fetchone()[0])
             question_count = int(conn.execute("SELECT count(*) FROM questions").fetchone()[0])
             missing_queue = int(
@@ -956,13 +954,15 @@ class Stage14QualityService:
             )
             summary = classify["summary"]
         report_path = self.project_root / STAGE14_REPORT_RELATIVE_PATH
-        report_path.parent.mkdir(parents=True, exist_ok=True)
-        report_path.write_text(_render_stage14_report(summary), encoding="utf-8")
+        receipt = get_workspace_io().write_text_idempotent(
+            report_path,
+            _render_stage14_report(summary),
+        )
         return {
             "status": "ok",
             "relative_path": STAGE14_REPORT_RELATIVE_PATH.as_posix(),
             "path": str(report_path),
-            "size_bytes": report_path.stat().st_size,
+            "size_bytes": receipt.size_bytes,
             "summary": summary,
         }
 
@@ -1305,7 +1305,10 @@ def _write_enhanced_png_candidate(source_path: Path, output_path: Path) -> None:
         rgb = _contrast_stretch_rgb(rgb)
         zoom = 3 if width < 120 or height < 60 else 2
         scaled_width, scaled_height, scaled_rgb = _scale_nearest_rgb(width, height, rgb, zoom)
-        output_path.write_bytes(_png_rgb_bytes(scaled_width, scaled_height, scaled_rgb))
+        get_workspace_io().write_bytes_idempotent(
+            output_path,
+            _png_rgb_bytes(scaled_width, scaled_height, scaled_rgb),
+        )
     finally:
         pix = None  # release mmap-backed samples promptly on Windows
 

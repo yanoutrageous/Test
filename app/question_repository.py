@@ -5,7 +5,7 @@ import sqlite3
 from pathlib import Path
 from typing import Any, Mapping
 
-from .database import connect_database, initialize_database
+from .database import connect_database, connect_database_read_only, initialize_database
 
 
 LIST_STATUSES = ("pending", "reviewed", "approved", "rejected")
@@ -171,7 +171,7 @@ def list_questions(
         stage14_queue=stage14_queue,
     )
 
-    with connect_database(db_path) as conn:
+    with connect_database_read_only(db_path) as conn:
         if cleaned_keyword:
             where_sql = " AND ".join(clauses) if clauses else "1 = 1"
             try:
@@ -319,7 +319,7 @@ def get_question_detail(
     *,
     db_path: Path | None = None,
 ) -> dict[str, Any] | None:
-    with connect_database(db_path) as conn:
+    with connect_database_read_only(db_path) as conn:
         row = conn.execute(
             """
             SELECT q.*,
@@ -454,7 +454,7 @@ def get_questions_by_ids(
 
     unique_ids = list(dict.fromkeys(question_ids))
     placeholders = ", ".join("?" for _ in unique_ids)
-    with connect_database(db_path) as conn:
+    with connect_database_read_only(db_path) as conn:
         rows = conn.execute(
             f"""
             SELECT q.id,

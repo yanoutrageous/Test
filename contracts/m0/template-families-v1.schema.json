@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:local-exam-bank:template-families:1.0",
+  "title": "M0 Template Families v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_id",
+    "schema_version",
+    "families",
+    "extensions"
+  ],
+  "properties": {
+    "schema_id": {
+      "const": "LOCAL_EXAM_BANK_TEMPLATE_FAMILIES"
+    },
+    "schema_version": {
+      "const": "1.0"
+    },
+    "families": {
+      "type": "array",
+      "minItems": 12,
+      "items": {
+        "type": "object"
+      }
+    },
+    "extensions": {
+      "type": "object"
+    }
+  },
+  "x-runtime-validator": "app.gold_registry.validate_template_families"
+}

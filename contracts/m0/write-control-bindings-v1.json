@@ -1,0 +1,4032 @@
+{
+  "binding_contract": "M0-WRITE-CONTROL-BINDINGS-V1",
+  "binding_count": 447,
+  "bindings": [
+    {
+      "control_id": "M0_LOOPBACK_NETWORK_ALLOWLIST_V1",
+      "entry_id": "WE-118E3E3799DCB4C58A69B836",
+      "file": "app/__main__.py",
+      "kind": "NETWORK_REQUEST",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "edbfec70f643de5c0c860e4abb05aef41b55e294615930ad9fe3c6da306b81f7",
+      "statement_fingerprint": "88b12957d985320d9a44a19ce5a7426df96b8c5ee984f90a44fa0a1b95153cad"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-63BE28D039D8CFD87534C245",
+      "file": "app/ai_suggestions.py",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "4bf08ae6e9d7e816a676b855d8ee06ebd4a2c2ca0992951e86bc95f3ad4ac73b",
+      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-19E2FD8B013912E395BE5AF3",
+      "file": "app/ai_suggestions.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "4bf08ae6e9d7e816a676b855d8ee06ebd4a2c2ca0992951e86bc95f3ad4ac73b",
+      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-8EF56CACB6C9FAF4BB83866C",
+      "file": "app/ai_suggestions.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "4bf08ae6e9d7e816a676b855d8ee06ebd4a2c2ca0992951e86bc95f3ad4ac73b",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-EF64434BF26E1B756AFBEF26",
+      "file": "app/ai_suggestions.py",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "4bf08ae6e9d7e816a676b855d8ee06ebd4a2c2ca0992951e86bc95f3ad4ac73b",
+      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-15994E65B8783A9A6CF09DDB",
+      "file": "app/ai_suggestions.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "4bf08ae6e9d7e816a676b855d8ee06ebd4a2c2ca0992951e86bc95f3ad4ac73b",
+      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-D146B039603EC9C6AD27A39D",
+      "file": "app/ai_suggestions.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "4bf08ae6e9d7e816a676b855d8ee06ebd4a2c2ca0992951e86bc95f3ad4ac73b",
+      "statement_fingerprint": "86766d9d3589fbd59c5ecbb5c97a059ececa3c6eafee16b8d92dcf995888dc12"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-6F2EE778E688C5DA2D4CEA58",
+      "file": "app/ai_suggestions.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "4bf08ae6e9d7e816a676b855d8ee06ebd4a2c2ca0992951e86bc95f3ad4ac73b",
+      "statement_fingerprint": "89d8ade2fdd63cce64de2feeb5512bdf278bc42c160ffc44fb3b849b374362c3"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-9700851D1B841B05D8057627",
+      "file": "app/ai_suggestions.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "4bf08ae6e9d7e816a676b855d8ee06ebd4a2c2ca0992951e86bc95f3ad4ac73b",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-AE0FB48ECC6958D9298D72B8",
+      "file": "app/ai_suggestions.py",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "4bf08ae6e9d7e816a676b855d8ee06ebd4a2c2ca0992951e86bc95f3ad4ac73b",
+      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-EFC4735720534EC8B8F90040",
+      "file": "app/ai_suggestions.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "4bf08ae6e9d7e816a676b855d8ee06ebd4a2c2ca0992951e86bc95f3ad4ac73b",
+      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-C3076448792881E0D07C47F2",
+      "file": "app/ai_suggestions.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "4bf08ae6e9d7e816a676b855d8ee06ebd4a2c2ca0992951e86bc95f3ad4ac73b",
+      "statement_fingerprint": "b0bcfa14299eef45f678bc62cd81e6aaef0584bc4338dd80a88db3f32b959ffa"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-D6FB85C9B9328FC1D27683F2",
+      "file": "app/ai_suggestions.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "4bf08ae6e9d7e816a676b855d8ee06ebd4a2c2ca0992951e86bc95f3ad4ac73b",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-C8EF32215E1A3810BC80ECDB",
+      "file": "app/ai_suggestions.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "4bf08ae6e9d7e816a676b855d8ee06ebd4a2c2ca0992951e86bc95f3ad4ac73b",
+      "statement_fingerprint": "10709e90254158453d3e516cc41ca0a0371765c2497bca6bb8adf2845611e32c"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-23C677D3F9E5991D4FDEEBA6",
+      "file": "app/ai_suggestions.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "4bf08ae6e9d7e816a676b855d8ee06ebd4a2c2ca0992951e86bc95f3ad4ac73b",
+      "statement_fingerprint": "e50370568d7ddd2058e5ef7ed1e985f54b80a9327e65f449a1fdbcc63a18ce6f"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-5801FFE08E6C9A773FD5A242",
+      "file": "app/cli.py",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "d5983902117c4c9e254e2a7107174c3b437b2878211aab37993f2f14bca2ce14",
+      "statement_fingerprint": "4288cb39cb515e0bc0356ff387471f12ee0bfaa6f4cc7f1badd05f80439928dd"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-FF5D174922DF2C2C610F1C5F",
+      "file": "app/codex_structure.py",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "fafd31878af7110f171d8b2b7e2c1e18bf81b3e5497a30b7d5041db1d95c9bd6",
+      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-CE0FA3311BBFC3840F3EA665",
+      "file": "app/codex_structure.py",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "fafd31878af7110f171d8b2b7e2c1e18bf81b3e5497a30b7d5041db1d95c9bd6",
+      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-9137856CB2AE6D11F6B6B14E",
+      "file": "app/codex_structure.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "fafd31878af7110f171d8b2b7e2c1e18bf81b3e5497a30b7d5041db1d95c9bd6",
+      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-976E20120388A0B971C907B5",
+      "file": "app/codex_structure.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "fafd31878af7110f171d8b2b7e2c1e18bf81b3e5497a30b7d5041db1d95c9bd6",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-FF53D5FD35C78FD0AA0D6048",
+      "file": "app/codex_structure.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "fafd31878af7110f171d8b2b7e2c1e18bf81b3e5497a30b7d5041db1d95c9bd6",
+      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-32307B494D55B8CD9A6D2A5C",
+      "file": "app/codex_structure.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "fafd31878af7110f171d8b2b7e2c1e18bf81b3e5497a30b7d5041db1d95c9bd6",
+      "statement_fingerprint": "41eefabd9250389c4bd9a905eeb17088269a13adaaea277167a63ab0f7d46a0e"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-B70BD51FC06FFA77314AAB68",
+      "file": "app/consistency.py",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "1e409c5f84ac5d7925fa315ab327daea02adb78ede6360e2d8c6a2e22a544f17",
+      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-086DAB92D2362F71BAE35F6D",
+      "file": "app/consistency.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "1e409c5f84ac5d7925fa315ab327daea02adb78ede6360e2d8c6a2e22a544f17",
+      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-5FF5C733A86FFA85450AE66E",
+      "file": "app/database.py",
+      "kind": "SQLITE_RAW_CONNECT",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "c32a3e83c6e8ea24fa26c47837c521cff92b175d110a92766c3e1a805992d436",
+      "statement_fingerprint": "3fa3fcf2d7ba995a9496480ea58625e94a000b7a08b07662fef23185a67c01ed"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-68CAE4A321F723A5441C7A3F",
+      "file": "app/database.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "c32a3e83c6e8ea24fa26c47837c521cff92b175d110a92766c3e1a805992d436",
+      "statement_fingerprint": "b55f3ece38390d78072e63527e7419f2cbe8d9323a2a2c4fc3cdf3abc3983c4d"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-924E5D2B682B5894714CB881",
+      "file": "app/database.py",
+      "kind": "SQLITE_RAW_CONNECT",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "c32a3e83c6e8ea24fa26c47837c521cff92b175d110a92766c3e1a805992d436",
+      "statement_fingerprint": "7905b45de913a8057b5727923a7e33aaf928c5292bba758187c7abcb51e6d442"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-71566AAB382A59E19F58863C",
+      "file": "app/database.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "c32a3e83c6e8ea24fa26c47837c521cff92b175d110a92766c3e1a805992d436",
+      "statement_fingerprint": "58b7677f06f40c5ace8c0b2171f6187ea863311036dc18824625624ab2f9dce4"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-CCF98776885C4ADFD7CD8DBA",
+      "file": "app/database.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "c32a3e83c6e8ea24fa26c47837c521cff92b175d110a92766c3e1a805992d436",
+      "statement_fingerprint": "b55f3ece38390d78072e63527e7419f2cbe8d9323a2a2c4fc3cdf3abc3983c4d"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-6D28140271DF7DE98CC5ECCD",
+      "file": "app/database_backup.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "749229674a7ec54a3a18c335179f281cca270acabf674934e53dcb11ee7de443",
+      "statement_fingerprint": "a9dc8f1be8c2be0039f5e15e78f63c657b421044714da332141ffccd8a84babd"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-82BDF64A544BA2B4AB01897C",
+      "file": "app/database_backup.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "749229674a7ec54a3a18c335179f281cca270acabf674934e53dcb11ee7de443",
+      "statement_fingerprint": "fcf99c71773ca39cdc08b50b4a08028614861336bdc5a821852fd67d86b5bbdc"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-CF1121EFD67E656B8030CB09",
+      "file": "app/database_backup.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "749229674a7ec54a3a18c335179f281cca270acabf674934e53dcb11ee7de443",
+      "statement_fingerprint": "4f813e7b7294d0835f4c51422de30162ded9f8b8ff6ae97ec2b869022af5b310"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-A257FE07DB9B81E7706FD40E",
+      "file": "app/database_backup.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "749229674a7ec54a3a18c335179f281cca270acabf674934e53dcb11ee7de443",
+      "statement_fingerprint": "2ea71c1d0772af14c4eb5730db6d644eea9f862f72061b5190f1ead1356fa836"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-6132D9289E41221DA29BC13A",
+      "file": "app/database_backup.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "749229674a7ec54a3a18c335179f281cca270acabf674934e53dcb11ee7de443",
+      "statement_fingerprint": "6ea820e81c7ebe28af496fcbc9ab531f3b3364b3513f22fbe9d1e834959aa6ae"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-2BA64803D7EE98CB22EB17F4",
+      "file": "app/database_backup.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "749229674a7ec54a3a18c335179f281cca270acabf674934e53dcb11ee7de443",
+      "statement_fingerprint": "84af667466d451484ff3a3d04b1751599e6fafe8ea4091983674e5fd07086df9"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-96768D36C1BFAAF03F70BEDA",
+      "file": "app/database_backup.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "749229674a7ec54a3a18c335179f281cca270acabf674934e53dcb11ee7de443",
+      "statement_fingerprint": "bb3577f7fb9d038febad7b460fd0406f587ce6c183c5905c6b68a05d6624411e"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-41378A43C7A1B93597D9F664",
+      "file": "app/database_backup.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "749229674a7ec54a3a18c335179f281cca270acabf674934e53dcb11ee7de443",
+      "statement_fingerprint": "04c55b7652e86c323f825d5b91e8beed53ab29f8b90bac2eb273225484c42e79"
+    },
+    {
+      "control_id": "M0_DATABASE_BACKUP_SNAPSHOT_V1",
+      "entry_id": "WE-250CBF8350C5EFD5B6E07AEB",
+      "file": "app/database_backup.py",
+      "kind": "SQLITE_BACKUP_OR_EXTENSION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "749229674a7ec54a3a18c335179f281cca270acabf674934e53dcb11ee7de443",
+      "statement_fingerprint": "b31632279de02a99b79a13cd8f1dc5a1b354eeaeb76bc23fd938ebf2d7ed3e5a"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-FCD817AB674F5CD980B01975",
+      "file": "app/database_backup.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "749229674a7ec54a3a18c335179f281cca270acabf674934e53dcb11ee7de443",
+      "statement_fingerprint": "83acd183cb345a45301cee247c266aabb961ecf37e091b6ea8e533076f910150"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-31C7CA3A111943E6020B06FC",
+      "file": "app/database_backup.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "749229674a7ec54a3a18c335179f281cca270acabf674934e53dcb11ee7de443",
+      "statement_fingerprint": "57c3d52d77f16f2724225cdc09d3835bf82eda779e6d4be0561811ce4f9f0084"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-67205EABEA2CD7605C751749",
+      "file": "app/database_backup.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "749229674a7ec54a3a18c335179f281cca270acabf674934e53dcb11ee7de443",
+      "statement_fingerprint": "0355e2f984f5f95d3e772c88a5fb0a8881dad1260836177180ccbc31be31379f"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-FBAF633260515E780E20F282",
+      "file": "app/database_backup.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "749229674a7ec54a3a18c335179f281cca270acabf674934e53dcb11ee7de443",
+      "statement_fingerprint": "db30f82d46e1e2fc1d2eee9c5f609aef94c15863b754439db0bea6f1bc4aed5a"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-2C307449578929A2924493D3",
+      "file": "app/database_backup.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "749229674a7ec54a3a18c335179f281cca270acabf674934e53dcb11ee7de443",
+      "statement_fingerprint": "83acd183cb345a45301cee247c266aabb961ecf37e091b6ea8e533076f910150"
+    },
+    {
+      "control_id": "M0_MEMORY_ONLY_SQLITE_V1",
+      "entry_id": "WE-47AD779EC53A43D3DAB5BBEF",
+      "file": "app/database_migrations.py",
+      "kind": "SQLITE_RAW_CONNECT",
+      "migration_status": "ACCEPTED_MEMORY_ONLY",
+      "source_sha256": "0f6ab8024679d4f2403ac4b0025b74de0ece29f1fef3740b7221c2483fc2fd71",
+      "statement_fingerprint": "cf84c78471be4f6546fd338733c94579bcc637dc30e69a15c26964e1dd951cfb"
+    },
+    {
+      "control_id": "M0_MEMORY_ONLY_SQLITE_V1",
+      "entry_id": "WE-B424D70AC54C4B3E7F1DCE7F",
+      "file": "app/database_migrations.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "ACCEPTED_MEMORY_ONLY",
+      "source_sha256": "0f6ab8024679d4f2403ac4b0025b74de0ece29f1fef3740b7221c2483fc2fd71",
+      "statement_fingerprint": "cc9ff079473817c531993061d5e30a6c74da1fddb635eddf6388ae280c764bfe"
+    },
+    {
+      "control_id": "M0_MEMORY_ONLY_SQLITE_V1",
+      "entry_id": "WE-C3F804A5A22F835D4EB1AD24",
+      "file": "app/database_migrations.py",
+      "kind": "SQLITE_RAW_CONNECT",
+      "migration_status": "ACCEPTED_MEMORY_ONLY",
+      "source_sha256": "0f6ab8024679d4f2403ac4b0025b74de0ece29f1fef3740b7221c2483fc2fd71",
+      "statement_fingerprint": "cf84c78471be4f6546fd338733c94579bcc637dc30e69a15c26964e1dd951cfb"
+    },
+    {
+      "control_id": "M0_MEMORY_ONLY_SQLITE_V1",
+      "entry_id": "WE-021A9DA668E090F463F59BCB",
+      "file": "app/database_migrations.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "ACCEPTED_MEMORY_ONLY",
+      "source_sha256": "0f6ab8024679d4f2403ac4b0025b74de0ece29f1fef3740b7221c2483fc2fd71",
+      "statement_fingerprint": "28008cc4f0d5f3a9204a9e870372359b96deb6c08a5dfee3ecad4fade0508c86"
+    },
+    {
+      "control_id": "M0_MEMORY_ONLY_SQLITE_V1",
+      "entry_id": "WE-64EA90BA2F9C9DFC11EAD0B9",
+      "file": "app/database_migrations.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "ACCEPTED_MEMORY_ONLY",
+      "source_sha256": "0f6ab8024679d4f2403ac4b0025b74de0ece29f1fef3740b7221c2483fc2fd71",
+      "statement_fingerprint": "18cfd39299e0532d0d9bbd79f07b75b9daca4735e5ffb4d1d627cf1434e99771"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-5ED09A43D944FD9885814C40",
+      "file": "app/database_migrations.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "0f6ab8024679d4f2403ac4b0025b74de0ece29f1fef3740b7221c2483fc2fd71",
+      "statement_fingerprint": "34224e5c47dbdf074a27593b8efedde05fda30f72b1c3f13d075f3d443c8f76c"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-C7DDF1AB919C561C561E4722",
+      "file": "app/database_migrations.py",
+      "kind": "SQLITE_RAW_CONNECT",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "0f6ab8024679d4f2403ac4b0025b74de0ece29f1fef3740b7221c2483fc2fd71",
+      "statement_fingerprint": "34ba963697860cbfa77eb46e56e36b822c87e7e0f0d32839440ff0762d2445c5"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-AFD8A59709FC2FC5A4E4562B",
+      "file": "app/database_migrations.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "0f6ab8024679d4f2403ac4b0025b74de0ece29f1fef3740b7221c2483fc2fd71",
+      "statement_fingerprint": "b55f3ece38390d78072e63527e7419f2cbe8d9323a2a2c4fc3cdf3abc3983c4d"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-A08C7CEE70CC8146D4ABD83A",
+      "file": "app/database_migrations.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "0f6ab8024679d4f2403ac4b0025b74de0ece29f1fef3740b7221c2483fc2fd71",
+      "statement_fingerprint": "843996ca3253b9bf8179373d1471f086ad085c4fbcebb16e103b6536df1caa18"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-283CF7EEA9C5B0C5D1C46B95",
+      "file": "app/database_migrations.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "0f6ab8024679d4f2403ac4b0025b74de0ece29f1fef3740b7221c2483fc2fd71",
+      "statement_fingerprint": "b568ba51f7065ec2f8f284a44f842dc5a940589274fe428bcd8fc913d1a60245"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-0B9056C9F38A441A66D097C2",
+      "file": "app/database_migrations.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "0f6ab8024679d4f2403ac4b0025b74de0ece29f1fef3740b7221c2483fc2fd71",
+      "statement_fingerprint": "18cfd39299e0532d0d9bbd79f07b75b9daca4735e5ffb4d1d627cf1434e99771"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-B5AAA0EA9F1DB33489759522",
+      "file": "app/database_migrations.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "0f6ab8024679d4f2403ac4b0025b74de0ece29f1fef3740b7221c2483fc2fd71",
+      "statement_fingerprint": "878a817193420ac64d00eeb983089f8d4ab995042be9bd2a3ff77d070a522f79"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-C9E27931729DBACFB41C3B5B",
+      "file": "app/database_migrations.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "0f6ab8024679d4f2403ac4b0025b74de0ece29f1fef3740b7221c2483fc2fd71",
+      "statement_fingerprint": "c861c31c142d35cd7ccf96ad3197c0adf22c0c24688bbba1709a788c5eb9b1fd"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-D14CF886E561E916ED59927B",
+      "file": "app/database_migrations.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "0f6ab8024679d4f2403ac4b0025b74de0ece29f1fef3740b7221c2483fc2fd71",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-B2CDB2BCD9425CF2E5351219",
+      "file": "app/database_migrations.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "0f6ab8024679d4f2403ac4b0025b74de0ece29f1fef3740b7221c2483fc2fd71",
+      "statement_fingerprint": "f946398067f06c31d87c2631b84b6d592777e2313489527ed08ecd1bc3175732"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-C7F6FAC0FA6839CB1AE8EF00",
+      "file": "app/export_quality.py",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "dfee3e4e913cd4d47d1b0ec125aa3553f1a77bbb052da2aa8278d964c65d9b4d",
+      "statement_fingerprint": "fd5e65fec6c126443b7b26acdd25c79a688e8096a89a52e9dce945a71eaaf53e"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-1A47753E925688A7D463FDC4",
+      "file": "app/export_quality.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "dfee3e4e913cd4d47d1b0ec125aa3553f1a77bbb052da2aa8278d964c65d9b4d",
+      "statement_fingerprint": "196c8969b9ae12c0c2db078216eb4ba556d3b51e17241f26af6c3fcbb0fa2f1f"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-3DE39EE835320882F11535B0",
+      "file": "app/export_quality.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "dfee3e4e913cd4d47d1b0ec125aa3553f1a77bbb052da2aa8278d964c65d9b4d",
+      "statement_fingerprint": "b90f0e7480a37c5caa9a4230f6e31ce4eab85bde19f7807b1810254c24254dce"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-CED5633214FEC1F2FA8EB412",
+      "file": "app/export_quality.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "dfee3e4e913cd4d47d1b0ec125aa3553f1a77bbb052da2aa8278d964c65d9b4d",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-A9255AFDC09062E2A77691EE",
+      "file": "app/export_quality.py",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "dfee3e4e913cd4d47d1b0ec125aa3553f1a77bbb052da2aa8278d964c65d9b4d",
+      "statement_fingerprint": "fd5e65fec6c126443b7b26acdd25c79a688e8096a89a52e9dce945a71eaaf53e"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-4A3DC5C41078AF1EB521F790",
+      "file": "app/export_quality.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "dfee3e4e913cd4d47d1b0ec125aa3553f1a77bbb052da2aa8278d964c65d9b4d",
+      "statement_fingerprint": "77bf69e4f30a7a375910290a4cdd9d7040da5c354d54846d07253c7144118b54"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-DF4BFDF7278CF657AEE9ABAD",
+      "file": "app/export_quality.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "dfee3e4e913cd4d47d1b0ec125aa3553f1a77bbb052da2aa8278d964c65d9b4d",
+      "statement_fingerprint": "44e0e46cd26c8ebf947337758b9d745ebcd9184a21ac7596eed8dcf321f2375f"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-565C183C49AC1AD14494298E",
+      "file": "app/export_quality.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "dfee3e4e913cd4d47d1b0ec125aa3553f1a77bbb052da2aa8278d964c65d9b4d",
+      "statement_fingerprint": "7f5ec922c7037937973ddb1211af9fad049b91644641c29e5be30fc031dbaf40"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-5D29720E7DC620B0F64319E4",
+      "file": "app/export_quality.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "dfee3e4e913cd4d47d1b0ec125aa3553f1a77bbb052da2aa8278d964c65d9b4d",
+      "statement_fingerprint": "e2b5f86d3109d9a1d6243175a6c8feb09e6676f029958ca2f84fb6f42ec28497"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-CDE8575FCC2125833D80AEE3",
+      "file": "app/export_quality.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "dfee3e4e913cd4d47d1b0ec125aa3553f1a77bbb052da2aa8278d964c65d9b4d",
+      "statement_fingerprint": "389eb07d236778b949d83581c21d401e7b91a29f08213aad68dae8735de9933a"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-AADB0031C32AB3DD3C7B2DB3",
+      "file": "app/export_selection.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "956df5978547f5fff66c101be9a5fdaf137049180f1ddb55d32a021a0ff2bc02",
+      "statement_fingerprint": "722ed352b55e64bbe8679cb26bee9a2431990551af4440ba979b0772abc2e78a"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-DCB064A455414CCAA94044AC",
+      "file": "app/export_selection.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "956df5978547f5fff66c101be9a5fdaf137049180f1ddb55d32a021a0ff2bc02",
+      "statement_fingerprint": "61e52066785322b6948239a71923486d72305fcb8157f31e51855b47cef19fda"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-9D3D4E154B89F19E55B58364",
+      "file": "app/export_selection.py",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "956df5978547f5fff66c101be9a5fdaf137049180f1ddb55d32a021a0ff2bc02",
+      "statement_fingerprint": "fd5e65fec6c126443b7b26acdd25c79a688e8096a89a52e9dce945a71eaaf53e"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-8B5CBBD700601D9E0D7E8C1C",
+      "file": "app/export_selection.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "956df5978547f5fff66c101be9a5fdaf137049180f1ddb55d32a021a0ff2bc02",
+      "statement_fingerprint": "8c8282e651384c0e41a9eb21f49defd086b715807f647dd52d9b898c7df3e958"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-7F05299BA175B81C1748B3F6",
+      "file": "app/export_selection.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "956df5978547f5fff66c101be9a5fdaf137049180f1ddb55d32a021a0ff2bc02",
+      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6"
+    },
+    {
+      "control_id": "M0_MEMORY_ONLY_SQLITE_V1",
+      "entry_id": "WE-CFB07A24745D0DF9964CE139",
+      "file": "app/health.py",
+      "kind": "SQLITE_RAW_CONNECT",
+      "migration_status": "ACCEPTED_MEMORY_ONLY",
+      "source_sha256": "fdc27faa97d3253ef971b1156dc6a26430a6776b9c702232bd6b71f3863c01fe",
+      "statement_fingerprint": "cf84c78471be4f6546fd338733c94579bcc637dc30e69a15c26964e1dd951cfb"
+    },
+    {
+      "control_id": "M0_MEMORY_ONLY_SQLITE_V1",
+      "entry_id": "WE-21A4A0AB3B22B201B2B74EDB",
+      "file": "app/health.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "ACCEPTED_MEMORY_ONLY",
+      "source_sha256": "fdc27faa97d3253ef971b1156dc6a26430a6776b9c702232bd6b71f3863c01fe",
+      "statement_fingerprint": "c1ea9b53ee4c69ff7c90263d74e0adc03ddb5424f3b181bdbc838e88e8ea5b2e"
+    },
+    {
+      "control_id": "M0_MEMORY_ONLY_SQLITE_V1",
+      "entry_id": "WE-9BDF0CB0B6002FB6B48875C2",
+      "file": "app/health.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "ACCEPTED_MEMORY_ONLY",
+      "source_sha256": "fdc27faa97d3253ef971b1156dc6a26430a6776b9c702232bd6b71f3863c01fe",
+      "statement_fingerprint": "cdd152be0997eccab06548040834a1e34ed6312fc8e251fc6ac7d2167a4a1d67"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-2D8013A084F7CE3DB92BCE8B",
+      "file": "app/import_batches.py",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "2a062c4a1a7ea64c25cc3b19c5b212ac9f75be3609e36755fb660b337bbe8d64",
+      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-C4751187FD98F7E3DD54A038",
+      "file": "app/import_batches.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "2a062c4a1a7ea64c25cc3b19c5b212ac9f75be3609e36755fb660b337bbe8d64",
+      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-8D1E43FD839C0210B2101B0B",
+      "file": "app/import_batches.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "2a062c4a1a7ea64c25cc3b19c5b212ac9f75be3609e36755fb660b337bbe8d64",
+      "statement_fingerprint": "b8ce67dc33e13eb9d9dc4734c2edc83f7c916a6dbf30026072e7def7b7179f72"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-33B06B2EF9805367FC940D19",
+      "file": "app/import_batches.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "2a062c4a1a7ea64c25cc3b19c5b212ac9f75be3609e36755fb660b337bbe8d64",
+      "statement_fingerprint": "e671b228ac5016969e875385dd9f1747588a4594722261741238e0541f25e08d"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-886B978D3731F74A98E98651",
+      "file": "app/import_batches.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "2a062c4a1a7ea64c25cc3b19c5b212ac9f75be3609e36755fb660b337bbe8d64",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-6AC2974D01962BF70D26D80D",
+      "file": "app/import_batches.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "2a062c4a1a7ea64c25cc3b19c5b212ac9f75be3609e36755fb660b337bbe8d64",
+      "statement_fingerprint": "03554d48d02d38c1163fbe94f7111dafbf0da7a7aa8bf9df08794a18c40b8835"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-DF2C85FCAD40D686CA8C180E",
+      "file": "app/import_batches.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "2a062c4a1a7ea64c25cc3b19c5b212ac9f75be3609e36755fb660b337bbe8d64",
+      "statement_fingerprint": "55bdc394ae270dca6ca9b386070489058a93c7a9853924fb845d9236a47eeaa8"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-5EAAD99A1577564673F30E56",
+      "file": "app/import_batches.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "2a062c4a1a7ea64c25cc3b19c5b212ac9f75be3609e36755fb660b337bbe8d64",
+      "statement_fingerprint": "007629141966ba3fc80b244120ed6dbf9d15d1e99ed167722b220021a388fd92"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-5DE208EEF533D0C0294E944B",
+      "file": "app/import_batches.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "2a062c4a1a7ea64c25cc3b19c5b212ac9f75be3609e36755fb660b337bbe8d64",
+      "statement_fingerprint": "52bc2589c925dce24a451d5cbba08c61c53a781a83bde51d1f760c82ef587557"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-B11C3DE4E783D536083DA019",
+      "file": "app/import_batches.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "2a062c4a1a7ea64c25cc3b19c5b212ac9f75be3609e36755fb660b337bbe8d64",
+      "statement_fingerprint": "1dc08902d15f69f0a25c5ac5f4e6c94d56efb30d2cf3247208421a1519bab54a"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-B554BECF95EF547BCAD9E109",
+      "file": "app/import_batches.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "2a062c4a1a7ea64c25cc3b19c5b212ac9f75be3609e36755fb660b337bbe8d64",
+      "statement_fingerprint": "e5652f2e9930dfb089115d09b272d25c0413ddcb0dd0561eb2234dd7c1a5dd32"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-ABB5306B14D303CB97F6A1CF",
+      "file": "app/import_batches.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "2a062c4a1a7ea64c25cc3b19c5b212ac9f75be3609e36755fb660b337bbe8d64",
+      "statement_fingerprint": "aec651298c24662e7b2a1f381cf19222ea05efa0d772eca91e72e8b15f264cf2"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-DCB704AD9FFFD02F536F0BCF",
+      "file": "app/import_batches.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "2a062c4a1a7ea64c25cc3b19c5b212ac9f75be3609e36755fb660b337bbe8d64",
+      "statement_fingerprint": "5423460957852de1ebd0c7a0a3b5ab977bf01cebf5d94f5abbd2da16998e2b59"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-7C2FC22CCEB9F7AE6CBA10AF",
+      "file": "app/import_batches.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "2a062c4a1a7ea64c25cc3b19c5b212ac9f75be3609e36755fb660b337bbe8d64",
+      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-7F5C6082B25F7E68A4C331FB",
+      "file": "app/import_batches.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "2a062c4a1a7ea64c25cc3b19c5b212ac9f75be3609e36755fb660b337bbe8d64",
+      "statement_fingerprint": "ea3d61a5bf878c673738881920ef882fb74c41dd139a33245dc68edbcc7010d9"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-DEDC06D38A80C4BE2D46B4A6",
+      "file": "app/import_batches.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "2a062c4a1a7ea64c25cc3b19c5b212ac9f75be3609e36755fb660b337bbe8d64",
+      "statement_fingerprint": "7cbde40e96c978bc18491255dfdfdc69b5fe4917e6f1c091ab52b717dd09eded"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-88F51F45A5F71E650AD4DB0D",
+      "file": "app/import_batches.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "2a062c4a1a7ea64c25cc3b19c5b212ac9f75be3609e36755fb660b337bbe8d64",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-79A7E8F2F3BFE1F2117A986A",
+      "file": "app/import_batches.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "2a062c4a1a7ea64c25cc3b19c5b212ac9f75be3609e36755fb660b337bbe8d64",
+      "statement_fingerprint": "849b9c81de84bdcda5de7779ced29efad18d905f24da61b208c2db605f6d4ee9"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-03CAAA3F311BF098C030B1B1",
+      "file": "app/import_batches.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "2a062c4a1a7ea64c25cc3b19c5b212ac9f75be3609e36755fb660b337bbe8d64",
+      "statement_fingerprint": "2eed7d04531aa72bedf769f5efdf8072ac459c0e99c0b33df8a9a4adeb96b6a1"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-43861DF197C64F00753077E5",
+      "file": "app/import_batches.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "2a062c4a1a7ea64c25cc3b19c5b212ac9f75be3609e36755fb660b337bbe8d64",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-4A3659FD5EAF57B79B5F8474",
+      "file": "app/import_batches.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "2a062c4a1a7ea64c25cc3b19c5b212ac9f75be3609e36755fb660b337bbe8d64",
+      "statement_fingerprint": "849b9c81de84bdcda5de7779ced29efad18d905f24da61b208c2db605f6d4ee9"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-60568A87D504C7E60AED88A4",
+      "file": "app/import_batches.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "2a062c4a1a7ea64c25cc3b19c5b212ac9f75be3609e36755fb660b337bbe8d64",
+      "statement_fingerprint": "8bfec63562a9a9e90a38a5b8ecccac84e9fbf4efc79365c2c93294b832749503"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-50160D597E52AE11B25E1B26",
+      "file": "app/import_batches.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "2a062c4a1a7ea64c25cc3b19c5b212ac9f75be3609e36755fb660b337bbe8d64",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-0B1CBDA1EDF271B2C1A00D31",
+      "file": "app/import_batches.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "2a062c4a1a7ea64c25cc3b19c5b212ac9f75be3609e36755fb660b337bbe8d64",
+      "statement_fingerprint": "849b9c81de84bdcda5de7779ced29efad18d905f24da61b208c2db605f6d4ee9"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-853ACE50DD99FC71655BD746",
+      "file": "app/import_batches.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "2a062c4a1a7ea64c25cc3b19c5b212ac9f75be3609e36755fb660b337bbe8d64",
+      "statement_fingerprint": "68b7cbbca433062b87f81102caa2f4f7d7e28e38739735f9699de36076cf61e7"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-BF0D4537AC1C8DF40B3D4CA4",
+      "file": "app/import_batches.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "2a062c4a1a7ea64c25cc3b19c5b212ac9f75be3609e36755fb660b337bbe8d64",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-073AA7BE56C51CCC0530B66E",
+      "file": "app/import_batches.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "2a062c4a1a7ea64c25cc3b19c5b212ac9f75be3609e36755fb660b337bbe8d64",
+      "statement_fingerprint": "849b9c81de84bdcda5de7779ced29efad18d905f24da61b208c2db605f6d4ee9"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-705372DFDBAD2E08849EB1D0",
+      "file": "app/import_batches.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "2a062c4a1a7ea64c25cc3b19c5b212ac9f75be3609e36755fb660b337bbe8d64",
+      "statement_fingerprint": "33ff359c7d248bbf1bd94913797785777a068a4963ba599f2360787a3a5e8058"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-97770F98B2BDBBDB04C6D009",
+      "file": "app/import_batches.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "2a062c4a1a7ea64c25cc3b19c5b212ac9f75be3609e36755fb660b337bbe8d64",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-15762DCC34DDCEE5747A44E1",
+      "file": "app/import_batches.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "2a062c4a1a7ea64c25cc3b19c5b212ac9f75be3609e36755fb660b337bbe8d64",
+      "statement_fingerprint": "849b9c81de84bdcda5de7779ced29efad18d905f24da61b208c2db605f6d4ee9"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-A0E05A11C1315478B8E20C02",
+      "file": "app/import_batches.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "2a062c4a1a7ea64c25cc3b19c5b212ac9f75be3609e36755fb660b337bbe8d64",
+      "statement_fingerprint": "a6421d013864784d84cca31d8cd3cf86c7e33a6732bbb5f46b9cf5b1e86836cf"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-66CB63362F6284A681E04FDF",
+      "file": "app/import_batches.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "2a062c4a1a7ea64c25cc3b19c5b212ac9f75be3609e36755fb660b337bbe8d64",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-6E8F0366754E5ECC3692F780",
+      "file": "app/import_batches.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "2a062c4a1a7ea64c25cc3b19c5b212ac9f75be3609e36755fb660b337bbe8d64",
+      "statement_fingerprint": "849b9c81de84bdcda5de7779ced29efad18d905f24da61b208c2db605f6d4ee9"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-235C86FDCC27342D620A05C5",
+      "file": "app/import_batches.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "2a062c4a1a7ea64c25cc3b19c5b212ac9f75be3609e36755fb660b337bbe8d64",
+      "statement_fingerprint": "00455c121c039b1cfbe2daffaf58c1e2564cda8fbb79c27a0f3cb96f6a476d33"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-826BB664046FCD5512C229AF",
+      "file": "app/import_batches.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "2a062c4a1a7ea64c25cc3b19c5b212ac9f75be3609e36755fb660b337bbe8d64",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-9DD585E73A3B98FF2D7158BA",
+      "file": "app/m1_pipeline.py",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "89394194456af20abe29db0ecd5aaf7fdbedb0bbf025386b0d0670012a8389d4"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-764D2129C5A40D9EEB907416",
+      "file": "app/m1_pipeline.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "f241329fa5bcc0364579727559ccd3aa9f369e3d62186e4b549b0d98e74c6f18"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-5AB9354B919F982BDC252352",
+      "file": "app/m1_pipeline.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "42717ae14035c5faf7ab006a8d258f5bf0149f5aa38b871d1f10ea063dcb4ea0"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-D71DA61EE3FEC88C3C69B4FF",
+      "file": "app/m1_pipeline.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "b69a403cf2ee022fa75cf35bb9dcdfab64199f5c21e500b81291d4032de76072"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-BD891DDC8EA3229FF689949A",
+      "file": "app/m1_pipeline.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "bfdbcf55360cb5732384dfea3ca53e5f6e03db7c0800e40513ae549f7e2f399f"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-ED1021B11417D4ADAE30AF7E",
+      "file": "app/m1_pipeline.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "8103e398a40e6c437aa445b96b9a4f18f236cbd45c346c4da74a58955f0ac501"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-AF43EA1689F9E4C6011FE202",
+      "file": "app/m1_pipeline.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "54ba96aed3de5035a8b6e82c3529629609eb5258ac7c97665feb48a172e82fee"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-B95DEE6A3DA0B29BFE9ACB98",
+      "file": "app/m1_pipeline.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "9612ec057340cd3acd4293d5589a705cc4ae4c760d3a0e55ab5133168a7a8046"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-9DB190B47D40501D6E562B5C",
+      "file": "app/m1_pipeline.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "87b6dc8eee36b8f53fdc5c4511ddff9a4155c069808da39ada957d9fff6931bc"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-DB54864D33B1C25DA5DC8591",
+      "file": "app/m1_pipeline.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "cc7b84d8f627ca5d238fb096f438634d396d1ba9e6961f3f46abea70b2347505"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-7314618EA3F0E62726C93CB3",
+      "file": "app/m1_pipeline.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "ba49b0abaf7f26c2beb3ebfd0816196f79ed28a146ab744c7954f0fa0d45b108"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-2DF959954BE949102CB56ACF",
+      "file": "app/m1_pipeline.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "0f7ca99b13ad330811be2dfbbbd8e94e26a4708dc9ae365208cdb3cd0381dc28"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-3AC17191B133C8EDB46562BD",
+      "file": "app/m1_pipeline.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "f241329fa5bcc0364579727559ccd3aa9f369e3d62186e4b549b0d98e74c6f18"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-205D4871D3A3BA9A8C3BA714",
+      "file": "app/m1_pipeline.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "c6190911f2d175df0fb6143fff0d8d44b702e118a5c82aace3264d6f57404cc5"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-7CA22B42F456FC4EBCAA31CF",
+      "file": "app/m1_pipeline.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "64e5a7197ddd9efef451d93f7ca94d5e20d89f3198916b3b72388c0072fba2e2"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-E081067D1F6019E0A21AA32F",
+      "file": "app/m1_pipeline.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "1ede4a161b8beaa060677c4e15130f4d609ad826bf0b316fdc3f10982a4fdc48"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-1B9458A3827E49DD9E580228",
+      "file": "app/m1_pipeline.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "0f7ca99b13ad330811be2dfbbbd8e94e26a4708dc9ae365208cdb3cd0381dc28"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-C0C41EDD71642614E8BD1A04",
+      "file": "app/m1_pipeline.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "f241329fa5bcc0364579727559ccd3aa9f369e3d62186e4b549b0d98e74c6f18"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-CC02D44139ED08A2940555FF",
+      "file": "app/m1_pipeline.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "52c1be70ddffd0d17f38ab4851168cb005a32df260266f0ec00478f789fd14d4"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-753FFF4FE22060FAE64BF1AC",
+      "file": "app/m1_pipeline.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "0f7ca99b13ad330811be2dfbbbd8e94e26a4708dc9ae365208cdb3cd0381dc28"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-1505CAE5A31F3D77396DAD1D",
+      "file": "app/m1_pipeline.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "02516f7959062dd0c2bef6f0e9c438ed2a24e19d83fd51f598d5b419368941d0"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-6615E44741F852E0EB8177AB",
+      "file": "app/m1_pipeline.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "eb4804ad388a14f17b8929209373b15aae0675e3fa2d15b60e169d6e4ebddec4"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-53959DC66562C5A07EB171FD",
+      "file": "app/m1_pipeline.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "02516f7959062dd0c2bef6f0e9c438ed2a24e19d83fd51f598d5b419368941d0"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-5429C16B2A83359FC1F4C45F",
+      "file": "app/m1_pipeline.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "006ba7833ee230ec74d194d53fdfda7b6734ed5118b45c31115c31b1b367057e",
+      "statement_fingerprint": "eb4804ad388a14f17b8929209373b15aae0675e3fa2d15b60e169d6e4ebddec4"
+    },
+    {
+      "control_id": "M4_ACTIVE_STATE_POINTER_ATOMIC_GATE_V1",
+      "entry_id": "WE-097C4346D94B8ABEDB252EB4",
+      "file": "app/m4_backup.py",
+      "kind": "FILESYSTEM_MOVE_OR_REPLACE",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "270252c45c787320d88b61949b88be9c77f9c3db6f7ccd68429aa580fab6038b",
+      "statement_fingerprint": "a08948b196ba3e2ead4ee899b46e412c1e1b28592719d4805eb1571d606fb143"
+    },
+    {
+      "control_id": "M4_ACTIVE_STATE_POINTER_ATOMIC_GATE_V1",
+      "entry_id": "WE-943AE3EB07DA981247CEBA84",
+      "file": "app/m4_backup.py",
+      "kind": "FILESYSTEM_MOVE_OR_REPLACE",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "270252c45c787320d88b61949b88be9c77f9c3db6f7ccd68429aa580fab6038b",
+      "statement_fingerprint": "5508ab373e1ebaf48e10c3bb5cdf7591dad67f8873d27aa0d5984115e8d14294"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-AE81C16970CFA3D720498611",
+      "file": "app/pdf_import.py",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "a86ba4b40e05c5b7c6bdb9009acbaa188391bc1036e02e880e9cdccb0842e9d6",
+      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-EE41DCAE97446EFD32D6BE83",
+      "file": "app/pdf_import.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "a86ba4b40e05c5b7c6bdb9009acbaa188391bc1036e02e880e9cdccb0842e9d6",
+      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-BA1E98815137975904EF764F",
+      "file": "app/pdf_import.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "a86ba4b40e05c5b7c6bdb9009acbaa188391bc1036e02e880e9cdccb0842e9d6",
+      "statement_fingerprint": "4651c12e756f5718272055917a5f5936a2bfc6e384e0bbf8ad9913338542b305"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-CCBDE7D4A912F3C748A09BD7",
+      "file": "app/pdf_import.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "a86ba4b40e05c5b7c6bdb9009acbaa188391bc1036e02e880e9cdccb0842e9d6",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-DEE5548D80C28E8580CC79F7",
+      "file": "app/pdf_import.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "a86ba4b40e05c5b7c6bdb9009acbaa188391bc1036e02e880e9cdccb0842e9d6",
+      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-6F1376528987061BF8F78874",
+      "file": "app/pdf_import.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "a86ba4b40e05c5b7c6bdb9009acbaa188391bc1036e02e880e9cdccb0842e9d6",
+      "statement_fingerprint": "360caa3689ec8c8508bd36a79244c4f79d7d6542b1fd377e06bacc76815d16e9"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-AD09CB8E891327BDB9EDEBF8",
+      "file": "app/pdf_import.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "a86ba4b40e05c5b7c6bdb9009acbaa188391bc1036e02e880e9cdccb0842e9d6",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976"
+    },
+    {
+      "control_id": "M0_READ_ONLY_ROOT_INSPECTION_V1",
+      "entry_id": "WE-5364E97F357793E5992C2421",
+      "file": "app/project_root.py",
+      "kind": "FILESYSTEM_FILE_WRITE",
+      "migration_status": "ACCEPTED_NON_MUTATING",
+      "source_sha256": "a325093d7d5b64116f469b0ce36645e6708e9cf10c4394c2a58d548decb30ed3",
+      "statement_fingerprint": "432720ced31c71b9417f1c1d24d203a4fad11744eddffacd55213ad71d3c568b"
+    },
+    {
+      "control_id": "M0_NATIVE_FIXED_ALLOWLIST_V1",
+      "entry_id": "WE-4D8C7D2E91414F53A406A388",
+      "file": "app/project_root.py",
+      "kind": "NATIVE_API_BINDING",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "a325093d7d5b64116f469b0ce36645e6708e9cf10c4394c2a58d548decb30ed3",
+      "statement_fingerprint": "3474f55c4f2c4ff899bf534b507dc606ac6ca48c4335543ec7104e00d9f58fff"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-1F68F983EA4318F0E815B6B0",
+      "file": "app/question_assets.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "b188dc568640d54e781f0316db4eb8f4e9c0ef684d9209956832ec122904f327",
+      "statement_fingerprint": "cbaf3a0a2164c7a7214338af652b8623d14dd6d66acf9c8d09cd0cd2272e2259"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-9D173DB79C69835CC921F678",
+      "file": "app/question_assets.py",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "b188dc568640d54e781f0316db4eb8f4e9c0ef684d9209956832ec122904f327",
+      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-477BE9A76DABB20DF9C9FE1A",
+      "file": "app/question_assets.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "b188dc568640d54e781f0316db4eb8f4e9c0ef684d9209956832ec122904f327",
+      "statement_fingerprint": "849b9c81de84bdcda5de7779ced29efad18d905f24da61b208c2db605f6d4ee9"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-989CED7A7A63F3C64C2C8E91",
+      "file": "app/question_assets.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "b188dc568640d54e781f0316db4eb8f4e9c0ef684d9209956832ec122904f327",
+      "statement_fingerprint": "c0951ab8a40e9da68bd848e45216816c3e4735de18cc1bd7e9ea9b45b616d157"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-334C41D0FE74A00D16DC2254",
+      "file": "app/question_assets.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "b188dc568640d54e781f0316db4eb8f4e9c0ef684d9209956832ec122904f327",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-D4D18DB1A2461850DB8C28E4",
+      "file": "app/question_repository.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "d51d74a675c89e01fa2fb82b5869c1fd53067255d8a29723af8b065bd59867cb",
+      "statement_fingerprint": "e73cd172adef3d5b7203850801220a18d30d9aeaf35809b7914bcf9bb8c76ca9"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-DEA1DD5DD86B54F296F895DD",
+      "file": "app/question_repository.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "d51d74a675c89e01fa2fb82b5869c1fd53067255d8a29723af8b065bd59867cb",
+      "statement_fingerprint": "0fc200593fa5e3559a41447d61258243ecfc27db3a8403e9c90a404d3b79623e"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-9F5DB20484DCE9A562407EA4",
+      "file": "app/question_repository.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "d51d74a675c89e01fa2fb82b5869c1fd53067255d8a29723af8b065bd59867cb",
+      "statement_fingerprint": "f52c9d155f95084c78affd5939f418de6dedd9d56fd1c1ca7a9222dec320b2ac"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-B3BEAC8CE1EB46C5F6930B46",
+      "file": "app/question_repository.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "d51d74a675c89e01fa2fb82b5869c1fd53067255d8a29723af8b065bd59867cb",
+      "statement_fingerprint": "0209b2ebde2b8d5f2ab45d69c5c756e0bf83ac70af3afdb1aa66ec6930948362"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-58628A9396F7F6902AACBA23",
+      "file": "app/question_repository.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "d51d74a675c89e01fa2fb82b5869c1fd53067255d8a29723af8b065bd59867cb",
+      "statement_fingerprint": "e853b4985b4912fba4aa98eb8c83ad451869fdc022e08c2627b6a03130546dae"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-1D188C4B68677FC891BCC3B0",
+      "file": "app/question_repository.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "d51d74a675c89e01fa2fb82b5869c1fd53067255d8a29723af8b065bd59867cb",
+      "statement_fingerprint": "45b918020a2a8f7d9832ee00ecbc2dc5bb369ef0b8e4ce27003f7b75e619264c"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-BED354862363636038052EA0",
+      "file": "app/question_repository.py",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "d51d74a675c89e01fa2fb82b5869c1fd53067255d8a29723af8b065bd59867cb",
+      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-BFEAD63EECE9BFCAF0C80CC0",
+      "file": "app/question_repository.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "d51d74a675c89e01fa2fb82b5869c1fd53067255d8a29723af8b065bd59867cb",
+      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-F225616D0AE09CBFBF9E19B2",
+      "file": "app/question_repository.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "d51d74a675c89e01fa2fb82b5869c1fd53067255d8a29723af8b065bd59867cb",
+      "statement_fingerprint": "e18d16688c5bf6fd70b1ad8346536db885b7eb02b3d3bddce3fbc5465740d746"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-622038200C3382EB44F1E939",
+      "file": "app/question_repository.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "d51d74a675c89e01fa2fb82b5869c1fd53067255d8a29723af8b065bd59867cb",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-3CC52B65E59985653EABC4E9",
+      "file": "app/question_split.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "89ee6666b67790e1dc64385d5c197643bf790055404757c0321d360e02559dce",
+      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-C7371A5FF2726E72CD74D6CE",
+      "file": "app/question_split.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "89ee6666b67790e1dc64385d5c197643bf790055404757c0321d360e02559dce",
+      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-2D59A6207A674EC0C56EB4FE",
+      "file": "app/question_split.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "89ee6666b67790e1dc64385d5c197643bf790055404757c0321d360e02559dce",
+      "statement_fingerprint": "87a90d512e011717969af39e877caea17622dcfae8a250fcfcd7f40027c440a7"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-18486CBCD9D588173622B5CF",
+      "file": "app/question_split.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "89ee6666b67790e1dc64385d5c197643bf790055404757c0321d360e02559dce",
+      "statement_fingerprint": "5e5e992d1896ff2a31e3aed4a4152c9957cf7e166a43eb05f2f412836f5f87bb"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-FC573A13BB15803CFB83E0F7",
+      "file": "app/question_split.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "89ee6666b67790e1dc64385d5c197643bf790055404757c0321d360e02559dce",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-89C2C69C9A4511878B5A9D5F",
+      "file": "app/question_split.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "89ee6666b67790e1dc64385d5c197643bf790055404757c0321d360e02559dce",
+      "statement_fingerprint": "172558664362eb950df6a9bdda03bd23e58f9634026587df1b67e7d154b79754"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-9EC0CE750E0AE19519D1866E",
+      "file": "app/question_split.py",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "89ee6666b67790e1dc64385d5c197643bf790055404757c0321d360e02559dce",
+      "statement_fingerprint": "c28a177e5de31830844816c12c066d9bc32226152d61e266ff0b51f6e0c19d12"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-2CAA53C88E65DB754275534D",
+      "file": "app/review_events.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "fcd7063044db9ea2d59fe6848fa088160515495f1358da8755b50b8d0c73d1b1",
+      "statement_fingerprint": "1f5c7426bd29014b93f4d403955b7b6ffae8a71c7d2fdc99b036564de6ab05fd"
+    },
+    {
+      "control_id": "M0_DURABLE_LEDGER_GATE_V1",
+      "entry_id": "WE-5C4F83D01E416028A696FE09",
+      "file": "app/safety/copy_ledger.py",
+      "kind": "DURABLE_LEDGER_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "357f8ed4666a99b51b9f49fa53e8852659ac360faa1b253ecd22a4e67055605b",
+      "statement_fingerprint": "4484fef7e7611b9e341478d7b0e3f066d4f9ed3f360d5dfef6e513cd20083c3c"
+    },
+    {
+      "control_id": "M0_NATIVE_FIXED_ALLOWLIST_V1",
+      "entry_id": "WE-A1199472B5EDD2EF8EB23C4F",
+      "file": "app/safety/external_source.py",
+      "kind": "NATIVE_API_BINDING",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "9f41dba1e0021c8885862e9b802254d587d90e6f15ca22bf84d8bcbb690bd36f",
+      "statement_fingerprint": "3474f55c4f2c4ff899bf534b507dc606ac6ca48c4335543ec7104e00d9f58fff"
+    },
+    {
+      "control_id": "M0_DURABLE_LEDGER_GATE_V1",
+      "entry_id": "WE-C2967CDDC295AE442EFFCBAB",
+      "file": "app/safety/operation_ledger.py",
+      "kind": "DURABLE_LEDGER_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "59fdcf4aa958f66bc01e4ebb881ac240272eec9c0b4889a50758fe142dde39a1",
+      "statement_fingerprint": "f200b06398fa828e5b0b0493967b625d45669a8972f0ed878977688ed29d7ecb"
+    },
+    {
+      "control_id": "M0_DURABLE_LEDGER_GATE_V1",
+      "entry_id": "WE-EB0DDDA62C09B5CB44ED27F4",
+      "file": "app/safety/segment_ledger.py",
+      "kind": "DURABLE_LEDGER_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "b2fbd7ee0be1954f6c93b8d39fd2fe7328f08b150f4d3c0011073202992caa1b",
+      "statement_fingerprint": "4c67aca47efa28fc1710d0071113f058426db3cc81b03f0cefe56bb6eb8792e4"
+    },
+    {
+      "control_id": "M0_DURABLE_LEDGER_GATE_V1",
+      "entry_id": "WE-A15932C534F275C2CA2CF5EB",
+      "file": "app/safety/segment_ledger.py",
+      "kind": "DURABLE_LEDGER_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "b2fbd7ee0be1954f6c93b8d39fd2fe7328f08b150f4d3c0011073202992caa1b",
+      "statement_fingerprint": "54ad1c7bc8dac998837e84e5e58a95729ec0b28addf43846bc604c16cbfc21ed"
+    },
+    {
+      "control_id": "M0_FIXED_ROOT_RUNTIME_MUTEX_V1",
+      "entry_id": "WE-73FEDCFBDD087309B2C4123C",
+      "file": "app/safety/windows_handle_writer.py",
+      "kind": "RUNTIME_SYNCHRONIZATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "6fc50d53cb6a8adabc48f17ed04194f91898ece41f67d8f89574432818cb1075",
+      "statement_fingerprint": "c1ce267718853b1f1d14f6fd7293b5d0e52ebc311c4365bd698949ca9a4c76c3"
+    },
+    {
+      "control_id": "M0_NATIVE_FIXED_ALLOWLIST_V1",
+      "entry_id": "WE-EB4549EA8B0171E930006E3F",
+      "file": "app/safety/windows_handle_writer.py",
+      "kind": "NATIVE_API_BINDING",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "6fc50d53cb6a8adabc48f17ed04194f91898ece41f67d8f89574432818cb1075",
+      "statement_fingerprint": "3474f55c4f2c4ff899bf534b507dc606ac6ca48c4335543ec7104e00d9f58fff"
+    },
+    {
+      "control_id": "M0_NATIVE_FIXED_ALLOWLIST_V1",
+      "entry_id": "WE-CC595153C73A7991DB29971B",
+      "file": "app/safety/windows_handle_writer.py",
+      "kind": "NATIVE_API_BINDING",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "6fc50d53cb6a8adabc48f17ed04194f91898ece41f67d8f89574432818cb1075",
+      "statement_fingerprint": "9d0cbfb70dc163dc4a1b455de8cdd4f40b2442a052e3db37be6335e49b08279f"
+    },
+    {
+      "control_id": "M0_NATIVE_FIXED_ALLOWLIST_V1",
+      "entry_id": "WE-4D64068530382C14746E3587",
+      "file": "app/safety/windows_handle_writer.py",
+      "kind": "NATIVE_API_BINDING",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "6fc50d53cb6a8adabc48f17ed04194f91898ece41f67d8f89574432818cb1075",
+      "statement_fingerprint": "301500c98429488ff9401a91a56ee0ff18f5e8176b45c12aa4fe789d44902b5e"
+    },
+    {
+      "control_id": "M0_FIXED_ROOT_HANDLE_WRITER_V1",
+      "entry_id": "WE-D1B8BEF604FA7EB437A2EBDC",
+      "file": "app/safety/windows_handle_writer.py",
+      "kind": "FILESYSTEM_DIRECTORY_CREATE",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "6fc50d53cb6a8adabc48f17ed04194f91898ece41f67d8f89574432818cb1075",
+      "statement_fingerprint": "1a598eacb81ec007becd58ceb2c95a7f2a02c09ef23ea5184d2eeaf35308a913"
+    },
+    {
+      "control_id": "M0_FIXED_ROOT_HANDLE_WRITER_V1",
+      "entry_id": "WE-67E89CC5E58BCA251E4BD6F0",
+      "file": "app/safety/windows_handle_writer.py",
+      "kind": "FILESYSTEM_FILE_WRITE",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "6fc50d53cb6a8adabc48f17ed04194f91898ece41f67d8f89574432818cb1075",
+      "statement_fingerprint": "07166e484bc4458b12e8fd46516f29167914d7e7e46918a2c65edf73776ef6e6"
+    },
+    {
+      "control_id": "M0_NATIVE_FIXED_ALLOWLIST_V1",
+      "entry_id": "WE-C3E2FC572C4B1874C58AD3DE",
+      "file": "app/safety/windows_handle_writer.py",
+      "kind": "NATIVE_API_BINDING",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "6fc50d53cb6a8adabc48f17ed04194f91898ece41f67d8f89574432818cb1075",
+      "statement_fingerprint": "f9c8f622728eb7287183ca5f70b13241fd0c53053e3be33a54c58b4d80b091c7"
+    },
+    {
+      "control_id": "M0_NATIVE_FIXED_ALLOWLIST_V1",
+      "entry_id": "WE-35C33E68320B37FAA9B9B404",
+      "file": "app/safety/windows_handle_writer.py",
+      "kind": "NATIVE_API_BINDING",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "6fc50d53cb6a8adabc48f17ed04194f91898ece41f67d8f89574432818cb1075",
+      "statement_fingerprint": "4ae062bde5ec74e4bc22d42fc017c5558005d238d57a6971e5ad3b0c2416aadd"
+    },
+    {
+      "control_id": "M0_FIXED_ROOT_HANDLE_WRITER_V1",
+      "entry_id": "WE-C394B2908E8C6F0AA15639BC",
+      "file": "app/safety/windows_handle_writer.py",
+      "kind": "FILESYSTEM_MOVE_OR_REPLACE",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "6fc50d53cb6a8adabc48f17ed04194f91898ece41f67d8f89574432818cb1075",
+      "statement_fingerprint": "47261eae955f365607a29d0d249356c12732ce5a9e0daafb361290673e524a1d"
+    },
+    {
+      "control_id": "M0_FIXED_ROOT_RUNTIME_MUTEX_V1",
+      "entry_id": "WE-06FCFF540895EA5D7A3A4727",
+      "file": "app/safety/windows_handle_writer.py",
+      "kind": "RUNTIME_SYNCHRONIZATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "6fc50d53cb6a8adabc48f17ed04194f91898ece41f67d8f89574432818cb1075",
+      "statement_fingerprint": "b25ea342908d918c802d750c601e8751cfa1f2ae028b17abf9d0ef8877a2795d"
+    },
+    {
+      "control_id": "M0_FIXED_ROOT_RUNTIME_MUTEX_V1",
+      "entry_id": "WE-BBA899266932F61A39C6D06D",
+      "file": "app/safety/windows_handle_writer.py",
+      "kind": "RUNTIME_SYNCHRONIZATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "6fc50d53cb6a8adabc48f17ed04194f91898ece41f67d8f89574432818cb1075",
+      "statement_fingerprint": "62cdf8e6c4c274a4377d2883e0f44c27d7a2603a546c0ff95ebd9a13f2281d2c"
+    },
+    {
+      "control_id": "M0_NATIVE_FIXED_ALLOWLIST_V1",
+      "entry_id": "WE-300E5B5D74E54AD19A755417",
+      "file": "app/safety/windows_handle_writer.py",
+      "kind": "NATIVE_API_BINDING",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "6fc50d53cb6a8adabc48f17ed04194f91898ece41f67d8f89574432818cb1075",
+      "statement_fingerprint": "5a7486d2b722f5e7c8aed563b657ede301c44dcba5d4d32697113333fcbf676d"
+    },
+    {
+      "control_id": "M0_FIXED_ROOT_HANDLE_WRITER_V1",
+      "entry_id": "WE-C09DBF0B3CD7B721B6D975FE",
+      "file": "app/safety/windows_handle_writer.py",
+      "kind": "FILESYSTEM_FILE_WRITE",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "6fc50d53cb6a8adabc48f17ed04194f91898ece41f67d8f89574432818cb1075",
+      "statement_fingerprint": "21f569fde14ec4771d9ecea3054587aaaeeebb5022d3553f8cba6c71bef1d22b"
+    },
+    {
+      "control_id": "M0_FIXED_ROOT_HANDLE_WRITER_V1",
+      "entry_id": "WE-60078E30ED45A15B6F51C4C1",
+      "file": "app/safety/windows_handle_writer.py",
+      "kind": "FILESYSTEM_FILE_WRITE",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "6fc50d53cb6a8adabc48f17ed04194f91898ece41f67d8f89574432818cb1075",
+      "statement_fingerprint": "3f12b3b3b6d0e952f0ef94ee93953308715e530c15f0ecd65125c65fdb0d9d17"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-B6A4BA256160BDAD130AB0E9",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "247e2e6358395b59683e9627b49241265409800efb280d823425c4025efc0bdb"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-44B1FE2ADFF03AD0AE375991",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "df540655a2518913510173c1e77b5cef1d0a1fe2064dc763979a95d5774127c2"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-A51620B4C77BFED7958917A0",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "55eff32e7dbf60db48633571efa62b6ac95e2510cebc738f084575fbff1a7688"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-0A5A38344D17BD61902A36B0",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "924b00ebb94ec0b3dd399964ff4fee1e64f3dff3d656f728fb8af4d2ff62264a"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-D638D4F6E8CFBB6DCB9DB83C",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "08790edc9b66998db84e9528c00832d9bcafe38eb6d841293a556da40ba49c37"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-DCAAC222075754586024E143",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "fa54d8c24b3107035b18626423f6247e4a3ab78f1f411431304568c8037b0ba8"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-65D971C111CF3B9CAE0FBEAA",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "bc87079d5223f0c09081d5383282e54c5d6951bd0204a9490278308c150bc7c0"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-05E47FF8A277D98A7BD86026",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "dcb7f77fb931837c44b8369a13878d150936d0eae54461ca29376d0026527065"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-8BA6BF3E6AC47790262E21EC",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "e31192b0bd6281a3cb8837c2fa79531aa9a9a92a91fd38304a2490221540d08e"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-09E980594751823717267349",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "2aca4fba8004e6160e7d75c30b8ee9dd8ff585e4994dc5a03bee12d36e5c327a"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-13267848A4A85F0DB808961F",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "063e9436b994fd831ee479d2d3daafe53f42cb98c44c78eac1271473c85aeaef"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-2E7B6F89CB07C77576A9A500",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "5ea4d9266dcc30080dadc4fa6694c8656661dc9c943fbf1c6bbb0b33e2b33de7"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-C5FD76EF7A82CC76F1CDFF79",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "4e8c4c20bc8c2be397fcb2f2ae7924b515b81530635bfddd0b78c4971d8b559a"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-19CE5B8ECDD55B40C5BD3D62",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "4de00b9b338ac58586b8b237385448dcd516b7e78a7b07cd568dba574e4a936b"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-CE974A581DE03DF883767F1A",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "1f358437b80e501b65192d12f3afed39cf5cffc9ba0af371bd5fc9c43703c593"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-DB631A66E2910FF0641AFB1C",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "edd3f3e6bebae5eadec5f7a1e6206a7426fe51ad811a2a7466b77b7bed21877b"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-B79549B280FCDECC4A1C84D5",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "bbd9ed02d1935870617e310bc3a8b8489f62e06c764f6cc95b23b0ddf2f122ad"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-87CF5534AC98D1A09A7BA95F",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "3366808e0ad0943427c39bc4f1e23fb0840063d350dbd4041d9460de69ec2cd2"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-185BA4F6A54BB04C3FE52D77",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "4467bfdb250a4329065da70c086b90e7ea780bbdcee833831967779a6c003571"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-D1B23BDB6F28417DAFDBBF66",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "6f3f7dca76e8c9655e9aefedff6b0df77a804d8413bbbd0c0b7b2ef9568b1596"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-640750D87AEB5343D864DA83",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "a492ef310804ddcffa8bbc4fbabfbc6d55d81dd614a021724b9350ea098b1318"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-821CB7A3BCEB73520882AD1B",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "3e37fa3e2ad293d0b0007c0c84dfa26b0bbe50798c168cfb1152fe904d279b55"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-7F498CC91185C8BF63BEE971",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "69d1360897f55a021cd0107001225e3e61ab2d16fcad636ad7a9ccb6e435ede7"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-235C9D8700DAEFFA6A08E4A2",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "72ca43b478c2d6f1603ee6eb5114f826936ab84662dfa798c31c1abc790a38bd"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-795DD8DC07CE3D48D7DABE81",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "5dc37c3099e80fd7f3f3e1840882a287a060f4a02b7573486a44f05153795585"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-64FBF5DCAFB5B4FA7710A530",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "f656725993ad8e96e36a1611038b3c5214bc2d3ad3733ccfd34d2d80c000e070"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-0B9044CFE09BA45F35DD7002",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "0f8a570db92cd81182c4f5ca0644f1e7a1b1df976e810035299fb8d2242b80e4"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-52B5B830276D5751B5C8F871",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "a260c665e30fcc6b53f26f0243a93a5eb4cbb0dc4442909e587a8d16f2e35588"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-1FB80AE21D6175B1C499DB07",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "6a58ea827d102f29d568f8158383951b1ece8c45ba5d989b4c8fe1c81e93b8ea"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-B874E9763EA04996BF03476D",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "80d734799d608d27a16ffadf2bc345bbfb0da5146de0089acb06561a66b22bf6"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-CE9C26C2CC139D9A96B88D0B",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "008f2d859aaea135e5f3196a11ab996e7b7e791beb47a41de98319acefc00360"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-37CCCF3B4E7D7CB399A05178",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "9a3e111608b85a6866a93d140442fbc52a49a83ed9c03597961f45395ad227d6"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-69A78EE93FE70A3640783D61",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "df5f6adbcaa0d683e1e8a8f9944e000f2ae976d591ccb15df3e55aa36555ee08"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-D4E1A58DB284D5D9220847CB",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "5fc2ae8231f7de7c0c87344162a4a5679e1ccd603d4506e81862b7f017a5ca3f"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-BFAEB7976C82B34E914F3CF7",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "a4d8626a9dc96da66819748de94ade1767f616d650b3bf65e619d62d7b97445d"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-73A07288FA30F33774DE6A32",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "00ab85ce7efa4ce5e6a0a5dc400d0f5c9109f9ddef967224a58f8bc8f5371205"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-D9792A5ECDF8F6546765A320",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "7467c78664bb5fbebfd810701fe77d33ee6de7da7268975033600f41e0f48176"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-606BCCF4B14B995FEDD364AC",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "43149246be7973062c49ab5bab79f1ebd22943cd16298f9be1d9879256c24dc2"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-62DE821C398EDFF3242EB340",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "6ce322002005eacef4920710ff3857381eb84bbd25cbd081a47809de60a7cb32"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-E40ADC2771B3820F69CA25C0",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "e1dea994ed57f651dbdea03fec0d9a850fa8c4db275474cbcea776d5165e9c57"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-A27DCBB9FFF9AF68BBC972E3",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "9e1e9d694f92cf30a0ec2774349d65dc4a0ae364c016c9367a18cc26390805d9"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-F02EB588C7D8C9D4655EBF45",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "6eb8a71a41568b0de05e1b9236000a52217c86d2d436500e8f9f84e4f1ce6723"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-2D762997DE03C4015AC0BEC9",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "7caeb5fbce4f512d9733587907239073906e371675fca3fd7ad3189e28919a44"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-EBEDDA1DE14B3390F499DF5B",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "14de13f458c01cb7598d59ce99492c5d6c31c88d441e485be24d2f7b07a5c4a9"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-EB0BFBA5CB6697CCE649673E",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "7c124ad46bb617784de0404dc0dbee4cb04be0599532002e051068a2184920b9"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-8983F57CD49C1DB8AF62150E",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "b2365b1731e1fc1f4155026e416c4364323eeaaaf5c222ac7dfaa5ebaa97a1f4"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-A6ECB39FB3EB4A13737AB851",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "e23b50d4ff6edfee30e71c89bf12c4a462dbc236501080fc4c9d5c958acf4092"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-30E3EAED56B62457B16E414C",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "039b826390c84f762d8ce8548b536091ed777a0ea44178c37a3878b58788462a"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-FE84A569949D983EDE7BC473",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "e82c08896ec08d405936e74c46e61a61f4a3620ba04361c635dedd82d6263abc"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-197231830F04034A43FC466C",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "39d85e8859a5ff987c581a3e27717cb3470eb2dfff2b616d892c24d073635505"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-09FCF3A1F1F1B2D19DCC3C6C",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "848699fe6470b47b75b96fd667dd194f44d85a002be48cbef9c5eef5ff580824"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-3F8C6CEE6E407697BBB34C6C",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "04511b9b828434f3096ba9fdec0b258d2faca776169534e6a0879071c88b8dad"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-8501D86AA58831C97190450A",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "5a234539984c703c123fed66cf7347d147d0c6a4522556202e0911d828a5d8e4"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-78621BE04202A68C611546BC",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "0e010d152d7623d512210f1561d43a33f2383f31fbec766ae60b443bbd26b55e"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-93B95BFB8D6E0CCAE25FC0FC",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "345636fcff8dc2a573aa2c5a314aab104cf0a21b69b353f7a19984c16e55f50e"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-AF9D2CBCEB961397C2AB8D45",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "2ab92e1a9876d54a9c5ab6d5e37a339665ee6568516cf52493e3b9897451911e"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-78B46E522AFE729D23B779F0",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "99f6179e1db53d9e5b6b307d4b24556dfa651b13da4e1a22f6700f1fc5630b17"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-51EDA0037F2B355A33DD7B7B",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "39d8e6f68ea4b5b47ea801c14a14bb3b6dc1e4f1eecb855bc08f4a4915decd36"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-7CF7EEEBE93D54EC7B08C204",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "7ae15f938e050f05e6c2dc6e7474bf89600872400d34631dbb50f62dd34c33a3"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-BEC75EBC056F57D21D4075A5",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "304edf06ddea88a4bb4b898e5deb99ed50dcbba075168a28674101ae1bed958c"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-CDC2DD136E48F990EA7D1B93",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "c69837988972246baac073af207b8672815aeccd560097b67bdb98ad0dbc5d7d"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-5D1497C5966059232BE4A165",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "eef1a5d5d8d0b9fe6b87658c955110164c8a7dcc6472422beca7c9c44dd060eb"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-DB25EB5DB94F83D9D4EE431D",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "fab97f5287bf7bf3bcc0279d80606ebef37483c02457f1478f7bf01ace6661ff"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-2EF3C0234CFA7A3E3355EBDF",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "9319c937016a6ceb371b7217295f46f6a1c4ebd11f78f572dfbb0fd22c418357"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-D2310C2FDA7E19851F1010ED",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "59520b159c134fa62b8291935f90514c16a3d8160ef7de23c2947fc4f43a5591"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-8C378837D197CB1438B8B181",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "f3768bddb6cd207a837df1cde353a0f6348440f1ad11d39627748c051fe4f5cd"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-2E33A49099EEA4659680E347",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "e1735c19cef880f97b11a1185411e933b9a0fdd4fc77e0d1a977eb16e2235889"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-8168D0D424EC22E2B796C075",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "794c9d031e74a0ef597788859be2dcb3620335cb33485d40b61d16cbbe8b8563"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-9FA383CF2C0C76E1C0C5B5B1",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "e4fb662f63712b5837cb6a56a0ec30473310c8d64ee70d5c0dd11c042b49aa17"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-15BBEB4BB29A409345E3B5D3",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "d6ad2f4aaa3528d5a749be7f96c0bc6b9c79027cb888e8260680e61d2468aabf"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-AD67EEEFF70A7E47D371364D",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "8bd1535baa9a8bc44e1f7c9954f2ec91a4cca12a9a07cf1add710331e433e3f8"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-70D21E257EA94E343FFC9621",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "2d937167667725da7acc31cfbde0515de573424ee82dc32b1c2a45590f70b7af"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-F0AF4F98EF1E0AF3074657D1",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "a525427008117bfc166434da467ae926431045015196f5b75f3cd091c1734604"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-25390602DBB6ED87385D6206",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "2caa661297d311daaa578e1cfcf9af1c01446a777ae36f799b040d378e878b19"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-01F6474B2D100A245FD62996",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "b0626ccc5fc05bc2abee049f7b6fcb95411a6e57740be14cce554e49ed2e0a74"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-FE854E9911101B3967573665",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "f5bd3c12a8bdf8a982d0fafd11d35b88d8ad71757e6cbf34549518ff6bda44e3"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-AF83A64BE286D856D501E6A4",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "3e4278900ff0ef841fcd4322b55c3e8669824777902d5880d908dda876aadaed"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-AD82130F15E5496A2511E74C",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "8501122da1e3f5ae1e0d8d6de71ff950d94240d963071505fc780ae77d9c325b"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-087104DE7F881A7A20419EEE",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "0cfe28257dc2481f225ef3c9f1f7a7e7a10471420c180c4397c659c3524103e8"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-82C5DA459B6BBC8374A8FD5B",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "f918b9dc207db11ce0d551b478e8230b754f3cfe42c27fb3abc5ec17b9babf16"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-9CE16631AC0635A6EF06CD00",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "c9deb50170259d3ef4d8bda0b605af6a1d1fd0df763ddf46aa1cbe123e44afaa"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-A05C420906799933E1370496",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "c3f519914f3cb7cfac1c4f5e1ecd660a8b8a34f252db1888a4292f69b3526b32"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-4A1D3A4F7AF3FBD84ADF9F8A",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "235c82509a5fbde287116fce070d7714ed6fc62ececd842e3271a346baeac1c4"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-49A9D8D20276FEE36B6B89FB",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "c7e80dbb144288edfc40accd1646bbb2459dadfd9c8a968bb116a9c5bb131652"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-5E1052A21AE81AFCA08D3A52",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "e726460b19bfceac44e6bdf0a328e078d9f79d7e6c125e22ddc364d47c885edc"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-C8E26E31A88F2B467DB37E8D",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "84be76dcb14d47cce53342ed5d26ef32aefb8100ddf97d5e0958ceb3475a5287"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-5F4FF1CB01C5D4BED35F60AE",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "251eeb2f594c7a326075fc54faa0818f0691b5d4e8111112a9eaf37f04bf363d"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-2671DFA03C489F950912CEF0",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "e1cbc7a70057139b3e259fead4b3567268a6c472f6109659402301f80ce107f7"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-D8A5E8D4548BCEBC6EFBA2BF",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "f17f820f778b9ab3d0f2ad7c597021a5e3e478df5e70d000304fae6654aff383"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-045CCDF89E3942CF85553BE8",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "7fa4e4653e27ae730d62c9613d22e5cb0e827ce684225a89cfed957920ed6e37"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-431D73CC6B33B69E6B776575",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "e756fb5209f8ba87d2110efaa5f8591cf7ca318ffd35c4233b852695435e4048"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-3965DB370414D912ECAEAC10",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "c3e17119b260c26ce9459e363d9a35fc001a3555a07edf7f18c5e9d1df45f23f"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-3A61A3E89289EC39AE640933",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "a51dabcc8c6d993a37465ddcd416a1ca13849ae19429aa7dea05d6dccc2b598b"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-0BED7C1A782395E61A6886B6",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "336b9252cb88d8c12589341feaa518d71ab748eafc7d240a2c4956cb98442954"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-ED272640923F340CCA191CBC",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "5311ddae710c8efc1a625ccc453eb9b1f885fa0ce2dd5d47134047fd9f55d25d"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-5BBE24FF246B311FE0556401",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "50205b99bddfbdceea7c74b0ebc01aa7ee9430672dda9c5a1cf0536665d7122e"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-E215A25543A323F463CA1227",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "8e356e0a2b06befbaf6f70a5bf198e539cebdb344fd5b0324e933900d65fd3f0"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-D6CCB5BF1740D6BB4A7FF66A",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "44a1e00ea55c77ffb6d80465beefe5332a92de8910d80af07193ef6ab0820a9f"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-CC40CDB69635B15016828297",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "595612272a3ea255253db1630fbf01971e2391f605a11a7834fc6d0330ca2fef"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-D8E13C45BB1D9D420D9B4AE3",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "9789430a75d487e4819c78f3f93e65a4522aece920254eddf3a9633a85244c45"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-C5ED6D33A5574DE62CF2A867",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "e7c048b294fdea360eb150086d39a624cfb16bb6d0a725a8cd27d053ab185fc3"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-91C4B2E5C5D4A664AE77323A",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "dcbc90f3d2a5238297a36116f17a6e10bf23e4ac6d33dd08aef2df332501876c"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-809C24DB647D74E9172586BA",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "d53a7cceafd5f37d678a601cea120b6b0b6287afed7f0fc3cb8358df0d260f37"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-28923D9DA01AAF3FB6911B13",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "2857bebb4f73dce23f247daf036bfdf8f261cd40c8e31571c3d59270ffe0909c"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-32E72BDBA06C31527105F9CA",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "596fd71e205a803bcae25691f7668ffb45f02d2eb8a4457443fd965913458e5b"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-76550B70CA0F2B7E8533BF0D",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "eaf26ec7ce9816c0e127ad8f608f1a7e4ab84db07825c56fbf210e6b4ee5477b"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-183D4F1C6F41660994BC263A",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "f21d292bdfed03c784a06f0063300b7e30f13693a0ffe39497fc76f633cd1145"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-4A3B4B2ECAACF38EF1626F57",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "66e6552bdd888ca70ea747fa34a922ee2dddbeda23bad38c1994cbf9b215ccac"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-81A328A429776DB110D96BB6",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "671c67671b3dd5940ff3947d86694a148744055f1e81fabbbaa1cec1f0271079"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-EE479D12F70F985D695F1E40",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "ee6d1f3a4b18cc79fed22b4b929717a1d01eda7a7a9565d0061eae5ea5c60d29"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-8E9E1DA6A4910D52D7A962B9",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "0ef1747b750e673fac4268338d6b445ab0b8a2343d2148cf8b6fbc594dd11803"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-BEC0865F69D3E02F06AC5B76",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "8e741ee040975db867e7fd7ee86689757d0b86c192d7099a12dac18193bf7a0d"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-7B43633EF3F1A3AFBE39E6AC",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "d3a597bbace439b290d990c8517591b2c5b9b92b3c2bf50280a12da15008beaa"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-D2A879691A6970940E9CAD6D",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "559daad67cd8f307a09d008eed48b399745ff0b63056dd920c2a013e94c5a34d"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-A970DBE8141D015831BE2382",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "8e359ff58fae6c94207ab58d40b73489e19f2d903e709e1981ca884165052f35"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-386C1EA815B9A7DFF0E29047",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "0a2a4b4eb6f525b4d5e429a622710f5f045561eeaef7cfa42b45f29ce9dd8c0e"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-0F3FD3A94726143A9B29157F",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "d2e70b727958838c0852cb06e57dcaead895c14315d4beb043e6ed484c551c0d"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-6A8810FCFD1070ED4AE0E080",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "2fe7ec32af5d9a9841ff75ef82c1fc49d541017f865ca2f3cbeb01c1a356d859"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-133EF14E8EF40CE02E23DAE3",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "d704ba5cef6f88a037f88a5f823c15e00092e299bf367f337cf03ca5ccee7640"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-5D692A4C45410C2698CE0F44",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "ec090a12568812adea9168a2a645470c4b14bad2ad04a5bbf89bb61f3221fd51"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-DB27050E28B18395A445F431",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "5a6f8a5d0885b944db0c86c3a471d7a9f63cf0dfb24bdf35e77d1401d0998a5c"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-F0F97E1A7E8180AF75FAE921",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "c00a85ab07b873a6a810c5a00ffb6fb3d4cda6438b468bb587d32fa954c0c2af"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-B0B721FEA9328D158078A1E5",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "d3fdcbfa735d7bfc1af7892117ba8a6a4c0555294747c2d9f007f5a79b3c524e"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-3362BCE5D143E86098493BD7",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "535c792e4a883272ef417d63ddd6a5e25996425d47c176fadd762893d83f454c"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-DDA29ACAA0A1DF649389B4DF",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_SCHEMA_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "2f4c6afce8aee82cafd7b061e0d49ec20832aa051ff9322796c48447410d4338"
+    },
+    {
+      "control_id": "M0_STATIC_SCHEMA_CATALOG_V1",
+      "entry_id": "WE-26B40FF5B6E59B592CFD27F5",
+      "file": "app/schema.sql",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ee853feec02eda2b1c221f98b916c699469bb999fce96792caf4b1769028ac96",
+      "statement_fingerprint": "ec01604817f3fb08da8e1ee314b74364958f2ed9335c4eabfa9ce26e32c57733"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-7DA693952CD226F71B31AF3C",
+      "file": "app/search_index.py",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "808252a8237519ce0b0cd37c7bf0f9bb7a1a5ca46d49eec59a25706c3e76ebf5",
+      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-8DE9F514DAE809D955EC2F72",
+      "file": "app/search_index.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "808252a8237519ce0b0cd37c7bf0f9bb7a1a5ca46d49eec59a25706c3e76ebf5",
+      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-A10191946B9B84E34D5D5A3C",
+      "file": "app/search_index.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "808252a8237519ce0b0cd37c7bf0f9bb7a1a5ca46d49eec59a25706c3e76ebf5",
+      "statement_fingerprint": "8d9fda65e9256626ca21bab979f6192fa803ab7e181d6494f0f3f6e1e38e54dd"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-B0DDD85781D59241F346DD0A",
+      "file": "app/search_index.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "808252a8237519ce0b0cd37c7bf0f9bb7a1a5ca46d49eec59a25706c3e76ebf5",
+      "statement_fingerprint": "9d76906c2a199340991c1703e83bdca459b55a25b1ec571b1313cda3c73be247"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-5561EDA3EA0D03D71478C1CB",
+      "file": "app/search_index.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "808252a8237519ce0b0cd37c7bf0f9bb7a1a5ca46d49eec59a25706c3e76ebf5",
+      "statement_fingerprint": "015b2a97f73d5e7ba525fb02c047bd51080f3eb6343d0d75dffa23ba3aae5d72"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-22DAB634374C7DC0F520DD7E",
+      "file": "app/search_index.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "808252a8237519ce0b0cd37c7bf0f9bb7a1a5ca46d49eec59a25706c3e76ebf5",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-2DBE85C53EB7D962CE4E77CD",
+      "file": "app/source_attribution.py",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "228c11f0f9508d37dec6b6f601a24eae0b7f285faf3bd9dda46e3768758c7682",
+      "statement_fingerprint": "fd5e65fec6c126443b7b26acdd25c79a688e8096a89a52e9dce945a71eaaf53e"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-710CE2F310C511C481577069",
+      "file": "app/source_attribution.py",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "228c11f0f9508d37dec6b6f601a24eae0b7f285faf3bd9dda46e3768758c7682",
+      "statement_fingerprint": "fd5e65fec6c126443b7b26acdd25c79a688e8096a89a52e9dce945a71eaaf53e"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-1785C52FC9556F56FAE9D8CF",
+      "file": "app/source_attribution.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "228c11f0f9508d37dec6b6f601a24eae0b7f285faf3bd9dda46e3768758c7682",
+      "statement_fingerprint": "196c8969b9ae12c0c2db078216eb4ba556d3b51e17241f26af6c3fcbb0fa2f1f"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-14890B771EC5FDAB6E7715DF",
+      "file": "app/source_attribution.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "228c11f0f9508d37dec6b6f601a24eae0b7f285faf3bd9dda46e3768758c7682",
+      "statement_fingerprint": "21a1e1633385992923de01778436df53bfd17486e19689c140959fde4dc927d7"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-8DF0F3E7BCFD9ADAD0D02A6D",
+      "file": "app/source_attribution.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "228c11f0f9508d37dec6b6f601a24eae0b7f285faf3bd9dda46e3768758c7682",
+      "statement_fingerprint": "05e8d924b0944f1e14f90ee63fc9209471aa91ce1642a1049e3cbeda8df3639a"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-9EDBDD772B34DDAE261D3BE1",
+      "file": "app/source_attribution.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "228c11f0f9508d37dec6b6f601a24eae0b7f285faf3bd9dda46e3768758c7682",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-EC941925187D4A82D3B6671A",
+      "file": "app/stage10.py",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ad6a6ef8c0c1f020d573e00299d5b1d144950569ffdb8d302577ee392a9e66f6",
+      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-ECDC4EC9C1F89B31B3F9A1EB",
+      "file": "app/stage10.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ad6a6ef8c0c1f020d573e00299d5b1d144950569ffdb8d302577ee392a9e66f6",
+      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-307CBD39082823DBD41807FE",
+      "file": "app/stage10.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ad6a6ef8c0c1f020d573e00299d5b1d144950569ffdb8d302577ee392a9e66f6",
+      "statement_fingerprint": "5052a4095aef2da21f3c125eb71199f52394364428ba4eedb9cc74e04b1d3e37"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-3ABA0B8B2C1F5C89A08E046A",
+      "file": "app/stage10.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ad6a6ef8c0c1f020d573e00299d5b1d144950569ffdb8d302577ee392a9e66f6",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-4B37330736531B3F982E32BA",
+      "file": "app/stage10.py",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ad6a6ef8c0c1f020d573e00299d5b1d144950569ffdb8d302577ee392a9e66f6",
+      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-720673588EC9E158A3B70649",
+      "file": "app/stage10.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ad6a6ef8c0c1f020d573e00299d5b1d144950569ffdb8d302577ee392a9e66f6",
+      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-52419919E3794C34CCF7F3E0",
+      "file": "app/stage10.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ad6a6ef8c0c1f020d573e00299d5b1d144950569ffdb8d302577ee392a9e66f6",
+      "statement_fingerprint": "bbda176e5f2ccfbd463a627e66172c003c05f37d1618f9e9ecf7b566a00fe5bc"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-B9892A82366112FCCB5A4568",
+      "file": "app/stage10.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ad6a6ef8c0c1f020d573e00299d5b1d144950569ffdb8d302577ee392a9e66f6",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-D332E454A0A7C695A42DD5E7",
+      "file": "app/stage10.py",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ad6a6ef8c0c1f020d573e00299d5b1d144950569ffdb8d302577ee392a9e66f6",
+      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-35C1FE1ACB60B5B8161D04DF",
+      "file": "app/stage10.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ad6a6ef8c0c1f020d573e00299d5b1d144950569ffdb8d302577ee392a9e66f6",
+      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-926841545CE99160ECF86422",
+      "file": "app/stage10.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ad6a6ef8c0c1f020d573e00299d5b1d144950569ffdb8d302577ee392a9e66f6",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-52DD5571D5E9C1A22162998D",
+      "file": "app/stage10.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ad6a6ef8c0c1f020d573e00299d5b1d144950569ffdb8d302577ee392a9e66f6",
+      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-9C9080F7696A53D89FE3954B",
+      "file": "app/stage10.py",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ad6a6ef8c0c1f020d573e00299d5b1d144950569ffdb8d302577ee392a9e66f6",
+      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-0AB5E28C517B2F176E6615A9",
+      "file": "app/stage10.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ad6a6ef8c0c1f020d573e00299d5b1d144950569ffdb8d302577ee392a9e66f6",
+      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-E21493B4EA0FE2A5F14460AD",
+      "file": "app/stage10.py",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ad6a6ef8c0c1f020d573e00299d5b1d144950569ffdb8d302577ee392a9e66f6",
+      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-00DE893D2450CF86E4C8C93F",
+      "file": "app/stage10.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ad6a6ef8c0c1f020d573e00299d5b1d144950569ffdb8d302577ee392a9e66f6",
+      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-A37DF95791924731F1469CA6",
+      "file": "app/stage10.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ad6a6ef8c0c1f020d573e00299d5b1d144950569ffdb8d302577ee392a9e66f6",
+      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-DC17AC8C8E3B9D8840BF3811",
+      "file": "app/stage10.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ad6a6ef8c0c1f020d573e00299d5b1d144950569ffdb8d302577ee392a9e66f6",
+      "statement_fingerprint": "24b792569bf296d4991594c14e04345b66fa99ba8e3404bdd9f2863c8156d723"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-D5948163947390AD237E897D",
+      "file": "app/stage10.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ad6a6ef8c0c1f020d573e00299d5b1d144950569ffdb8d302577ee392a9e66f6",
+      "statement_fingerprint": "bf3cbdd865d928da867ad9322ab1f33dc6d60fc0ed330f33d62b2d829d5c3d97"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-0157F460111BD36820E080BD",
+      "file": "app/stage10.py",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ad6a6ef8c0c1f020d573e00299d5b1d144950569ffdb8d302577ee392a9e66f6",
+      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-FBF6FFD228D6570B921EF1D8",
+      "file": "app/stage10.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ad6a6ef8c0c1f020d573e00299d5b1d144950569ffdb8d302577ee392a9e66f6",
+      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-648E666E1ED20F5C886C3023",
+      "file": "app/stage10.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ad6a6ef8c0c1f020d573e00299d5b1d144950569ffdb8d302577ee392a9e66f6",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-9E036A668A187C23D10621B2",
+      "file": "app/stage10.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ad6a6ef8c0c1f020d573e00299d5b1d144950569ffdb8d302577ee392a9e66f6",
+      "statement_fingerprint": "8570af9cd38d8d6cb55e7990f48f2ae6e647c8ac07367553b3a3e62512e31e59"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-DD98C912FEC705EACCB1E591",
+      "file": "app/stage10.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ad6a6ef8c0c1f020d573e00299d5b1d144950569ffdb8d302577ee392a9e66f6",
+      "statement_fingerprint": "3df49ab16e94f6db698e8a1580c39a994b2d2d853be762e29ac2c187ff4afed6"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-AA8B0DD4EE1FEC443649412F",
+      "file": "app/stage10.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "ad6a6ef8c0c1f020d573e00299d5b1d144950569ffdb8d302577ee392a9e66f6",
+      "statement_fingerprint": "259c0d48e8b060adfd709d10f0867651b732331d45704a6e41b74ccda2f6fa40"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-B43F275673F2874C0BA10A1E",
+      "file": "app/stage11.py",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "b5a4ba7f3d58483c31c7c870e78609c44dfef6e25030c8bb30232721547aac52",
+      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-2C48DF4F820AF3D7B09885BD",
+      "file": "app/stage11.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "b5a4ba7f3d58483c31c7c870e78609c44dfef6e25030c8bb30232721547aac52",
+      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-D47C6EC85666C28B0719F356",
+      "file": "app/stage11.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "b5a4ba7f3d58483c31c7c870e78609c44dfef6e25030c8bb30232721547aac52",
+      "statement_fingerprint": "bd2afe91ca179bceb9abe3d270f723ce9708068addd79ba8220bf06713fd2acc"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-BD2923502DE46201E80207DF",
+      "file": "app/stage11.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "b5a4ba7f3d58483c31c7c870e78609c44dfef6e25030c8bb30232721547aac52",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-D9CEC4B70CAF628C949E01DC",
+      "file": "app/stage11.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "b5a4ba7f3d58483c31c7c870e78609c44dfef6e25030c8bb30232721547aac52",
+      "statement_fingerprint": "4bd3574355eb6f90306e5a10384d893dd582a303484c39fb777aa27be2a1a050"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-962723E6A42946A9EC956B9F",
+      "file": "app/stage11.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "b5a4ba7f3d58483c31c7c870e78609c44dfef6e25030c8bb30232721547aac52",
+      "statement_fingerprint": "8c5f686a7234e38dd321a6e6eddcb5a718743edac813f4fae2650a90c300f7b8"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-D8FAC78B9E645F3EA7D197CC",
+      "file": "app/stage11.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "b5a4ba7f3d58483c31c7c870e78609c44dfef6e25030c8bb30232721547aac52",
+      "statement_fingerprint": "634cc8af57a8505566df260710fe7b4bba22e97a3225b31e3646d7db32ebb46f"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-6BD3430109B139DBD6BA6EED",
+      "file": "app/stage11.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "b5a4ba7f3d58483c31c7c870e78609c44dfef6e25030c8bb30232721547aac52",
+      "statement_fingerprint": "d2ccac762263566566d85cdbecebba431f68212632ca247c78b4f7439a487dfd"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-63FE8F186D22E978AFCD7427",
+      "file": "app/stage14.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "9b4b48bd302eafccc40557a8e08698d6d5381ed148a863afa66f6a9c79925b2b",
+      "statement_fingerprint": "2dad9d7d0dbd136c313b63e4a61510dc96f007fa4d2f2e818149166b87646ac6"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-CA5030BE13838C414431F12C",
+      "file": "app/stage14.py",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "9b4b48bd302eafccc40557a8e08698d6d5381ed148a863afa66f6a9c79925b2b",
+      "statement_fingerprint": "fd5e65fec6c126443b7b26acdd25c79a688e8096a89a52e9dce945a71eaaf53e"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-820954C7256F0ED0B8CCDDE5",
+      "file": "app/stage14.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "9b4b48bd302eafccc40557a8e08698d6d5381ed148a863afa66f6a9c79925b2b",
+      "statement_fingerprint": "196c8969b9ae12c0c2db078216eb4ba556d3b51e17241f26af6c3fcbb0fa2f1f"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-E7C7E153966C66307F8FACBA",
+      "file": "app/stage14.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "9b4b48bd302eafccc40557a8e08698d6d5381ed148a863afa66f6a9c79925b2b",
+      "statement_fingerprint": "8aa8505e21798990550ae32fdca8bae8dd3ce335a585eb9733ff7c70ca1d2965"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-95FB8E3137DACCEB2E01442D",
+      "file": "app/stage14.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "9b4b48bd302eafccc40557a8e08698d6d5381ed148a863afa66f6a9c79925b2b",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-D491F6E3926467B778BFEB85",
+      "file": "app/stage14.py",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "9b4b48bd302eafccc40557a8e08698d6d5381ed148a863afa66f6a9c79925b2b",
+      "statement_fingerprint": "fd5e65fec6c126443b7b26acdd25c79a688e8096a89a52e9dce945a71eaaf53e"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-4E48347BA751262022C4F0FD",
+      "file": "app/stage14.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "9b4b48bd302eafccc40557a8e08698d6d5381ed148a863afa66f6a9c79925b2b",
+      "statement_fingerprint": "196c8969b9ae12c0c2db078216eb4ba556d3b51e17241f26af6c3fcbb0fa2f1f"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-B2A550C634FEAAFEA2423562",
+      "file": "app/stage14.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "9b4b48bd302eafccc40557a8e08698d6d5381ed148a863afa66f6a9c79925b2b",
+      "statement_fingerprint": "196c8969b9ae12c0c2db078216eb4ba556d3b51e17241f26af6c3fcbb0fa2f1f"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-CD9C0CD38981231DB75CCDF3",
+      "file": "app/stage14.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "9b4b48bd302eafccc40557a8e08698d6d5381ed148a863afa66f6a9c79925b2b",
+      "statement_fingerprint": "96f07d03f8c3830a223ccb727f8cf3b0ed534726794d718710a54e5632e7278a"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-2D0A57F3E55D6BDC882E6D82",
+      "file": "app/stage14.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "9b4b48bd302eafccc40557a8e08698d6d5381ed148a863afa66f6a9c79925b2b",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-0EA181A5274AA88AD1649065",
+      "file": "app/stage14.py",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "9b4b48bd302eafccc40557a8e08698d6d5381ed148a863afa66f6a9c79925b2b",
+      "statement_fingerprint": "fd5e65fec6c126443b7b26acdd25c79a688e8096a89a52e9dce945a71eaaf53e"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-B65177DA6BB00DE5789EFF31",
+      "file": "app/stage14.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "9b4b48bd302eafccc40557a8e08698d6d5381ed148a863afa66f6a9c79925b2b",
+      "statement_fingerprint": "196c8969b9ae12c0c2db078216eb4ba556d3b51e17241f26af6c3fcbb0fa2f1f"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-4F4DD7EB189492ECFAA50694",
+      "file": "app/stage14.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "9b4b48bd302eafccc40557a8e08698d6d5381ed148a863afa66f6a9c79925b2b",
+      "statement_fingerprint": "196c8969b9ae12c0c2db078216eb4ba556d3b51e17241f26af6c3fcbb0fa2f1f"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-14E9E5ACA09C905D00BF77AF",
+      "file": "app/stage14.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "9b4b48bd302eafccc40557a8e08698d6d5381ed148a863afa66f6a9c79925b2b",
+      "statement_fingerprint": "8d8caa9c42fdd07f42aa25afccefb1098023d0b548445a898ee31ba0c6df11e8"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-79501E9B2B19ECAE6D001797",
+      "file": "app/stage14.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "9b4b48bd302eafccc40557a8e08698d6d5381ed148a863afa66f6a9c79925b2b",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-B5A322E1169B31DAFE470F61",
+      "file": "app/stage14.py",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "9b4b48bd302eafccc40557a8e08698d6d5381ed148a863afa66f6a9c79925b2b",
+      "statement_fingerprint": "fd5e65fec6c126443b7b26acdd25c79a688e8096a89a52e9dce945a71eaaf53e"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-EDC073051C262DE3FB2C31B5",
+      "file": "app/stage14.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "9b4b48bd302eafccc40557a8e08698d6d5381ed148a863afa66f6a9c79925b2b",
+      "statement_fingerprint": "196c8969b9ae12c0c2db078216eb4ba556d3b51e17241f26af6c3fcbb0fa2f1f"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-7C211A13E9A762D6C36DD6B8",
+      "file": "app/stage14.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "9b4b48bd302eafccc40557a8e08698d6d5381ed148a863afa66f6a9c79925b2b",
+      "statement_fingerprint": "196c8969b9ae12c0c2db078216eb4ba556d3b51e17241f26af6c3fcbb0fa2f1f"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-921F2AE12B43A08A4670A9BC",
+      "file": "app/stage14.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "9b4b48bd302eafccc40557a8e08698d6d5381ed148a863afa66f6a9c79925b2b",
+      "statement_fingerprint": "196c8969b9ae12c0c2db078216eb4ba556d3b51e17241f26af6c3fcbb0fa2f1f"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-F96235687CA931D0D16CAE0A",
+      "file": "app/stage14.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "9b4b48bd302eafccc40557a8e08698d6d5381ed148a863afa66f6a9c79925b2b",
+      "statement_fingerprint": "df857452dd06bd22f68a164ad69c03a87de61ba9f872a2ceae3385af3893dad3"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-9978BC81D2910A7F56B13D96",
+      "file": "app/stage14.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "9b4b48bd302eafccc40557a8e08698d6d5381ed148a863afa66f6a9c79925b2b",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-06208381FED99EAA14420841",
+      "file": "app/stage14.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "9b4b48bd302eafccc40557a8e08698d6d5381ed148a863afa66f6a9c79925b2b",
+      "statement_fingerprint": "196c8969b9ae12c0c2db078216eb4ba556d3b51e17241f26af6c3fcbb0fa2f1f"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-CD70AE3986C3180A26DE9A8D",
+      "file": "app/stage14.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "9b4b48bd302eafccc40557a8e08698d6d5381ed148a863afa66f6a9c79925b2b",
+      "statement_fingerprint": "3955468600f2e3c5cbec4bf647f778f7c91e70f275de14395d70428c1c5b0d62"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-04B9A7FC636E22BF6CB0B732",
+      "file": "app/stage14.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "9b4b48bd302eafccc40557a8e08698d6d5381ed148a863afa66f6a9c79925b2b",
+      "statement_fingerprint": "b173a116b55316952350c3a68f3a14e7c0f27a662866e082ac1e89c6e7bf1ad6"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-2B87DD4A1BA3BD21C962CC35",
+      "file": "app/stage14.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "9b4b48bd302eafccc40557a8e08698d6d5381ed148a863afa66f6a9c79925b2b",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-E35E92BF97C6BB12CC0FD519",
+      "file": "app/stage14.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "9b4b48bd302eafccc40557a8e08698d6d5381ed148a863afa66f6a9c79925b2b",
+      "statement_fingerprint": "2751a12ebadc785fd0c8841a9135ada932ffb9ac5d89d0a7da1168119717799c"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-A31ED602D1C003CDF647BBF1",
+      "file": "app/stage14.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "9b4b48bd302eafccc40557a8e08698d6d5381ed148a863afa66f6a9c79925b2b",
+      "statement_fingerprint": "5dcbd9e5e938308301b96f0ef0ea672f16b749b6fe3c64ffdc7fd1fe78f72ea0"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-5DD403DE26542297634E00F6",
+      "file": "app/stage14.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "9b4b48bd302eafccc40557a8e08698d6d5381ed148a863afa66f6a9c79925b2b",
+      "statement_fingerprint": "a5788d875cc081164dd9575e1063a45d25e08fd09f2033106b44f07079ddcb2a"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-44046922F62025AF7CAFA6BB",
+      "file": "app/stage14.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "9b4b48bd302eafccc40557a8e08698d6d5381ed148a863afa66f6a9c79925b2b",
+      "statement_fingerprint": "f1cc78d8e1047d5aba50fb2c6ab884add17d1adb40befa5e4150d82497214f59"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-911BACCD04A2E3ACB47D3157",
+      "file": "app/stage8_report.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "b303919b6d28c8c9202d1a758ed4d1884bf6aa0ab5b2441850ec5a94ee7d3b1c",
+      "statement_fingerprint": "8a3f53247c45e7ea765e8ebdfd5c4f59d303cc1bf8c322c66d80b37e93509c98"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-538DEDBC6CF3FD9E0361BA9A",
+      "file": "app/stage8_report.py",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "b303919b6d28c8c9202d1a758ed4d1884bf6aa0ab5b2441850ec5a94ee7d3b1c",
+      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-020B8888B9F9393EBAD235B6",
+      "file": "app/stage8_report.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "b303919b6d28c8c9202d1a758ed4d1884bf6aa0ab5b2441850ec5a94ee7d3b1c",
+      "statement_fingerprint": "849b9c81de84bdcda5de7779ced29efad18d905f24da61b208c2db605f6d4ee9"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-473A22E44F4CFA8A72ECE0F1",
+      "file": "app/stage9_report.py",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "d5e8e93a0d0b154f73a7fc06d6f0f7deecdc0248b24c26cbd9ae32e083ed6b0b",
+      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-21DC60F7226BAB2E3FAEB10A",
+      "file": "app/stage9_report.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "d5e8e93a0d0b154f73a7fc06d6f0f7deecdc0248b24c26cbd9ae32e083ed6b0b",
+      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-5568FB3053B31C989F1EDE34",
+      "file": "app/stage9_report.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "d5e8e93a0d0b154f73a7fc06d6f0f7deecdc0248b24c26cbd9ae32e083ed6b0b",
+      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-BD573B0703D5449F4695F1BA",
+      "file": "app/stage9_report.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "d5e8e93a0d0b154f73a7fc06d6f0f7deecdc0248b24c26cbd9ae32e083ed6b0b",
+      "statement_fingerprint": "a7dd70421b22c71bcc6887de6981041e442013928b702e357f5049a09da7ae8e"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-3DC0B841DDC300A0DE22471E",
+      "file": "app/stage9_report.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "d5e8e93a0d0b154f73a7fc06d6f0f7deecdc0248b24c26cbd9ae32e083ed6b0b",
+      "statement_fingerprint": "f8d184b899ace92a7cc639bd41cb0ae10131099cb757073bb3e68b189ca98ed7"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-D159E5408D1D392D6F10366A",
+      "file": "app/stage9_report.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "d5e8e93a0d0b154f73a7fc06d6f0f7deecdc0248b24c26cbd9ae32e083ed6b0b",
+      "statement_fingerprint": "8cd71a0636f203b0ec47b2a1877b52ccefb2ffd1464a9eeed5178fba5d22484f"
+    },
+    {
+      "control_id": "M0_LOOPBACK_NETWORK_ALLOWLIST_V1",
+      "entry_id": "WE-9AF500A991CF5CE1543A86DA",
+      "file": "app/structured_ai.py",
+      "kind": "NETWORK_REQUEST",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "4f55559b7e63d78456098a7b598be63bb24d48a0bbe0d3056ca09a6d4cfd132c",
+      "statement_fingerprint": "9fa690f7580cb48f7c6caf208c3aeb9c931f2db5e446918aede4fa98f6f42d60"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-5D94059A9D7C2545DD1C0D33",
+      "file": "app/structured_ai.py",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "4f55559b7e63d78456098a7b598be63bb24d48a0bbe0d3056ca09a6d4cfd132c",
+      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-1488FE9B5F99F4C7E5566CD5",
+      "file": "app/structured_ai.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "4f55559b7e63d78456098a7b598be63bb24d48a0bbe0d3056ca09a6d4cfd132c",
+      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-36ED2114AC78B3AEAD21D5C8",
+      "file": "app/structured_ai.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "4f55559b7e63d78456098a7b598be63bb24d48a0bbe0d3056ca09a6d4cfd132c",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-8C35382C9B893B20A8FB4AC3",
+      "file": "app/structured_ai.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "4f55559b7e63d78456098a7b598be63bb24d48a0bbe0d3056ca09a6d4cfd132c",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-7ED15A664A4B16F99021C6A5",
+      "file": "app/structured_ai.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "4f55559b7e63d78456098a7b598be63bb24d48a0bbe0d3056ca09a6d4cfd132c",
+      "statement_fingerprint": "74fa55252452be8de92a775553381e1f1d44bd762f52f8ee4c92aa1c08fa21d6"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-C3E6E493D746B24053751BB2",
+      "file": "app/structured_ai.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "4f55559b7e63d78456098a7b598be63bb24d48a0bbe0d3056ca09a6d4cfd132c",
+      "statement_fingerprint": "dba0d58c82736b967fe3459ee562e4268ca95a235a8b44eaf11a1af3f6af2305"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-374120462BF7C4F4514391B1",
+      "file": "app/structured_ai.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "4f55559b7e63d78456098a7b598be63bb24d48a0bbe0d3056ca09a6d4cfd132c",
+      "statement_fingerprint": "e90d012b783f8f5b1e953a4279a9a8bc7352d1416b08fcd7b33dc1446297ca3b"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-7981481F74B96CD1B504EAD5",
+      "file": "app/structured_content.py",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "9e3814f77516834d3d934c3eff806c20c58f46dc31e4e8ed083e110d1bd40d5a",
+      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-BDDACF2524DE94E5713EFC1E",
+      "file": "app/structured_content.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "9e3814f77516834d3d934c3eff806c20c58f46dc31e4e8ed083e110d1bd40d5a",
+      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-6F4E74AEF7FB1505D3433C31",
+      "file": "app/structured_content.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "9e3814f77516834d3d934c3eff806c20c58f46dc31e4e8ed083e110d1bd40d5a",
+      "statement_fingerprint": "6aef6275bd26ad3e0a3b7fa8837d302584b0cce573e7c6aa69fbd155f4df9c40"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-90DD7C8DAE6621F9BACB6308",
+      "file": "app/structured_content.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "9e3814f77516834d3d934c3eff806c20c58f46dc31e4e8ed083e110d1bd40d5a",
+      "statement_fingerprint": "498bce4a70d50228ea49489e05cdeb74b39e95cc86b154d50594001506fdcb46"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-28D3B8376310E72C08F8C58E",
+      "file": "app/structured_content.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "9e3814f77516834d3d934c3eff806c20c58f46dc31e4e8ed083e110d1bd40d5a",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-1FA42EC9C0265FC1CE1E11A9",
+      "file": "app/structured_content.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "9e3814f77516834d3d934c3eff806c20c58f46dc31e4e8ed083e110d1bd40d5a",
+      "statement_fingerprint": "b3a013c198e15ed9d44ad66f470090cd3e335b5230ef884233756223ea4a22e8"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-EB3EF07D8C72DEFA5EEC816F",
+      "file": "app/structured_content.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "9e3814f77516834d3d934c3eff806c20c58f46dc31e4e8ed083e110d1bd40d5a",
+      "statement_fingerprint": "f5170c2fb1dfd45e7a7066dd274cd908143cd928589f6ae7de37e2eecd789f7c"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-69CF774FA7D6CA8B5D14011A",
+      "file": "app/structured_service.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "89eeeb56beb17a0738a0d7688cfaf3bf0d102fa25501c65033a8fbfd2042bba3",
+      "statement_fingerprint": "cd4e1065969e89eacb69924d655aa3397ff82aae60a92226603f5b45213feed1"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-E25ADCD95B9D5CB686AFA7D0",
+      "file": "app/structured_validation.py",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "79285b337d94580c0a4d713be1229b932e5462db5bd5aac1399f6fa9c8e7022f",
+      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-C8A7C002DFF4F753FAC9937C",
+      "file": "app/structured_validation.py",
+      "kind": "DATABASE_GATEWAY",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "79285b337d94580c0a4d713be1229b932e5462db5bd5aac1399f6fa9c8e7022f",
+      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-91145B1FEE0CB5E43E22F15D",
+      "file": "app/structured_validation.py",
+      "kind": "SQLITE_TRANSACTION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "79285b337d94580c0a4d713be1229b932e5462db5bd5aac1399f6fa9c8e7022f",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-7F50F6C0AA9C233EEA06FD40",
+      "file": "app/structured_validation.py",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "79285b337d94580c0a4d713be1229b932e5462db5bd5aac1399f6fa9c8e7022f",
+      "statement_fingerprint": "41e133f385b1f627986b716e26069b7bf03b63660934013b9a4dccf76bf9d15c"
+    },
+    {
+      "control_id": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "entry_id": "WE-59FDA485922B98CD48F32303",
+      "file": "app/structured_validation.py",
+      "kind": "SQLITE_MUTATION",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "79285b337d94580c0a4d713be1229b932e5462db5bd5aac1399f6fa9c8e7022f",
+      "statement_fingerprint": "b233b09eaed6a309f8cfe7fcf6681fc2f14f465feabe0d92fe65accbedc0e4d3"
+    },
+    {
+      "control_id": "M0_SAFE_TEST_LAUNCHER_V1",
+      "entry_id": "WE-2AA7C23F11CD34D2D802EFD5",
+      "file": "scripts/run_safe_pytest.py",
+      "kind": "NATIVE_API_BINDING",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "374b318167832a3a3f36dc4d2d72e742d690ad0408ac5f3e195941135ecc41e2",
+      "statement_fingerprint": "3474f55c4f2c4ff899bf534b507dc606ac6ca48c4335543ec7104e00d9f58fff"
+    },
+    {
+      "control_id": "M0_SAFE_TEST_LAUNCHER_V1",
+      "entry_id": "WE-79F28159820F74AF30B82B13",
+      "file": "scripts/run_safe_pytest.py",
+      "kind": "EXTERNAL_PROCESS",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "374b318167832a3a3f36dc4d2d72e742d690ad0408ac5f3e195941135ecc41e2",
+      "statement_fingerprint": "3bae3dc169ca6f62e914ee9e23e5e96473cdab49dfb58fd9402aa70921a5a7ab"
+    },
+    {
+      "control_id": "M0_SAFE_TEST_LAUNCHER_V1",
+      "entry_id": "WE-11EBBC25050C8ED6BB5D9FDE",
+      "file": "scripts/run_safe_pytest.py",
+      "kind": "EXTERNAL_PROCESS",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "374b318167832a3a3f36dc4d2d72e742d690ad0408ac5f3e195941135ecc41e2",
+      "statement_fingerprint": "c6083b9fc5d56593852805263998f951047036e3aceeaad14e38dd86cad70fec"
+    },
+    {
+      "control_id": "M0_SAFE_TEST_LAUNCHER_V1",
+      "entry_id": "WE-6F807B80B1052EC62C858FF3",
+      "file": "scripts/run_safe_pytest.py",
+      "kind": "EXTERNAL_PROCESS",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "374b318167832a3a3f36dc4d2d72e742d690ad0408ac5f3e195941135ecc41e2",
+      "statement_fingerprint": "7dd9222051d8d2f4cd1b2700fe9c7e2eb6fbb34fa87670438efe9a6ac7dbea73"
+    },
+    {
+      "control_id": "M0_SAFE_TEST_LAUNCHER_V1",
+      "entry_id": "WE-779EEC73CBA6262D460BCF21",
+      "file": "scripts/run_safe_pytest.py",
+      "kind": "EXTERNAL_PROCESS",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "374b318167832a3a3f36dc4d2d72e742d690ad0408ac5f3e195941135ecc41e2",
+      "statement_fingerprint": "713f2b33010d6c8bc094fa6a54412e54dc5a1e45f3e89a87edb65dd4e363817d"
+    },
+    {
+      "control_id": "M0_SAFE_TEST_LAUNCHER_V1",
+      "entry_id": "WE-9355EC0D4CBA54DB563DBF9D",
+      "file": "scripts/run_safe_pytest.py",
+      "kind": "EXTERNAL_PROCESS",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "374b318167832a3a3f36dc4d2d72e742d690ad0408ac5f3e195941135ecc41e2",
+      "statement_fingerprint": "2cc7784b0a5e02e898c0632852598ebb4021ff2be70d7ebb38196afc46f42ee8"
+    },
+    {
+      "control_id": "M0_SAFE_TEST_LAUNCHER_V1",
+      "entry_id": "WE-90A2CED5F0872CD4CA249D87",
+      "file": "scripts/run_safe_pytest.py",
+      "kind": "EXTERNAL_PROCESS",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "374b318167832a3a3f36dc4d2d72e742d690ad0408ac5f3e195941135ecc41e2",
+      "statement_fingerprint": "7780013ca247acef940f6ad9307d1a12740d569665d56c15c68627898ebe3593"
+    },
+    {
+      "control_id": "M0_SAFE_TEST_LAUNCHER_V1",
+      "entry_id": "WE-C2A9F7CB87A5D72F48A35444",
+      "file": "scripts/run_safe_pytest.py",
+      "kind": "NATIVE_API_BINDING",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "374b318167832a3a3f36dc4d2d72e742d690ad0408ac5f3e195941135ecc41e2",
+      "statement_fingerprint": "3474f55c4f2c4ff899bf534b507dc606ac6ca48c4335543ec7104e00d9f58fff"
+    },
+    {
+      "control_id": "M0_SAFE_TEST_LAUNCHER_V1",
+      "entry_id": "WE-332C8A7D64369CB7B4A44B7D",
+      "file": "scripts/run_safe_pytest.py",
+      "kind": "FILESYSTEM_FILE_WRITE",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "374b318167832a3a3f36dc4d2d72e742d690ad0408ac5f3e195941135ecc41e2",
+      "statement_fingerprint": "b52e873c261d950f8af3d41eec4cb399d86171f37018497920074e905dd686c7"
+    },
+    {
+      "control_id": "M0_SAFE_TEST_LAUNCHER_V1",
+      "entry_id": "WE-2A47AFA1DA2BCE6A16808E1F",
+      "file": "scripts/run_safe_pytest.py",
+      "kind": "FILESYSTEM_FILE_WRITE",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "374b318167832a3a3f36dc4d2d72e742d690ad0408ac5f3e195941135ecc41e2",
+      "statement_fingerprint": "e48d8030e1d5de7806bbe9ba0c309d02aa1fadb53729796d50f34eda70ca0f66"
+    },
+    {
+      "control_id": "M0_SAFE_TEST_LAUNCHER_V1",
+      "entry_id": "WE-62C9F0495A7DE63AB390D440",
+      "file": "scripts/run_safe_pytest.py",
+      "kind": "FILESYSTEM_FILE_WRITE",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "374b318167832a3a3f36dc4d2d72e742d690ad0408ac5f3e195941135ecc41e2",
+      "statement_fingerprint": "04f901d0661301ce7fc0835272521ac5aacd94c087c142c5f7cbb85c241d6bd0"
+    },
+    {
+      "control_id": "M0_SAFE_TEST_LAUNCHER_V1",
+      "entry_id": "WE-52B54C62ADBA165D8C8D57FB",
+      "file": "scripts/run_safe_pytest.py",
+      "kind": "NATIVE_API_BINDING",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "374b318167832a3a3f36dc4d2d72e742d690ad0408ac5f3e195941135ecc41e2",
+      "statement_fingerprint": "3474f55c4f2c4ff899bf534b507dc606ac6ca48c4335543ec7104e00d9f58fff"
+    },
+    {
+      "control_id": "M0_SAFE_TEST_LAUNCHER_V1",
+      "entry_id": "WE-6C18267CA0D405495C174551",
+      "file": "scripts/run_safe_pytest.py",
+      "kind": "FILESYSTEM_FILE_WRITE",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "374b318167832a3a3f36dc4d2d72e742d690ad0408ac5f3e195941135ecc41e2",
+      "statement_fingerprint": "54e7aba638d2603cb3e93eee4f0f9111afa705bf7ae1b3d32efef877299836b7"
+    },
+    {
+      "control_id": "M0_SAFE_TEST_LAUNCHER_V1",
+      "entry_id": "WE-F8A0C38891C6E10F0ACCFAD8",
+      "file": "scripts/run_safe_pytest.py",
+      "kind": "NATIVE_API_BINDING",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "374b318167832a3a3f36dc4d2d72e742d690ad0408ac5f3e195941135ecc41e2",
+      "statement_fingerprint": "3474f55c4f2c4ff899bf534b507dc606ac6ca48c4335543ec7104e00d9f58fff"
+    },
+    {
+      "control_id": "M0_SAFE_TEST_LAUNCHER_V1",
+      "entry_id": "WE-151F5C0A0782D0382349FDCD",
+      "file": "scripts/run_safe_pytest.py",
+      "kind": "FILESYSTEM_FILE_WRITE",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "374b318167832a3a3f36dc4d2d72e742d690ad0408ac5f3e195941135ecc41e2",
+      "statement_fingerprint": "dd167905a49b370b62e99e3239bfc60d15f3c481c309a45adeab51b077931f1a"
+    },
+    {
+      "control_id": "M0_SAFE_TEST_LAUNCHER_V1",
+      "entry_id": "WE-FAEA5393A1DF4713DC2AFF53",
+      "file": "scripts/run_safe_pytest.py",
+      "kind": "FILESYSTEM_FILE_WRITE",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "374b318167832a3a3f36dc4d2d72e742d690ad0408ac5f3e195941135ecc41e2",
+      "statement_fingerprint": "e44de1e95baf974631b5a28ab7851f3a9256a2b5159eba26d5e1efa1bb764c00"
+    },
+    {
+      "control_id": "M0_SAFE_TEST_LAUNCHER_V1",
+      "entry_id": "WE-2769A3712D30A76BC9472659",
+      "file": "scripts/run_safe_pytest.py",
+      "kind": "FILESYSTEM_FILE_WRITE",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "374b318167832a3a3f36dc4d2d72e742d690ad0408ac5f3e195941135ecc41e2",
+      "statement_fingerprint": "c08e0eaaa509384f20cdefa40e74244fd4ff647f5d7a398a28a5099a8f9fc9ab"
+    },
+    {
+      "control_id": "M0_SAFE_TEST_LAUNCHER_V1",
+      "entry_id": "WE-8777DF370291790E9892D0BA",
+      "file": "scripts/run_safe_pytest.py",
+      "kind": "FILESYSTEM_FILE_WRITE",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "374b318167832a3a3f36dc4d2d72e742d690ad0408ac5f3e195941135ecc41e2",
+      "statement_fingerprint": "54dea0061a31634a25398b4c2ea17ae98546d3118c53394b4fcdba388c2fbf2c"
+    },
+    {
+      "control_id": "M0_SAFE_TEST_LAUNCHER_V1",
+      "entry_id": "WE-835B40EA0BD39001FF7C8D1F",
+      "file": "scripts/run_safe_pytest.py",
+      "kind": "FILESYSTEM_FILE_WRITE",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "374b318167832a3a3f36dc4d2d72e742d690ad0408ac5f3e195941135ecc41e2",
+      "statement_fingerprint": "65146e1ad0de15c07406bb37e3cd62e2470db610113b13ea2c5f7462cabda0ab"
+    },
+    {
+      "control_id": "M0_SAFE_TEST_LAUNCHER_V1",
+      "entry_id": "WE-75DCA8D277DE542A9D56DA3B",
+      "file": "scripts/run_safe_pytest.py",
+      "kind": "FILESYSTEM_FILE_WRITE",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "374b318167832a3a3f36dc4d2d72e742d690ad0408ac5f3e195941135ecc41e2",
+      "statement_fingerprint": "cc2d420e2d33e95af54fb7647559f93c5d71fc8d2949e4b67e5495226ead1c9f"
+    },
+    {
+      "control_id": "M0_SAFE_TEST_LAUNCHER_V1",
+      "entry_id": "WE-F0D0859E85A9FF2AC9881E0D",
+      "file": "scripts/run_safe_pytest.py",
+      "kind": "FILESYSTEM_FILE_WRITE",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "374b318167832a3a3f36dc4d2d72e742d690ad0408ac5f3e195941135ecc41e2",
+      "statement_fingerprint": "7e64ca07120243d21cb9ad0e836c566965cfde1adcf2f29c072ed36bc9e49df5"
+    },
+    {
+      "control_id": "M0_SAFE_TEST_LAUNCHER_V1",
+      "entry_id": "WE-300DFDE7980CE7975037D24E",
+      "file": "scripts/run_safe_pytest.py",
+      "kind": "EXTERNAL_PROCESS",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "374b318167832a3a3f36dc4d2d72e742d690ad0408ac5f3e195941135ecc41e2",
+      "statement_fingerprint": "66f3a7bba0b6feef64c69e339fbfbca3e0ea8dc01b54b97847247c87457bd33e"
+    },
+    {
+      "control_id": "M0_SAFE_TEST_LAUNCHER_V1",
+      "entry_id": "WE-0E26352566B49FCD77331B78",
+      "file": "scripts/run_safe_pytest.py",
+      "kind": "FILESYSTEM_DIRECTORY_CREATE",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "374b318167832a3a3f36dc4d2d72e742d690ad0408ac5f3e195941135ecc41e2",
+      "statement_fingerprint": "4258319616e9c4b20dbb6e8f951ca7c29563ab46b47f42380aed4b6228cd75d3"
+    },
+    {
+      "control_id": "M0_SAFE_TEST_LAUNCHER_V1",
+      "entry_id": "WE-8B49BC5FBA78F558CE9D8885",
+      "file": "scripts/run_safe_pytest.py",
+      "kind": "FILESYSTEM_DIRECTORY_CREATE",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "374b318167832a3a3f36dc4d2d72e742d690ad0408ac5f3e195941135ecc41e2",
+      "statement_fingerprint": "d76fa67834f025e8ba1ea34a5a15038c09007f8bd789097f763c139a5ac87f20"
+    },
+    {
+      "control_id": "M0_SAFE_TEST_LAUNCHER_V1",
+      "entry_id": "WE-6B9FC39012EAFF8B5168D7BC",
+      "file": "scripts/run_safe_pytest.py",
+      "kind": "FILESYSTEM_DIRECTORY_CREATE",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "374b318167832a3a3f36dc4d2d72e742d690ad0408ac5f3e195941135ecc41e2",
+      "statement_fingerprint": "3102f577fe457871c6e93b649467cd741570c6e5695ab61120e0be7a8b36c316"
+    },
+    {
+      "control_id": "M0_SAFE_TEST_LAUNCHER_V1",
+      "entry_id": "WE-847F9745C4C75ABDE6E5D1AC",
+      "file": "scripts/run_safe_pytest.py",
+      "kind": "FILESYSTEM_DIRECTORY_CREATE",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "374b318167832a3a3f36dc4d2d72e742d690ad0408ac5f3e195941135ecc41e2",
+      "statement_fingerprint": "2936544fb8e87590fc4c946250f06759d40a5fa3ca655748ed4a2f5bb15b3a08"
+    },
+    {
+      "control_id": "M0_SAFE_TEST_LAUNCHER_V1",
+      "entry_id": "WE-FFB1C43A3B1AB9AE24320701",
+      "file": "scripts/run_safe_pytest.py",
+      "kind": "FILESYSTEM_DIRECTORY_CREATE",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "374b318167832a3a3f36dc4d2d72e742d690ad0408ac5f3e195941135ecc41e2",
+      "statement_fingerprint": "ebfc35da1fcba9b218e25759adeb31427b05fcb1b535c559884234c0dd3c9e7c"
+    },
+    {
+      "control_id": "M0_SAFE_TEST_LAUNCHER_V1",
+      "entry_id": "WE-845F0EB1830FA3C43218199A",
+      "file": "scripts/run_safe_pytest.py",
+      "kind": "FILESYSTEM_DIRECTORY_CREATE",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "374b318167832a3a3f36dc4d2d72e742d690ad0408ac5f3e195941135ecc41e2",
+      "statement_fingerprint": "983185b355c549db0471769390c377bf2f8c85375cab5de31e860d2a3f2c7ccf"
+    },
+    {
+      "control_id": "M0_SAFE_TEST_LAUNCHER_V1",
+      "entry_id": "WE-D18D9785C520F017F91C230E",
+      "file": "scripts/run_safe_pytest.py",
+      "kind": "FILESYSTEM_DIRECTORY_CREATE",
+      "migration_status": "MIGRATED_GUARDED",
+      "source_sha256": "374b318167832a3a3f36dc4d2d72e742d690ad0408ac5f3e195941135ecc41e2",
+      "statement_fingerprint": "63e777f1078a305b568ea180d1004bd9d2712391705c7d94f8e952fdce697c62"
+    }
+  ],
+  "bindings_digest_sha256": "29d53b048c8f6b5985d5c76e1163be6cdef4ed4d26d78725ac7c38121fbf148a",
+  "scanner_version": "M0-S6-STATIC-AUDIT-V21",
+  "schema_version": "1.0"
+}

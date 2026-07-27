@@ -1,0 +1,752 @@
+{
+  "chunk_digest_sha256": "b609c00b15e2e09ba55097d973e46e2bbb4a62e6945ef8c5e2c3fff7eff7b723",
+  "chunk_index": 16,
+  "entries": [
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.structured_ai.run_structured_ai_corrections"
+      ],
+      "callee": "app.database.connect_database().commit",
+      "column": 12,
+      "control_binding_id": "WE-36ED2114AC78B3AEAD21D5C8",
+      "detail": "transaction commit",
+      "end_column": 25,
+      "end_line": 289,
+      "entry_id": "WE-36ED2114AC78B3AEAD21D5C8",
+      "file": "app/structured_ai.py",
+      "function": "app.structured_ai.run_structured_ai_corrections",
+      "input_source": "CLI_ARGUMENT_OR_CONFIG",
+      "kind": "SQLITE_TRANSACTION",
+      "line": 289,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "resolution": "ALIAS_RESOLVED",
+      "risk": "P1",
+      "root_ids": [
+        "CLI:MAIN"
+      ],
+      "source_sha256": "4f55559b7e63d78456098a7b598be63bb24d48a0bbe0d3056ca09a6d4cfd132c",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976",
+      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
+    },
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.structured_ai.run_structured_ai_corrections"
+      ],
+      "callee": "app.database.connect_database().commit",
+      "column": 8,
+      "control_binding_id": "WE-8C35382C9B893B20A8FB4AC3",
+      "detail": "transaction commit",
+      "end_column": 21,
+      "end_line": 310,
+      "entry_id": "WE-8C35382C9B893B20A8FB4AC3",
+      "file": "app/structured_ai.py",
+      "function": "app.structured_ai.run_structured_ai_corrections",
+      "input_source": "CLI_ARGUMENT_OR_CONFIG",
+      "kind": "SQLITE_TRANSACTION",
+      "line": 310,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "resolution": "ALIAS_RESOLVED",
+      "risk": "P1",
+      "root_ids": [
+        "CLI:MAIN"
+      ],
+      "source_sha256": "4f55559b7e63d78456098a7b598be63bb24d48a0bbe0d3056ca09a6d4cfd132c",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976",
+      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
+    },
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.structured_ai.run_structured_ai_corrections",
+        "app.structured_ai._load_correction_rows"
+      ],
+      "callee": "conn.execute",
+      "column": 11,
+      "control_binding_id": "WE-7ED15A664A4B16F99021C6A5",
+      "detail": "dynamic SQL is fail-closed because its effect cannot be proven",
+      "end_column": 5,
+      "end_line": 410,
+      "entry_id": "WE-7ED15A664A4B16F99021C6A5",
+      "file": "app/structured_ai.py",
+      "function": "app.structured_ai._load_correction_rows",
+      "input_source": "CLI_ARGUMENT_OR_CONFIG",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "line": 373,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "resolution": "DYNAMIC",
+      "risk": "P0",
+      "root_ids": [
+        "CLI:MAIN"
+      ],
+      "source_sha256": "4f55559b7e63d78456098a7b598be63bb24d48a0bbe0d3056ca09a6d4cfd132c",
+      "statement_fingerprint": "74fa55252452be8de92a775553381e1f1d44bd762f52f8ee4c92aa1c08fa21d6",
+      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
+    },
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.structured_ai.run_structured_ai_corrections",
+        "app.structured_ai._mark_provider_unavailable"
+      ],
+      "callee": "conn.execute",
+      "column": 4,
+      "control_binding_id": "WE-C3E6E493D746B24053751BB2",
+      "detail": "UPDATE",
+      "end_column": 5,
+      "end_line": 477,
+      "entry_id": "WE-C3E6E493D746B24053751BB2",
+      "file": "app/structured_ai.py",
+      "function": "app.structured_ai._mark_provider_unavailable",
+      "input_source": "CLI_ARGUMENT_OR_CONFIG",
+      "kind": "SQLITE_MUTATION",
+      "line": 464,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "CLI:MAIN"
+      ],
+      "source_sha256": "4f55559b7e63d78456098a7b598be63bb24d48a0bbe0d3056ca09a6d4cfd132c",
+      "statement_fingerprint": "dba0d58c82736b967fe3459ee562e4268ca95a235a8b44eaf11a1af3f6af2305",
+      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
+    },
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.structured_ai.run_structured_ai_corrections",
+        "app.structured_ai._write_ai_draft"
+      ],
+      "callee": "conn.execute",
+      "column": 4,
+      "control_binding_id": "WE-374120462BF7C4F4514391B1",
+      "detail": "UPDATE",
+      "end_column": 5,
+      "end_line": 536,
+      "entry_id": "WE-374120462BF7C4F4514391B1",
+      "file": "app/structured_ai.py",
+      "function": "app.structured_ai._write_ai_draft",
+      "input_source": "CLI_ARGUMENT_OR_CONFIG",
+      "kind": "SQLITE_MUTATION",
+      "line": 506,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "CLI:MAIN"
+      ],
+      "source_sha256": "4f55559b7e63d78456098a7b598be63bb24d48a0bbe0d3056ca09a6d4cfd132c",
+      "statement_fingerprint": "e90d012b783f8f5b1e953a4279a9a8bc7352d1416b08fcd7b33dc1446297ca3b",
+      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
+    },
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.structured_content.initialize_structured_contents"
+      ],
+      "callee": "app.database.initialize_database",
+      "column": 4,
+      "control_binding_id": "WE-7981481F74B96CD1B504EAD5",
+      "detail": "implicit schema/directory initialization",
+      "end_column": 32,
+      "end_line": 42,
+      "entry_id": "WE-7981481F74B96CD1B504EAD5",
+      "file": "app/structured_content.py",
+      "function": "app.structured_content.initialize_structured_contents",
+      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "line": 42,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "resolution": "ALIAS_RESOLVED",
+      "risk": "P1",
+      "root_ids": [
+        "CLI:MAIN",
+        "FACTORY:CREATE_APP",
+        "MODULE:APP",
+        "WEB:POST /structured-review/<int:question_id>/status"
+      ],
+      "source_sha256": "9e3814f77516834d3d934c3eff806c20c58f46dc31e4e8ed083e110d1bd40d5a",
+      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db",
+      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
+    },
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.structured_content.initialize_structured_contents"
+      ],
+      "callee": "app.database.connect_database",
+      "column": 9,
+      "control_binding_id": "WE-BDDACF2524DE94E5713EFC1E",
+      "detail": "legacy database gateway",
+      "end_column": 34,
+      "end_line": 45,
+      "entry_id": "WE-BDDACF2524DE94E5713EFC1E",
+      "file": "app/structured_content.py",
+      "function": "app.structured_content.initialize_structured_contents",
+      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
+      "kind": "DATABASE_GATEWAY",
+      "line": 45,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "resolution": "ALIAS_RESOLVED",
+      "risk": "P1",
+      "root_ids": [
+        "CLI:MAIN",
+        "FACTORY:CREATE_APP",
+        "MODULE:APP",
+        "WEB:POST /structured-review/<int:question_id>/status"
+      ],
+      "source_sha256": "9e3814f77516834d3d934c3eff806c20c58f46dc31e4e8ed083e110d1bd40d5a",
+      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6",
+      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
+    },
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.structured_content.initialize_structured_contents"
+      ],
+      "callee": "app.database.connect_database().execute",
+      "column": 15,
+      "control_binding_id": "WE-6F4E74AEF7FB1505D3433C31",
+      "detail": "dynamic SQL is fail-closed because its effect cannot be proven",
+      "end_column": 9,
+      "end_line": 67,
+      "entry_id": "WE-6F4E74AEF7FB1505D3433C31",
+      "file": "app/structured_content.py",
+      "function": "app.structured_content.initialize_structured_contents",
+      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "line": 50,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "resolution": "DYNAMIC",
+      "risk": "P0",
+      "root_ids": [
+        "CLI:MAIN",
+        "FACTORY:CREATE_APP",
+        "MODULE:APP",
+        "WEB:POST /structured-review/<int:question_id>/status"
+      ],
+      "source_sha256": "9e3814f77516834d3d934c3eff806c20c58f46dc31e4e8ed083e110d1bd40d5a",
+      "statement_fingerprint": "6aef6275bd26ad3e0a3b7fa8837d302584b0cce573e7c6aa69fbd155f4df9c40",
+      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
+    },
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.structured_content.initialize_structured_contents"
+      ],
+      "callee": "app.database.connect_database().execute",
+      "column": 12,
+      "control_binding_id": "WE-90DD7C8DAE6621F9BACB6308",
+      "detail": "INSERT",
+      "end_column": 13,
+      "end_line": 106,
+      "entry_id": "WE-90DD7C8DAE6621F9BACB6308",
+      "file": "app/structured_content.py",
+      "function": "app.structured_content.initialize_structured_contents",
+      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
+      "kind": "SQLITE_MUTATION",
+      "line": 77,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "resolution": "ALIAS_RESOLVED",
+      "risk": "P1",
+      "root_ids": [
+        "CLI:MAIN",
+        "FACTORY:CREATE_APP",
+        "MODULE:APP",
+        "WEB:POST /structured-review/<int:question_id>/status"
+      ],
+      "source_sha256": "9e3814f77516834d3d934c3eff806c20c58f46dc31e4e8ed083e110d1bd40d5a",
+      "statement_fingerprint": "498bce4a70d50228ea49489e05cdeb74b39e95cc86b154d50594001506fdcb46",
+      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
+    },
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.structured_content.initialize_structured_contents"
+      ],
+      "callee": "app.database.connect_database().commit",
+      "column": 8,
+      "control_binding_id": "WE-28D3B8376310E72C08F8C58E",
+      "detail": "transaction commit",
+      "end_column": 21,
+      "end_line": 109,
+      "entry_id": "WE-28D3B8376310E72C08F8C58E",
+      "file": "app/structured_content.py",
+      "function": "app.structured_content.initialize_structured_contents",
+      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
+      "kind": "SQLITE_TRANSACTION",
+      "line": 109,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "resolution": "ALIAS_RESOLVED",
+      "risk": "P1",
+      "root_ids": [
+        "CLI:MAIN",
+        "FACTORY:CREATE_APP",
+        "MODULE:APP",
+        "WEB:POST /structured-review/<int:question_id>/status"
+      ],
+      "source_sha256": "9e3814f77516834d3d934c3eff806c20c58f46dc31e4e8ed083e110d1bd40d5a",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976",
+      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
+    },
+    {
+      "call_chain": [
+        "app.web.create_app",
+        "app.web._basket_questions",
+        "app.structured_content.get_structured_contents_by_question_ids"
+      ],
+      "callee": "app.database.connect_database_read_only().execute",
+      "column": 15,
+      "control_binding_id": "WE-1FA42EC9C0265FC1CE1E11A9",
+      "detail": "dynamic SQL is fail-closed because its effect cannot be proven",
+      "end_column": 9,
+      "end_line": 171,
+      "entry_id": "WE-1FA42EC9C0265FC1CE1E11A9",
+      "file": "app/structured_content.py",
+      "function": "app.structured_content.get_structured_contents_by_question_ids",
+      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "line": 164,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "resolution": "DYNAMIC",
+      "risk": "P0",
+      "root_ids": [
+        "FACTORY:CREATE_APP",
+        "MODULE:APP",
+        "WEB:GET /paper-basket"
+      ],
+      "source_sha256": "9e3814f77516834d3d934c3eff806c20c58f46dc31e4e8ed083e110d1bd40d5a",
+      "statement_fingerprint": "b3a013c198e15ed9d44ad66f470090cd3e335b5230ef884233756223ea4a22e8",
+      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
+    },
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.structured_content.initialize_structured_contents",
+        "app.structured_content._count_distribution"
+      ],
+      "callee": "conn.execute",
+      "column": 11,
+      "control_binding_id": "WE-EB3EF07D8C72DEFA5EEC816F",
+      "detail": "dynamic SQL is fail-closed because its effect cannot be proven",
+      "end_column": 5,
+      "end_line": 217,
+      "entry_id": "WE-EB3EF07D8C72DEFA5EEC816F",
+      "file": "app/structured_content.py",
+      "function": "app.structured_content._count_distribution",
+      "input_source": "HTTP_REQUEST_OR_SERVICE_STATE",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "line": 210,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "resolution": "DYNAMIC",
+      "risk": "P0",
+      "root_ids": [
+        "CLI:MAIN",
+        "FACTORY:CREATE_APP",
+        "MODULE:APP",
+        "WEB:POST /structured-review/<int:question_id>/status"
+      ],
+      "source_sha256": "9e3814f77516834d3d934c3eff806c20c58f46dc31e4e8ed083e110d1bd40d5a",
+      "statement_fingerprint": "f5170c2fb1dfd45e7a7066dd274cd908143cd928589f6ae7de37e2eecd789f7c",
+      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
+    },
+    {
+      "call_chain": [
+        "app.structured_service.StructuredContentService.update_review_status"
+      ],
+      "callee": "self.conn.execute",
+      "column": 8,
+      "control_binding_id": "WE-69CF774FA7D6CA8B5D14011A",
+      "detail": "UPDATE",
+      "end_column": 9,
+      "end_line": 82,
+      "entry_id": "WE-69CF774FA7D6CA8B5D14011A",
+      "file": "app/structured_service.py",
+      "function": "app.structured_service.StructuredContentService.update_review_status",
+      "input_source": "DATABASE_CONNECTION_AND_CALLER_DATA",
+      "kind": "SQLITE_MUTATION",
+      "line": 67,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "INTERNAL-DIRECT"
+      ],
+      "source_sha256": "89eeeb56beb17a0738a0d7688cfaf3bf0d102fa25501c65033a8fbfd2042bba3",
+      "statement_fingerprint": "cd4e1065969e89eacb69924d655aa3397ff82aae60a92226603f5b45213feed1",
+      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
+    },
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.structured_validation.validate_structured_contents"
+      ],
+      "callee": "app.database.initialize_database",
+      "column": 4,
+      "control_binding_id": "WE-E25ADCD95B9D5CB686AFA7D0",
+      "detail": "implicit schema/directory initialization",
+      "end_column": 32,
+      "end_line": 58,
+      "entry_id": "WE-E25ADCD95B9D5CB686AFA7D0",
+      "file": "app/structured_validation.py",
+      "function": "app.structured_validation.validate_structured_contents",
+      "input_source": "CLI_ARGUMENT_OR_CONFIG",
+      "kind": "DATABASE_IMPLICIT_INITIALIZER",
+      "line": 58,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "resolution": "ALIAS_RESOLVED",
+      "risk": "P1",
+      "root_ids": [
+        "CLI:MAIN"
+      ],
+      "source_sha256": "79285b337d94580c0a4d713be1229b932e5462db5bd5aac1399f6fa9c8e7022f",
+      "statement_fingerprint": "f8584b1752627574035b39fdcbbabc435cec827363667ba289004b3919d2b0db",
+      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
+    },
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.structured_validation.validate_structured_contents"
+      ],
+      "callee": "app.database.connect_database",
+      "column": 9,
+      "control_binding_id": "WE-C8A7C002DFF4F753FAC9937C",
+      "detail": "legacy database gateway",
+      "end_column": 34,
+      "end_line": 62,
+      "entry_id": "WE-C8A7C002DFF4F753FAC9937C",
+      "file": "app/structured_validation.py",
+      "function": "app.structured_validation.validate_structured_contents",
+      "input_source": "CLI_ARGUMENT_OR_CONFIG",
+      "kind": "DATABASE_GATEWAY",
+      "line": 62,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "resolution": "ALIAS_RESOLVED",
+      "risk": "P1",
+      "root_ids": [
+        "CLI:MAIN"
+      ],
+      "source_sha256": "79285b337d94580c0a4d713be1229b932e5462db5bd5aac1399f6fa9c8e7022f",
+      "statement_fingerprint": "c3edae92f66b445fb287b527272fe5d6820da2e35210a5b08e020f0c82fad8a6",
+      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
+    },
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.structured_validation.validate_structured_contents"
+      ],
+      "callee": "app.database.connect_database().commit",
+      "column": 8,
+      "control_binding_id": "WE-91145B1FEE0CB5E43E22F15D",
+      "detail": "transaction commit",
+      "end_column": 21,
+      "end_line": 85,
+      "entry_id": "WE-91145B1FEE0CB5E43E22F15D",
+      "file": "app/structured_validation.py",
+      "function": "app.structured_validation.validate_structured_contents",
+      "input_source": "CLI_ARGUMENT_OR_CONFIG",
+      "kind": "SQLITE_TRANSACTION",
+      "line": 85,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "resolution": "ALIAS_RESOLVED",
+      "risk": "P1",
+      "root_ids": [
+        "CLI:MAIN"
+      ],
+      "source_sha256": "79285b337d94580c0a4d713be1229b932e5462db5bd5aac1399f6fa9c8e7022f",
+      "statement_fingerprint": "803602b5e8b8eb46a5a70feb2af32e23edd912a8e81a343ed02ff24845b32976",
+      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
+    },
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.structured_validation.validate_structured_contents",
+        "app.structured_validation._load_validation_rows"
+      ],
+      "callee": "conn.execute",
+      "column": 11,
+      "control_binding_id": "WE-7F50F6C0AA9C233EEA06FD40",
+      "detail": "dynamic SQL is fail-closed because its effect cannot be proven",
+      "end_column": 5,
+      "end_line": 211,
+      "entry_id": "WE-7F50F6C0AA9C233EEA06FD40",
+      "file": "app/structured_validation.py",
+      "function": "app.structured_validation._load_validation_rows",
+      "input_source": "CLI_ARGUMENT_OR_CONFIG",
+      "kind": "SQLITE_DYNAMIC_SQL",
+      "line": 198,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "resolution": "DYNAMIC",
+      "risk": "P0",
+      "root_ids": [
+        "CLI:MAIN"
+      ],
+      "source_sha256": "79285b337d94580c0a4d713be1229b932e5462db5bd5aac1399f6fa9c8e7022f",
+      "statement_fingerprint": "41e133f385b1f627986b716e26069b7bf03b63660934013b9a4dccf76bf9d15c",
+      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
+    },
+    {
+      "call_chain": [
+        "app.cli.main",
+        "app.structured_validation.validate_structured_contents",
+        "app.structured_validation._write_validation_result"
+      ],
+      "callee": "conn.execute",
+      "column": 4,
+      "control_binding_id": "WE-59FDA485922B98CD48F32303",
+      "detail": "UPDATE",
+      "end_column": 5,
+      "end_line": 249,
+      "entry_id": "WE-59FDA485922B98CD48F32303",
+      "file": "app/structured_validation.py",
+      "function": "app.structured_validation._write_validation_result",
+      "input_source": "CLI_ARGUMENT_OR_CONFIG",
+      "kind": "SQLITE_MUTATION",
+      "line": 234,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "APPLICATION_SERVICE",
+      "required_control": "M0_DATABASE_LEASE_AND_TRANSACTION_V1",
+      "resolution": "EXACT",
+      "risk": "P1",
+      "root_ids": [
+        "CLI:MAIN"
+      ],
+      "source_sha256": "79285b337d94580c0a4d713be1229b932e5462db5bd5aac1399f6fa9c8e7022f",
+      "statement_fingerprint": "b233b09eaed6a309f8cfe7fcf6681fc2f14f465feabe0d92fe65accbedc0e4d3",
+      "target_namespace": "FIXED_PROJECT_SQLITE_GATE"
+    },
+    {
+      "call_chain": [
+        "scripts.run_safe_pytest._WindowsJob.__init__"
+      ],
+      "callee": "ctypes.WinDLL",
+      "column": 19,
+      "control_binding_id": "WE-2AA7C23F11CD34D2D802EFD5",
+      "detail": "native library binding requires an audited symbol allowlist",
+      "end_column": 65,
+      "end_line": 166,
+      "entry_id": "WE-2AA7C23F11CD34D2D802EFD5",
+      "file": "scripts/run_safe_pytest.py",
+      "function": "scripts.run_safe_pytest._WindowsJob.__init__",
+      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
+      "kind": "NATIVE_API_BINDING",
+      "line": 166,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "TEST_INFRASTRUCTURE",
+      "required_control": "M0_SAFE_TEST_LAUNCHER_V1",
+      "resolution": "CONSERVATIVE",
+      "risk": "P0",
+      "root_ids": [
+        "INTERNAL-DIRECT"
+      ],
+      "source_sha256": "374b318167832a3a3f36dc4d2d72e742d690ad0408ac5f3e195941135ecc41e2",
+      "statement_fingerprint": "3474f55c4f2c4ff899bf534b507dc606ac6ca48c4335543ec7104e00d9f58fff",
+      "target_namespace": "FIXED_TEST_LAB_RUNTIME"
+    },
+    {
+      "call_chain": [
+        "scripts.run_safe_pytest._WindowsJob.__init__"
+      ],
+      "callee": "ctypes.WinDLL().CreateJobObjectW",
+      "column": 17,
+      "control_binding_id": "WE-79F28159820F74AF30B82B13",
+      "detail": "Win32 process or Job Object control",
+      "end_column": 54,
+      "end_line": 207,
+      "entry_id": "WE-79F28159820F74AF30B82B13",
+      "file": "scripts/run_safe_pytest.py",
+      "function": "scripts.run_safe_pytest._WindowsJob.__init__",
+      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
+      "kind": "EXTERNAL_PROCESS",
+      "line": 207,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "TEST_INFRASTRUCTURE",
+      "required_control": "M0_SAFE_TEST_LAUNCHER_V1",
+      "resolution": "CONSERVATIVE",
+      "risk": "P0",
+      "root_ids": [
+        "INTERNAL-DIRECT"
+      ],
+      "source_sha256": "374b318167832a3a3f36dc4d2d72e742d690ad0408ac5f3e195941135ecc41e2",
+      "statement_fingerprint": "3bae3dc169ca6f62e914ee9e23e5e96473cdab49dfb58fd9402aa70921a5a7ab",
+      "target_namespace": "FIXED_TEST_LAB_RUNTIME"
+    },
+    {
+      "call_chain": [
+        "scripts.run_safe_pytest._WindowsJob.__init__"
+      ],
+      "callee": "ctypes.WinDLL().SetInformationJobObject",
+      "column": 15,
+      "control_binding_id": "WE-11EBBC25050C8ED6BB5D9FDE",
+      "detail": "Win32 process or Job Object control",
+      "end_column": 9,
+      "end_line": 223,
+      "entry_id": "WE-11EBBC25050C8ED6BB5D9FDE",
+      "file": "scripts/run_safe_pytest.py",
+      "function": "scripts.run_safe_pytest._WindowsJob.__init__",
+      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
+      "kind": "EXTERNAL_PROCESS",
+      "line": 218,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "TEST_INFRASTRUCTURE",
+      "required_control": "M0_SAFE_TEST_LAUNCHER_V1",
+      "resolution": "CONSERVATIVE",
+      "risk": "P0",
+      "root_ids": [
+        "INTERNAL-DIRECT"
+      ],
+      "source_sha256": "374b318167832a3a3f36dc4d2d72e742d690ad0408ac5f3e195941135ecc41e2",
+      "statement_fingerprint": "c6083b9fc5d56593852805263998f951047036e3aceeaad14e38dd86cad70fec",
+      "target_namespace": "FIXED_TEST_LAB_RUNTIME"
+    },
+    {
+      "call_chain": [
+        "scripts.run_safe_pytest._WindowsJob.assign"
+      ],
+      "callee": "self._kernel32.AssignProcessToJobObject",
+      "column": 15,
+      "control_binding_id": "WE-6F807B80B1052EC62C858FF3",
+      "detail": "Win32 process or Job Object control",
+      "end_column": 84,
+      "end_line": 234,
+      "entry_id": "WE-6F807B80B1052EC62C858FF3",
+      "file": "scripts/run_safe_pytest.py",
+      "function": "scripts.run_safe_pytest._WindowsJob.assign",
+      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
+      "kind": "EXTERNAL_PROCESS",
+      "line": 234,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "TEST_INFRASTRUCTURE",
+      "required_control": "M0_SAFE_TEST_LAUNCHER_V1",
+      "resolution": "CONSERVATIVE",
+      "risk": "P0",
+      "root_ids": [
+        "INTERNAL-DIRECT"
+      ],
+      "source_sha256": "374b318167832a3a3f36dc4d2d72e742d690ad0408ac5f3e195941135ecc41e2",
+      "statement_fingerprint": "7dd9222051d8d2f4cd1b2700fe9c7e2eb6fbb34fa87670438efe9a6ac7dbea73",
+      "target_namespace": "FIXED_TEST_LAB_RUNTIME"
+    },
+    {
+      "call_chain": [
+        "scripts.run_safe_pytest._WindowsJob.resume_process"
+      ],
+      "callee": "self._kernel32.OpenThread",
+      "column": 17,
+      "control_binding_id": "WE-779EEC73CBA6262D460BCF21",
+      "detail": "Win32 process or Job Object control",
+      "end_column": 9,
+      "end_line": 269,
+      "entry_id": "WE-779EEC73CBA6262D460BCF21",
+      "file": "scripts/run_safe_pytest.py",
+      "function": "scripts.run_safe_pytest._WindowsJob.resume_process",
+      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
+      "kind": "EXTERNAL_PROCESS",
+      "line": 265,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "TEST_INFRASTRUCTURE",
+      "required_control": "M0_SAFE_TEST_LAUNCHER_V1",
+      "resolution": "CONSERVATIVE",
+      "risk": "P0",
+      "root_ids": [
+        "INTERNAL-DIRECT"
+      ],
+      "source_sha256": "374b318167832a3a3f36dc4d2d72e742d690ad0408ac5f3e195941135ecc41e2",
+      "statement_fingerprint": "713f2b33010d6c8bc094fa6a54412e54dc5a1e45f3e89a87edb65dd4e363817d",
+      "target_namespace": "FIXED_TEST_LAB_RUNTIME"
+    },
+    {
+      "call_chain": [
+        "scripts.run_safe_pytest._WindowsJob.resume_process"
+      ],
+      "callee": "self._kernel32.ResumeThread",
+      "column": 25,
+      "control_binding_id": "WE-9355EC0D4CBA54DB563DBF9D",
+      "detail": "Win32 process or Job Object control",
+      "end_column": 60,
+      "end_line": 275,
+      "entry_id": "WE-9355EC0D4CBA54DB563DBF9D",
+      "file": "scripts/run_safe_pytest.py",
+      "function": "scripts.run_safe_pytest._WindowsJob.resume_process",
+      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
+      "kind": "EXTERNAL_PROCESS",
+      "line": 275,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "TEST_INFRASTRUCTURE",
+      "required_control": "M0_SAFE_TEST_LAUNCHER_V1",
+      "resolution": "CONSERVATIVE",
+      "risk": "P0",
+      "root_ids": [
+        "INTERNAL-DIRECT"
+      ],
+      "source_sha256": "374b318167832a3a3f36dc4d2d72e742d690ad0408ac5f3e195941135ecc41e2",
+      "statement_fingerprint": "2cc7784b0a5e02e898c0632852598ebb4021ff2be70d7ebb38196afc46f42ee8",
+      "target_namespace": "FIXED_TEST_LAB_RUNTIME"
+    },
+    {
+      "call_chain": [
+        "scripts.run_safe_pytest._WindowsJob.terminate"
+      ],
+      "callee": "self._kernel32.TerminateJobObject",
+      "column": 20,
+      "control_binding_id": "WE-90A2CED5F0872CD4CA249D87",
+      "detail": "Win32 process or Job Object control",
+      "end_column": 78,
+      "end_line": 288,
+      "entry_id": "WE-90A2CED5F0872CD4CA249D87",
+      "file": "scripts/run_safe_pytest.py",
+      "function": "scripts.run_safe_pytest._WindowsJob.terminate",
+      "input_source": "CALLER_ARGUMENT_OR_INTERNAL_DERIVATION",
+      "kind": "EXTERNAL_PROCESS",
+      "line": 288,
+      "migration_status": "MIGRATED_GUARDED",
+      "owner": "TEST_INFRASTRUCTURE",
+      "required_control": "M0_SAFE_TEST_LAUNCHER_V1",
+      "resolution": "CONSERVATIVE",
+      "risk": "P0",
+      "root_ids": [
+        "INTERNAL-DIRECT"
+      ],
+      "source_sha256": "374b318167832a3a3f36dc4d2d72e742d690ad0408ac5f3e195941135ecc41e2",
+      "statement_fingerprint": "7780013ca247acef940f6ad9307d1a12740d569665d56c15c68627898ebe3593",
+      "target_namespace": "FIXED_TEST_LAB_RUNTIME"
+    }
+  ],
+  "entry_count": 25,
+  "schema_version": "3.0"
+}

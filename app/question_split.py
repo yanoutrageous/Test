@@ -12,10 +12,11 @@ from .database import connect_database, initialize_database
 from .pdf_import import PdfImportError, parse_pages as parse_import_pages, relative_path, validate_pages
 
 
-ALGORITHM_VERSION = "stage4_page_anchor_v1"
+ALGORITHM_VERSION = "stage4_page_anchor_v2_lines"
 DEFAULT_SPLIT_PAGES = (1090,)
 QUESTION_ANCHOR_RE = re.compile(r"^\s*(\d{1,3})[.．]\s*")
 MIN_STEM_TEXT_LENGTH = 20
+MAX_COLUMN_COUNT = 8
 
 
 class QuestionSplitError(RuntimeError):
@@ -77,26 +78,145 @@ def _section_question_type(text: str) -> str | None:
     return None
 
 
-def extract_page_text_blocks(pdf_path: Path, page_no: int) -> tuple[PageTextBlock, ...]:
+def extract_page_text_blocks(
+    pdf_path: Path,
+    page_no: int,
+    *,
+    column_count: int = 1,
+) -> tuple[PageTextBlock, ...]:
     import fitz
 
+    if type(column_count) is not int or not 1 <= column_count <= MAX_COLUMN_COUNT:
+        raise QuestionSplitError(
+            f"column_count must be between 1 and {MAX_COLUMN_COUNT}"
+        )
     with fitz.open(pdf_path) as doc:
         validate_pages((page_no,), doc.page_count)
         page = doc[page_no - 1]
-        blocks: list[PageTextBlock] = []
-        for block_index, block in enumerate(page.get_text("blocks")):
-            x0, y0, x1, y1, text, *_ = block
-            clean = normalize_block_text(text)
-            if clean:
-                blocks.append(
-                    PageTextBlock(
-                        page_no=page_no,
-                        block_index=block_index,
-                        bbox=(float(x0), float(y0), float(x1), float(y1)),
-                        text=clean,
-                    )
-                )
-        return tuple(blocks)
+        if column_count == 1:
+            return _visual_text_lines(page, page_no=page_no)
+        return _column_text_blocks(
+            page,
+            page_no=page_no,
+            column_count=column_count,
+        )
+
+
+def _column_text_blocks(
+    page: Any,
+    *,
+    page_no: int,
+    column_count: int,
+) -> tuple[PageTextBlock, ...]:
+    """Order native text blocks by column, then top-to-bottom."""
+
+    raw_blocks: list[tuple[int, float, float, float, float, str]] = []
+    column_width = float(page.rect.width) / column_count
+    for item in page.get_text("blocks", sort=False):
+        if len(item) < 5:
+            continue
+        text = normalize_block_text(str(item[4]))
+        if not text:
+            continue
+        x0, y0, x1, y1 = (float(value) for value in item[:4])
+        midpoint = max(0.0, min(float(page.rect.width), (x0 + x1) / 2))
+        column = min(column_count - 1, int(midpoint / column_width))
+        raw_blocks.append((column, x0, y0, x1, y1, text))
+
+    ordered = sorted(
+        raw_blocks,
+        key=lambda item: (item[0], item[2], item[1], item[4], item[3]),
+    )
+    return tuple(
+        PageTextBlock(
+            page_no=page_no,
+            block_index=block_index,
+            bbox=(x0, y0, x1, y1),
+            text=text,
+        )
+        for block_index, (_column, x0, y0, x1, y1, text) in enumerate(ordered)
+    )
+
+
+def _visual_text_lines(page: Any, *, page_no: int) -> tuple[PageTextBlock, ...]:
+    """Reassemble PDF words by visual baseline instead of coarse text blocks.
+
+    Mathematical PDFs often split one printed line into many font-specific
+    PyMuPDF blocks.  Question numbers then cease to be block prefixes even
+    though they are visibly at the start of a line.  A small vertical cluster
+    restores that line without attempting OCR or formula normalization.
+    """
+
+    words = [
+        (
+            float(item[0]),
+            float(item[1]),
+            float(item[2]),
+            float(item[3]),
+            str(item[4]),
+        )
+        for item in page.get_text("words", sort=True)
+        if len(item) >= 5 and normalize_block_text(str(item[4]))
+    ]
+    clusters: list[list[tuple[float, float, float, float, str]]] = []
+    for word in sorted(words, key=lambda item: (item[1], item[0], item[3], item[2])):
+        midpoint = (word[1] + word[3]) / 2
+        target: list[tuple[float, float, float, float, str]] | None = None
+        for cluster in reversed(clusters[-6:]):
+            cluster_y0 = min(item[1] for item in cluster)
+            cluster_y1 = max(item[3] for item in cluster)
+            cluster_midpoint = (cluster_y0 + cluster_y1) / 2
+            overlap = min(cluster_y1, word[3]) - max(cluster_y0, word[1])
+            minimum_height = min(
+                max(0.1, cluster_y1 - cluster_y0),
+                max(0.1, word[3] - word[1]),
+            )
+            if abs(midpoint - cluster_midpoint) <= 4.75 or overlap / minimum_height >= 0.35:
+                target = cluster
+                break
+        if target is None:
+            clusters.append([word])
+        else:
+            target.append(word)
+
+    result: list[PageTextBlock] = []
+    ordered = sorted(
+        clusters,
+        key=lambda cluster: (
+            min(item[1] for item in cluster),
+            min(item[0] for item in cluster),
+        ),
+    )
+    for block_index, cluster in enumerate(ordered):
+        positioned = sorted(cluster, key=lambda item: (item[0], item[1]))
+        pieces: list[str] = []
+        previous_x1: float | None = None
+        previous_height = 0.0
+        for x0, y0, x1, y1, text in positioned:
+            if previous_x1 is not None:
+                gap = x0 - previous_x1
+                if gap > max(2.0, previous_height * 0.18):
+                    pieces.append(" ")
+            pieces.append(text)
+            previous_x1 = max(previous_x1 or x1, x1)
+            previous_height = max(0.1, y1 - y0)
+        clean = normalize_block_text("".join(pieces))
+        if not clean:
+            continue
+        result.append(
+            PageTextBlock(
+                page_no=page_no,
+                block_index=block_index,
+                bbox=(
+                    min(item[0] for item in cluster),
+                    min(item[1] for item in cluster),
+                    max(item[2] for item in cluster),
+                    max(item[3] for item in cluster),
+                ),
+                text=clean,
+            )
+        )
+    return tuple(result)
 
 
 def _union_bbox(blocks: tuple[PageTextBlock, ...]) -> tuple[float, float, float, float]:
@@ -169,15 +289,39 @@ def split_blocks_into_candidates(
     paper_title: str,
     page_no: int,
 ) -> tuple[QuestionCandidate, ...]:
+    candidates, _active_type, _previous_no = (
+        _split_blocks_into_candidates_with_state(
+            blocks,
+            source_paper_id=source_paper_id,
+            paper_code=paper_code,
+            paper_title=paper_title,
+            page_no=page_no,
+            initial_question_type=None,
+            previous_question_no=None,
+        )
+    )
+    return candidates
+
+
+def _split_blocks_into_candidates_with_state(
+    blocks: tuple[PageTextBlock, ...],
+    *,
+    source_paper_id: int,
+    paper_code: str,
+    paper_title: str,
+    page_no: int,
+    initial_question_type: str | None,
+    previous_question_no: int | None,
+) -> tuple[tuple[QuestionCandidate, ...], str | None, int | None]:
     candidates: list[QuestionCandidate] = []
     current_blocks: list[PageTextBlock] = []
     current_question_no: int | None = None
     current_question_type: str | None = None
-    active_question_type: str | None = None
-    previous_question_no: int | None = None
+    active_question_type = initial_question_type
+    latest_question_no = previous_question_no
 
     def flush_current() -> None:
-        nonlocal previous_question_no
+        nonlocal latest_question_no
         if current_question_no is None or not current_blocks:
             return
         candidate = _build_candidate(
@@ -188,10 +332,10 @@ def split_blocks_into_candidates(
             question_no=current_question_no,
             question_type=current_question_type,
             blocks=tuple(current_blocks),
-            previous_question_no=previous_question_no,
+            previous_question_no=latest_question_no,
         )
         candidates.append(candidate)
-        previous_question_no = current_question_no
+        latest_question_no = current_question_no
 
     for block in blocks:
         section_type = _section_question_type(block.text)
@@ -211,7 +355,7 @@ def split_blocks_into_candidates(
             current_blocks.append(block)
 
     flush_current()
-    return tuple(candidates)
+    return tuple(candidates), active_question_type, latest_question_no
 
 
 def _load_source_paper_for_pdf(
@@ -243,9 +387,14 @@ def extract_candidates_from_pdf_page(
     *,
     db_path: Path | None = None,
     project_root: Path = PROJECT_ROOT,
+    column_count: int = 1,
 ) -> tuple[QuestionCandidate, ...]:
     paper = _load_source_paper_for_pdf(pdf_path, db_path=db_path, project_root=project_root)
-    blocks = extract_page_text_blocks(pdf_path, page_no)
+    blocks = extract_page_text_blocks(
+        pdf_path,
+        page_no,
+        column_count=column_count,
+    )
     return split_blocks_into_candidates(
         blocks,
         source_paper_id=int(paper["id"]),
@@ -255,13 +404,52 @@ def extract_candidates_from_pdf_page(
     )
 
 
-def _candidate_meta(candidate: QuestionCandidate) -> str:
+def extract_candidates_from_pdf_pages(
+    pdf_path: Path,
+    page_numbers: tuple[int, ...],
+    *,
+    db_path: Path | None = None,
+    project_root: Path = PROJECT_ROOT,
+    column_count: int = 1,
+) -> tuple[QuestionCandidate, ...]:
+    paper = _load_source_paper_for_pdf(
+        pdf_path,
+        db_path=db_path,
+        project_root=project_root,
+    )
+    validate_pages(page_numbers, int(paper["page_count"]))
+    all_candidates: list[QuestionCandidate] = []
+    active_question_type: str | None = None
+    previous_question_no: int | None = None
+    for page_no in page_numbers:
+        blocks = extract_page_text_blocks(
+            pdf_path,
+            page_no,
+            column_count=column_count,
+        )
+        candidates, active_question_type, previous_question_no = (
+            _split_blocks_into_candidates_with_state(
+                blocks,
+                source_paper_id=int(paper["id"]),
+                paper_code=paper["paper_code"],
+                paper_title=paper["title"],
+                page_no=page_no,
+                initial_question_type=active_question_type,
+                previous_question_no=previous_question_no,
+            )
+        )
+        all_candidates.extend(candidates)
+    return tuple(all_candidates)
+
+
+def _candidate_meta(candidate: QuestionCandidate, *, column_count: int) -> str:
     return json.dumps(
         {
             "algorithm_version": ALGORITHM_VERSION,
             "source_page": candidate.page_no,
             "split_warnings": list(candidate.split_warnings),
             "source_blocks": [block.block_index for block in candidate.blocks],
+            "column_count": column_count,
         },
         ensure_ascii=False,
     )
@@ -285,7 +473,15 @@ def write_question_candidates(
     candidates: tuple[QuestionCandidate, ...],
     *,
     db_path: Path | None = None,
+    year: int | None = None,
+    column_count: int = 1,
 ) -> dict[str, Any]:
+    if year is not None and (type(year) is not int or not 1900 <= year <= 2200):
+        raise QuestionSplitError("year must be between 1900 and 2200")
+    if type(column_count) is not int or not 1 <= column_count <= MAX_COLUMN_COUNT:
+        raise QuestionSplitError(
+            f"column_count must be between 1 and {MAX_COLUMN_COUNT}"
+        )
     inserted = 0
     updated = 0
     skipped_reviewed = 0
@@ -321,6 +517,7 @@ def write_question_candidates(
                 "qid": candidate.qid,
                 "source_paper_id": candidate.source_paper_id,
                 "paper_name": candidate.paper_title,
+                "year": year,
                 "question_no": candidate.question_no,
                 "question_type": candidate.question_type,
                 "stem_latex": candidate.stem_text,
@@ -330,7 +527,10 @@ def write_question_candidates(
                 "page_range": f"p{candidate.page_no:04d}",
                 "bbox_json": _candidate_bbox(candidate),
                 "review_status": "pending",
-                "meta_json": _candidate_meta(candidate),
+                "meta_json": _candidate_meta(
+                    candidate,
+                    column_count=column_count,
+                ),
                 "content_hash": candidate.content_hash,
             }
 
@@ -341,6 +541,7 @@ def write_question_candidates(
                         qid,
                         source_paper_id,
                         paper_name,
+                        year,
                         question_no,
                         question_type,
                         stem_latex,
@@ -356,6 +557,7 @@ def write_question_candidates(
                         :qid,
                         :source_paper_id,
                         :paper_name,
+                        :year,
                         :question_no,
                         :question_type,
                         :stem_latex,
@@ -384,6 +586,7 @@ def write_question_candidates(
                     UPDATE questions
                        SET source_paper_id = :source_paper_id,
                            paper_name = :paper_name,
+                           year = :year,
                            question_no = :question_no,
                            question_type = :question_type,
                            stem_latex = :stem_latex,
@@ -414,6 +617,27 @@ def write_question_candidates(
             """,
             (ALGORITHM_VERSION,),
         ).fetchone()[0]
+        question_rows = []
+        if candidates:
+            placeholders = ", ".join("?" for _ in candidates)
+            question_rows = conn.execute(
+                f"""
+                SELECT id,
+                       qid,
+                       question_no,
+                       question_type,
+                       stem_text,
+                       stem_latex,
+                       tags_json,
+                       meta_json,
+                       page_range,
+                       review_status
+                  FROM questions
+                 WHERE qid IN ({placeholders})
+                 ORDER BY CAST(question_no AS INTEGER), id
+                """,
+                [candidate.qid for candidate in candidates],
+            ).fetchall()
 
     return {
         "candidates": len(candidates),
@@ -423,6 +647,7 @@ def write_question_candidates(
         "pending_stage4": pending,
         "warning_candidates": sum(1 for candidate in candidates if candidate.split_warnings),
         "page_writes": [page_writes[key] for key in sorted(page_writes)],
+        "questions": [dict(row) for row in question_rows],
     }
 
 
@@ -431,26 +656,40 @@ def split_questions(
     pages: tuple[int, ...] = DEFAULT_SPLIT_PAGES,
     db_path: Path | None = None,
     project_root: Path = PROJECT_ROOT,
+    pdf_path: Path | None = None,
+    column_count: int = 1,
+    year: int | None = None,
 ) -> dict[str, Any]:
-    paths = get_project_paths(project_root)
-    initialize_database(db_path or paths.db_path)
+    paths = get_project_paths(
+        project_root,
+        require_target_pdf=pdf_path is None,
+    )
+    target_pdf = pdf_path or paths.target_pdf
+    resolved_db_path = db_path or paths.db_path
+    initialize_database(resolved_db_path)
     paper = _load_source_paper_for_pdf(
-        paths.target_pdf,
-        db_path=db_path or paths.db_path,
+        target_pdf,
+        db_path=resolved_db_path,
         project_root=project_root,
     )
     validate_pages(pages, int(paper["page_count"]))
 
-    page_results: list[dict[str, Any]] = []
-    all_candidates: list[QuestionCandidate] = []
-    for page_no in pages:
-        candidates = extract_candidates_from_pdf_page(
-            paths.target_pdf,
-            page_no,
-            db_path=db_path or paths.db_path,
+    all_candidates = list(
+        extract_candidates_from_pdf_pages(
+            target_pdf,
+            pages,
+            db_path=resolved_db_path,
             project_root=project_root,
+            column_count=column_count,
         )
-        all_candidates.extend(candidates)
+    )
+    page_results: list[dict[str, Any]] = []
+    for page_no in pages:
+        candidates = [
+            candidate
+            for candidate in all_candidates
+            if candidate.page_no == page_no
+        ]
         page_results.append(
             {
                 "page_no": page_no,
@@ -461,7 +700,9 @@ def split_questions(
 
     write_result = write_question_candidates(
         tuple(all_candidates),
-        db_path=db_path or paths.db_path,
+        db_path=resolved_db_path,
+        year=year,
+        column_count=column_count,
     )
 
     writes_by_page = {
@@ -489,5 +730,6 @@ def split_questions(
         },
         "pages": page_results,
         "write": write_result,
-        "db_path": str(db_path or paths.db_path),
+        "db_path": str(resolved_db_path),
+        "column_count": column_count,
     }

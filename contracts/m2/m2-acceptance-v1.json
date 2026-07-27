@@ -1,0 +1,136 @@
+{
+  "accepted_revision": {
+    "blueprint_revision_id": "BLUEPRINT-M2-YANYAN-FULL-150-REV-001",
+    "bundle": {
+      "bytes": 5481332,
+      "export_id": "EXPORT-M2-YANYAN-FULL-150-REV-003",
+      "path": "data/exports/M2/EXPORT-M2-YANYAN-FULL-150-REV-003",
+      "tree_sha256": "e2d8d989a0d36d70035cf3c6628213f2066b6602f0f1288931c90b7f295b30a1"
+    },
+    "bundle_manifest": {
+      "bytes": 23152,
+      "path": "data/exports/M2/EXPORT-M2-YANYAN-FULL-150-REV-003/bundle-manifest.json",
+      "sha256": "fed702ddcc064229c1f237e522d2e09f54f22f96289fafadb3e38dd35dfbb9a3"
+    },
+    "candidate_pool": {
+      "count": 19,
+      "sha256": "468bbf5e7be837f9c4fb9411904cc2956f2069d065a779e26ef8e4823c93cdf7",
+      "snapshot_id": "POOL-M2-YANYAN-REV-002-SNAPSHOT-001"
+    },
+    "documents": {
+      "answer": {
+        "bytes": 743743,
+        "page_count": 11,
+        "path": "data/exports/M2/EXPORT-M2-YANYAN-FULL-150-REV-003/documents/answer-book.pdf",
+        "sha256": "cccf4751dd426092a49faa65d965085c1b54568fc880092989a74d65fdead9f5"
+      },
+      "answer_sheet": {
+        "bytes": 249523,
+        "page_count": 6,
+        "path": "data/exports/M2/EXPORT-M2-YANYAN-FULL-150-REV-003/documents/answer-sheet-a4.pdf",
+        "sha256": "5325587fd97bdf1df9f2a490ac9cf54eb40b8433d48315575d00615692a66545"
+      },
+      "detailed_solution": {
+        "bytes": 2308349,
+        "page_count": 63,
+        "path": "data/exports/M2/EXPORT-M2-YANYAN-FULL-150-REV-003/documents/solution-book.pdf",
+        "sha256": "3a92ad698a63e5ecabed217bb27119017af4d5bdf7137adfe4b407f43f2362f5"
+      },
+      "student": {
+        "bytes": 341858,
+        "page_count": 4,
+        "path": "data/exports/M2/EXPORT-M2-YANYAN-FULL-150-REV-003/documents/student-paper.pdf",
+        "sha256": "c6bab705b7e962fa9b42b4ee889c93296f54f8527696224cb8f52809cb6b90e7"
+      },
+      "teacher": {
+        "bytes": 1088968,
+        "page_count": 15,
+        "path": "data/exports/M2/EXPORT-M2-YANYAN-FULL-150-REV-003/documents/teacher-paper.pdf",
+        "sha256": "d8812bc62dda8a7e2cfc5a0ac6831e2ef8ae6e460f595f21591b71b364d29ebe"
+      }
+    },
+    "paper_ir_revision_id": "PAPER-IR-M2-YANYAN-FULL-150-REV-003",
+    "paper_revision_id": "PAPER-M2-YANYAN-FULL-150-REV-003",
+    "release_index": {
+      "bytes": 751,
+      "path": "data/exports/M2/EXPORT-M2-YANYAN-FULL-150-REV-003/release-index.json",
+      "sha256": "6caf7834b9ea370f37db67d26dbae365ddb216629d6577dd02a8769c1578c1f8"
+    },
+    "solver": {
+      "seed": "SEED-M2-FULL-150-V1",
+      "version": "DETERMINISTIC-EXHAUSTIVE-V1"
+    },
+    "paper_template_revision_id": "TEMPLATE-M3-EDITABLE-B5-REV-002",
+    "template_revision_id": "TEMPLATE-M2-ANSWER-SHEETS-REV-002"
+  },
+  "checks": {
+    "a3_answer_sheet_page_count": 2,
+    "a4_answer_sheet_page_count": 6,
+    "activity_database_unchanged": true,
+    "answer_sheet_question_mapping_percent": 100,
+    "approved_question_count": 19,
+    "atomic_failure_formal_target_exists": false,
+    "atomic_failure_publish_blocked": true,
+    "cross_document_revision_mapping_percent": 100,
+    "cross_document_score_mapping_percent": 100,
+    "declared_total_points": 150,
+    "frozen_snapshot_changed_only_when_regenerated": true,
+    "hard_constraint_satisfaction_percent": 100,
+    "infeasible_hard_constraints_relaxed": false,
+    "manual_visual_answer_sheet_pages_confirmed": 8,
+    "print_preflight_rendered_page_count": 99,
+    "question_count": 19,
+    "repeat_stable": true,
+    "silent_font_substitution_count": 0,
+    "student_and_teacher_page_family": "EDITABLE-B5-184X260",
+    "student_and_teacher_template_size_ok": true,
+    "student_answer_leak_count": 0,
+    "ui_document_download_status_200_count": 5
+  },
+  "contract_id": "M2-ACCEPTANCE-V1",
+  "decision": "ACCEPTED",
+  "evidence": {
+    "core_gate": {
+      "junit_sha256": "45a8959a61ef0adfbcc3be77b033432e9d0d5cf70e51c006663028a3169536c0",
+      "passed": 80,
+      "run_id": "RUN-20260726-RC2-M2CORE-211",
+      "run_result_sha256": "1d888bc86198db229570ca882adc39e42adb27e9829c9eb322a4f5b0bded764f"
+    },
+    "print_and_leak_preflight": {
+      "path": "Task/reports/M2/M2-print-and-leak-preflight.json",
+      "sha256": "eeb6beb89e92b1baba3f84715fe417bafe7407dcacd94089a64ed1b527a6cf35"
+    },
+    "real_flow": {
+      "path": "tmp/jobs/INTERNAL/JOB-M2-REAL-FLOW-EVIDENCE-R4-20260726/m2-real-flow-evidence.json",
+      "run_id": "RUN-20260726-M2-REAL-PIPELINE-R4-203",
+      "sha256": "1f2e2bf071d9e0f2e43a2c95276bbd48562e591e15cb9e50bb7e8c1e51b30cc2"
+    },
+    "stage_gate": {
+      "junit_sha256": "a27478a337edfcda6ebb04c0c9184468fe1a375be3f4bbd35f1b3b94d2637a0e",
+      "passed": 583,
+      "run_id": "RUN-20260726-RC2-FULL-228",
+      "run_result_sha256": "ffdc274a442013d45d391f628a053b33096e8e652545e69e7ba6341f1b39b8c6"
+    },
+    "write_inventory": {
+      "entry_count": 447,
+      "inventory_payload_sha256": "2f0adb7ad2f2a2f80901b9b2469b16239d4a94582b03221a035243f239f49e13",
+      "manifest_sha256": "d8e63cdfa5687b28789e660e9284f303118a13176824c2110084089ebc605901",
+      "preview_run_id": "RUN-20260726-RC2-INVENTORY-227",
+      "source_count": 65,
+      "unknown_dynamic_count": 0,
+      "unmigrated_count": 0
+    }
+  },
+  "limitations": [
+    "The accepted real blueprint uses no knowledge or method tag assertion because the M1 real pool has no approved semantic-tag assertions yet; those constraints fail closed when requested and are exercised after M3 taxonomy review.",
+    "Similarity exclusion in M2 is exact content-hash duplication; local semantic similarity is delivered and accepted in M3.",
+    "The five formal documents preserve the licensed local source pages where available instead of reflowing the source content.",
+    "This acceptance covers one complete real 19-question paper and is not the M5 target-set or customer-release acceptance."
+  ],
+  "schema_version": "1.0",
+  "superseded_candidate": {
+    "export_id": "EXPORT-M2-YANYAN-FULL-150-REV-001",
+    "reason": "The candidate used one A3 page and two A4 pages; the reference baseline requires two A3 pages and six A4 pages.",
+    "status": "SUPERSEDED_NOT_ACCEPTED"
+  }
+}

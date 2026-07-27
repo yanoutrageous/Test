@@ -1,0 +1,496 @@
+{
+  "schema_id": "LOCAL_EXAM_BANK_GOLD_SOURCE_PLAN",
+  "schema_version": "1.0",
+  "baseline_authority": "Task/11_REFERENCE_BASELINE.md",
+  "confirmation_policy": {
+    "external": {
+      "status": "user-provided-project-baseline",
+      "actor_ref": "USER-PROVIDED-BASELINE",
+      "confirmed_on": "2026-07-25",
+      "gold_revision": 1,
+      "change_reason": "M0_INITIAL_REGISTRATION",
+      "previous_aggregate_sha256": null
+    },
+    "synthetic": {
+      "status": "synthetic-fixture-verified",
+      "actor_ref": "SYNTHETIC-FIXTURE-AUDIT",
+      "confirmed_on": "2026-07-25",
+      "gold_revision": 1,
+      "change_reason": "M0_INITIAL_REGISTRATION",
+      "previous_aggregate_sha256": null
+    }
+  },
+  "entries": [
+    {
+      "logical_id": "REF-ANSWER-SHEET-GOLD",
+      "source_kind": "file",
+      "truth_roles": [
+        "template",
+        "visual"
+      ],
+      "template_family_ids": [
+        "TEMPLATE-ANSWER-SHEET-A3-A4"
+      ],
+      "requirement_ids": [
+        "M0-GOLD-REGISTRY",
+        "M0-TEMPLATE-FAMILIES",
+        "M0-VISUAL-BASELINE"
+      ],
+      "risk_ids": [
+        "R-007",
+        "R-009"
+      ],
+      "license_status": "local-use-only",
+      "pii_classification": "none",
+      "expected_outcome": "pass",
+      "verification_status": "machine_fingerprinted_role_from_project_baseline",
+      "local_mapping_required": true,
+      "copy_policy": "copy-on-use",
+      "test_copy_ref": null
+    },
+    {
+      "logical_id": "REF-CONTENT-HISTORY",
+      "source_kind": "file",
+      "truth_roles": [
+        "content",
+        "template"
+      ],
+      "template_family_ids": [
+        "TEMPLATE-TRUE-QUESTION-A3-LANDSCAPE"
+      ],
+      "requirement_ids": [
+        "M0-GOLD-REGISTRY",
+        "M0-TEMPLATE-FAMILIES"
+      ],
+      "risk_ids": [
+        "R-007",
+        "R-028"
+      ],
+      "license_status": "local-use-only",
+      "pii_classification": "none",
+      "expected_outcome": "review",
+      "verification_status": "machine_fingerprinted_role_from_project_baseline",
+      "local_mapping_required": true,
+      "copy_policy": "copy-on-use",
+      "test_copy_ref": null
+    },
+    {
+      "logical_id": "REF-EDITABLE-PAPER-SET",
+      "source_kind": "set",
+      "truth_roles": [
+        "template",
+        "visual"
+      ],
+      "template_family_ids": [
+        "TEMPLATE-EDITABLE-B5-184X260",
+        "TEMPLATE-OFFICIAL-A4"
+      ],
+      "requirement_ids": [
+        "M0-GOLD-REGISTRY",
+        "M0-TEMPLATE-FAMILIES"
+      ],
+      "risk_ids": [
+        "R-007",
+        "R-008",
+        "R-009"
+      ],
+      "license_status": "user-owned",
+      "pii_classification": "none",
+      "expected_outcome": "review",
+      "verification_status": "machine_fingerprinted_role_from_project_baseline",
+      "local_mapping_required": true,
+      "copy_policy": "copy-on-use",
+      "test_copy_ref": null
+    },
+    {
+      "logical_id": "REF-FIG-BROKEN-SVG",
+      "source_kind": "file",
+      "truth_roles": [
+        "failure",
+        "figure"
+      ],
+      "template_family_ids": [
+        "TEMPLATE-FIGURE-THREE-TRACK"
+      ],
+      "requirement_ids": [
+        "M0-FAILURE-GOLD",
+        "M0-GOLD-REGISTRY"
+      ],
+      "risk_ids": [
+        "R-016",
+        "R-017"
+      ],
+      "license_status": "user-owned",
+      "pii_classification": "none",
+      "expected_outcome": "reject",
+      "verification_status": "machine_fingerprinted_role_from_project_baseline",
+      "local_mapping_required": true,
+      "copy_policy": "copy-on-use",
+      "test_copy_ref": null
+    },
+    {
+      "logical_id": "REF-FIG-GEOMETRY-SET",
+      "source_kind": "set",
+      "truth_roles": [
+        "figure"
+      ],
+      "template_family_ids": [
+        "TEMPLATE-FIGURE-THREE-TRACK"
+      ],
+      "requirement_ids": [
+        "M0-FIGURE-IR",
+        "M0-GOLD-REGISTRY"
+      ],
+      "risk_ids": [
+        "R-016",
+        "R-017"
+      ],
+      "license_status": "user-owned",
+      "pii_classification": "none",
+      "expected_outcome": "pass",
+      "verification_status": "machine_fingerprinted_role_from_project_baseline",
+      "local_mapping_required": true,
+      "copy_policy": "copy-on-use",
+      "test_copy_ref": null
+    },
+    {
+      "logical_id": "REF-FIG-SOLUTION-SET",
+      "source_kind": "set",
+      "truth_roles": [
+        "figure"
+      ],
+      "template_family_ids": [
+        "TEMPLATE-FIGURE-THREE-TRACK"
+      ],
+      "requirement_ids": [
+        "M0-FIGURE-IR",
+        "M0-GOLD-REGISTRY"
+      ],
+      "risk_ids": [
+        "R-016"
+      ],
+      "license_status": "user-owned",
+      "pii_classification": "none",
+      "expected_outcome": "pass",
+      "verification_status": "machine_fingerprinted_role_from_project_baseline",
+      "local_mapping_required": true,
+      "copy_policy": "copy-on-use",
+      "test_copy_ref": null
+    },
+    {
+      "logical_id": "REF-FIG-STAT-SET",
+      "source_kind": "set",
+      "truth_roles": [
+        "figure"
+      ],
+      "template_family_ids": [
+        "TEMPLATE-FIGURE-THREE-TRACK"
+      ],
+      "requirement_ids": [
+        "M0-FIGURE-IR",
+        "M0-GOLD-REGISTRY"
+      ],
+      "risk_ids": [
+        "R-016",
+        "R-017"
+      ],
+      "license_status": "user-owned",
+      "pii_classification": "none",
+      "expected_outcome": "pass",
+      "verification_status": "machine_fingerprinted_role_from_project_baseline",
+      "local_mapping_required": true,
+      "copy_policy": "copy-on-use",
+      "test_copy_ref": null
+    },
+    {
+      "logical_id": "REF-FIVE-ARTIFACT-GOLD",
+      "source_kind": "set",
+      "truth_roles": [
+        "failure",
+        "scoring",
+        "template",
+        "visual"
+      ],
+      "template_family_ids": [
+        "TEMPLATE-ANSWER-SCORING-A4-B5",
+        "TEMPLATE-ANSWER-SHEET-A3-A4",
+        "TEMPLATE-COMPACT-176X250",
+        "TEMPLATE-LONG-ANALYSIS",
+        "TEMPLATE-OFFICIAL-A4",
+        "TEMPLATE-STUDENT-TEACHER-B5"
+      ],
+      "requirement_ids": [
+        "M0-GOLD-REGISTRY",
+        "M0-TEMPLATE-FAMILIES",
+        "M0-VISUAL-BASELINE"
+      ],
+      "risk_ids": [
+        "R-007",
+        "R-009",
+        "R-014"
+      ],
+      "license_status": "user-owned",
+      "pii_classification": "internal",
+      "expected_outcome": "review",
+      "verification_status": "machine_fingerprinted_role_from_project_baseline",
+      "local_mapping_required": true,
+      "copy_policy": "copy-on-use",
+      "test_copy_ref": null
+    },
+    {
+      "logical_id": "REF-LAYOUT-RULES",
+      "source_kind": "file",
+      "truth_roles": [
+        "template"
+      ],
+      "template_family_ids": [
+        "TEMPLATE-LECTURE-A4"
+      ],
+      "requirement_ids": [
+        "M0-GOLD-REGISTRY",
+        "M0-TEMPLATE-FAMILIES"
+      ],
+      "risk_ids": [
+        "R-007",
+        "R-009"
+      ],
+      "license_status": "user-owned",
+      "pii_classification": "none",
+      "expected_outcome": "review",
+      "verification_status": "machine_fingerprinted_role_from_project_baseline",
+      "local_mapping_required": true,
+      "copy_policy": "copy-on-use",
+      "test_copy_ref": null
+    },
+    {
+      "logical_id": "REF-MEASUREMENT-SYNTHETIC",
+      "source_kind": "synthetic",
+      "truth_roles": [
+        "measurement"
+      ],
+      "template_family_ids": [
+        "TEMPLATE-QUALITY-DASHBOARD"
+      ],
+      "requirement_ids": [
+        "M0-GOLD-REGISTRY",
+        "M0-MEASUREMENT-SEMANTICS",
+        "M0-TEMPLATE-FAMILIES"
+      ],
+      "risk_ids": [
+        "R-011",
+        "R-012",
+        "R-027"
+      ],
+      "license_status": "synthetic",
+      "pii_classification": "none",
+      "expected_outcome": "pass",
+      "verification_status": "synthetic_verified",
+      "local_mapping_required": false,
+      "copy_policy": "synthetic-in-git",
+      "test_copy_ref": "gold/m0/measurement-synthetic-v1.json"
+    },
+    {
+      "logical_id": "REF-MESSY-DOC-SET",
+      "source_kind": "set",
+      "truth_roles": [
+        "failure",
+        "template"
+      ],
+      "template_family_ids": [
+        "TEMPLATE-LONG-ANALYSIS"
+      ],
+      "requirement_ids": [
+        "M0-FAILURE-GOLD",
+        "M0-GOLD-REGISTRY"
+      ],
+      "risk_ids": [
+        "R-008",
+        "R-010"
+      ],
+      "license_status": "user-owned",
+      "pii_classification": "internal",
+      "expected_outcome": "review",
+      "verification_status": "machine_fingerprinted_role_from_project_baseline",
+      "local_mapping_required": true,
+      "copy_policy": "copy-on-use",
+      "test_copy_ref": null
+    },
+    {
+      "logical_id": "REF-METHOD-ANALYSIS",
+      "source_kind": "file",
+      "truth_roles": [
+        "content",
+        "tag"
+      ],
+      "template_family_ids": [
+        "TEMPLATE-LECTURE-A4"
+      ],
+      "requirement_ids": [
+        "M0-GOLD-REGISTRY",
+        "M0-TAG-EVIDENCE"
+      ],
+      "risk_ids": [
+        "R-018",
+        "R-028"
+      ],
+      "license_status": "unverified",
+      "pii_classification": "none",
+      "expected_outcome": "review",
+      "verification_status": "machine_fingerprinted_role_from_project_baseline",
+      "local_mapping_required": true,
+      "copy_policy": "copy-on-use",
+      "test_copy_ref": null
+    },
+    {
+      "logical_id": "REF-PHOTO-INPUT-SET",
+      "source_kind": "set",
+      "truth_roles": [
+        "failure"
+      ],
+      "template_family_ids": [],
+      "requirement_ids": [
+        "M0-FAILURE-GOLD",
+        "M0-GOLD-REGISTRY"
+      ],
+      "risk_ids": [
+        "R-010"
+      ],
+      "license_status": "user-owned",
+      "pii_classification": "internal",
+      "expected_outcome": "review",
+      "verification_status": "machine_fingerprinted_role_from_project_baseline",
+      "local_mapping_required": true,
+      "copy_policy": "copy-on-use",
+      "test_copy_ref": null
+    },
+    {
+      "logical_id": "REF-SCORING-GOLD",
+      "source_kind": "file",
+      "truth_roles": [
+        "scoring"
+      ],
+      "template_family_ids": [
+        "TEMPLATE-ANSWER-SCORING-A4-B5"
+      ],
+      "requirement_ids": [
+        "M0-GOLD-REGISTRY",
+        "M0-SCORING-TRUTH"
+      ],
+      "risk_ids": [
+        "R-014"
+      ],
+      "license_status": "local-use-only",
+      "pii_classification": "none",
+      "expected_outcome": "pass",
+      "verification_status": "machine_fingerprinted_role_from_project_baseline",
+      "local_mapping_required": true,
+      "copy_policy": "copy-on-use",
+      "test_copy_ref": null
+    },
+    {
+      "logical_id": "REF-TAG-EVIDENCE-SET",
+      "source_kind": "set",
+      "truth_roles": [
+        "content",
+        "tag"
+      ],
+      "template_family_ids": [],
+      "requirement_ids": [
+        "M0-GOLD-REGISTRY",
+        "M0-TAG-EVIDENCE"
+      ],
+      "risk_ids": [
+        "R-018",
+        "R-027",
+        "R-028"
+      ],
+      "license_status": "unverified",
+      "pii_classification": "unknown",
+      "expected_outcome": "review",
+      "verification_status": "machine_fingerprinted_role_from_project_baseline",
+      "local_mapping_required": true,
+      "copy_policy": "copy-on-use",
+      "test_copy_ref": null
+    },
+    {
+      "logical_id": "REF-TEMPLATE-ANSWER",
+      "source_kind": "file",
+      "truth_roles": [
+        "template"
+      ],
+      "template_family_ids": [
+        "TEMPLATE-ANSWER-SCORING-A4-B5"
+      ],
+      "requirement_ids": [
+        "M0-GOLD-REGISTRY",
+        "M0-TEMPLATE-FAMILIES"
+      ],
+      "risk_ids": [
+        "R-009",
+        "R-028"
+      ],
+      "license_status": "user-owned",
+      "pii_classification": "none",
+      "expected_outcome": "review",
+      "verification_status": "machine_fingerprinted_role_from_project_baseline",
+      "local_mapping_required": true,
+      "copy_policy": "copy-on-use",
+      "test_copy_ref": null
+    },
+    {
+      "logical_id": "REF-TEMPLATE-PAPER",
+      "source_kind": "file",
+      "truth_roles": [
+        "template"
+      ],
+      "template_family_ids": [
+        "TEMPLATE-EDITABLE-B5-184X260",
+        "TEMPLATE-STUDENT-TEACHER-B5"
+      ],
+      "requirement_ids": [
+        "M0-GOLD-REGISTRY",
+        "M0-TEMPLATE-FAMILIES"
+      ],
+      "risk_ids": [
+        "R-007",
+        "R-009"
+      ],
+      "license_status": "user-owned",
+      "pii_classification": "none",
+      "expected_outcome": "pass",
+      "verification_status": "machine_fingerprinted_role_from_project_baseline",
+      "local_mapping_required": true,
+      "copy_policy": "copy-on-use",
+      "test_copy_ref": null
+    },
+    {
+      "logical_id": "REF-VIS-NEW9",
+      "source_kind": "file",
+      "truth_roles": [
+        "template",
+        "visual"
+      ],
+      "template_family_ids": [
+        "TEMPLATE-NEW9-B5-182X257"
+      ],
+      "requirement_ids": [
+        "M0-GOLD-REGISTRY",
+        "M0-TEMPLATE-FAMILIES",
+        "M0-VISUAL-BASELINE"
+      ],
+      "risk_ids": [
+        "R-006",
+        "R-007",
+        "R-009"
+      ],
+      "license_status": "local-use-only",
+      "pii_classification": "none",
+      "expected_outcome": "pass",
+      "verification_status": "machine_fingerprinted_role_from_project_baseline",
+      "local_mapping_required": true,
+      "copy_policy": "copy-on-use",
+      "test_copy_ref": null
+    }
+  ],
+  "extensions": {}
+}

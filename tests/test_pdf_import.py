@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import hashlib
+import json
+import os
 from pathlib import Path
 
 import pytest
@@ -9,9 +12,11 @@ from app.pdf_import import (
     DEFAULT_IMPORT_PAGES,
     PdfImportError,
     import_pdf,
+    import_external_pdf,
     parse_pages,
     register_source_pdf,
 )
+from tests.conftest import register_synthetic_source
 
 
 def _create_pdf(path: Path, page_count: int = 4) -> None:
@@ -60,6 +65,80 @@ def test_register_source_pdf_is_idempotent(tmp_path: Path) -> None:
 
     with connect_database(db_path) as conn:
         assert conn.execute("SELECT count(*) FROM source_papers").fetchone()[0] == 1
+
+
+def test_register_source_pdf_accepts_only_provenance_verified_copy_payload(
+    tmp_path: Path,
+) -> None:
+    copy_id = "COPY-USER-PDF-UNIT-001"
+    copy_root = tmp_path / "Copy" / "source" / copy_id
+    payload_path = copy_root / "payload.bin"
+    db_path = tmp_path / "data" / "db" / "question_bank.sqlite3"
+    _create_pdf(payload_path, page_count=2)
+    payload = payload_path.read_bytes()
+    (copy_root / "provenance.json").write_text(
+        json.dumps(
+            {
+                "classification": "INTERNAL",
+                "copy_id": copy_id,
+                "payload": {
+                    "bytes": len(payload),
+                    "path": "payload.bin",
+                    "sha256": hashlib.sha256(payload).hexdigest(),
+                },
+                "schema_version": "1.0",
+                "source": {"logical_source_id": "USER-PDF-UNIT-001"},
+                "target_relative_path": f"Copy/source/{copy_id}",
+            }
+        ),
+        encoding="ascii",
+    )
+
+    paper = register_source_pdf(
+        payload_path,
+        db_path=db_path,
+        project_root=tmp_path,
+        title="Verified Copy Paper",
+        import_id="UNIT-001",
+    )
+
+    assert paper.title == "Verified Copy Paper"
+    assert paper.page_count == 2
+    assert paper.source_path == f"Copy/source/{copy_id}/payload.bin"
+
+
+def test_import_external_pdf_uses_registered_reference_identity() -> None:
+    run_root = Path(os.environ["M0_TEST_LAB_ROOT"])
+    project_root = run_root / "project"
+    source = run_root / "external" / "REFERENCE" / "external-paper.pdf"
+    database = project_root / "data" / "db" / "question_bank.sqlite3"
+    _create_pdf(source, page_count=1)
+    register_synthetic_source(source)
+    initialize_database(database)
+
+    result = import_external_pdf(
+        source,
+        import_id="UNIT-EXTERNAL-001",
+        pages=(1,),
+        db_path=database,
+        project_root=project_root,
+    )
+
+    provenance_path = (
+        project_root
+        / "Copy"
+        / "source"
+        / "COPY-USER-PDF-UNIT-EXTERNAL-001"
+        / "provenance.json"
+    )
+    provenance = json.loads(provenance_path.read_text(encoding="ascii"))
+    assert result["copy"]["operation"] == "PUBLISHED_COPY"
+    assert result["copy"]["logical_source_id"] == (
+        "REF-USER-PDF-UNIT-EXTERNAL-001"
+    )
+    assert provenance["source"]["logical_id"] == (
+        "REF-USER-PDF-UNIT-EXTERNAL-001"
+    )
 
 
 def test_import_pdf_renders_relative_page_assets_idempotently(tmp_path: Path) -> None:

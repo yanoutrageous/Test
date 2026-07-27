@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Iterable
 from pathlib import Path
 
 from flask import (
@@ -27,6 +28,7 @@ from .exports import save_html_export
 from .export_selection import ExportSelectionService
 from .export_quality import (
     attach_export_quality_states,
+    classify_export_quality_states,
     get_export_quality_by_question_ids,
 )
 from .health import build_health_report
@@ -52,7 +54,6 @@ from .stage11 import (
     classify_usability_states,
     get_usability_states_by_question_ids,
 )
-from .source_attribution import SourceAttributionService
 from .structured_content import (
     get_structured_content,
     get_structured_contents_by_question_ids,
@@ -64,6 +65,7 @@ from .structured_render import (
     render_structured_preview_html,
     structured_content_json_text,
 )
+from .safety.workspace_io import WorkspaceIOError, get_workspace_io
 
 
 BASKET_SESSION_KEY = "paper_basket_question_ids"
@@ -92,13 +94,8 @@ def _safe_next_url(value: str | None, fallback: str) -> str:
     return fallback
 
 
-def _basket_questions(db_path: Path, project_root: Path) -> list[dict]:
+def _basket_questions(db_path: Path) -> list[dict]:
     ids = _basket_ids()
-    SourceAttributionService(
-        db_path=db_path,
-        project_root=project_root,
-    ).ensure_source_attributions()
-    ExportSelectionService(db_path=db_path, project_root=project_root).ensure_export_quality_states()
     questions = get_questions_by_ids(ids, db_path=db_path)
     structured = get_structured_contents_by_question_ids(ids, db_path=db_path)
     attach_structured_contents(questions, structured)
@@ -114,13 +111,6 @@ def _basket_questions(db_path: Path, project_root: Path) -> list[dict]:
 
 def _truthy(value: str | None) -> bool:
     return (value or "").strip().lower() in {"1", "true", "yes", "on"}
-
-
-def _ensure_source_attributions(db_path: Path, project_root: Path) -> None:
-    SourceAttributionService(
-        db_path=db_path,
-        project_root=project_root,
-    ).ensure_source_attributions()
 
 
 def _optional_positive_int(value: str | None, *, field_name: str) -> int | None:
@@ -1152,6 +1142,7 @@ def create_app(
     *,
     db_path: str | Path | None = None,
     project_root: str | Path | None = None,
+    asset_roots: Iterable[str | Path] | None = None,
 ) -> Flask:
     app = Flask(__name__)
     paths = (
@@ -1163,6 +1154,28 @@ def create_app(
     app.config["DB_PATH"] = Path(db_path) if db_path is not None else paths.db_path
     app.config["PROJECT_ROOT"] = paths.project_root
     app.config["ASSETS_DIR"] = paths.assets_dir
+    configured_asset_roots = (
+        [Path(value) for value in asset_roots]
+        if asset_roots is not None
+        else [paths.assets_dir, paths.project_root / "data" / "derived"]
+    )
+    project_root_path = paths.project_root.resolve()
+    validated_asset_roots: list[Path] = []
+    for configured_root in configured_asset_roots:
+        candidate = (
+            configured_root
+            if configured_root.is_absolute()
+            else paths.project_root / configured_root
+        ).resolve()
+        try:
+            candidate.relative_to(project_root_path)
+        except ValueError as exc:
+            raise ValueError("asset roots must stay inside the project root") from exc
+        if candidate.exists():
+            candidate = get_workspace_io().validate_directory_path(candidate)
+        if candidate not in validated_asset_roots:
+            validated_asset_roots.append(candidate)
+    app.config["ASSET_ROOTS"] = tuple(validated_asset_roots)
 
     @app.get("/health")
     def health():
@@ -1190,7 +1203,6 @@ def create_app(
     @app.get("/questions")
     def questions():
         try:
-            _ensure_source_attributions(app.config["DB_PATH"], app.config["PROJECT_ROOT"])
             context = _question_context(request.args)
             rows = list_questions(
                 db_path=app.config["DB_PATH"],
@@ -1228,11 +1240,6 @@ def create_app(
         error = request.args.get("error")
         try:
             context = _structured_review_context(request.args)
-            _ensure_source_attributions(app.config["DB_PATH"], app.config["PROJECT_ROOT"])
-            ExportSelectionService(
-                db_path=app.config["DB_PATH"],
-                project_root=app.config["PROJECT_ROOT"],
-            ).ensure_export_quality_states()
             rows = list_structured_review_items(
                 db_path=app.config["DB_PATH"],
                 ai_status=context["ai_status"],
@@ -1272,10 +1279,10 @@ def create_app(
                 db_path=app.config["DB_PATH"],
                 project_root=app.config["PROJECT_ROOT"],
             )
-            ExportSelectionService(
+            classify_export_quality_states(
                 db_path=app.config["DB_PATH"],
                 project_root=app.config["PROJECT_ROOT"],
-            ).ensure_export_quality_states()
+            )
         except Stage10Error as exc:
             return redirect(url_for("structured_review", error=str(exc)))
         return redirect(next_url)
@@ -1337,11 +1344,6 @@ def create_app(
                     )
                 )
 
-        ExportSelectionService(
-            db_path=app.config["DB_PATH"],
-            project_root=app.config["PROJECT_ROOT"],
-        ).ensure_export_quality_states()
-        _ensure_source_attributions(app.config["DB_PATH"], app.config["PROJECT_ROOT"])
         question = get_question_detail(question_id, db_path=app.config["DB_PATH"])
         if question is None:
             abort(404)
@@ -1440,7 +1442,7 @@ def create_app(
 
     @app.get("/paper-basket")
     def paper_basket():
-        questions = _basket_questions(app.config["DB_PATH"], app.config["PROJECT_ROOT"])
+        questions = _basket_questions(app.config["DB_PATH"])
         return render_template_string(BASKET_TEMPLATE, questions=questions)
 
     @app.get("/paper-preview")
@@ -1495,14 +1497,26 @@ def create_app(
     @app.get("/assets/<path:relative_path>")
     def asset_file(relative_path: str):
         project_root_path = Path(app.config["PROJECT_ROOT"]).resolve()
-        assets_root = Path(app.config["ASSETS_DIR"]).resolve()
         target = (project_root_path / relative_path).resolve()
-        try:
-            target.relative_to(assets_root)
-        except ValueError:
+        if not any(
+            _is_path_below(target, Path(root))
+            for root in app.config["ASSET_ROOTS"]
+        ):
             abort(404)
         if not target.is_file():
+            abort(404)
+        try:
+            target = get_workspace_io().validate_read_file_path(target)
+        except WorkspaceIOError:
             abort(404)
         return send_file(target)
 
     return app
+
+
+def _is_path_below(path: Path, root: Path) -> bool:
+    try:
+        path.relative_to(root.resolve())
+    except ValueError:
+        return False
+    return True

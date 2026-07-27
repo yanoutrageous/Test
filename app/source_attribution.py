@@ -7,7 +7,8 @@ from pathlib import Path
 from typing import Any
 
 from .config import PROJECT_ROOT
-from .database import connect_database, initialize_database
+from .database import connect_database, connect_database_read_only, initialize_database
+from .safety.workspace_io import get_workspace_io
 
 
 SOURCE_ATTRIBUTION_VERSION = "source_attribution_v2"
@@ -45,7 +46,7 @@ class SourceAttributionService:
 
     def ensure_source_attributions(self) -> dict[str, Any]:
         initialize_database(self.db_path)
-        with connect_database(self.db_path) as conn:
+        with connect_database_read_only(self.db_path) as conn:
             question_count = int(conn.execute("SELECT count(*) FROM questions").fetchone()[0])
             attribution_count = int(
                 conn.execute("SELECT count(*) FROM question_source_attributions").fetchone()[0]
@@ -197,8 +198,7 @@ class SourceAttributionService:
         return result
 
     def summarize(self) -> dict[str, Any]:
-        initialize_database(self.db_path)
-        with connect_database(self.db_path) as conn:
+        with connect_database_read_only(self.db_path) as conn:
             question_count = int(conn.execute("SELECT count(*) FROM questions").fetchone()[0])
             attribution_count = int(
                 conn.execute("SELECT count(*) FROM question_source_attributions").fetchone()[0]
@@ -355,13 +355,15 @@ class SourceAttributionService:
     def write_report(self, *, summary: dict[str, Any] | None = None) -> dict[str, Any]:
         summary = summary or self.summarize()
         report_path = self.project_root / REPORT_RELATIVE_PATH
-        report_path.parent.mkdir(parents=True, exist_ok=True)
-        report_path.write_text(_render_report_markdown(summary), encoding="utf-8")
+        receipt = get_workspace_io().write_text_idempotent(
+            report_path,
+            _render_report_markdown(summary),
+        )
         return {
             "status": "ok",
             "path": str(report_path),
             "relative_path": str(REPORT_RELATIVE_PATH).replace("\\", "/"),
-            "size_bytes": report_path.stat().st_size,
+            "size_bytes": receipt.size_bytes,
         }
 
 

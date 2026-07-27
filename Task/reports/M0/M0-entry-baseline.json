@@ -1,0 +1,121 @@
+{
+  "schema_version": "1.0.0",
+  "baseline_id": "M0-BASELINE-20260711-001",
+  "captured_at": "2026-07-11T03:08:03+08:00",
+  "run_id": "RUN-20260711-M0-001",
+  "milestone": "M0",
+  "git": {
+    "branch": "agent/m0-m5-local-v1",
+    "base_branch": "agent/long-run-execution-spec",
+    "base_commit": "bfd4d35973974a223f465cd08910f303518a8586",
+    "base_tree": "e772fd22ceca16086fe7fcea1306ef4f9d2f3559",
+    "tracked_files": 107,
+    "planning_pull_request": "https://github.com/yanoutrageous/Test/pull/1"
+  },
+  "workspace": {
+    "logical_root": "PROJECT_ROOT",
+    "resolved_root": "D:\\AAA命题\\Test",
+    "root_chain_reparse_points": 0,
+    "tree_reparse_points": 0,
+    "observed_directories": 455,
+    "observed_files": 3795,
+    "observed_bytes": 179989610,
+    "d_drive_free_bytes": 595734523904,
+    "d_drive_free_gib": 554.82,
+    "filesystem_health": "Healthy/OK"
+  },
+  "host": {
+    "os": "Windows 11 64-bit",
+    "build": "26200",
+    "powershell": "5.1",
+    "logical_processors": 12,
+    "memory_gib": 30.88
+  },
+  "toolchain": {
+    "python": "3.12.13",
+    "sqlite": "3.50.4",
+    "flask": "3.1.3",
+    "pymupdf": "1.28.0",
+    "pytest": "9.1.1",
+    "git": "2.54.0",
+    "github_cli": "2.96.0",
+    "requirements_sha256": "8aa2c17741503e062d48fa9ad49b33f5b7ee02ef9765d4ee003dc78ceeb24892",
+    "schema_sha256": "e92d9339839d726fb340e32cb2a81afbad76963609158d5242210667c58ab071",
+    "python_files": 57,
+    "missing_non_blocking_for_m0_entry": [
+      "TeX or Typst",
+      "Tesseract or OCRmyPDF",
+      "Ghostscript or qpdf",
+      "Poppler or MuPDF CLI",
+      "local embedding model and vector index"
+    ],
+    "dependency_decision": "Do not install until a selected M1/M3 design is demonstrably blocked and a dependency audit passes."
+  },
+  "activity_database": {
+    "logical_path": "data/db/question_bank.sqlite3",
+    "size_bytes": 471040,
+    "sha256": "1505bf05bd8e385eada30642110596363c561c330da02a40a497072064ad1c94",
+    "user_version": 0,
+    "journal_mode": "delete",
+    "physical_tables": 25,
+    "business_tables": 19,
+    "business_rows": 0,
+    "integrity_check": "ok",
+    "foreign_key_violations": 0,
+    "wal_sidecars_present": false,
+    "entry_rule": "The activity database is read-only during M0 design; all migration work starts on a verified copy/staging database."
+  },
+  "reference_gold_facts": [
+    {
+      "logical_id": "REF-VIS-NEW9",
+      "sha256": "1754436304ec543d88c5964fdf01409bf081b9c2ea425a22259d6bb5dd0bfac1",
+      "pages": 91,
+      "text_pages": 0,
+      "role": "visual truth only"
+    },
+    {
+      "logical_id": "REF-CONTENT-HISTORY",
+      "sha256": "d02d0f16371fa96f4b8f7c0cfe43eceaea7df5f57ad83880e8cb27497b32f472",
+      "pages": 1207,
+      "text_pages": 1207,
+      "role": "content and provenance truth candidate"
+    }
+  ],
+  "external_source_observation": {
+    "files_compared": 15,
+    "matching_size_and_sha256": 15,
+    "reparse_points": 0,
+    "copy_ledger_status": "not established; existing Base copies do not count as the M0 Copy workflow demonstration"
+  },
+  "legacy_test_baseline": {
+    "command_profile": "pytest with TEMP, TMP, pycache and basetemp confined to Test/tmp/test_lab/RUN-20260711-M0-BASELINE",
+    "collected": 88,
+    "passed": 88,
+    "failed": 0,
+    "duration_seconds": 15.15,
+    "protected_sentinel_sha256": "479d778bbc953b48eb7f4bedbada4042a6e0f57f8d6ad8d96044650f7203e77d",
+    "protected_sentinel_unchanged": true,
+    "activity_database_unchanged": true,
+    "interpretation": "The historical MVP baseline is stable; this does not prove any M0 security, migration, visual, recovery, browser, or customer-delivery gate."
+  },
+  "existing_capabilities": [
+    "Flask local web interface",
+    "SQLite plus FTS5 historical schema",
+    "manual review and HTML preview/export paths",
+    "PyMuPDF-based historical PDF processing",
+    "session-based paper basket"
+  ],
+  "critical_m0_gaps": [
+    "no WorkspaceGuard or centralized write authorization",
+    "arbitrary db_path, project_root and output_path can create or write outside the project",
+    "read/list routes may initialize or mutate schema",
+    "no Copy ledger, atomic writer, job staging, quarantine or append-only file audit",
+    "database backup uses file copy rather than SQLite Backup API",
+    "no migration ledger; PRAGMA user_version is zero",
+    "no versioned domain objects or QuestionIR/FigureIR/PaperIR",
+    "no visual gold registry or frozen thresholds",
+    "no browser, offline, restore, path-attack or real PDF acceptance evidence",
+    "historical 1123-question reports contradict the empty activity database"
+  ],
+  "entry_conclusion": "M0_PREFLIGHT_ACCEPTED_M0_NOT_ACCEPTED"
+}

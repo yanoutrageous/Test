@@ -7,8 +7,9 @@ from pathlib import Path
 from typing import Any
 
 from .config import PROJECT_ROOT
-from .database import connect_database, initialize_database
+from .database import connect_database, connect_database_read_only, initialize_database
 from .risk_classifier import RiskClassifier, USABILITY_CLASSIFICATION_VERSION
+from .safety.workspace_io import get_workspace_io
 from .stage10 import HIGH_RISK_PAGES, questions_main_checksum
 from .stage11 import classify_usability_states
 from .structured_content import initialize_structured_contents, parse_json_field
@@ -101,7 +102,7 @@ class ExportQualityService:
     def ensure_export_quality_states(self) -> dict[str, Any]:
         initialize_database(self.db_path)
         self.ensure_usability_states()
-        with connect_database(self.db_path) as conn:
+        with connect_database_read_only(self.db_path) as conn:
             question_count = int(conn.execute("SELECT count(*) FROM questions").fetchone()[0])
             quality_count = int(
                 conn.execute("SELECT count(*) FROM question_export_quality").fetchone()[0]
@@ -128,7 +129,7 @@ class ExportQualityService:
         }
 
     def ensure_usability_states(self) -> dict[str, Any]:
-        with connect_database(self.db_path) as conn:
+        with connect_database_read_only(self.db_path) as conn:
             question_count = int(conn.execute("SELECT count(*) FROM questions").fetchone()[0])
             usability_count = int(
                 conn.execute("SELECT count(*) FROM question_usability_states").fetchone()[0]
@@ -252,8 +253,7 @@ def summarize_export_quality(
     project_root: Path = PROJECT_ROOT,
 ) -> dict[str, Any]:
     if conn is None:
-        initialize_database(db_path)
-        with connect_database(db_path) as owned_conn:
+        with connect_database_read_only(db_path) as owned_conn:
             return summarize_export_quality(conn=owned_conn, project_root=project_root)
 
     question_count = int(conn.execute("SELECT count(*) FROM questions").fetchone()[0])
@@ -311,10 +311,9 @@ def get_export_quality_by_question_ids(
 ) -> dict[int, dict[str, Any]]:
     if not question_ids:
         return {}
-    initialize_database(db_path)
     unique_ids = list(dict.fromkeys(int(value) for value in question_ids))
     placeholders = ", ".join("?" for _ in unique_ids)
-    with connect_database(db_path) as conn:
+    with connect_database_read_only(db_path) as conn:
         rows = conn.execute(
             f"""
             SELECT *
@@ -349,8 +348,10 @@ def write_stage12_export_quality_report(
     classify_result = service.classify_all()
     summary = classify_result["summary"]
     report_path = project_root / "docs" / "stage12_export_quality_report.md"
-    report_path.parent.mkdir(parents=True, exist_ok=True)
-    report_path.write_text(_render_stage12_report(summary), encoding="utf-8")
+    get_workspace_io().write_text_idempotent(
+        report_path,
+        _render_stage12_report(summary),
+    )
     return {
         "status": "ok",
         "relative_path": "docs/stage12_export_quality_report.md",

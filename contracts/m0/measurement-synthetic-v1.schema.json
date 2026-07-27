@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:local-exam-bank:synthetic-measurement:1.0",
+  "title": "M0 Synthetic Measurement Fixture v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_id",
+    "schema_version",
+    "dataset_id",
+    "synthetic",
+    "item_max_points",
+    "responses",
+    "expected_item_difficulty_p",
+    "time_semantics",
+    "extensions"
+  ],
+  "properties": {
+    "schema_id": {
+      "const": "LOCAL_EXAM_BANK_SYNTHETIC_MEASUREMENT"
+    },
+    "schema_version": {
+      "const": "1.0"
+    },
+    "dataset_id": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9._-]{2,127}$"
+    },
+    "synthetic": {
+      "const": true
+    },
+    "item_max_points": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "number",
+        "exclusiveMinimum": 0
+      }
+    },
+    "responses": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object"
+      }
+    },
+    "expected_item_difficulty_p": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+      }
+    },
+    "time_semantics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "whole_paper_time_available",
+        "observed_item_time_available",
+        "observed_item_time_policy"
+      ],
+      "properties": {
+        "whole_paper_time_available": {
+          "const": true
+        },
+        "observed_item_time_available": {
+          "const": false
+        },
+        "observed_item_time_policy": {
+          "const": "must-remain-null"
+        }
+      }
+    },
+    "extensions": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^x-[a-z0-9][a-z0-9._-]{0,62}$"
+      }
+    }
+  },
+  "x-runtime-validator": "app.gold_registry.validate_measurement_synthetic"
+}

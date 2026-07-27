@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import sqlite3
 import struct
@@ -10,6 +11,9 @@ import pytest
 
 from app import create_app
 from app.database import connect_database, initialize_database
+from app.export_quality import ExportQualityService, classify_export_quality_states
+from app.source_attribution import SourceAttributionService
+from app.stage11 import classify_usability_states
 from app.structured_content import initialize_structured_contents
 from app.web import BASKET_SESSION_KEY
 
@@ -188,6 +192,7 @@ def _set_verified_choice_structured(db_path: Path, question_id: int) -> None:
             ),
         )
         conn.commit()
+    _refresh_read_models(db_path)
 
 
 def _set_needs_review_structured(db_path: Path, question_id: int) -> None:
@@ -210,6 +215,13 @@ def _set_needs_review_structured(db_path: Path, question_id: int) -> None:
             ),
         )
         conn.commit()
+    _refresh_read_models(db_path)
+
+
+def _refresh_read_models(db_path: Path) -> None:
+    project_root = db_path.parents[2]
+    classify_usability_states(db_path=db_path, project_root=project_root)
+    classify_export_quality_states(db_path=db_path, project_root=project_root)
 
 
 @pytest.fixture()
@@ -318,6 +330,15 @@ def web_fixture(tmp_path: Path) -> dict[str, object]:
         )
         conn.commit()
 
+    SourceAttributionService(
+        db_path=db_path,
+        project_root=project_root,
+    ).ensure_source_attributions()
+    ExportQualityService(
+        db_path=db_path,
+        project_root=project_root,
+    ).ensure_export_quality_states()
+
     return {
         "db_path": db_path,
         "project_root": project_root,
@@ -326,6 +347,18 @@ def web_fixture(tmp_path: Path) -> dict[str, object]:
         "batch_id": batch_id,
         "asset_relative_path": asset_relative_path,
         "crop_relative_path": crop_relative_path,
+    }
+
+
+def _database_artifacts(db_path: Path) -> dict[str, tuple[int, int, str]]:
+    return {
+        path.name: (
+            path.stat().st_size,
+            path.stat().st_mtime_ns,
+            hashlib.sha256(path.read_bytes()).hexdigest(),
+        )
+        for path in sorted(db_path.parent.iterdir(), key=lambda item: item.name)
+        if path.is_file()
     }
 
 
@@ -388,6 +421,40 @@ def test_questions_list_defaults_to_pending(web_fixture: dict[str, object]) -> N
     assert "WEB-Q001" in text
     assert "WEB-Q002" not in text
     assert "pending" in text
+
+
+def test_all_get_routes_leave_database_and_sidecars_unchanged(
+    web_fixture: dict[str, object],
+) -> None:
+    db_path = Path(web_fixture["db_path"])
+    app = create_app(
+        db_path=db_path,
+        project_root=web_fixture["project_root"],
+    )
+    client = app.test_client()
+    with client.session_transaction() as session:
+        session[BASKET_SESSION_KEY] = [int(web_fixture["pending_id"])]
+
+    before = _database_artifacts(db_path)
+    responses = [
+        client.get("/batches"),
+        client.get(f"/batches/{web_fixture['batch_id']}"),
+        client.get("/questions"),
+        client.get("/structured-review"),
+        client.get(f"/questions/{web_fixture['pending_id']}"),
+        client.get("/paper-basket"),
+        client.get("/paper-preview"),
+        client.get("/paper-export"),
+    ]
+    after = _database_artifacts(db_path)
+
+    assert [response.status_code for response in responses] == [200] * len(responses)
+    assert after == before
+    assert not any(
+        name.endswith(("-wal", "-shm", "-journal"))
+        for name in after
+    )
+    text = responses[2].get_data(as_text=True)
     assert "Web Test Paper / p0001 / 题号 1" in text
     assert "inferred" in text
     assert "加入组卷" in text

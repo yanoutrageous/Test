@@ -10,6 +10,7 @@ from typing import Any
 
 from .config import PROJECT_ROOT, get_project_paths
 from .database import connect_database, initialize_database
+from .safety.workspace_io import get_workspace_io
 
 
 def _json_loads(value: str | None, default: Any) -> Any:
@@ -35,12 +36,6 @@ def _percent(numerator: int, denominator: int) -> float:
     if denominator <= 0:
         return 0.0
     return round(numerator * 100 / denominator, 2)
-
-
-def _time_ms(fn) -> tuple[int, Any]:
-    started = time.perf_counter()
-    result = fn()
-    return max(0, int((time.perf_counter() - started) * 1000)), result
 
 
 def _measure_sql_performance(conn) -> list[dict[str, Any]]:
@@ -70,7 +65,9 @@ def _measure_sql_performance(conn) -> list[dict[str, Any]]:
     results: list[dict[str, Any]] = []
     for name, sql, params in checks:
         try:
-            duration_ms, rows = _time_ms(lambda: conn.execute(sql, params).fetchall())
+            started = time.perf_counter()
+            rows = conn.execute(sql, params).fetchall()
+            duration_ms = max(0, int((time.perf_counter() - started) * 1000))
         except sqlite3.OperationalError as exc:
             results.append(
                 {
@@ -118,7 +115,9 @@ def _measure_web_performance(
     client = app.test_client()
     results: list[dict[str, Any]] = []
     for path in paths:
-        duration_ms, response = _time_ms(lambda: client.get(path))
+        started = time.perf_counter()
+        response = client.get(path)
+        duration_ms = max(0, int((time.perf_counter() - started) * 1000))
         body = response.get_data()
         results.append(
             {
@@ -401,10 +400,9 @@ def write_stage8_quality_report(
 ) -> dict[str, Any]:
     report = build_stage8_quality_report(db_path=db_path, project_root=project_root)
     target = output_path or (project_root / "docs" / "stage8_quality_report.md")
-    target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(report, encoding="utf-8")
+    receipt = get_workspace_io().write_text_idempotent(target, report)
     return {
         "path": str(target),
         "relative_path": target.resolve().relative_to(project_root.resolve()).as_posix(),
-        "size_bytes": target.stat().st_size,
+        "size_bytes": receipt.size_bytes,
     }
